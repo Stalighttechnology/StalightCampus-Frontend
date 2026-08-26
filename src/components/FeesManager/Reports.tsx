@@ -941,6 +941,13 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                             <span>On Leave ({leaveTypes[dateStr]})</span>
                           </div>
                         )}
+
+                        {record.notes?.includes('[Early Checkout]') && (
+                          <div className="flex items-center justify-center gap-2 text-orange-600 bg-orange-50 dark:bg-orange-900/20 px-4 py-2.5 rounded-full font-medium text-sm border border-orange-100 dark:border-orange-500/20 mt-2">
+                            <Clock className="w-4 h-4" />
+                            <span>Early Checkout</span>
+                          </div>
+                        )}
                       </div>
                     )}
                     
