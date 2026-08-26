@@ -7,6 +7,20 @@ const DEVICE_ID_KEY = 'device_id';
 let _inMemoryAccessToken: string | null = null;
 export let isLoggingOutFlag = false;
 
+const extractAppVersion = (response: Response) => {
+  const versionData = response.headers.get('X-App-Version');
+  if (versionData) {
+    try {
+      const decoded = atob(versionData);
+      const parsed = JSON.parse(decoded);
+      const event = new CustomEvent('app_version_update', { detail: parsed });
+      window.dispatchEvent(event);
+    } catch (e) {
+      // Silently ignore decode/parse errors
+    }
+  }
+};
+
 export const setInMemoryAccessToken = (token: string | null) => {
   _inMemoryAccessToken = token;
 };
@@ -247,6 +261,9 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
         throw new Error("Server returned HTML instead of PDF binary.");
       }
     }
+
+    // Extract app version if present
+    extractAppVersion(response);
 
     return response;
 
@@ -615,6 +632,8 @@ export const fetchWithSuperadminTokenRefresh = async (url: string, options: Requ
       }
     }
   }
+
+  extractAppVersion(response);
 
   return response;
 };
