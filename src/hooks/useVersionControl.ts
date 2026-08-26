@@ -25,12 +25,8 @@ export const useVersionControl = () => {
     return 0;
   };
 
-  const checkVersion = async () => {
+  const handleVersionConfig = async (config: VersionConfig) => {
     try {
-      const response = await fetch(`${API_ENDPOINT}/public/app-version/`);
-      if (!response.ok) return;
-      const config: VersionConfig = await response.json();
-
       let installedVersion = "1.0.0";
       let minimumVersion = "1.0.0";
       let url = "";
@@ -47,7 +43,6 @@ export const useVersionControl = () => {
         }
       } else {
         // For web, we assume package version is managed via an env var or a global config.
-        // If not available, we use 1.0.0. A better way in production is to inject the version.
         installedVersion = process.env.REACT_APP_VERSION || import.meta.env.VITE_APP_VERSION || "1.0.0";
         minimumVersion = config.web.minimum_supported_version;
       }
@@ -60,37 +55,21 @@ export const useVersionControl = () => {
         setIsUpdateRequired(false);
       }
     } catch (err) {
-      console.error("Failed to check app version", err);
+      console.error("Failed to parse app version config", err);
     }
   };
 
   useEffect(() => {
-    checkVersion();
+    const handleAppVersionUpdate = (e: any) => {
+      if (e.detail) {
+        handleVersionConfig(e.detail as VersionConfig);
+      }
+    };
 
-    let listener: any = null;
-    
-    if (Capacitor.isNativePlatform()) {
-      App.addListener('appStateChange', (state) => {
-        if (state.isActive) {
-          checkVersion();
-        }
-      }).then(l => listener = l);
-    } else {
-      const handleVisibilityChange = () => {
-        if (!document.hidden) {
-          checkVersion();
-        }
-      };
-      document.addEventListener("visibilitychange", handleVisibilityChange);
-      return () => {
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
-      };
-    }
+    window.addEventListener('app_version_update', handleAppVersionUpdate);
 
     return () => {
-      if (listener) {
-        listener.remove();
-      }
+      window.removeEventListener('app_version_update', handleAppVersionUpdate);
     };
   }, []);
 
