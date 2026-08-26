@@ -1,4 +1,5 @@
 import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
+import { downloadFile } from "../../utils/downloadHelper";
 import { useRef, useState, useEffect } from "react";
 import { Checkbox } from "../ui/checkbox";
 import {
@@ -1160,17 +1161,14 @@ const StudentManagement = () => {
   };
 
   // Download CSV template
-  const downloadTemplate = () => {
-    const csvContent = generateTemplate();
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "student_bulk_enroll_template.csv");
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const downloadTemplate = async () => {
+    try {
+      const csvContent = generateTemplate();
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      await downloadFile(blob, "student_bulk_enroll_template.csv");
+    } catch (err) {
+      console.error("Failed to download template:", err);
+    }
   };
 
   // Handle file drop
