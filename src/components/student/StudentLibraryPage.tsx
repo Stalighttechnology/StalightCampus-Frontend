@@ -277,8 +277,62 @@ const StudentLibraryPage: React.FC = () => {
               </CardDescription>
             </div>
 
-            {/* Tabs */}
-            <div className={`library-tabs flex flex-row overflow-x-auto custom-scrollbar gap-2 p-2 rounded-2xl mt-6 border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-100'} shadow-sm`}>
+            {/* Mobile View: Select Dropdown */}
+            <div className="block sm:hidden mt-4 w-full">
+              <Select
+                value={tab}
+                onValueChange={(val: TabType) => {
+                  setTab(val);
+                  setTimeout(() => {
+                    document.getElementById('library-tab-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }, 50);
+                }}
+              >
+                <SelectTrigger className={`w-full h-11 px-3.5 font-semibold text-sm rounded-xl border shadow-sm ${
+                  theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'
+                }`}>
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}>
+                  <SelectItem value="taken" className="py-2.5 font-medium">
+                    <div className="flex items-center justify-between w-full gap-2">
+                      <span>Borrowed</span>
+                      {summary?.taken_count > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">
+                          {summary.taken_count}
+                        </span>
+                      )}
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="overdue" className="py-2.5 font-medium">
+                    <div className="flex items-center justify-between w-full gap-2">
+                      <span>Overdue</span>
+                      {summary?.overdue_count > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                          {summary.overdue_count}
+                        </span>
+                      )}
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="returned" className="py-2.5 font-medium">
+                    <div className="flex items-center justify-between w-full gap-2">
+                      <span>Returned</span>
+                      {summary?.returned_count > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                          {summary.returned_count}
+                        </span>
+                      )}
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="catalog" className="py-2.5 font-medium">
+                    <span>Search Catalog</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Desktop / Tablet: Horizontal Pill Tabs */}
+            <div className={`library-tabs hidden sm:flex flex-row overflow-x-auto custom-scrollbar gap-2 p-2 rounded-2xl mt-6 border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-100'} shadow-sm`}>
               {([
                 { id: 'taken', label: 'Borrowed', count: summary?.taken_count ?? 0 },
                 { id: 'overdue', label: 'Overdue', count: summary?.overdue_count ?? 0 },

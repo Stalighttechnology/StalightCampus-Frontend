@@ -4,7 +4,6 @@ import {
   Home,
   Calendar,
   Clock,
-  Loader2,
   ArrowUpRight,
   Search,
   PlayCircle,
@@ -26,6 +25,7 @@ import {
   CardTitle,
   CardFooter,
 } from "../ui/card";
+import { Skeleton } from "../ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -327,18 +327,40 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
 
           </div>
 
-          {/* Loading State */}
+          {/* Loading State - Skeletons */}
           {isLoading ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
-              <Loader2 className="w-4 h-4 animate-spin" /> Loading class schedules…
+            <div className="space-y-3 max-w-full">
+              {Array.from({ length: 4 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`w-full rounded-xl border p-4 flex flex-col gap-3.5 ${
+                    theme === "dark" ? "bg-card border-border" : "bg-white border-gray-200"
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 w-full">
+                    <div className="flex items-start gap-3 flex-1">
+                      <Skeleton className="w-8 h-8 rounded-full shrink-0 mt-0.5" />
+                      <div className="space-y-2 flex-1 min-w-0">
+                        <Skeleton className="h-4 w-3/4 max-w-xs rounded-md" />
+                        <Skeleton className="h-3 w-1/2 max-w-[200px] rounded-md" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-20 rounded-full" />
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4 pt-1 border-t border-border/40">
+                    <Skeleton className="h-3.5 w-24 rounded-md" />
+                    <Skeleton className="h-3.5 w-32 rounded-md" />
+                    <Skeleton className="h-3.5 w-28 rounded-md" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredClasses.length > 0 ? (
             /* Class Cards List */
             <div className="space-y-3 max-w-full">
-              <p className="text-xs text-muted-foreground font-medium mb-1">
-                Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredClasses.length)} of {filteredClasses.length} session{filteredClasses.length !== 1 ? "s" : ""}
-              </p>
-
               {paginatedClasses.map((item) => {
                 const classState = checkClassState(item);
                 const isOnline = item.meeting_type === "online";
@@ -667,36 +689,43 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
               </p>
             </div>
           )}
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4 border-t border-border/50">
-              <p className="text-xs text-muted-foreground">
-                Page {currentPage} of {totalPages}
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="h-8 text-xs"
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="h-8 text-xs"
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
         </CardContent>
+
+        {/* Pagination Controls Matching HODLeavesManagement */}
+        {totalPages > 1 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filteredClasses.length)} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredClasses.length)} of {filteredClasses.length} sessions
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1 || isLoading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages || isLoading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       {/* ── Student Session Feedback Dialog Modal ──────────────────────── */}
