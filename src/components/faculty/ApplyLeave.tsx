@@ -797,8 +797,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           ${alternateFacultyObj ? `<div style="margin-bottom: 6px;"><strong>Substitute Faculty:</strong> <span>${alternateFacultyObj.name}</span></div>` : ''}
           <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed ${currentTheme === 'dark' ? '#374151' : '#e5e7eb'}; font-size: 13px; opacity: 0.9;">
             ${isStageZero
-              ? 'This leave request will be <strong>auto-approved immediately for records</strong> without requiring approvals.'
-              : 'Are you sure you want to submit this leave application for approval?'}
+          ? 'This leave request will be <strong>auto-approved immediately for records</strong> without requiring approvals.'
+          : 'Are you sure you want to submit this leave application for approval?'}
           </div>
         </div>
       `,
@@ -997,7 +997,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               <CalendarCheck2 className="w-4 h-4 text-primary" />
               Academic Leave Cycle:
             </span>
-            <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+            <span className="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
               AY {leaveQuota?.academic_year_label || `${new Date().getFullYear()} - ${new Date().getFullYear() + 1}`}
             </span>
           </div>
@@ -1146,8 +1146,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               type="button"
               onClick={() => setActiveMainTab('apply')}
               className={`flex-1 justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${activeMainTab === 'apply'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                ? 'bg-primary text-white shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                 }`}
             >
               <CalendarCheck2 className="w-4 h-4 shrink-0" />
@@ -1157,16 +1157,16 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               type="button"
               onClick={() => setActiveMainTab('substitute_requests')}
               className={`flex-1 justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 relative ${activeMainTab === 'substitute_requests'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                ? 'bg-primary text-white shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                 }`}
             >
               <Users className="w-4 h-4 shrink-0" />
               <span className="whitespace-nowrap">Substitute Requests</span>
               {pendingSubstituteCount > 0 && (
-                <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] rounded-full font-bold leading-none ${activeMainTab === 'substitute_requests'
-                    ? 'bg-white text-primary'
-                    : 'bg-rose-500 text-white animate-pulse'
+                <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] rounded-full font-semibold leading-none ${activeMainTab === 'substitute_requests'
+                  ? 'bg-white text-primary'
+                  : 'bg-rose-500 text-white animate-pulse'
                   }`}>
                   {pendingSubstituteCount}
                 </span>
@@ -1284,6 +1284,24 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-5">
+                {/* Pending Post-OD Attendance Certificate Alert Banner */}
+                {Boolean(leaveQuota?.od_pending_certificates_count && leaveQuota.od_pending_certificates_count > 0) && (
+                  <div className="p-3.5 rounded-xl border border-amber-300 dark:border-amber-700/60 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 flex items-start gap-3 shadow-xs">
+                    <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1 flex-1">
+                      <div className="text-xs font-semibold flex items-center justify-between">
+                        <span>Post-OD Attendance Certificate Required</span>
+                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-200/80 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200">
+                          ⚠️ {leaveQuota?.od_pending_certificates_count} Pending
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-amber-700 dark:text-amber-300/90 leading-relaxed">
+                        You have {leaveQuota?.od_pending_certificates_count} completed On Duty (OD) leave(s) awaiting attendance/participation certificate submission. Please upload proof in the <strong>Leave History</strong> section.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Error Message */}
                 {error && (
                   <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
@@ -1392,7 +1410,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 {/* File / Image Attachment Section (Exclusively for On Duty and Maternity Leaves) */}
                 {(leaveType === 'od' || leaveType === 'maternity') && (
                   <div className={`p-3.5 rounded-xl border space-y-3 ${leaveType === 'od' ? 'border-emerald-500/30 bg-emerald-500/5' :
-                      'border-pink-500/30 bg-pink-500/5'
+                    'border-pink-500/30 bg-pink-500/5'
                     }`}>
                     {/* OD Purpose Category */}
                     {leaveType === 'od' && (
@@ -1400,8 +1418,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           OD Purpose Category <span className="text-red-500">*</span>
                         </Label>
-                        <Select 
-                          value={odPurposeCategory} 
+                        <Select
+                          value={odPurposeCategory}
                           onValueChange={(val) => {
                             setOdPurposeCategory(val);
                             if (val !== 'other') {
@@ -1490,8 +1508,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       {/* Selected File Preview Card OR Clean Upload Dropzone */}
                       {initialDocFile ? (
                         <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${initialDocFile.size > 1024 * 1024
-                            ? 'bg-rose-500/5 border-rose-500/40'
-                            : theme === 'dark' ? 'bg-background/90 border-primary/30' : 'bg-white border-primary/30 shadow-sm'
+                          ? 'bg-rose-500/5 border-rose-500/40'
+                          : theme === 'dark' ? 'bg-background/90 border-primary/30' : 'bg-white border-primary/30 shadow-sm'
                           }`}>
                           <div className="flex items-center gap-3 min-w-0">
                             {docPreviewUrl ? (
@@ -1503,8 +1521,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                               />
                             ) : (
                               <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border ${initialDocFile.size > 1024 * 1024
-                                  ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
-                                  : 'bg-primary/10 text-primary border-primary/20'
+                                ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                                : 'bg-primary/10 text-primary border-primary/20'
                                 }`}>
                                 <FileText className="w-6 h-6" />
                               </div>
@@ -1678,11 +1696,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                   {/* Step 2: Assign To (Hidden when Direct is selected) */}
                   {(isStageZero || targetRole === 'none') ? (
-                    <div className={`p-3 rounded-lg border text-xs flex items-center gap-2 ${
-                      isStageZero
-                        ? (theme === 'dark' ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-800')
-                        : (theme === 'dark' ? 'bg-muted/40 border-border text-muted-foreground' : 'bg-slate-100 border-slate-200 text-slate-600')
-                    }`}>
+                    <div className={`p-3 rounded-lg border text-xs flex items-center gap-2 ${isStageZero
+                      ? (theme === 'dark' ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-800')
+                      : (theme === 'dark' ? 'bg-muted/40 border-border text-muted-foreground' : 'bg-slate-100 border-slate-200 text-slate-600')
+                      }`}>
                       <CheckCircle2 className={`w-4 h-4 shrink-0 ${isStageZero ? 'text-emerald-600 dark:text-emerald-400' : 'text-emerald-500'}`} />
                       <span>Direct Review enabled: Request will be sent directly for approval without substitute duty assignment.</span>
                     </div>
@@ -2280,10 +2297,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   <span>Substitute:</span>
                                   <span className="text-foreground font-medium">{leave.alternate_faculty_name}</span>
                                   <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded border ${leave.alternate_duty_status === 'ACCEPTED'
-                                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400'
-                                      : leave.alternate_duty_status === 'DECLINED'
-                                        ? 'text-rose-700 bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400'
-                                        : 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400'
+                                    ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400'
+                                    : leave.alternate_duty_status === 'DECLINED'
+                                      ? 'text-rose-700 bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400'
+                                      : 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400'
                                     }`}>
                                     {leave.alternate_duty_status || 'PENDING'}
                                   </span>
@@ -2338,11 +2355,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                 href={leave.initial_document_url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className={`w-full h-8 text-xs font-medium flex items-center justify-center gap-1.5 rounded-lg border shadow-sm transition-all ${
-                                  theme === 'dark'
-                                    ? 'border-sky-500/30 bg-sky-950/30 text-sky-300 hover:bg-sky-950/50'
-                                    : 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100'
-                                }`}
+                                className={`w-full h-8 text-xs font-medium flex items-center justify-center gap-1.5 rounded-lg border shadow-sm transition-all ${theme === 'dark'
+                                  ? 'border-sky-500/30 bg-sky-950/30 text-sky-300 hover:bg-sky-950/50'
+                                  : 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100'
+                                  }`}
                                 title="View Attached Duty Order / Document Proof"
                               >
                                 <FileText className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
@@ -2434,10 +2450,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                         {leave.alternate_faculty_name}
                                       </div>
                                       <span className={`inline-block text-[9px] font-semibold px-1.5 py-0.2 rounded border ${leave.alternate_duty_status === 'ACCEPTED'
-                                          ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800'
-                                          : leave.alternate_duty_status === 'DECLINED'
-                                            ? 'text-rose-700 bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800'
-                                            : 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800'
+                                        ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800'
+                                        : leave.alternate_duty_status === 'DECLINED'
+                                          ? 'text-rose-700 bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800'
+                                          : 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800'
                                         }`}>
                                         {leave.alternate_duty_status || 'PENDING'}
                                       </span>
@@ -2992,8 +3008,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   {/* Selected Certificate Preview Card OR Clean Upload Dropzone */}
                   {completionCertFile ? (
                     <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${completionCertFile.size > 1024 * 1024
-                        ? 'bg-rose-500/5 border-rose-500/40'
-                        : theme === 'dark' ? 'bg-background/90 border-primary/30' : 'bg-white border-primary/30 shadow-sm'
+                      ? 'bg-rose-500/5 border-rose-500/40'
+                      : theme === 'dark' ? 'bg-background/90 border-primary/30' : 'bg-white border-primary/30 shadow-sm'
                       }`}>
                       <div className="flex items-center gap-3 min-w-0">
                         {certPreviewUrl ? (
@@ -3005,8 +3021,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           />
                         ) : (
                           <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border ${completionCertFile.size > 1024 * 1024
-                              ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
-                              : 'bg-primary/10 text-primary border-primary/20'
+                            ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                            : 'bg-primary/10 text-primary border-primary/20'
                             }`}>
                             <FileText className="w-6 h-6" />
                           </div>

@@ -179,12 +179,18 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
       return;
     }
 
-    // 1b. My Leave Applications Status (Approved / Rejected / Sanctioned)
+    // 1b. My Leave Applications Status (Approved / Rejected / Sanctioned) & Post-OD Certificate
     if (
+      titleLower.includes('post-od') ||
+      titleLower.includes('attendance certificate') ||
       titleLower.includes('leave request approved') ||
       titleLower.includes('leave request rejected') ||
       titleLower.includes('leave approved') ||
       titleLower.includes('leave rejected') ||
+      msgLower.includes('post-od') ||
+      msgLower.includes('on duty period') ||
+      msgLower.includes('attendance certificate') ||
+      msgLower.includes('participation certificate') ||
       msgLower.includes('sanctioned by')
     ) {
       if (roleLower === 'hod') {
@@ -195,6 +201,9 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
         setPage('apply-leave');
       }
       window.dispatchEvent(new CustomEvent('stalightcampus_set_leave_tab', { detail: { tab: 'apply' } }));
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('stalightcampus_set_leave_tab', { detail: { tab: 'apply' } }));
+      }, 50);
       return;
     }
 
