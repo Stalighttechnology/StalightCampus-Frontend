@@ -1166,7 +1166,7 @@ const AdminAnnouncementManagement = () => {
         }
       `}</style>
 
-      <div className={`text-sm sm:text-base max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+      <div className={`text-sm sm:text-base w-full max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
         <Card id="announcement-management-card" className={`announcements-card shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
           {loading ? (
             <>

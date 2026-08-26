@@ -418,7 +418,6 @@ export const AnnouncementSections = ({
           .ann-tabs-list button span {
             font-size: 13px !important;
           }
-          .ann-archive-btn { width: 100% !important; margin-top: 8px !important; }
           .ann-table-container { border: none !important; }
           .ann-card-mobile { padding: 12px !important; margin-bottom: 12px !important; border-radius: 12px !important; border: 1px solid hsl(var(--border)) !important; }
           .ann-card-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
@@ -535,11 +534,11 @@ export const AnnouncementSections = ({
             )}
 
             {/* Top Toolbar: Circular Category Filter OR Quick Filter Pills & Archive Button */}
-            <div className="flex flex-wrap items-center gap-2 mt-5">
+            <div className="flex items-center gap-2 mt-4 sm:mt-5 w-full sm:w-auto">
               {isCircularMode ? (
-                <div className="flex items-center gap-2">
+                <div className="flex-1 sm:flex-initial min-w-0">
                   <Select value={activeCircularCategory} onValueChange={handleCategoryChange}>
-                    <SelectTrigger className="h-9 w-[180px] sm:w-[210px] text-xs bg-background">
+                    <SelectTrigger className="h-9 w-full sm:w-[210px] text-xs bg-background">
                       <SelectValue placeholder="All Categories" />
                     </SelectTrigger>
                     <SelectContent>
@@ -555,9 +554,9 @@ export const AnnouncementSections = ({
                   </Select>
                 </div>
               ) : !isAnnouncementMode ? (
-                <div className="flex items-center gap-2">
+                <div className="flex-1 sm:flex-initial min-w-0">
                   <Select value={circularFilter} onValueChange={(val: 'all' | 'circulars' | 'general') => setCircularFilter(val)}>
-                    <SelectTrigger className="h-9 w-[160px] sm:w-[190px] text-xs bg-background">
+                    <SelectTrigger className="h-9 w-full sm:w-[190px] text-xs bg-background">
                       <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
                       <SelectValue placeholder="All Types" />
                     </SelectTrigger>
@@ -575,7 +574,7 @@ export const AnnouncementSections = ({
                   variant="outline"
                   size="sm"
                   onClick={() => setShowExpired(!showExpired)}
-                  className={`ann-archive-btn text-xs font-semibold transition-all h-9 px-4 rounded-xl border-dashed hover:border-solid ${showExpired
+                  className={`ann-archive-btn shrink-0 text-xs font-semibold transition-all h-9 px-3 sm:px-4 rounded-xl border-dashed hover:border-solid ${showExpired
                     ? "bg-primary/5 border-primary text-primary hover:bg-primary/10"
                     : "text-muted-foreground hover:text-foreground border-muted-foreground/20 hover:border-foreground/30"
                     }`}
