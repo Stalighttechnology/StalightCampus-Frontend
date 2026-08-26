@@ -841,7 +841,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
 
   const mergedTodayAttendance = [...hodTodayAttendance, ...todayAttendance];
   const displayedTodayAttendance = mergedTodayAttendance
-    .filter(record => !showOffCampusOnly || record.notes?.includes('[Off-Campus Check-in]'))
+    .filter(record => !showOffCampusOnly || ((record as any).today_attendance_state?.off_campus_duty === true || record.notes?.includes('[Off-Campus Check-in]')))
     .filter(record => !debouncedTodaySearchQuery || record.faculty_name.toLowerCase().includes(debouncedTodaySearchQuery.toLowerCase()));
 
   const mergedFacultySummary = [...hodRecordsSummary, ...facultySummary];
@@ -1320,7 +1320,28 @@ const AdminFacultyAttendanceView: React.FC = () => {
                               <h3 className={`text-sm font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Timeline</h3>
                               <div className={`space-y-3 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                                 
-                                {selectedTodayRecord.checkin_timestamps?.length > 0 ? (
+                                {(selectedTodayRecord as any).today_attendance_state ? (
+                                  Object.entries(((selectedTodayRecord as any).today_attendance_state as TodayAttendanceState).checkpoints).map(([key, details], idx, arr) => {
+                                    const isLast = idx === arr.length - 1;
+                                    const delayMinutes = selectedTodayRecord.delays?.[idx] || 0;
+                                    const displayName = key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                                    return (
+                                      <div key={key} className={`flex items-center justify-between pb-3 ${!isLast ? (theme === 'dark' ? 'border-b border-white/10' : 'border-b border-gray-200') : ''}`}>
+                                        <div className="flex items-center gap-2">
+                                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${details.state === 'MISSED' ? 'bg-red-500/10 text-red-500' : details.state.startsWith('NOT_REQUIRED') ? 'bg-gray-500/10 text-gray-500' : details.state === 'COMPLETED' ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500'}`}>
+                                            {idx + 1}
+                                          </div>
+                                          <span className="font-semibold text-gray-500">
+                                            {displayName.replace('First', '1st').replace('Second', '2nd')}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          {getCheckpointDisplay(details.state, details.timestamp, delayMinutes, theme)}
+                                        </div>
+                                      </div>
+                                    );
+                                  })
+                                ) : selectedTodayRecord.checkin_timestamps?.length > 0 ? (
                                   <>
                                     {selectedTodayRecord.checkin_timestamps.map((ts: any, idx: number) => (
                                       <div key={idx} className={`flex items-center justify-between pb-3 ${idx < selectedTodayRecord.checkin_timestamps.length - 1 ? (theme === 'dark' ? 'border-b border-white/10' : 'border-b border-gray-200') : ''}`}>
@@ -2216,7 +2237,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                       </div>
                     )}
 
-                    {record.notes?.includes('[Off-Campus Check-in]') && (
+                    {((record as any).today_attendance_state?.off_campus_duty === true || record.notes?.includes('[Off-Campus Check-in]')) && (
                       <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed">
                         <span className="block text-xs uppercase tracking-wider font-black mb-1 opacity-70">Off-Campus Duty</span>
                         {record.notes.replace('[Off-Campus Check-in] Reason:', '').trim()}

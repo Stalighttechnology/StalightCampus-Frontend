@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonCard, SkeletonList } from "@/components/ui/skeleton";
 import { markFacultyAttendance, getFacultyAttendanceRecords, MarkFacultyAttendanceRequest, FacultyAttendanceRecord } from "@/utils/faculty_api";
+import { TodayAttendanceState } from "@/types/attendance";
 import { normalizePaginatedResponse } from '@/utils/normalizePagination';
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -189,7 +190,8 @@ const FacultyAttendance = () => {
                 periodic_checkin_count: foundTodayRec.periodic_checkin_count || orgPeriodicCount,
                 strict_checkin_window: foundTodayRec.strict_checkin_window ?? orgStrictWindow,
                 category_attendance_workflows: orgCategoryWorkflows,
-                staff_category: userStaffCategory
+                staff_category: userStaffCategory,
+                today_attendance_state: (response as any).today_attendance_state
               }
             : {
                 id: `today-${today}`,
@@ -206,7 +208,8 @@ const FacultyAttendance = () => {
                 checkin_windows: orgCheckinWindows,
                 strict_checkin_window: orgStrictWindow,
                 category_attendance_workflows: orgCategoryWorkflows,
-                staff_category: userStaffCategory
+                staff_category: userStaffCategory,
+                today_attendance_state: (response as any).today_attendance_state
               };
 
           setTodayRecord(finalTodayRec);
@@ -275,108 +278,66 @@ const FacultyAttendance = () => {
   };
 
   const getFlowState = () => {
-    if (!todayRecord) return { currentAction: 'check_in', label: 'Check In', isCheckOut: false, isAllowed: true, nextText: null, isCompleted: false };
+    if (!todayRecord || !(todayRecord as any).today_attendance_state) {
+      return { 
+        currentAction: 'check_in', 
+        label: 'Check In', 
+        isCheckOut: false, 
+        isAllowed: true, 
+        nextText: null, 
+        isCompleted: false,
+        canEarlyCheckout: false,
+        canDeclareOffCampus: false,
+        isHoliday: false
+      };
+    }
 
-    const catWorkflows = (todayRecord as any).category_attendance_workflows || {};
-    const userCat = todayRecord.staff_category || 'teaching';
-    const catConfig = catWorkflows[userCat] || catWorkflows['teaching'];
-    const mode = catConfig?.mode || 'half_day_split';
-    const strictWindow = todayRecord.strict_checkin_window === false ? false : (catConfig?.strict_window !== false);
+    const state = (todayRecord as any).today_attendance_state;
+    const isCompleted = state.is_completed;
+    const currentAction = state.next_action;
+    
+    let nextText = null;
+    if (state.is_holiday) nextText = "Holiday";
+    else if (state.is_weekly_off) nextText = "Weekly Off";
+    else if (state.is_full_day_leave) nextText = "On Leave";
+    else if (state.off_campus_duty === 'PENDING') nextText = "Off-Campus Duty Pending";
+    else if (state.off_campus_duty === 'APPROVED') nextText = "On Approved Off-Campus Duty";
 
-    const toMinutes = (t?: string) => {
-      if (!t) return 0;
-      const [h, m] = t.split(':').map(Number);
-      return h * 60 + m;
-    };
-    const nowMin = () => { const n = new Date(); return n.getHours() * 60 + n.getMinutes(); };
-    const getWindowPhase = (w?: {start:string,end:string}) => {
-      if (!w) return 'active';
-      const now = nowMin();
-      if (now < toMinutes(w.start)) return 'upcoming';
-      if (now <= toMinutes(w.end)) return 'active';
-      return 'passed';
-    };
-    const formatTime = (timeStr?: string) => {
-        if (!timeStr) return '';
-        const [h, m] = timeStr.split(':');
-        let hour = parseInt(h, 10);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        hour = hour % 12 || 12;
-        return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`;
-    };
-
-    const hds = catConfig?.half_day_split;
-    const fd  = catConfig?.full_day;
-    const windows = {
-      first_half_in:   hds?.first_half_in,
-      first_half_out:  hds?.first_half_out,
-      second_half_in:  hds?.second_half_in,
-      second_half_out: hds?.second_half_out,
-      check_in:  fd?.check_in,
-      check_out: fd?.check_out,
-    } as Record<string, {start:string,end:string}|undefined>;
-
-    let currentAction = 'check_in';
-    let isCompleted = false;
-
-    const checkMissed = (hasTime: boolean, action: string) => {
-      if (hasTime) return false;
-      const w = windows[action];
-      return w && strictWindow && getWindowPhase(w) === 'passed';
-    };
-
-    if (mode === 'half_day_split') {
-      const has1stIn  = !!todayRecord.first_check_in;
-      const has1stOut = !!todayRecord.first_check_out;
-      const has2ndIn  = !!todayRecord.second_check_in;
-      const has2ndOut = !!todayRecord.second_check_out;
-      
-      const missed1stIn = !has1stIn && checkMissed(has1stIn, 'first_half_in');
-      const missed1stOut = !has1stOut && checkMissed(has1stOut, 'first_half_out');
-      const missed2ndIn = !has2ndIn && checkMissed(has2ndIn, 'second_half_in');
-      const missed2ndOut = !has2ndOut && checkMissed(has2ndOut, 'second_half_out');
-
-      if (has2ndOut || todayRecord.notes?.includes('[Early Checkout]')) isCompleted = true;
-      else if (!has1stIn && !missed1stIn) currentAction = 'first_half_in';
-      else if (!has1stOut && !missed1stOut && has1stIn) currentAction = 'first_half_out';
-      else if (!has2ndIn && !missed2ndIn)  currentAction = 'second_half_in';
-      else if (!has2ndOut && !missed2ndOut && has2ndIn) currentAction = 'second_half_out';
-      else                 isCompleted = true;
-    } else {
-      const hasCheckIn = !!todayRecord.check_in_time;
-      const hasCheckOut = !!todayRecord.check_out_time;
-      
-      const missedIn = !hasCheckIn && checkMissed(hasCheckIn, 'check_in');
-      const missedOut = !hasCheckOut && checkMissed(hasCheckOut, 'check_out');
-
-      if (hasCheckOut || todayRecord.notes?.includes('[Early Checkout]')) isCompleted = true;
-      else if (!hasCheckIn && !missedIn) currentAction = 'check_in';
-      else if (!hasCheckOut && !missedOut && hasCheckIn) currentAction = 'check_out';
-      else                                  isCompleted = true;
+    if (isCompleted) {
+      return { 
+        currentAction: null, 
+        label: 'Attendance Completed', 
+        isCheckOut: false, 
+        isAllowed: false, 
+        nextText, 
+        isCompleted: true,
+        canEarlyCheckout: false,
+        canDeclareOffCampus: false,
+        isHoliday: state.is_holiday || state.is_weekly_off
+      };
     }
 
     const actionLabels: Record<string,string> = {
       first_half_in: '1st Half In', first_half_out: '1st Half Out',
       second_half_in: '2nd Half In', second_half_out: '2nd Half Out',
       check_in: 'Check In', check_out: 'Check Out',
+      early_checkout: 'Early Check Out'
     };
     
-    const label = actionLabels[currentAction] || 'Check In';
-    const isCheckOut = ['first_half_out','second_half_out','check_out'].includes(currentAction);
-    
-    const currentWindow = windows[currentAction];
-    const phase = getWindowPhase(currentWindow);
-    const isAllowed = (!currentWindow) || (phase === 'active') || (!strictWindow && phase === 'passed');
-    
-    let nextText = null;
-    if (!isCompleted && currentWindow) {
-      if (phase === 'upcoming') nextText = `Next: ${label} window opens at ${formatTime(currentWindow.start)}`;
-      else if (phase === 'active') nextText = `${label} window active (Closes at ${formatTime(currentWindow.end)})`;
-      else if (phase === 'passed' && !strictWindow) nextText = `${label} window passed (Late allowed)`;
-      else if (phase === 'passed' && strictWindow) nextText = `${label} window closed`;
-    }
+    const label = currentAction ? (actionLabels[currentAction] || 'Check In') : 'Check In';
+    const isCheckOut = currentAction ? ['first_half_out','second_half_out','check_out', 'early_checkout'].includes(currentAction) : false;
 
-    return { currentAction, label, isCheckOut, isAllowed, nextText, isCompleted };
+    return { 
+      currentAction, 
+      label, 
+      isCheckOut, 
+      isAllowed: !isCompleted && currentAction !== null, 
+      nextText, 
+      isCompleted,
+      canEarlyCheckout: state.can_early_checkout,
+      canDeclareOffCampus: state.can_declare_off_campus,
+      isHoliday: state.is_holiday || state.is_weekly_off
+    };
   };
 
   const handleTempStartDateChange = (date: Date | undefined) => {
@@ -969,20 +930,29 @@ const FacultyAttendance = () => {
                   const hds = catConfig?.half_day_split;
                   const fd = catConfig?.full_day;
 
-                  const getMissed = (timeVal: string|null|undefined, w?: {end:string}) => {
-                    if (timeVal) return false;
-                    if (!w || !w.end) return false;
-                    return nowMin > toMinutes(w.end);
-                  };
+                  const stateCheckpoints = (todayRecord as any).today_attendance_state?.checkpoints || {};
                   
+                  const getCheckpointStatus = (key: string, timeVal: string|null|undefined, fallbackWindow?: {end:string}) => {
+                    if (timeVal === "Missed") return 'missed';
+                    const cpState = stateCheckpoints[key]?.state;
+                    if (cpState === 'NOT_REQUIRED_EARLY_CHECKOUT' || cpState === 'NOT_REQUIRED_LEAVE') return 'not_required';
+                    if (cpState === 'MISSED') return 'missed';
+                    if (cpState === 'COMPLETED' && timeVal) return 'completed';
+                    
+                    // Fallback to manual check if state is missing (e.g. history records)
+                    if (timeVal) return 'completed';
+                    if (!fallbackWindow || !fallbackWindow.end) return 'pending';
+                    return nowMin > toMinutes(fallbackWindow.end) ? 'missed' : 'pending';
+                  };
+
                   const checkpoints = mode === 'half_day_split' ? [
-                    { label: '1st Half In', time: todayRecord.first_check_in, missed: getMissed(todayRecord.first_check_in, hds?.first_half_in), delay: todayRecord.delays?.[0] },
-                    { label: '1st Half Out', time: todayRecord.first_check_out, missed: getMissed(todayRecord.first_check_out, hds?.first_half_out), delay: todayRecord.delays?.[1] },
-                    { label: '2nd Half In', time: todayRecord.second_check_in, missed: getMissed(todayRecord.second_check_in, hds?.second_half_in), delay: todayRecord.delays?.[2] },
-                    { label: '2nd Half Out', time: todayRecord.second_check_out, missed: getMissed(todayRecord.second_check_out, hds?.second_half_out), delay: todayRecord.delays?.[3] }
+                    { key: 'first_half_in', label: '1st Half In', time: todayRecord.first_check_in, status: getCheckpointStatus('first_half_in', todayRecord.first_check_in, hds?.first_half_in), delay: todayRecord.delays?.[0] },
+                    { key: 'first_half_out', label: '1st Half Out', time: todayRecord.first_check_out, status: getCheckpointStatus('first_half_out', todayRecord.first_check_out, hds?.first_half_out), delay: todayRecord.delays?.[1] },
+                    { key: 'second_half_in', label: '2nd Half In', time: todayRecord.second_check_in, status: getCheckpointStatus('second_half_in', todayRecord.second_check_in, hds?.second_half_in), delay: todayRecord.delays?.[2] },
+                    { key: 'second_half_out', label: '2nd Half Out', time: todayRecord.second_check_out, status: getCheckpointStatus('second_half_out', todayRecord.second_check_out, hds?.second_half_out), delay: todayRecord.delays?.[3] }
                   ] : [
-                    { label: 'Check In', time: todayRecord.check_in_time, missed: getMissed(todayRecord.check_in_time, fd?.check_in), delay: todayRecord.delays?.[0] },
-                    { label: 'Check Out', time: todayRecord.check_out_time, missed: getMissed(todayRecord.check_out_time, fd?.check_out), delay: todayRecord.delays?.[1] }
+                    { key: 'check_in', label: 'Check In', time: todayRecord.check_in_time, status: getCheckpointStatus('check_in', todayRecord.check_in_time, fd?.check_in), delay: todayRecord.delays?.[0] },
+                    { key: 'check_out', label: 'Check Out', time: todayRecord.check_out_time, status: getCheckpointStatus('check_out', todayRecord.check_out_time, fd?.check_out), delay: todayRecord.delays?.[1] }
                   ];
 
                   return (
@@ -995,17 +965,19 @@ const FacultyAttendance = () => {
                         {checkpoints.map((cp, idx) => (
                           <div key={idx} className="flex justify-between text-sm items-center py-0.5">
                             <span className="text-gray-500 font-medium">{cp.label}:</span>
-                            {cp.time && cp.time !== "Missed" ? (
+                            {cp.status === 'completed' ? (
                               <div className="flex items-center gap-1 font-semibold text-green-600 dark:text-green-400">
-                                <span>{format(new Date(cp.time), 'hh:mm a')}</span>
+                                <span>{format(new Date(cp.time as string), 'hh:mm a')}</span>
                                 {cp.delay && cp.delay > 0 ? (
                                   <span className="text-[10px] text-orange-500 font-bold bg-orange-500/10 px-1 py-0.5 rounded ml-1">
                                     +{cp.delay}m
                                   </span>
                                 ) : null}
                               </div>
-                            ) : (cp.time === "Missed" || cp.missed) ? (
+                            ) : cp.status === 'missed' ? (
                               <span className="text-red-500 font-bold">Missed</span>
+                            ) : cp.status === 'not_required' ? (
+                              <span className="text-gray-400 italic">Not Required</span>
                             ) : (
                               <span className="text-gray-400 italic">Pending</span>
                             )}
