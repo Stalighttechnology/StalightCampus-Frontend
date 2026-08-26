@@ -1,7 +1,7 @@
 import { translateTerminology, getTerm, getInstitutionType } from "../../utils/institutionConfig";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
-import { Pencil, Trash2, BookOpen, FileDown, Loader2, X } from "lucide-react";
+import { Pencil, Trash2, BookOpen, FileDown, Loader2, X, Plus } from "lucide-react";
 import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
 import { Input } from "../ui/input";
@@ -351,7 +351,7 @@ const SubjectManagement = () => {
                   onClick={() => {
                     updateState({
                       showModal: "add",
-                      newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50 },
+                      newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50, lab_batches: ["Batch 1", "Batch 2"] },
                       currentSubject: null
                     });
                   }}
@@ -557,7 +557,7 @@ const SubjectManagement = () => {
                   <Button
                     onClick={() => updateState({
                       showModal: "add",
-                      newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                      newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3, max_cie_marks: 50, max_see_marks: 50, lab_batches: ["Batch 1", "Batch 2"] },
                       currentSubject: null
                     })}
                     className="bg-primary text-white hover:bg-primary/90 transition-all transform hover:scale-105 active:scale-95 shadow-lg">
@@ -713,23 +713,48 @@ const SubjectManagement = () => {
 
             {/* Lab Batches Section - Shown when Course Type is Lab */}
             {state.newSubject.subject_type === 'lab' && (
-              <div className="mb-4 p-3 rounded-lg border border-purple-200 dark:border-purple-900/50 bg-purple-50/50 dark:bg-purple-950/20">
-                <div className="flex items-center justify-between mb-2">
-                  <label className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    Lab Batches <span className="text-red-500">*</span>
-                  </label>
-                  <span className="text-xs text-muted-foreground">Practical lab groups</span>
+              <div className="mb-4 p-3.5 rounded-xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/50 dark:bg-purple-950/20">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <label className={`text-sm font-semibold block ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      Lab Batches <span className="text-red-500">*</span>
+                    </label>
+                    <span className="text-xs text-muted-foreground">Practical lab groups (Default: 2 Batches)</span>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 px-3 text-xs bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-sm transition-all flex items-center gap-1"
+                    onClick={() => {
+                      const current = state.newSubject.lab_batches && state.newSubject.lab_batches.length > 0
+                        ? state.newSubject.lab_batches
+                        : ['Batch 1', 'Batch 2'];
+                      
+                      // Auto-increment to next available Batch N
+                      let nextNum = 1;
+                      while (current.includes(`Batch ${nextNum}`)) {
+                        nextNum++;
+                      }
+                      const nextBatchName = `Batch ${nextNum}`;
+                      updateState({
+                        newSubject: { ...state.newSubject, lab_batches: [...current, nextBatchName] }
+                      });
+                    }}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Batch
+                  </Button>
                 </div>
                 
                 {/* Batches Chip List */}
-                <div className="flex flex-wrap gap-2 mb-3">
+                <div className="flex flex-wrap gap-2">
                   {(state.newSubject.lab_batches && state.newSubject.lab_batches.length > 0
                     ? state.newSubject.lab_batches
                     : ['Batch 1', 'Batch 2']
                   ).map((batchName, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-1.5 px-3 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 shadow-sm"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-lg text-xs font-semibold border border-purple-200 dark:border-purple-800 shadow-sm"
                     >
                       <span>{batchName}</span>
                       <button
@@ -745,68 +770,13 @@ const SubjectManagement = () => {
                             newSubject: { ...state.newSubject, lab_batches: updated }
                           });
                         }}
-                        className="hover:text-red-500 hover:bg-purple-200 dark:hover:bg-purple-800 rounded-full p-0.5 transition-colors"
-                        title="Remove batch"
+                        className="hover:text-red-500 hover:bg-purple-200 dark:hover:bg-purple-800 rounded-full p-0.5 transition-colors ml-0.5"
+                        title={`Remove ${batchName}`}
                       >
                         <X className="w-3 h-3" />
                       </button>
                     </div>
                   ))}
-                </div>
-
-                {/* Add Batch Input and Quick Buttons */}
-                <div className="flex gap-2 items-center">
-                  <Input
-                    type="text"
-                    id="new-lab-batch-name-input"
-                    placeholder="e.g., Batch 3, L1, L2"
-                    className={`text-xs h-8 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-300'}`}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const inputEl = e.currentTarget;
-                        const val = inputEl.value.trim();
-                        if (val) {
-                          const current = state.newSubject.lab_batches || ['Batch 1', 'Batch 2'];
-                          if (!current.includes(val)) {
-                            updateState({
-                              newSubject: { ...state.newSubject, lab_batches: [...current, val] }
-                            });
-                          }
-                          inputEl.value = '';
-                        }
-                      }
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="h-8 px-3 text-xs bg-purple-600 hover:bg-purple-700 text-white shrink-0"
-                    onClick={() => {
-                      const inputEl = document.getElementById('new-lab-batch-name-input') as HTMLInputElement;
-                      const val = inputEl?.value?.trim();
-                      if (val) {
-                        const current = state.newSubject.lab_batches || ['Batch 1', 'Batch 2'];
-                        if (!current.includes(val)) {
-                          updateState({
-                            newSubject: { ...state.newSubject, lab_batches: [...current, val] }
-                          });
-                        }
-                        if (inputEl) inputEl.value = '';
-                      } else {
-                        // Quick auto-increment default: "Batch N"
-                        const current = state.newSubject.lab_batches || ['Batch 1', 'Batch 2'];
-                        const nextBatchName = `Batch ${current.length + 1}`;
-                        if (!current.includes(nextBatchName)) {
-                          updateState({
-                            newSubject: { ...state.newSubject, lab_batches: [...current, nextBatchName] }
-                          });
-                        }
-                      }
-                    }}
-                  >
-                    + Add Batch
-                  </Button>
                 </div>
               </div>
             )}
