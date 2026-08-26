@@ -121,15 +121,15 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
   const { clearAuth } = useAuth();
 
   const getActivePageFromPath = (pathname: string): string => {
-    const pathParts = pathname.split('/');
-    const lastPart = pathParts[pathParts.length - 1];
+    const pathParts = pathname.split('/').filter(Boolean);
+    const lastPart = pathParts[pathParts.length - 1] || '';
 
     // Map URL paths to page names
     const pathMap: {[key: string]: string;} = {
+      'hod': 'dashboard',
       'my-payroll': 'my-payroll',
       'staff-tasks': 'staff-tasks',
       'dashboard': 'dashboard',
-      'holiday-calendar': '/hod/holiday-calendar',
       'holiday-calendar': 'holiday-calendar',
       'promotion-management': 'promotion-management',
       'low-attendance': 'low-attendance',

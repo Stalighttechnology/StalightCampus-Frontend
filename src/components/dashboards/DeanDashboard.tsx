@@ -48,14 +48,14 @@ const getActivePageFromPath = (pathname: string): string => {
   const pathParts = pathname.split('/').filter(Boolean);
   const lastPart = pathParts[pathParts.length - 1] || '';
   const pathMap: { [key: string]: string } = {
-      'my-payroll': 'my-payroll',
-      'my-attendance': 'my-attendance',
-      'staff-tasks': 'staff-tasks',
-      'apply-leave': 'apply-leave',
-      'leaves': 'apply-leave',
+    'dean': 'dashboard',
+    'my-payroll': 'my-payroll',
+    'my-attendance': 'my-attendance',
+    'staff-tasks': 'staff-tasks',
+    'apply-leave': 'apply-leave',
+    'leaves': 'apply-leave',
     'dashboard': 'dashboard',
-      'holiday-calendar': '/dean/holiday-calendar',
-      'holiday-calendar': 'holiday-calendar',
+    'holiday-calendar': 'holiday-calendar',
     'profile': 'profile',
     'campus-locations': 'campus-locations',
     'attendance': 'attendance',
