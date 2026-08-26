@@ -521,7 +521,7 @@ const FacultyAttendanceView: React.FC = () => {
   };
 
   const displayedTodayAttendance = showOffCampusOnly
-    ? todayAttendance.filter(record => (record as any).today_attendance_state?.off_campus_duty === true || record.notes?.includes('[Off-Campus Check-in]'))
+    ? todayAttendance.filter(record => record.notes?.includes('[Off-Campus Check-in]'))
     : todayAttendance;
 
   return (
@@ -1365,7 +1365,7 @@ const FacultyAttendanceView: React.FC = () => {
                                   {record.check_out_time && <div>Out: {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>}
                                 </div>
                               )}
-                              {((record as any).today_attendance_state?.off_campus_duty === true || record.notes?.includes('[Off-Campus Check-in]')) && (
+                              {record.notes?.includes('[Off-Campus Check-in]') && (
                                 <div className="mt-1 text-amber-300 max-w-[180px] break-words whitespace-normal font-medium">
                                   Off-Campus Duty: {record.notes.replace('[Off-Campus Check-in] Reason:', '').trim()}
                                 </div>
@@ -1514,7 +1514,7 @@ const FacultyAttendanceView: React.FC = () => {
                       </div>
                     )}
 
-                    {((record as any).today_attendance_state?.off_campus_duty === true || record.notes?.includes('[Off-Campus Check-in]')) && (
+                    {record.notes?.includes('[Off-Campus Check-in]') && (
                       <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed">
                         <span className="block text-xs uppercase tracking-wider font-black mb-1 opacity-70">Off-Campus Duty</span>
                         {record.notes.replace('[Off-Campus Check-in] Reason:', '').trim()}
