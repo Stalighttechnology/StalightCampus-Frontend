@@ -336,7 +336,8 @@ const FacultyAttendance = () => {
       const missed2ndIn = !has2ndIn && checkMissed(has2ndIn, 'second_half_in');
       const missed2ndOut = !has2ndOut && checkMissed(has2ndOut, 'second_half_out');
 
-      if (!has1stIn && !missed1stIn) currentAction = 'first_half_in';
+      if (has2ndOut || todayRecord.notes?.includes('[Early Checkout]')) isCompleted = true;
+      else if (!has1stIn && !missed1stIn) currentAction = 'first_half_in';
       else if (!has1stOut && !missed1stOut && has1stIn) currentAction = 'first_half_out';
       else if (!has2ndIn && !missed2ndIn)  currentAction = 'second_half_in';
       else if (!has2ndOut && !missed2ndOut && has2ndIn) currentAction = 'second_half_out';
@@ -348,7 +349,8 @@ const FacultyAttendance = () => {
       const missedIn = !hasCheckIn && checkMissed(hasCheckIn, 'check_in');
       const missedOut = !hasCheckOut && checkMissed(hasCheckOut, 'check_out');
 
-      if (!hasCheckIn && !missedIn) currentAction = 'check_in';
+      if (hasCheckOut || todayRecord.notes?.includes('[Early Checkout]')) isCompleted = true;
+      else if (!hasCheckIn && !missedIn) currentAction = 'check_in';
       else if (!hasCheckOut && !missedOut && hasCheckIn) currentAction = 'check_out';
       else                                  isCompleted = true;
     }
@@ -428,7 +430,7 @@ const FacultyAttendance = () => {
   };
 
   const handleToggleAttendance = async (status: "present" | "absent", action?: string) => {
-    const isCheckInAction = action ? !['first_half_out', 'second_half_out', 'check_out'].includes(action) : false;
+    const isCheckInAction = action ? !['first_half_out', 'second_half_out', 'check_out', 'early_checkout'].includes(action) : false;
     const capitalizedStatus = action ? (isCheckInAction ? "Check In" : "Check Out") : (status.charAt(0).toUpperCase() + status.slice(1));
     const actionText = action ? (isCheckInAction ? "check in" : "check out") : `mark today's attendance as ${status}`;
     const confirmResult = await Swal.fire({
@@ -918,7 +920,7 @@ const FacultyAttendance = () => {
                   !getFlowState().isCompleted && (
                   <div className="mt-2">
                     <button
-                      onClick={() => handleToggleAttendance("present", "check_out")}
+                      onClick={() => handleToggleAttendance("present", "early_checkout")}
                       disabled={isSubmitting}
                       className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
                         ${theme === 'dark'
@@ -1629,6 +1631,13 @@ const FacultyAttendance = () => {
                     <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed">
                       <span className="block text-xs uppercase tracking-wider font-black mb-1 opacity-70">Off-Campus Duty</span>
                       {selectedRecordDetails.notes.replace('[Off-Campus Check-in] Reason:', '').trim()}
+                    </div>
+                  )}
+
+                  {selectedRecordDetails.notes?.includes('[Early Checkout]') && (
+                    <div className="flex items-center justify-center gap-2 text-orange-600 bg-orange-50 dark:bg-orange-900/20 px-4 py-2.5 rounded-full font-medium text-sm border border-orange-100 dark:border-orange-500/20">
+                      <Clock className="w-4 h-4" />
+                      <span>Early Checkout</span>
                     </div>
                   )}
                 </div>

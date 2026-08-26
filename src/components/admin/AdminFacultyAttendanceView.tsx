@@ -1434,6 +1434,14 @@ const AdminFacultyAttendanceView: React.FC = () => {
                             </div>
                           )}
 
+                          {/* Early Checkout Indicator */}
+                          {selectedTodayRecord.notes && selectedTodayRecord.notes.includes('[Early Checkout]') && (
+                            <div className="flex items-center justify-center gap-2 text-orange-600 bg-orange-50 dark:bg-orange-900/20 px-4 py-2.5 rounded-full font-medium text-sm border border-orange-100 dark:border-orange-500/20">
+                              <Clock className="w-4 h-4" />
+                              <span>Early Checkout</span>
+                            </div>
+                          )}
+
                           {/* Location & Notes */}
                           <div className="space-y-4">
                             <h3 className={`text-sm font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Details</h3>
