@@ -791,7 +791,7 @@ const StudentBranchTransfer = () => {
           if (!open) setShowConfirmation(false);
         }}
       >
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="w-[90%] max-w-[90%] sm:max-w-[480px] sm:w-full mx-auto rounded-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ArrowRightLeft className="h-5 w-5 text-primary" />
