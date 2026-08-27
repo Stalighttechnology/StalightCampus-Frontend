@@ -404,8 +404,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
   useEffect(() => {
     fetchBootstrapData();
-    fetchSubstituteRequests();
   }, [pagination.page, pagination.pageSize]);
+
+  useEffect(() => {
+    if (activeMainTab === 'substitute_requests') {
+      fetchSubstituteRequests();
+    }
+  }, [activeMainTab]);
 
   // Handle re-nominating a substitute colleague if declined/pending
   const handleRenominateColleague = async () => {
