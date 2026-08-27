@@ -599,7 +599,7 @@ const ManageStudentLeave = () => {
 
       {/* Forward to HoD Dialog */}
       <Dialog open={!!showForwardModal} onOpenChange={() => setShowForwardModal(null)}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} rounded-2xl`}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} w-[90%] max-w-[90%] sm:max-w-lg mx-auto rounded-2xl p-4 sm:p-6`}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Send className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -635,7 +635,7 @@ const ManageStudentLeave = () => {
 
       {/* Reject Dialog */}
       <Dialog open={!!showRejectModal} onOpenChange={() => setShowRejectModal(null)}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} rounded-2xl`}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} w-[90%] max-w-[90%] sm:max-w-lg mx-auto rounded-2xl p-4 sm:p-6`}>
           <DialogHeader>
             <DialogTitle>Reject Leave Request</DialogTitle>
           </DialogHeader>

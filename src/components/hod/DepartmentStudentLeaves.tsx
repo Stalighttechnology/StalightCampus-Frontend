@@ -527,7 +527,7 @@ export const DepartmentStudentLeaves = ({ onPendingCountChange }: DepartmentStud
 
       {/* Reject Dialog */}
       <Dialog open={!!showRejectModal} onOpenChange={() => setShowRejectModal(null)}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} rounded-2xl`}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} w-[90%] max-w-[90%] sm:max-w-lg mx-auto rounded-2xl p-4 sm:p-6`}>
           <DialogHeader>
             <DialogTitle>Reject Student Leave Request</DialogTitle>
           </DialogHeader>
