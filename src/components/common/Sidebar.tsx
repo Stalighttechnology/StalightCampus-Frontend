@@ -115,8 +115,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   useEffect(() => {
     const roleLower = (role || '').toLowerCase();
-    const canHaveSubstituteRequests = ['teacher', 'faculty', 'hod'].includes(roleLower);
-    const canApproveLeaves = ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe', 'teacher', 'faculty'].includes(roleLower);
+    const canHaveSubstituteRequests = ['teacher', 'faculty', 'hod', 'group_d'].includes(roleLower);
+    const canApproveLeaves = ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe', 'teacher', 'faculty', 'group_d'].includes(roleLower);
 
     if (canHaveSubstituteRequests || canApproveLeaves) {
       const checkSubstituteRequests = async () => {
@@ -827,21 +827,26 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   const branchName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
   const deptName = (user?.department || '').toString().toLowerCase();
-  const isNonTeachingBranch = branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
+  const isGroupDRole = user?.role === 'group_d' || role === 'group_d';
+  const isNonTeachingBranch = isGroupDRole || branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
+
+  const nonTeachingStaffMenuItems = [
+    { name: "Dashboard", page: "dashboard" },
+    { name: "Apply Leave", page: "apply-leave" },
+    { name: "My Attendance", page: "faculty-attendance" },
+    { name: "Announcements", page: "faculty-announcement-management" },
+    { name: "Calendar", page: "holiday-calendar" },
+    { name: "Schedule Meeting", page: "schedule-meeting" },
+    { name: "My Salary & Payroll", page: "my-payroll" },
+    { name: "Reimbursements & Claims", page: "reimbursements" },
+    { name: "Staff Tasks", page: "staff-tasks" },
+    { name: "Profile", page: "faculty-profile" },
+  ];
+
+  menuItems['group_d'] = nonTeachingStaffMenuItems;
 
   if (role === 'faculty' && isNonTeachingBranch) {
-    menuItems['faculty'] = [
-      { name: "Dashboard", page: "dashboard" },
-      { name: "Apply Leave", page: "apply-leave" },
-      { name: "My Attendance", page: "faculty-attendance" },
-      { name: "Announcements", page: "faculty-announcement-management" },
-      { name: "Calendar", page: "holiday-calendar" },
-      { name: "Schedule Meeting", page: "schedule-meeting" },
-      { name: "My Salary & Payroll", page: "my-payroll" },
-      { name: "Reimbursements & Claims", page: "reimbursements" },
-      { name: "Staff Tasks", page: "staff-tasks" },
-      { name: "Profile", page: "faculty-profile" },
-    ];
+    menuItems['faculty'] = nonTeachingStaffMenuItems;
   }
 
   if (role === 'hod' && isNonTeachingBranch) {

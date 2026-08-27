@@ -182,6 +182,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   const rolesList = [
     { value: "", label: "All Roles" },
     { value: "teacher", label: "Teacher" },
+    { value: "group_d", label: "Group D" },
     { value: "hod", label: "HOD" },
     { value: "principal", label: "Principal" },
     { value: "coe", label: "COE" },

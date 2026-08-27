@@ -979,12 +979,14 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             {(() => {
               const bName = (formData?.branch || user?.branch_name || user?.branch || '').toString().toLowerCase();
               const dName = (formData?.department || user?.department || '').toString().toLowerCase();
-              const isNonTeachingBranch = bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
+              const isGroupDRole = user?.role === 'group_d' || (formData as any)?.role === 'group_d';
+              const isNonTeachingBranch = isGroupDRole || bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
+              const roleDisplayTitle = isGroupDRole ? 'Group D' : (isNonTeachingBranch ? 'Non-Teaching Staff' : 'Faculty');
               
               return (
                 <>
                   <div className={`text-sm mb-4 sm:mb-6 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    {isNonTeachingBranch ? 'Non-Teaching Staff' : 'Faculty'}
+                    {roleDisplayTitle}
                   </div>
 
                   <div className="w-full mt-4 sm:mt-6 flex flex-col">
@@ -1019,7 +1021,8 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               {(() => {
                 const bName = (formData?.branch || user?.branch_name || user?.branch || '').toString().toLowerCase();
                 const dName = (formData?.department || user?.department || '').toString().toLowerCase();
-                const isNonTeachingBranch = bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
+                const isGroupDRole = user?.role === 'group_d' || (formData as any)?.role === 'group_d';
+                const isNonTeachingBranch = isGroupDRole || bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
                 
                 return (
                   <>

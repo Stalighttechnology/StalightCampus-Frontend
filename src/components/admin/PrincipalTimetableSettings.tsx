@@ -126,7 +126,7 @@ const DEFAULT_CATEGORY_WORKFLOWS: Record<string, any> = {
 
 const DEFAULT_STAFF_CATEGORY_MAPPING: Record<string, string[]> = {
   teaching: ['teacher', 'hod', 'dean'],
-  non_teaching: ['caretaker', 'driver', 'warden', 'library_admin', 'transport_admin', 'hms_admin'],
+  non_teaching: ['caretaker', 'driver', 'warden', 'library_admin', 'transport_admin', 'hms_admin', 'group_d'],
   admin_branch: ['principal', 'org_admin', 'admission_manager', 'fees_manager', 'coe', 'placement_officer', 'counsellor'],
 };
 
@@ -551,20 +551,20 @@ export default function PrincipalTimetableSettings() {
       },
       on_duty: {
         is_enabled: true,
-        eligible_roles: ['teacher', 'faculty', 'hod', 'dean', 'principal', 'coe'],
+        eligible_roles: ['teacher', 'faculty', 'group_d', 'hod', 'dean', 'principal', 'coe'],
         require_initial_document: false,
         require_completion_certificate: true
       },
       vacation_leave: {
         is_enabled: true,
         annual_quota: 60,
-        eligible_roles: ['teacher', 'faculty'],
+        eligible_roles: ['teacher', 'faculty', 'group_d'],
         require_non_probationary: true
       },
       maternity_leave: {
         is_enabled: true,
         annual_quota: 90,
-        eligible_roles: ['teacher', 'faculty', 'hod', 'counsellor', 'warden', 'office_admin']
+        eligible_roles: ['teacher', 'faculty', 'group_d', 'hod', 'counsellor', 'warden', 'office_admin']
       },
       restricted_holiday: {
         is_enabled: true,
@@ -579,6 +579,7 @@ export default function PrincipalTimetableSettings() {
     },
     leave_approval_routing: {
       teacher: { num_stages: 2, stages: ['hod', 'principal'] },
+      group_d: { num_stages: 2, stages: ['hod', 'principal'] },
       hod: { num_stages: 1, stages: ['principal'] },
       principal: { num_stages: 1, stages: ['dean'] },
       coe: { num_stages: 1, stages: ['principal'] },
@@ -610,6 +611,7 @@ export default function PrincipalTimetableSettings() {
 
   const AVAILABLE_ROLES = [
     { value: 'teacher', label: 'Teacher' },
+    { value: 'group_d', label: 'Group D' },
     { value: 'hod', label: translateTerminology('HOD') },
     { value: 'dean', label: 'Dean' },
     { value: 'principal', label: 'Principal' },
@@ -692,7 +694,16 @@ export default function PrincipalTimetableSettings() {
         }
         const mapping = data.staff_category_mapping;
         if (mapping && Object.keys(mapping).length > 0) {
-          setStaffCategoryMapping(mapping);
+          const currentMapped = Object.values(mapping).flat() as string[];
+          const mergedMapping = { ...mapping };
+          Object.entries(DEFAULT_STAFF_CATEGORY_MAPPING).forEach(([cat, roles]) => {
+            roles.forEach(r => {
+              if (!currentMapped.includes(r)) {
+                mergedMapping[cat] = [...(mergedMapping[cat] || []), r];
+              }
+            });
+          });
+          setStaffCategoryMapping(mergedMapping);
         } else {
           setStaffCategoryMapping(DEFAULT_STAFF_CATEGORY_MAPPING);
         }
@@ -2974,6 +2985,7 @@ export default function PrincipalTimetableSettings() {
                       <div className={`rounded-xl border divide-y ${theme === 'dark' ? 'bg-background border-border divide-border' : 'bg-slate-50/50 border-gray-200 divide-gray-100'}`}>
                         {[
                           { roleKey: 'teacher', label: 'Faculty / Teacher Leaves', defaultStages: ['hod', 'principal'] },
+                          { roleKey: 'group_d', label: 'Group D Leaves', defaultStages: ['hod', 'principal'] },
                           { roleKey: 'hod', label: 'Head of Department (HOD) Leaves', defaultStages: ['dean', 'principal'] },
                           { roleKey: 'principal', label: 'Principal Leaves', defaultStages: ['dean'] },
                           { roleKey: 'dean', label: 'Dean Leaves', defaultStages: ['principal'] },

@@ -457,6 +457,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           </motion.div>
           <p className={`text-[9px] uppercase tracking-wider font-medium truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
             {(() => {
+              if (user?.role === 'group_d' || role === 'group_d') return "Group D Portal";
               const bName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
               const dName = ((user as any)?.department || '').toString().toLowerCase();
               const isNonTeaching = bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
@@ -707,6 +708,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
                 </div>
                 <div className="text-[10px] opacity-60">
                   {(() => {
+                    if (user?.role === 'group_d' || role === 'group_d') return "Group D";
                     const bName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
                     const dName = (user?.department || '').toString().toLowerCase();
                     const isNonTeaching = bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');

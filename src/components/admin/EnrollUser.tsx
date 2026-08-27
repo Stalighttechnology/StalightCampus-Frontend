@@ -200,6 +200,7 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
                     <SelectItem value="principal">Principal</SelectItem>
                     <SelectItem value="hod">{translateTerminology("HOD")}</SelectItem>
                     <SelectItem value="teacher">Faculty / Non-Teaching Staff</SelectItem>
+                    <SelectItem value="group_d">Group D</SelectItem>
                     <SelectItem value="dean">Dean</SelectItem>
                     {userTier >= 2 && (
                       <>
