@@ -181,9 +181,13 @@ const AdminAnnouncementManagement = () => {
     if (!showCreateDialog) return;
     const loadBranches = async () => {
       try {
-        const response = await manageBranches({ page: 1, pageSize: 100 });
-        if (response.success && response.data?.results) {
-          setBranches(response.data.results.map((b: any) => ({ id: b.id, name: b.name })));
+        const response: any = await manageBranches({ page: 1, page_size: 100 });
+        if (response.results && response.results.branches) {
+          setBranches(response.results.branches.map((b: any) => ({ id: b.id, name: b.name })));
+        } else if (response.branches) {
+          setBranches(response.branches.map((b: any) => ({ id: b.id, name: b.name })));
+        } else if (response.results) {
+          setBranches(response.results.map((b: any) => ({ id: b.id, name: b.name })));
         }
       } catch (error) {
         console.error("Failed to load branches:", error);
