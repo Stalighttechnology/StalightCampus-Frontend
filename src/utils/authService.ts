@@ -369,6 +369,7 @@ export const loginUser = async ({ username, password }: LoginRequest): Promise<L
     const result: LoginResponse = await response.json();
 
     if (response.ok && result.success) {
+      extractAppVersion(response);
       if (result.message === "OTP sent") {
         return result; // Frontend handles OTP input
       }
@@ -421,6 +422,7 @@ export const verifyOTP = async ({ user_id, otp }: VerifyOTPRequest): Promise<Log
     const result: LoginResponse = await response.json();
 
     if (response.ok && result.success) {
+      extractAppVersion(response);
       // Convert relative profile_image URL to absolute URL
       if (result.profile && result.profile.profile_image && result.profile.profile_image.startsWith('/media/')) {
         result.profile.profile_image = `${API_BASE_URL}${result.profile.profile_image}`;
@@ -464,6 +466,7 @@ export const resendOTP = async ({ user_id }: ResendOTPRequest): Promise<GenericR
       body: JSON.stringify({ user_id })
     });
     const result = await response.json();
+    extractAppVersion(response);
 
     return result;
   } catch (error: any) {
@@ -485,6 +488,7 @@ export const forgotPassword = async ({ email }: ForgotPasswordRequest): Promise<
       body: JSON.stringify({ email })
     });
     const result = await response.json();
+    extractAppVersion(response);
 
     return result;
   } catch (error: any) {
@@ -520,6 +524,7 @@ export const resetPassword = async ({
       })
     });
     const result = await response.json();
+    extractAppVersion(response);
 
     return result;
   } catch (error: any) {
@@ -569,6 +574,7 @@ export const verifyCoupon = async (code: string): Promise<any> => {
     },
     body: JSON.stringify({ code }),
   });
+  extractAppVersion(response);
   return response.json();
 };
 
