@@ -1332,7 +1332,10 @@ export default function PrincipalTimetableSettings() {
       { value: 'driver', label: 'Driver' },
       { value: 'caretaker', label: 'Caretaker' },
       { value: 'library_admin', label: 'Library' },
-      { value: 'office_admin', label: 'Office Admin' }
+      { value: 'office_admin', label: 'Office Admin' },
+      { value: 'hms_admin', label: 'HMS Admin' },
+      { value: 'transport_admin', label: 'Transport Admin' },
+      { value: 'group_d', label: 'Group D' }
     ];
 
     const colorConfig = {
