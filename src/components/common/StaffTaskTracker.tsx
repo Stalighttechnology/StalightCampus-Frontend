@@ -197,12 +197,16 @@ const StaffTaskTracker = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
-    fetchMyTasks();
-  }, [myTasksPage, categoryFilter]);
+    if (activeTaskTab === 'assigned_to_me') {
+      fetchMyTasks();
+    }
+  }, [myTasksPage, categoryFilter, activeTaskTab]);
 
   useEffect(() => {
-    fetchAssignedTasks();
-  }, [assignedTasksPage, categoryFilter]);
+    if (activeTaskTab === 'assigned_by_me') {
+      fetchAssignedTasks();
+    }
+  }, [assignedTasksPage, categoryFilter, activeTaskTab]);
 
   const fetchMyTasks = async () => {
     setMyTasksLoading(true);

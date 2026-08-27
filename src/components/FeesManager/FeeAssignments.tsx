@@ -41,8 +41,7 @@ import {
   getFeesManagerSemesters,
   getFeesManagerSections,
   getFeesManagerStudents,
-  bulkAssignFees,
-  getFeeTemplates
+  bulkAssignFees
 } from
   "../../utils/fees_manager_api";
 import {
@@ -131,17 +130,14 @@ const FeeAssignments: React.FC = () => {
   const fetchInitialFilters = useCallback(async () => {
     try {
       setLoadingInitialFilters(true);
-      const [filterJson, templateJson] = await Promise.all([
-        getFeesManagerFilters(),
-        getFeeTemplates(1, 200)]
-      );
+      const filterJson = await getFeesManagerFilters();
 
-      if (!filterJson.success || !templateJson.success) {
+      if (!filterJson.success) {
         throw new Error('Failed to fetch initial data');
       }
 
       setFilterData(filterJson.data);
-      setTemplates(templateJson.data || []);
+      setTemplates(filterJson.data?.templates || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

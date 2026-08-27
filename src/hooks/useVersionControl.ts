@@ -60,6 +60,21 @@ export const useVersionControl = () => {
   };
 
   useEffect(() => {
+    // Initial check on mount
+    const checkInitialVersion = async () => {
+      try {
+        const response = await fetch(`${API_ENDPOINT}/public/app-version/`);
+        if (response.ok) {
+          const config = await response.json();
+          handleVersionConfig(config);
+        }
+      } catch (err) {
+        console.error("Failed to check initial app version", err);
+      }
+    };
+
+    checkInitialVersion();
+
     const handleAppVersionUpdate = (e: any) => {
       if (e.detail) {
         handleVersionConfig(e.detail as VersionConfig);
