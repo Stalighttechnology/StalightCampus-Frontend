@@ -364,6 +364,12 @@ const StudentProfile: React.FC = () => {
               return;
             }
 
+            if (k === 'gender' && pd[k]) {
+              const g = String(pd[k]).trim().toUpperCase();
+              newForm['gender'] = (g === 'M' || g === 'MALE') ? 'Male' : (g === 'F' || g === 'FEMALE') ? 'Female' : (g === 'O' || g === 'OTHER') ? 'Other' : pd[k];
+              return;
+            }
+
             if (k === 'date_of_birth' && pd[k]) {
               const raw = pd[k];
               let iso = raw;
@@ -383,6 +389,13 @@ const StudentProfile: React.FC = () => {
 
             newForm[k] = pd[k] ?? "";
           });
+
+          if (!newForm.address_permanent && pd.address) {
+            newForm.address_permanent = pd.address;
+          }
+          if (!newForm.address_current && (newForm.address_permanent || pd.address)) {
+            newForm.address_current = newForm.address_permanent || pd.address;
+          }
 
           // Map structured/JSON fields into form-friendly fields
           try {
