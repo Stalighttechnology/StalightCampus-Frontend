@@ -24,18 +24,65 @@ import { SkeletonList } from '../ui/skeleton';
 
 const MySwal = withReactContent(Swal);
 
-type LeaveStatusType = "PENDING" | "APPROVED" | "REJECTED";
+type LeaveStatusType = "PENDING" | "APPROVED" | "REJECTED" | "FORWARDED_TO_HOD";
 
 // Interface for leave requests from the dedicated API endpoint
 interface LeaveRequest {
-  id: number;
+  id: number | string;
   start_date: string;
   end_date: string;
   title: string;
   reason: string;
   status: string; // API returns string values
   submitted_at?: string;
+  reviewed_at?: string;
+  proctor_remarks?: string;
+  hod_remarks?: string;
+  reviewed_by_name?: string | null;
+  reviewed_by_role?: string | null;
+  hod_reviewed_by_name?: string | null;
+  forwarded_by_name?: string | null;
+  forwarded_at?: string | null;
+  hod_reviewed_at?: string | null;
 }
+
+const getReviewerDetails = (item: LeaveRequest) => {
+  const statusUpper = (item.status || '').toUpperCase();
+  const instType = getInstitutionType();
+  const proctorLabel = instType === 'school' ? 'Class Teacher' : 'Proctor';
+
+  if (statusUpper === 'APPROVED') {
+    if (item.hod_reviewed_by_name) {
+      return `Approved by HoD (${item.hod_reviewed_by_name})`;
+    }
+    if (item.reviewed_by_name) {
+      const roleLabel = item.reviewed_by_role === 'hod' ? 'HoD' : proctorLabel;
+      return `Approved by ${roleLabel} (${item.reviewed_by_name})`;
+    }
+    return `Approved`;
+  }
+
+  if (statusUpper === 'REJECTED') {
+    if (item.hod_reviewed_by_name) {
+      return `Rejected by HoD (${item.hod_reviewed_by_name})`;
+    }
+    if (item.reviewed_by_name) {
+      const roleLabel = item.reviewed_by_role === 'hod' ? 'HoD' : proctorLabel;
+      return `Rejected by ${roleLabel} (${item.reviewed_by_name})`;
+    }
+    return `Rejected`;
+  }
+
+  if (statusUpper === 'FORWARDED_TO_HOD') {
+    if (item.forwarded_by_name) {
+      return `Forwarded to HoD by ${proctorLabel} (${item.forwarded_by_name})`;
+    }
+    return `Forwarded to HoD (Pending HoD Review)`;
+  }
+
+  // PENDING
+  return `Pending ${proctorLabel} Review`;
+};
 
 const getStatusStyles = (theme: string, status: string) => {
   const normalizedStatus = status.toUpperCase() as LeaveStatusType;
@@ -45,6 +92,11 @@ const getStatusStyles = (theme: string, status: string) => {
       icon: <Clock3 className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'}`} />,
       color: theme === 'dark' ? "text-yellow-400" : "text-yellow-600",
       bg: theme === 'dark' ? "bg-yellow-900/30" : "bg-yellow-100"
+    },
+    FORWARDED_TO_HOD: {
+      icon: <Clock3 className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />,
+      color: theme === 'dark' ? "text-blue-400" : "text-blue-600",
+      bg: theme === 'dark' ? "bg-blue-900/30" : "bg-blue-100"
     },
     APPROVED: {
       icon: <CheckCircle2 className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />,
@@ -75,6 +127,7 @@ const SubmitLeaveRequest = () => {
   const [filter, setFilter] = useState<string>('ALL');
   const [query, setQuery] = useState<string>('');
   const [viewReason, setViewReason] = useState<string | null>(null);
+  const [viewRejection, setViewRejection] = useState<{ reviewer: string; reason: string } | null>(null);
 
   // Filter state for dropdown
   const [statusFilter, setStatusFilter] = useState("All");
@@ -310,18 +363,24 @@ const SubmitLeaveRequest = () => {
                   <span className="hidden sm:inline ml-1.5 text-sm">Filter</span>
                 </Button>
                 {showFilter &&
-                  <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-md shadow-lg z-10`}>
+                  <div className={`absolute right-0 mt-2 w-52 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-md shadow-lg z-10`}>
                     <div className="py-1">
-                      {['All', 'PENDING', 'APPROVED', 'REJECTED'].map((status) =>
+                      {[
+                        { key: 'All', label: 'All' },
+                        { key: 'PENDING', label: 'Pending' },
+                        { key: 'FORWARDED_TO_HOD', label: 'Forwarded to HoD' },
+                        { key: 'APPROVED', label: 'Approved' },
+                        { key: 'REJECTED', label: 'Rejected' },
+                      ].map((item) =>
                         <button
-                          key={status}
-                          className={`block w-full text-left px-4 py-2 text-sm hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} ${statusFilter === status ? theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900' : theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}
+                          key={item.key}
+                          className={`block w-full text-left px-4 py-2 text-sm hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} ${statusFilter === item.key ? theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900' : theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}
                           onClick={() => {
-                            setStatusFilter(status);
+                            setStatusFilter(item.key);
                             setShowFilter(false);
                           }}>
 
-                          {status === 'All' ? 'All' : status.charAt(0) + status.slice(1).toLowerCase()}
+                          {item.label}
                         </button>
                       )}
                     </div>
@@ -363,40 +422,58 @@ const SubmitLeaveRequest = () => {
                 <div className="space-y-4">
                   {/* Mobile View: Stacked Cards */}
                   <div className="md:hidden space-y-3">
-                    {filteredLeaves.map((item) => (
-                      <div key={item.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div className="font-medium">{item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}</div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {item.start_date && item.end_date ?
-                                `${format(parseISO(item.start_date), 'MMM dd')} - ${format(parseISO(item.end_date), 'MMM dd, yyyy')}` :
-                                'N/A'}
+                    {filteredLeaves.map((item) => {
+                      const rejectionReason = (item.hod_remarks || item.proctor_remarks || '').trim();
+                      const reviewerLabel = getReviewerDetails(item);
+
+                      return (
+                        <div key={item.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="font-medium">{item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}</div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {item.start_date && item.end_date ?
+                                  `${format(parseISO(item.start_date), 'MMM dd')} - ${format(parseISO(item.end_date), 'MMM dd, yyyy')}` :
+                                  'N/A'}
+                              </div>
+                            </div>
+                            <div className="shrink-0 flex flex-col items-end gap-1">
+                              <Badge
+                                className={`text-[12px] sm:text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${getStatusStyles(theme, item.status).bg} ${getStatusStyles(theme, item.status).color}`}>
+                                <div className="flex items-center gap-1">
+                                  {getStatusStyles(theme, item.status).icon}
+                                  {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
+                                </div>
+                              </Badge>
+                              <span className={`text-[11px] font-medium text-right max-w-[200px] break-words ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {reviewerLabel}
+                              </span>
+                              {item.status === 'REJECTED' && rejectionReason && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setViewRejection({ reviewer: reviewerLabel, reason: rejectionReason })}
+                                  className="h-6 px-2 text-[11px] text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 p-0 font-medium"
+                                >
+                                  View Rejection Reason
+                                </Button>
+                              )}
                             </div>
                           </div>
-                          <div className="shrink-0">
-                            <Badge
-                              className={`text-[12px] sm:text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${getStatusStyles(theme, item.status).bg} ${getStatusStyles(theme, item.status).color}`}>
-                              <div className="flex items-center gap-1">
-                                {getStatusStyles(theme, item.status).icon}
-                                {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
-                              </div>
-                            </Badge>
+                          <div className="mt-3">
+                            <button
+                              onClick={() => setViewReason(item.reason)}
+                              className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${theme === 'dark'
+                                  ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                  : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                                }`}
+                            >
+                              View Reason
+                            </button>
                           </div>
                         </div>
-                        <div className="mt-3">
-                          <button
-                            onClick={() => setViewReason(item.reason)}
-                            className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${theme === 'dark'
-                                ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
-                                : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                              }`}
-                          >
-                            View Reason
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* Desktop / Tablet View: Table */}
@@ -411,39 +488,59 @@ const SubmitLeaveRequest = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody >
-                        {filteredLeaves.map((item) =>
-                          <TableRow key={item.id} className={theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}>
-                            <TableCell className={`font-medium text-[14px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                              {item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}
-                            </TableCell>
-                            <TableCell className={`text-[14px] sm:text-sm whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                              {item.start_date && item.end_date ?
-                                `${format(parseISO(item.start_date), 'MMM dd')} - ${format(parseISO(item.end_date), 'MMM dd, yyyy')}` :
-                                'N/A'}
-                            </TableCell>
-                            <TableCell className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setViewReason(item.reason)}
-                                className={`h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}>
+                        {filteredLeaves.map((item) => {
+                          const rejectionReason = (item.hod_remarks || item.proctor_remarks || '').trim();
+                          const reviewerLabel = getReviewerDetails(item);
 
-                                <Eye className="w-3 h-3 mr-1" />
-                                View
-                              </Button>
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                className={`text-[12px] sm:text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${getStatusStyles(theme, item.status).bg} ${getStatusStyles(theme, item.status).color}`}>
+                          return (
+                            <TableRow key={item.id} className={theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}>
+                              <TableCell className={`font-medium text-[14px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}
+                              </TableCell>
+                              <TableCell className={`text-[14px] sm:text-sm whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                                {item.start_date && item.end_date ?
+                                  `${format(parseISO(item.start_date), 'MMM dd')} - ${format(parseISO(item.end_date), 'MMM dd, yyyy')}` :
+                                  'N/A'}
+                              </TableCell>
+                              <TableCell className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setViewReason(item.reason)}
+                                  className={`h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}>
 
-                                <div className="flex items-center gap-1">
-                                  {getStatusStyles(theme, item.status).icon}
-                                  {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
+                                  <Eye className="w-3 h-3 mr-1" />
+                                  View
+                                </Button>
+                              </TableCell>
+                              <TableCell className="align-top py-3">
+                                <div className="flex flex-col items-start gap-1">
+                                  <Badge
+                                    className={`text-[12px] sm:text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${getStatusStyles(theme, item.status).bg} ${getStatusStyles(theme, item.status).color}`}>
+
+                                    <div className="flex items-center gap-1">
+                                      {getStatusStyles(theme, item.status).icon}
+                                      {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
+                                    </div>
+                                  </Badge>
+                                  <span className={`text-[11px] font-medium mt-0.5 max-w-xs break-words ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    {reviewerLabel}
+                                  </span>
+                                  {item.status === 'REJECTED' && rejectionReason && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setViewRejection({ reviewer: reviewerLabel, reason: rejectionReason })}
+                                      className="h-6 px-1.5 text-[11px] text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 p-0 font-medium"
+                                    >
+                                      View Reason
+                                    </Button>
+                                  )}
                                 </div>
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </div>
@@ -505,6 +602,37 @@ const SubmitLeaveRequest = () => {
               className="bg-primary"
               onClick={() => setViewReason(null)}>
 
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Rejection Reason Dialog */}
+      <Dialog open={!!viewRejection} onOpenChange={() => setViewRejection(null)}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-2xl p-4 sm:p-6`}>
+          <DialogHeader>
+            <DialogTitle className={`text-lg font-semibold flex items-center gap-2 text-red-600 dark:text-red-400`}>
+              <XCircle className="w-5 h-5" />
+              Rejection Reason
+            </DialogTitle>
+            {viewRejection?.reviewer && (
+              <p className="text-xs text-muted-foreground mt-1 font-medium">
+                {viewRejection.reviewer}
+              </p>
+            )}
+          </DialogHeader>
+
+          <div
+            className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
+                      max-h-64 overflow-y-auto rounded-md border ${theme === 'dark' ? 'bg-red-950/20 text-red-300 border-red-900/40' : 'bg-red-50 text-red-800 border-red-200'}`}>
+            {viewRejection?.reason}
+          </div>
+
+          <DialogFooter>
+            <Button
+              className="bg-primary"
+              onClick={() => setViewRejection(null)}>
               Close
             </Button>
           </DialogFooter>
