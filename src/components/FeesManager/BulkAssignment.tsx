@@ -35,7 +35,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/context/ThemeContext";
 import {
   getFeesManagerFilters,
-  getFeeTemplates,
   getFeesManagerSemesters,
   getFeesManagerSections,
   getFeesManagerStudents,
@@ -105,16 +104,11 @@ const BulkAssignment: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoadingInitialFilters(true);
-        const [filterJson, templateJson] = await Promise.all([
-          getFeesManagerFilters(),
-          getFeeTemplates(1, 200)]
-        );
+        const filterJson = await getFeesManagerFilters();
 
         if (filterJson.success) {
           setFilterData(filterJson.data);
-        }
-        if (templateJson.success) {
-          setTemplates(templateJson.data || []);
+          setTemplates(filterJson.data?.templates || []);
         }
       } catch (err) {
 

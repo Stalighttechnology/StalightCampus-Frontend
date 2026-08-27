@@ -1,5 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect, useCallback } from 'react';
+import { cn } from "@/lib/utils";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,30 +65,34 @@ interface Invoice {
     usn: string;
     department: string;
     semester: number;
+    section: string;
+    batch: string;
+    admission_mode: string;
+    father_contact?: string;
+    phone?: string;
   };
-  fee_assignment: {
-    id: number;
+  fee_assignment?: {
     template: {
       name: string;
       fee_type: string;
     };
-    academic_year: string;
-  } | null;
-  total_amount: number;
-  paid_amount: number;
-  pending_amount: number;
+  };
+  semester?: string;
+  academic_year: string;
+  total_amount_cents: number;
+  paid_amount_cents: number;
   due_date: string;
-  status: 'unpaid' | 'partially_paid' | 'paid' | 'overdue';
+  status: 'paid' | 'unpaid' | 'partially_paid' | 'overdue';
   created_at: string;
-  academic_year?: string;
-  semester?: number | null;
-  components?: {
-    id: number;
-    name: string;
-    amount: number;
-    paid: number;
-    balance: number;
-  }[];
+}
+
+interface InvoicesMeta {
+  count: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  has_next: boolean;
+  has_previous: boolean;
 }
 
 interface Payment {
@@ -105,12 +110,12 @@ interface FilterData {
   admission_modes: string[];
 }
 
-const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => {
+const InvoiceManagement: React.FC = () => {
   const { theme } = useTheme();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [invoicesMeta, setInvoicesMeta] = useState<any | null>(null);
+  const [invoicesMeta, setInvoicesMeta] = useState<InvoicesMeta | null>(null);
   const [statsData, setStatsData] = useState<any | null>(null);
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -175,6 +180,14 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   const [loadingInitialFilters, setLoadingInitialFilters] = useState(false);
   const [loadingSemesters, setLoadingSemesters] = useState(false);
   const [loadingSections, setLoadingSections] = useState(false);
+
+  const allFiltersSelected = !!(
+    selectedFilters.batchId &&
+    selectedFilters.branchId &&
+    selectedFilters.semesterId &&
+    selectedFilters.sectionId &&
+    selectedFilters.admissionMode
+  );
 
   // Initial data fetch
   useEffect(() => {
@@ -689,8 +702,12 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
               )}
             </div>
             <div className="w-full md:w-[220px]">
-              <Select value={selectedFilters.status} onValueChange={(val) => setSelectedFilters((p) => ({ ...p, status: val }))}>
-                <SelectTrigger className="h-12 bg-background border-border/50 shadow-sm font-semibold">
+              <Select
+                value={selectedFilters.status}
+                onValueChange={(val) => setSelectedFilters((p) => ({ ...p, status: val }))}
+                disabled={loadingInitialFilters || !allFiltersSelected}
+              >
+                <SelectTrigger className={cn("h-12 bg-background border-border/50 shadow-sm font-semibold", (!allFiltersSelected || loadingInitialFilters) && "opacity-50 cursor-not-allowed")}>
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
