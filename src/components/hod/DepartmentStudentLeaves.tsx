@@ -14,9 +14,15 @@ const PAGE_SIZE = 20;
 
 interface DepartmentStudentLeavesProps {
   onPendingCountChange?: (count: number) => void;
+  pageSize?: number;
+  hidePagination?: boolean;
 }
 
-export const DepartmentStudentLeaves = ({ onPendingCountChange }: DepartmentStudentLeavesProps) => {
+export const DepartmentStudentLeaves = ({
+  onPendingCountChange,
+  pageSize = 20,
+  hidePagination = false,
+}: DepartmentStudentLeavesProps) => {
   const { theme } = useTheme();
   const queryClient = useQueryClient();
   const { value: search, debouncedValue: debouncedSearch, setValue: setSearch } = useDebouncedSearch('', 500);
@@ -44,13 +50,13 @@ export const DepartmentStudentLeaves = ({ onPendingCountChange }: DepartmentStud
     };
   }, [showFilter]);
 
-  const queryKey = ['hodStudentLeaves', page, debouncedSearch, filterStatus];
+  const queryKey = ['hodStudentLeaves', page, debouncedSearch, filterStatus, pageSize];
 
   const { data, isLoading } = useQuery({
     queryKey,
     queryFn: () => getHodStudentLeaves({
       page,
-      page_size: PAGE_SIZE,
+      page_size: pageSize,
       search: debouncedSearch || undefined,
       status: filterStatus !== 'All' ? filterStatus : undefined,
     }),
@@ -418,7 +424,7 @@ export const DepartmentStudentLeaves = ({ onPendingCountChange }: DepartmentStud
       )}
 
       {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
+      {!hidePagination && pagination && pagination.totalPages > 1 && (
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-4 py-3 border-t border-border mt-4">
           <div>
             Showing {Math.min((pagination.page - 1) * pagination.pageSize + 1, pagination.totalItems)} to {Math.min(pagination.page * pagination.pageSize, pagination.totalItems)} of {pagination.totalItems} records
