@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, XCircle, Clock, FileText, RotateCcw, Loader2, FileDown, CalendarIcon, Filter, MapPin } from "lucide-react";
+import { CheckCircle, XCircle, Clock, FileText, RotateCcw, Loader2, FileDown, FileSpreadsheet, CalendarIcon, Filter, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -73,16 +73,37 @@ const FacultyAttendance = () => {
   const [historyEndDate, setHistoryEndDate] = useState<Date | undefined>(undefined);
   const [tempStartDate, setTempStartDate] = useState<Date | undefined>(undefined);
   const [tempEndDate, setTempEndDate] = useState<Date | undefined>(undefined);
-  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingExcel, setExportingExcel] = useState(false);
   const [historyFilterOpen, setHistoryFilterOpen] = useState(false);
   const [startCalendarOpen, setStartCalendarOpen] = useState(false);
   const [endCalendarOpen, setEndCalendarOpen] = useState(false);
 
   const initialLoadRef = useRef(true);
 
+  // On mount: fetch just today's config (lightweight — no history records)
   useEffect(() => {
-    fetchHistoryPage(historyPage);
-  }, [historyPage, historyStartDate, historyEndDate]);
+    fetchTodayConfig();
+  }, []);
+
+  // Only fetch history when a filter is actively applied
+  useEffect(() => {
+    if (historyStartDate || historyEndDate) {
+      fetchHistoryPage(1);
+    } else {
+      // Filter cleared — reset history list to empty
+      setHistoryRecords([]);
+      setHistoryTotalPages(1);
+      setHistoryTotalItems(0);
+      setHistoryPage(1);
+    }
+  }, [historyStartDate, historyEndDate]);
+
+  // Pagination change within an active filter
+  useEffect(() => {
+    if ((historyStartDate || historyEndDate) && !initialLoadRef.current) {
+      fetchHistoryPage(historyPage);
+    }
+  }, [historyPage]);
 
   const fetchAttendanceData = async () => {
     // Only call this manually if we really need to refresh just the dashboard
@@ -156,81 +177,87 @@ const FacultyAttendance = () => {
     }
   };
 
+  // Lightweight fetch — only gets today's record + org config, no history list
+  const fetchTodayConfig = async () => {
+    try {
+      setLoading(true);
+      const today = new Date().toLocaleDateString('sv-SE');
+      // Fetch just today's date to get config + today record with minimal payload
+      const response = await getFacultyAttendanceRecords({ page: 1, page_size: 1, start_date: today, end_date: today });
+      if (response.success) {
+        const orgCheckinWindows = (response as any).checkin_windows || [];
+        const orgPeriodicCount = (response as any).periodic_checkin_count || 1;
+        const orgStrictWindow = (response as any).strict_checkin_window ?? true;
+        const orgCategoryWorkflows = (response as any).category_attendance_workflows || {};
+        const userStaffCategory = (response as any).staff_category || 'teaching';
+
+        const foundTodayRec = (response.data || []).find((r: any) => r.date === today) || null;
+        const finalTodayRec: FacultyAttendanceRecord = foundTodayRec
+          ? {
+            ...foundTodayRec,
+            checkin_windows: (foundTodayRec.checkin_windows && foundTodayRec.checkin_windows.length > 0) ? foundTodayRec.checkin_windows : orgCheckinWindows,
+            periodic_checkin_count: foundTodayRec.periodic_checkin_count || orgPeriodicCount,
+            strict_checkin_window: foundTodayRec.strict_checkin_window ?? orgStrictWindow,
+            category_attendance_workflows: orgCategoryWorkflows,
+            staff_category: userStaffCategory
+          }
+          : {
+            id: `today-${today}`,
+            date: today,
+            status: (response as any).is_today_holiday ? 'holiday' : 'absent',
+            marked_at: '',
+            check_in_time: null,
+            check_out_time: null,
+            total_hours: null,
+            notes: '',
+            checkin_timestamps: [],
+            delays: [],
+            periodic_checkin_count: orgPeriodicCount,
+            checkin_windows: orgCheckinWindows,
+            strict_checkin_window: orgStrictWindow,
+            category_attendance_workflows: orgCategoryWorkflows,
+            staff_category: userStaffCategory
+          };
+
+        setTodayRecord(finalTodayRec);
+        if ((response as any).is_today_on_leave) {
+          setAttendanceStatus("on_leave");
+          setTodayLeaveType((response as any).today_leave_type || null);
+        } else if (foundTodayRec) {
+          setAttendanceStatus(foundTodayRec.status as "present" | "absent" | "holiday" | "weekly_off" | "on_leave");
+          setNotes(foundTodayRec.notes || "");
+          setTodayLeaveType(null);
+        } else if ((response as any).is_today_holiday) {
+          setAttendanceStatus("holiday");
+          setTodayLeaveType(null);
+        } else {
+          setTodayLeaveType(null);
+        }
+        if ((response as any).next_check_time) {
+          setNextCheckTime((response as any).next_check_time);
+        } else {
+          setNextCheckTime(null);
+        }
+        initialLoadRef.current = false;
+      }
+    } catch (error) {
+      toast.error("Failed to load attendance data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchHistoryPage = async (page: number) => {
     try {
       setHistoryLoading(true);
       const params: any = { page, page_size: historyPageSize };
       if (historyStartDate) params.start_date = format(historyStartDate, "yyyy-MM-dd");
       if (historyEndDate) params.end_date = format(historyEndDate, "yyyy-MM-dd");
+      // Guard: do not fetch without a filter
+      if (!historyStartDate && !historyEndDate) return;
       const response = await getFacultyAttendanceRecords(params);
       if (response.success && response.data) {
         setHistoryRecords(response.data);
-
-        if (initialLoadRef.current) {
-          initialLoadRef.current = false;
-          const weekAgo = new Date();
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          const weekAgoStr = weekAgo.toLocaleDateString('sv-SE');
-          const recent = response.data.filter((r: any) => r.date >= weekAgoStr).slice(0, 7);
-          setRecentRecords(recent);
-
-          const today = new Date().toLocaleDateString('sv-SE');
-          const orgCheckinWindows = (response as any).checkin_windows || [];
-          const orgPeriodicCount = (response as any).periodic_checkin_count || 1;
-          const orgStrictWindow = (response as any).strict_checkin_window ?? true;
-          const orgCategoryWorkflows = (response as any).category_attendance_workflows || {};
-          const userStaffCategory = (response as any).staff_category || 'teaching';
-
-          const foundTodayRec = response.data.find((r: any) => r.date === today) || null;
-          const finalTodayRec: FacultyAttendanceRecord = foundTodayRec
-            ? {
-              ...foundTodayRec,
-              checkin_windows: (foundTodayRec.checkin_windows && foundTodayRec.checkin_windows.length > 0) ? foundTodayRec.checkin_windows : orgCheckinWindows,
-              periodic_checkin_count: foundTodayRec.periodic_checkin_count || orgPeriodicCount,
-              strict_checkin_window: foundTodayRec.strict_checkin_window ?? orgStrictWindow,
-              category_attendance_workflows: orgCategoryWorkflows,
-              staff_category: userStaffCategory
-            }
-            : {
-              id: `today-${today}`,
-              date: today,
-              status: (response as any).is_today_holiday ? 'holiday' : 'absent',
-              marked_at: '',
-              check_in_time: null,
-              check_out_time: null,
-              total_hours: null,
-              notes: '',
-              checkin_timestamps: [],
-              delays: [],
-              periodic_checkin_count: orgPeriodicCount,
-              checkin_windows: orgCheckinWindows,
-              strict_checkin_window: orgStrictWindow,
-              category_attendance_workflows: orgCategoryWorkflows,
-              staff_category: userStaffCategory
-            };
-
-          setTodayRecord(finalTodayRec);
-          if ((response as any).is_today_on_leave) {
-            setAttendanceStatus("on_leave");
-            setTodayLeaveType((response as any).today_leave_type || null);
-          } else if (foundTodayRec) {
-            setAttendanceStatus(foundTodayRec.status as "present" | "absent" | "holiday" | "weekly_off" | "on_leave");
-            setNotes(foundTodayRec.notes || "");
-            setTodayLeaveType(null);
-          } else if ((response as any).is_today_holiday) {
-            setAttendanceStatus("holiday");
-            setTodayLeaveType(null);
-          } else {
-            setTodayLeaveType(null);
-          }
-
-          if ((response as any).next_check_time) {
-            setNextCheckTime((response as any).next_check_time);
-          } else {
-            setNextCheckTime(null);
-          }
-          setLoading(false);
-        }
         const norm = normalizePaginatedResponse(response, 'data');
         if (norm.meta && Object.keys(norm.meta).length > 0) {
           const meta = norm.meta;
@@ -403,8 +430,10 @@ const FacultyAttendance = () => {
     setEndCalendarOpen(false);
   };
 
-  const handleExportPdf = async () => {
-    setExportingPdf(true);
+
+
+  const handleExportExcel = async () => {
+    setExportingExcel(true);
     try {
       const queryParams = new URLSearchParams();
       queryParams.append("report_type", "my_attendance");
@@ -412,7 +441,7 @@ const FacultyAttendance = () => {
       if (historyEndDate) queryParams.append("end_date", format(historyEndDate, "yyyy-MM-dd"));
 
       const response = await fetchWithTokenRefresh(
-        `${API_ENDPOINT}/reports/export-pdf/?${queryParams.toString()}`,
+        `${API_ENDPOINT}/reports/export-excel/?${queryParams.toString()}`,
         {
           method: "GET",
           headers: {
@@ -425,18 +454,18 @@ const FacultyAttendance = () => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `my_attendance_history_${new Date().toISOString().split('T')[0]}.pdf`;
+        a.download = `my_attendance_history_${new Date().toISOString().split('T')[0]}.xlsx`;
         document.body.appendChild(a);
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
       } else {
-        toast.error("Failed to download PDF report");
+        toast.error("Failed to download Excel report");
       }
     } catch (e: any) {
-      toast.error(e.message || "Failed to download PDF report");
+      toast.error(e.message || "Failed to download Excel report");
     } finally {
-      setExportingPdf(false);
+      setExportingExcel(false);
     }
   };
 
@@ -818,10 +847,10 @@ const FacultyAttendance = () => {
             {attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off' || (attendanceStatus === 'on_leave' && (!todayLeaveType || !todayLeaveType.toLowerCase().includes('half-day'))) ? (
               <div className="flex flex-col items-center py-6 space-y-3">
                 <div className={`p-4 rounded-full ${attendanceStatus === 'holiday'
-                    ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700')
-                    : attendanceStatus === 'on_leave'
-                      ? (theme === 'dark' ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700')
-                      : (theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700')
+                  ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700')
+                  : attendanceStatus === 'on_leave'
+                    ? (theme === 'dark' ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700')
+                    : (theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700')
                   }`}>
                   <CalendarIcon className="w-10 h-10" />
                 </div>
@@ -994,10 +1023,10 @@ const FacultyAttendance = () => {
                   };
 
                   const checkpoints = mode === 'half_day_split' ? [
-                    { label: '1st Half In', time: todayRecord.first_check_in, missed: getMissed(todayRecord.first_check_in, hds?.first_half_in), delay: todayRecord.delays?.[0] },
-                    { label: '1st Half Out', time: todayRecord.first_check_out, missed: getMissed(todayRecord.first_check_out, hds?.first_half_out), delay: todayRecord.delays?.[1] },
-                    { label: '2nd Half In', time: todayRecord.second_check_in, missed: getMissed(todayRecord.second_check_in, hds?.second_half_in), delay: todayRecord.delays?.[2] },
-                    { label: '2nd Half Out', time: todayRecord.second_check_out, missed: getMissed(todayRecord.second_check_out, hds?.second_half_out), delay: todayRecord.delays?.[3] }
+                    { label: '1st Half In', time: todayRecord.checkin_timestamps?.[0], missed: getMissed(todayRecord.checkin_timestamps?.[0], hds?.first_half_in), delay: todayRecord.delays?.[0] },
+                    { label: '1st Half Out', time: todayRecord.checkin_timestamps?.[1], missed: getMissed(todayRecord.checkin_timestamps?.[1], hds?.first_half_out), delay: todayRecord.delays?.[1] },
+                    { label: '2nd Half In', time: todayRecord.checkin_timestamps?.[2], missed: getMissed(todayRecord.checkin_timestamps?.[2], hds?.second_half_in), delay: todayRecord.delays?.[2] },
+                    { label: '2nd Half Out', time: todayRecord.checkin_timestamps?.[3], missed: getMissed(todayRecord.checkin_timestamps?.[3], hds?.second_half_out), delay: todayRecord.delays?.[3] }
                   ] : [
                     { label: 'Check In', time: todayRecord.check_in_time, missed: getMissed(todayRecord.check_in_time, fd?.check_in), delay: todayRecord.delays?.[0] },
                     { label: 'Check Out', time: todayRecord.check_out_time, missed: getMissed(todayRecord.check_out_time, fd?.check_out), delay: todayRecord.delays?.[1] }
@@ -1078,14 +1107,14 @@ const FacultyAttendance = () => {
                   className="text-center mt-4">
 
                   <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full border ${attendanceStatus === 'present' ?
-                      (theme === 'dark' ? 'bg-green-900/20 border-green-800 text-green-400' : 'bg-green-50 border-green-200 text-green-800') :
-                      attendanceStatus === 'holiday' ?
-                        (theme === 'dark' ? 'bg-blue-900/20 border-blue-800 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700') :
-                        attendanceStatus === 'on_leave' ?
-                          (theme === 'dark' ? 'bg-purple-900/20 border-purple-800 text-purple-300' : 'bg-purple-50 border-purple-200 text-purple-700') :
-                          attendanceStatus === 'weekly_off' ?
-                            (theme === 'dark' ? 'bg-slate-900/20 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-800') :
-                            (theme === 'dark' ? 'bg-red-900/20 border-red-800 text-red-400' : 'bg-red-50 border-red-200 text-red-800')
+                    (theme === 'dark' ? 'bg-green-900/20 border-green-800 text-green-400' : 'bg-green-50 border-green-200 text-green-800') :
+                    attendanceStatus === 'holiday' ?
+                      (theme === 'dark' ? 'bg-blue-900/20 border-blue-800 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700') :
+                      attendanceStatus === 'on_leave' ?
+                        (theme === 'dark' ? 'bg-purple-900/20 border-purple-800 text-purple-300' : 'bg-purple-50 border-purple-200 text-purple-700') :
+                        attendanceStatus === 'weekly_off' ?
+                          (theme === 'dark' ? 'bg-slate-900/20 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-800') :
+                          (theme === 'dark' ? 'bg-red-900/20 border-red-800 text-red-400' : 'bg-red-50 border-red-200 text-red-800')
                     }`}>
                     {getStatusIcon(attendanceStatus)}
                     <span className="font-medium capitalize">
@@ -1167,120 +1196,16 @@ const FacultyAttendance = () => {
           </AnimatePresence>
         </CardContent>
       </Card>
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Recent Attendance Records */}
-        <Card className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-          <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2 h-[72px] sm:h-[80px]">
-            <CardTitle className={`text-xl sm:text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              Recent Attendance (Last 7 Days)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
-            {recentRecords.length > 0 ? (
-              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
-                {paginatedRecentRecords.map((record) =>
-                  <motion.div
-                    key={record.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        {getStatusIcon(record.status)}
-                        <div>
-                          <p className="font-medium capitalize">{record.status}</p>
-                          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            {record.date.split('-').reverse().join('-')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-sm text-right">
-                        <button
-                          onClick={() => setSelectedRecordDetails(record)}
-                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-primary text-white hover:bg-primary/90'}`}
-                        >
-                          View
-                        </button>
-                      </div>
-                    </div>
-                    {record.notes && (
-                      <div className="mt-2 flex items-start space-x-2">
-                        <FileText className="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
-                        <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                          {record.notes.includes('[Off-Campus Check-in]') ? (
-                            <span className="flex flex-wrap items-center gap-1.5">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Off-Campus Duty</span>
-                              {(() => {
-                                const r = record.notes.replace('[Off-Campus Check-in] Reason:', '').trim();
-                                return r.length > 35 ? (
-                                  <><span>{r.slice(0, 32)}...</span><button onClick={() => Swal.fire({ title: 'Off-Campus Duty Reason', text: r, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button></>
-                                ) : <span>{r}</span>;
-                              })()}
-                            </span>
-                          ) : record.notes}
-                        </div>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </div>
-            ) : (
-              <div className={`flex flex-col items-center justify-center flex-1 py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
-                <div className={`p-3 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                  <Clock className="w-8 h-8 text-primary opacity-50" />
-                </div>
-                <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No recent records</h3>
-                <p className={`text-xs text-center max-w-[250px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  You haven't marked any attendance in the last 7 days.
-                </p>
-              </div>
-            )}
-          </CardContent>
-          {!loading && recentTotalPages > 1 && (
-            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-              <div>
-                Showing <span className="font-medium">{Math.min((recentPage - 1) * recentPageSize + 1, recentRecords.length)}</span> to <span className="font-medium">{Math.min(recentPage * recentPageSize, recentRecords.length)}</span> of <span className="font-medium">{recentRecords.length}</span> records
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRecentPage(Math.max(1, recentPage - 1))}
-                  disabled={recentPage === 1}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all hover:text-white">
-                  Previous
-                </Button>
-
-                <div className="flex items-center justify-center min-w-[2rem]">
-                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    {recentPage}
-                  </span>
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRecentPage(Math.min(recentTotalPages, recentPage + 1))}
-                  disabled={recentPage === recentTotalPages}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all hover:text-white">
-                  Next
-                </Button>
-              </div>
-            </CardFooter>
-          )}
-        </Card>
-
+      <div className="">
         <Card id="faculty-attendance-history" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
           <CardHeader id="faculty-attendance-history-header" className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-6 pb-4 min-h-[72px] sm:h-[80px] gap-3">
             <CardTitle className={`text-xl sm:text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              Attendance History
+              {historyStartDate || historyEndDate ? 'Attendance History' : 'Recent Attendance'}
             </CardTitle>
             <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end sm:justify-start mb-3 sm:mb-0">
               {(() => {
-                const isFilterDisabled = !historyLoading && historyRecords.length === 0 && !historyStartDate && !historyEndDate;
-                const isExportDisabled = exportingPdf || historyLoading || historyRecords.length === 0;
+                const isFilterDisabled = false; // Filter is always available — history loads on demand
+                const isExportDisabled = exportingExcel || historyLoading || historyRecords.length === 0;
 
                 return (
                   <>
@@ -1396,33 +1321,33 @@ const FacultyAttendance = () => {
                       </Dialog>
                     )}
 
-                    {/* Desktop Export PDF Button */}
+                    {/* Desktop Export Excel Button */}
                     <Button
-                      onClick={handleExportPdf}
+                      onClick={handleExportExcel}
                       disabled={isExportDisabled}
-                      className="hidden sm:flex bg-primary hover:bg-primary/90 text-white font-semibold h-9 px-4 shadow-md transition-all active:scale-95 items-center justify-center gap-2 text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="hidden sm:flex bg-green-600 hover:bg-green-700 text-white font-semibold h-9 px-4 shadow-md transition-all active:scale-95 items-center justify-center gap-2 text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {exportingPdf ? (
+                      {exportingExcel ? (
                         <Loader2 className="animate-spin h-4 w-4" />
                       ) : (
-                        <FileDown className="h-4 w-4" />
+                        <FileSpreadsheet className="h-4 w-4" />
                       )}
-                      Export PDF
+                      Export Excel
                     </Button>
 
-                    {/* Mobile Export PDF Icon Button */}
+                    {/* Mobile Export Excel Icon Button */}
                     <Button
-                      onClick={handleExportPdf}
+                      onClick={handleExportExcel}
                       disabled={isExportDisabled}
                       size="icon"
                       variant="outline"
-                      className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-input bg-background disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Export PDF"
+                      className="flex sm:hidden h-9 w-9 items-center justify-center shrink-0 border border-green-600 text-green-600 bg-background hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Export Excel"
                     >
-                      {exportingPdf ? (
+                      {exportingExcel ? (
                         <Loader2 className="animate-spin h-4 w-4" />
                       ) : (
-                        <FileDown className="h-4 w-4" />
+                        <FileSpreadsheet className="h-4 w-4" />
                       )}
                     </Button>
                   </>
@@ -1480,11 +1405,16 @@ const FacultyAttendance = () => {
             ) : (
               <div className={`flex flex-col items-center justify-center flex-1 py-16 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                 <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                  <RotateCcw className="w-10 h-10 text-primary opacity-50" />
+                  <Filter className="w-10 h-10 text-primary opacity-50" />
                 </div>
-                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>History empty</h3>
+                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {historyStartDate || historyEndDate ? 'No records found' : 'Select a date range'}
+                </h3>
                 <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  There are no historical attendance records found for your account.
+                  {historyStartDate || historyEndDate
+                    ? 'There are no attendance records for the selected date range.'
+                    : 'Use the Filter button above to select a date range and view your attendance history.'}
+
                 </p>
               </div>
             )}
