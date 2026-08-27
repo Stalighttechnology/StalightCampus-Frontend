@@ -62,17 +62,6 @@ const getReviewerDetails = (item: LeaveRequest) => {
     return `Approved`;
   }
 
-  if (statusUpper === 'REJECTED') {
-    if (item.hod_reviewed_by_name) {
-      return `Rejected by HoD (${item.hod_reviewed_by_name})`;
-    }
-    if (item.reviewed_by_name) {
-      const roleLabel = item.reviewed_by_role === 'hod' ? 'HoD' : proctorLabel;
-      return `Rejected by ${roleLabel} (${item.reviewed_by_name})`;
-    }
-    return `Rejected`;
-  }
-
   if (statusUpper === 'FORWARDED_TO_HOD') {
     if (item.forwarded_by_name) {
       return `Forwarded to HoD by ${proctorLabel} (${item.forwarded_by_name})`;
@@ -80,8 +69,25 @@ const getReviewerDetails = (item: LeaveRequest) => {
     return `Forwarded to HoD (Pending HoD Review)`;
   }
 
-  // PENDING
-  return `Pending ${proctorLabel} Review`;
+  if (statusUpper === 'PENDING') {
+    return `Pending ${proctorLabel} Review`;
+  }
+
+  return null;
+};
+
+const getRejectionReviewerTitle = (item: LeaveRequest) => {
+  const instType = getInstitutionType();
+  const proctorLabel = instType === 'school' ? 'Class Teacher' : 'Proctor';
+
+  if (item.hod_reviewed_by_name) {
+    return `Rejected by HoD (${item.hod_reviewed_by_name})`;
+  }
+  if (item.reviewed_by_name) {
+    const roleLabel = item.reviewed_by_role === 'hod' ? 'HoD' : proctorLabel;
+    return `Rejected by ${roleLabel} (${item.reviewed_by_name})`;
+  }
+  return 'Rejected';
 };
 
 const getStatusStyles = (theme: string, status: string) => {
@@ -425,6 +431,7 @@ const SubmitLeaveRequest = () => {
                     {filteredLeaves.map((item) => {
                       const rejectionReason = (item.hod_remarks || item.proctor_remarks || '').trim();
                       const reviewerLabel = getReviewerDetails(item);
+                      const rejectionTitle = getRejectionReviewerTitle(item);
 
                       return (
                         <div key={item.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
@@ -445,14 +452,16 @@ const SubmitLeaveRequest = () => {
                                   {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
                                 </div>
                               </Badge>
-                              <span className={`text-[11px] font-medium text-right max-w-[200px] break-words ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                {reviewerLabel}
-                              </span>
+                              {reviewerLabel && (
+                                <span className={`text-[11px] font-medium text-right max-w-[200px] break-words ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                  {reviewerLabel}
+                                </span>
+                              )}
                               {item.status === 'REJECTED' && rejectionReason && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => setViewRejection({ reviewer: reviewerLabel, reason: rejectionReason })}
+                                  onClick={() => setViewRejection({ reviewer: rejectionTitle, reason: rejectionReason })}
                                   className="h-6 px-2 text-[11px] text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 p-0 font-medium"
                                 >
                                   View Rejection Reason
@@ -491,6 +500,7 @@ const SubmitLeaveRequest = () => {
                         {filteredLeaves.map((item) => {
                           const rejectionReason = (item.hod_remarks || item.proctor_remarks || '').trim();
                           const reviewerLabel = getReviewerDetails(item);
+                          const rejectionTitle = getRejectionReviewerTitle(item);
 
                           return (
                             <TableRow key={item.id} className={theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}>
@@ -523,14 +533,16 @@ const SubmitLeaveRequest = () => {
                                       {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
                                     </div>
                                   </Badge>
-                                  <span className={`text-[11px] font-medium mt-0.5 max-w-xs break-words ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    {reviewerLabel}
-                                  </span>
+                                  {reviewerLabel && (
+                                    <span className={`text-[11px] font-medium mt-0.5 max-w-xs break-words ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                      {reviewerLabel}
+                                    </span>
+                                  )}
                                   {item.status === 'REJECTED' && rejectionReason && (
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => setViewRejection({ reviewer: reviewerLabel, reason: rejectionReason })}
+                                      onClick={() => setViewRejection({ reviewer: rejectionTitle, reason: rejectionReason })}
                                       className="h-6 px-1.5 text-[11px] text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 p-0 font-medium"
                                     >
                                       View Reason
