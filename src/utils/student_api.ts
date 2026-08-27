@@ -187,6 +187,11 @@ interface GetLeaveRequestsResponse {
   current_page?: number;
   next?: string | null;
   previous?: string | null;
+  proctor?: {
+    id: number;
+    name: string;
+    email?: string;
+  } | null;
 }
 
 interface GetUnreadCountResponse {

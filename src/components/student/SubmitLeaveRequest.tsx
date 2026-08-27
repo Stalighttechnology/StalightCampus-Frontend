@@ -6,10 +6,10 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { Calendar } from "../ui/calendar";
 import { PopoverTrigger, Popover, PopoverContent } from "../ui/popover";
-import { CalendarIcon, CheckCircle2, Clock3, XCircle, Eye, Filter } from "lucide-react";
+import { CalendarIcon, CheckCircle2, Clock3, XCircle, Eye, Filter, AlertCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { DateRange } from "react-day-picker";
-import { useStudentLeaveRequestMutation, useStudentLeaveRequestsQuery } from "@/hooks/useApiQueries";
+import { useStudentLeaveRequestMutation, useStudentLeaveRequestsQuery, useStudentProfileQuery, useStudentDashboardOverviewQuery } from "@/hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
@@ -130,6 +130,8 @@ const SubmitLeaveRequest = () => {
   const { toast } = useToast();
 
   const { data: leavesResponse, isLoading: leavesLoading, isError: leavesError, refetch: refetchLeaves, pagination } = useStudentLeaveRequestsQuery();
+  const { data: profileResponse, isLoading: profileLoading } = useStudentProfileQuery();
+  const { data: dashboardResponse, isLoading: dashboardLoading } = useStudentDashboardOverviewQuery();
   const [filter, setFilter] = useState<string>('ALL');
   const [query, setQuery] = useState<string>('');
   const [viewReason, setViewReason] = useState<string | null>(null);
@@ -167,8 +169,23 @@ const SubmitLeaveRequest = () => {
     };
   }, [showFilter]);
 
+  // Resolve proctor info from leavesResponse, student full profile, or dashboard data
+  const proctorProfile = profileResponse?.profile?.proctor || profileResponse?.proctor;
+  const proctorFromProfileName = proctorProfile ? `${proctorProfile.first_name || ''} ${proctorProfile.last_name || ''}`.trim() || proctorProfile.username || proctorProfile.name : null;
+  const proctorFromDashboardName = dashboardResponse?.data?.student_profile?.proctor?.name;
+  const proctorName = leavesResponse?.proctor?.name || proctorFromDashboardName || proctorFromProfileName;
+  const isProctorAssigned = Boolean(proctorName);
+  const isDataLoading = leavesLoading && profileLoading && dashboardLoading;
+
+  const instType = getInstitutionType();
+  const proctorRoleLabel = instType === 'school' ? 'Class Teacher' : 'Faculty (Proctor)';
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!isProctorAssigned) {
+      setError(`No ${proctorRoleLabel} is currently assigned to you. Leave requests cannot be submitted without an assigned ${proctorRoleLabel.toLowerCase()}. Please contact the administration.`);
+      return;
+    }
     if (!dateRange?.from || !title.trim() || !reason.trim()) {
       setError("Please provide a valid date, title, and reason.");
       return;
@@ -199,13 +216,9 @@ const SubmitLeaveRequest = () => {
       reason: reason.trim()
     };
 
-    // Debug log
-
     try {
       await leaveRequestMutation.mutateAsync(requestData);
       refetchLeaves();
-
-      // Show success subtle modal for confirmation
 
       const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
       await MySwal.fire({
@@ -267,9 +280,34 @@ const SubmitLeaveRequest = () => {
         <Card id="leave-form-card" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader className="px-4 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-4 md:py-5 border-b mb-3 lg:min-h-[115px] flex flex-col justify-center">
             <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
-            <CardDescription className="text-sm text-muted-foreground mt-1">Your leave request will be routed to your <span className="font-medium text-primary">{getInstitutionType() === 'school' ? 'Class Teacher' : 'Faculty (Proctor)'}</span> for approval.</CardDescription>
+            <CardDescription className="text-sm text-muted-foreground mt-1">
+              {isProctorAssigned ? (
+                <>
+                  Your leave request will be routed to your {proctorRoleLabel}: <span className="font-semibold text-primary">{proctorName}</span> for approval.
+                </>
+              ) : isDataLoading ? (
+                <span>Loading assignment details...</span>
+              ) : (
+                <span className="text-amber-600 dark:text-amber-400 font-medium">
+                  No {proctorRoleLabel} assigned. You cannot submit leave requests until a {proctorRoleLabel.toLowerCase()} is assigned.
+                </span>
+              )}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Warning when no proctor is assigned */}
+            {!isDataLoading && !isProctorAssigned && (
+              <div className={`p-4 rounded-xl border flex items-start gap-3 ${theme === 'dark' ? 'bg-amber-950/30 border-amber-800/40 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-800'}`}>
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-500" />
+                <div className="text-xs sm:text-sm space-y-1">
+                  <p className="font-semibold">No {proctorRoleLabel} Assigned</p>
+                  <p className="leading-relaxed opacity-90">
+                    A {proctorRoleLabel.toLowerCase()} must be assigned to your profile before you can submit leave applications. Please contact the college administration or your department to have your {proctorRoleLabel.toLowerCase()} assigned.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Error Message */}
               {error &&
@@ -284,9 +322,10 @@ const SubmitLeaveRequest = () => {
                   id="title"
                   type="text"
                   value={title}
+                  disabled={!isProctorAssigned || leaveRequestMutation.isPending}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Brief title for your leave request"
-                  className={theme === 'dark' ? 'w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring' : 'w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'}
+                  className={theme === 'dark' ? 'w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed' : 'w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed'}
                   required />
 
               </div>
@@ -297,7 +336,8 @@ const SubmitLeaveRequest = () => {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}>
+                      disabled={!isProctorAssigned || leaveRequestMutation.isPending}
+                      className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-background text-foreground border-border hover:bg-accent hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed'}>
 
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dateRange?.from ?
@@ -333,19 +373,20 @@ const SubmitLeaveRequest = () => {
                 <Textarea
                   id="reason"
                   value={reason}
+                  disabled={!isProctorAssigned || leaveRequestMutation.isPending}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Please provide a detailed reason for your leave request"
-                  className={theme === 'dark' ? 'min-h-[100px] bg-background text-foreground border-border' : 'min-h-[100px] bg-white text-gray-900 border-gray-300'}
+                  className={theme === 'dark' ? 'min-h-[100px] bg-background text-foreground border-border disabled:opacity-50 disabled:cursor-not-allowed' : 'min-h-[100px] bg-white text-gray-900 border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed'}
                   required />
 
               </div>
 
               <Button
                 type="submit"
-                className={theme === 'dark' ? 'w-full text-white bg-primary hover:bg-[#9147e0] border-border' : 'w-full text-white bg-primary hover:bg-[#9147e0] border-primary'}
-                disabled={leaveRequestMutation.isPending}>
+                className={theme === 'dark' ? 'w-full text-white bg-primary hover:bg-[#9147e0] border-border disabled:opacity-50 disabled:cursor-not-allowed' : 'w-full text-white bg-primary hover:bg-[#9147e0] border-primary disabled:opacity-50 disabled:cursor-not-allowed'}
+                disabled={!isProctorAssigned || leaveRequestMutation.isPending}>
 
-                {leaveRequestMutation.isPending ? "Submitting..." : "Submit Request"}
+                {leaveRequestMutation.isPending ? "Submitting..." : isProctorAssigned ? "Submit Request" : `Disabled (${proctorRoleLabel} Not Assigned)`}
               </Button>
             </form>
           </CardContent>

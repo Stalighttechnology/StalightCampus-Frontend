@@ -47,6 +47,8 @@ import {
   UploadCertificateRequest,
   GetCertificatesResponse,
   DeleteCertificateRequest,
+  getFullStudentProfile,
+  getDashboardOverview,
 } from '../utils/student_api';
 
 import { fetchWithTokenRefresh } from '../utils/authService';
@@ -54,6 +56,28 @@ import { API_ENDPOINT } from '../utils/config';
 import { usePagination, useInfiniteScroll, useOptimisticUpdate } from './useOptimizations';
 import { normalizePaginatedResponse } from '../utils/normalizePagination';
 import { getLeaveRequests } from '../utils/student_api';
+
+export const useStudentProfileQuery = () => {
+  return useQuery({
+    queryKey: ['studentFullProfile'],
+    queryFn: async () => {
+      const response = await getFullStudentProfile();
+      return response;
+    },
+    staleTime: 1000 * 60 * 5, // 5 min
+  });
+};
+
+export const useStudentDashboardOverviewQuery = () => {
+  return useQuery({
+    queryKey: ['studentDashboardOverview'],
+    queryFn: async () => {
+      const response = await getDashboardOverview();
+      return response;
+    },
+    staleTime: 1000 * 60 * 5, // 5 min
+  });
+};
 
 // Custom hooks for data fetching
 export const useProctorStudentsQuery = (enabled: boolean = true, include?: string | string[], examPeriod?: string, onlyWithLeaves: boolean = false, search?: string) => {
@@ -212,7 +236,10 @@ export const useStudentStudyMaterialsQuery = (enabled: boolean = false) => {
 };
 
 export const useStudentLeaveRequestsQuery = () => {
-  const pagination = usePagination(['studentLeaveRequests']);
+  const pagination = usePagination({
+    queryKey: ['studentLeaveRequests'],
+    pageSize: 20,
+  });
 
   return {
     ...useQuery({
