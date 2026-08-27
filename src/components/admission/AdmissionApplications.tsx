@@ -1060,7 +1060,7 @@ export default function AdmissionApplications() {
       candidate_mobile: fd.candidate_mobile || app?.enquiry_details?.phone || 'N/A',
       candidate_email: fd.candidate_email || app?.enquiry_details?.email || 'N/A',
       city: fd.city || app?.enquiry_details?.city || 'N/A',
-      course_name: app?.enquiry_details?.course_name || 'N/A',
+      course_name: app?.enrolled_course_name || app?.course_name || app?.enquiry_details?.course_name || app?.branch_name || 'N/A',
 
       sslc_school_name: fd.sslc_school_name || 'N/A',
       sslc_reg_no: fd.sslc_reg_no || 'N/A',
@@ -1230,7 +1230,9 @@ export default function AdmissionApplications() {
                             <div className="text-xs text-muted-foreground font-normal mt-0.5">{app.enquiry_details?.email}</div>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">{app.enquiry_details?.course_name || 'N/A'}</td>
+                        <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
+                          {app?.enrolled_course_name || app?.course_name || app?.enquiry_details?.course_name || app?.branch_name || 'N/A'}
+                        </td>
                         <td className="px-6 py-4 text-muted-foreground font-mono whitespace-nowrap">
                           {app.marks_10th ? `${app.marks_10th}%` : 'N/A'}
                         </td>
@@ -2276,7 +2278,7 @@ export default function AdmissionApplications() {
                     <div><span className="text-muted-foreground block text-[11px]">Candidate Mobile Number</span><strong className="text-foreground">{reviewInfo.candidate_mobile}</strong></div>
                     <div><span className="text-muted-foreground block text-[11px]">Parents Mobile Number</span><strong className="text-foreground">{reviewInfo.parent_mobile}</strong></div>
                     <div><span className="text-muted-foreground block text-[11px]">Candidate Email ID</span><strong className="text-foreground">{reviewInfo.candidate_email}</strong></div>
-                    <div><span className="text-muted-foreground block text-[11px]">Course Applied</span><strong className="text-primary font-semibold">{reviewInfo.course_name}</strong></div>
+                    <div><span className="text-muted-foreground block text-[11px]">{selectedApp?.enquiry_details?.status === 'enrolled' ? 'Course Enrolled' : 'Course Applied'}</span><strong className="text-primary font-semibold">{reviewInfo.course_name}</strong></div>
                   </div>
                 </div>
               </div>

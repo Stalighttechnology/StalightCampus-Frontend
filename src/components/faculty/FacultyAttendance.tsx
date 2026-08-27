@@ -103,30 +103,30 @@ const FacultyAttendance = () => {
         const foundTodayRec = response.data.find((r) => r.date === today) || null;
         const finalTodayRec: FacultyAttendanceRecord = foundTodayRec
           ? {
-              ...foundTodayRec,
-              checkin_windows: (foundTodayRec.checkin_windows && foundTodayRec.checkin_windows.length > 0) ? foundTodayRec.checkin_windows : orgCheckinWindows,
-              periodic_checkin_count: foundTodayRec.periodic_checkin_count || orgPeriodicCount,
-              strict_checkin_window: foundTodayRec.strict_checkin_window ?? orgStrictWindow,
-              category_attendance_workflows: (response as any).category_attendance_workflows || {},
-              staff_category: (response as any).staff_category || 'teaching',
-            }
+            ...foundTodayRec,
+            checkin_windows: (foundTodayRec.checkin_windows && foundTodayRec.checkin_windows.length > 0) ? foundTodayRec.checkin_windows : orgCheckinWindows,
+            periodic_checkin_count: foundTodayRec.periodic_checkin_count || orgPeriodicCount,
+            strict_checkin_window: foundTodayRec.strict_checkin_window ?? orgStrictWindow,
+            category_attendance_workflows: (response as any).category_attendance_workflows || {},
+            staff_category: (response as any).staff_category || 'teaching',
+          }
           : {
-              id: `today-${today}`,
-              date: today,
-              status: (response as any).is_today_holiday ? 'holiday' : 'absent',
-              marked_at: '',
-              check_in_time: null,
-              check_out_time: null,
-              total_hours: null,
-              notes: '',
-              checkin_timestamps: [],
-              delays: [],
-              periodic_checkin_count: orgPeriodicCount,
-              checkin_windows: orgCheckinWindows,
-              strict_checkin_window: orgStrictWindow,
-              category_attendance_workflows: (response as any).category_attendance_workflows || {},
-              staff_category: (response as any).staff_category || 'teaching',
-            };
+            id: `today-${today}`,
+            date: today,
+            status: (response as any).is_today_holiday ? 'holiday' : 'absent',
+            marked_at: '',
+            check_in_time: null,
+            check_out_time: null,
+            total_hours: null,
+            notes: '',
+            checkin_timestamps: [],
+            delays: [],
+            periodic_checkin_count: orgPeriodicCount,
+            checkin_windows: orgCheckinWindows,
+            strict_checkin_window: orgStrictWindow,
+            category_attendance_workflows: (response as any).category_attendance_workflows || {},
+            staff_category: (response as any).staff_category || 'teaching',
+          };
 
         setTodayRecord(finalTodayRec);
         if ((response as any).is_today_on_leave) {
@@ -142,7 +142,7 @@ const FacultyAttendance = () => {
         } else {
           setTodayLeaveType(null);
         }
-        
+
         if ((response as any).next_check_time) {
           setNextCheckTime((response as any).next_check_time);
         } else {
@@ -184,30 +184,30 @@ const FacultyAttendance = () => {
           const foundTodayRec = response.data.find((r: any) => r.date === today) || null;
           const finalTodayRec: FacultyAttendanceRecord = foundTodayRec
             ? {
-                ...foundTodayRec,
-                checkin_windows: (foundTodayRec.checkin_windows && foundTodayRec.checkin_windows.length > 0) ? foundTodayRec.checkin_windows : orgCheckinWindows,
-                periodic_checkin_count: foundTodayRec.periodic_checkin_count || orgPeriodicCount,
-                strict_checkin_window: foundTodayRec.strict_checkin_window ?? orgStrictWindow,
-                category_attendance_workflows: orgCategoryWorkflows,
-                staff_category: userStaffCategory
-              }
+              ...foundTodayRec,
+              checkin_windows: (foundTodayRec.checkin_windows && foundTodayRec.checkin_windows.length > 0) ? foundTodayRec.checkin_windows : orgCheckinWindows,
+              periodic_checkin_count: foundTodayRec.periodic_checkin_count || orgPeriodicCount,
+              strict_checkin_window: foundTodayRec.strict_checkin_window ?? orgStrictWindow,
+              category_attendance_workflows: orgCategoryWorkflows,
+              staff_category: userStaffCategory
+            }
             : {
-                id: `today-${today}`,
-                date: today,
-                status: (response as any).is_today_holiday ? 'holiday' : 'absent',
-                marked_at: '',
-                check_in_time: null,
-                check_out_time: null,
-                total_hours: null,
-                notes: '',
-                checkin_timestamps: [],
-                delays: [],
-                periodic_checkin_count: orgPeriodicCount,
-                checkin_windows: orgCheckinWindows,
-                strict_checkin_window: orgStrictWindow,
-                category_attendance_workflows: orgCategoryWorkflows,
-                staff_category: userStaffCategory
-              };
+              id: `today-${today}`,
+              date: today,
+              status: (response as any).is_today_holiday ? 'holiday' : 'absent',
+              marked_at: '',
+              check_in_time: null,
+              check_out_time: null,
+              total_hours: null,
+              notes: '',
+              checkin_timestamps: [],
+              delays: [],
+              periodic_checkin_count: orgPeriodicCount,
+              checkin_windows: orgCheckinWindows,
+              strict_checkin_window: orgStrictWindow,
+              category_attendance_workflows: orgCategoryWorkflows,
+              staff_category: userStaffCategory
+            };
 
           setTodayRecord(finalTodayRec);
           if ((response as any).is_today_on_leave) {
@@ -223,7 +223,7 @@ const FacultyAttendance = () => {
           } else {
             setTodayLeaveType(null);
           }
-          
+
           if ((response as any).next_check_time) {
             setNextCheckTime((response as any).next_check_time);
           } else {
@@ -289,7 +289,7 @@ const FacultyAttendance = () => {
       return h * 60 + m;
     };
     const nowMin = () => { const n = new Date(); return n.getHours() * 60 + n.getMinutes(); };
-    const getWindowPhase = (w?: {start:string,end:string}) => {
+    const getWindowPhase = (w?: { start: string, end: string }) => {
       if (!w) return 'active';
       const now = nowMin();
       if (now < toMinutes(w.start)) return 'upcoming';
@@ -297,24 +297,24 @@ const FacultyAttendance = () => {
       return 'passed';
     };
     const formatTime = (timeStr?: string) => {
-        if (!timeStr) return '';
-        const [h, m] = timeStr.split(':');
-        let hour = parseInt(h, 10);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        hour = hour % 12 || 12;
-        return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`;
+      if (!timeStr) return '';
+      const [h, m] = timeStr.split(':');
+      let hour = parseInt(h, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      hour = hour % 12 || 12;
+      return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`;
     };
 
     const hds = catConfig?.half_day_split;
-    const fd  = catConfig?.full_day;
+    const fd = catConfig?.full_day;
     const windows = {
-      first_half_in:   hds?.first_half_in,
-      first_half_out:  hds?.first_half_out,
-      second_half_in:  hds?.second_half_in,
+      first_half_in: hds?.first_half_in,
+      first_half_out: hds?.first_half_out,
+      second_half_in: hds?.second_half_in,
       second_half_out: hds?.second_half_out,
-      check_in:  fd?.check_in,
+      check_in: fd?.check_in,
       check_out: fd?.check_out,
-    } as Record<string, {start:string,end:string}|undefined>;
+    } as Record<string, { start: string, end: string } | undefined>;
 
     let currentAction = 'check_in';
     let isCompleted = false;
@@ -326,11 +326,11 @@ const FacultyAttendance = () => {
     };
 
     if (mode === 'half_day_split') {
-      const has1stIn  = !!todayRecord.first_check_in;
+      const has1stIn = !!todayRecord.first_check_in;
       const has1stOut = !!todayRecord.first_check_out;
-      const has2ndIn  = !!todayRecord.second_check_in;
+      const has2ndIn = !!todayRecord.second_check_in;
       const has2ndOut = !!todayRecord.second_check_out;
-      
+
       const missed1stIn = !has1stIn && checkMissed(has1stIn, 'first_half_in');
       const missed1stOut = !has1stOut && checkMissed(has1stOut, 'first_half_out');
       const missed2ndIn = !has2ndIn && checkMissed(has2ndIn, 'second_half_in');
@@ -339,35 +339,35 @@ const FacultyAttendance = () => {
       if (has2ndOut || todayRecord.notes?.includes('[Early Checkout]')) isCompleted = true;
       else if (!has1stIn && !missed1stIn) currentAction = 'first_half_in';
       else if (!has1stOut && !missed1stOut && has1stIn) currentAction = 'first_half_out';
-      else if (!has2ndIn && !missed2ndIn)  currentAction = 'second_half_in';
+      else if (!has2ndIn && !missed2ndIn) currentAction = 'second_half_in';
       else if (!has2ndOut && !missed2ndOut && has2ndIn) currentAction = 'second_half_out';
-      else                 isCompleted = true;
+      else isCompleted = true;
     } else {
       const hasCheckIn = !!todayRecord.check_in_time;
       const hasCheckOut = !!todayRecord.check_out_time;
-      
+
       const missedIn = !hasCheckIn && checkMissed(hasCheckIn, 'check_in');
       const missedOut = !hasCheckOut && checkMissed(hasCheckOut, 'check_out');
 
       if (hasCheckOut || todayRecord.notes?.includes('[Early Checkout]')) isCompleted = true;
       else if (!hasCheckIn && !missedIn) currentAction = 'check_in';
       else if (!hasCheckOut && !missedOut && hasCheckIn) currentAction = 'check_out';
-      else                                  isCompleted = true;
+      else isCompleted = true;
     }
 
-    const actionLabels: Record<string,string> = {
+    const actionLabels: Record<string, string> = {
       first_half_in: '1st Half In', first_half_out: '1st Half Out',
       second_half_in: '2nd Half In', second_half_out: '2nd Half Out',
       check_in: 'Check In', check_out: 'Check Out',
     };
-    
+
     const label = actionLabels[currentAction] || 'Check In';
-    const isCheckOut = ['first_half_out','second_half_out','check_out'].includes(currentAction);
-    
+    const isCheckOut = ['first_half_out', 'second_half_out', 'check_out'].includes(currentAction);
+
     const currentWindow = windows[currentAction];
     const phase = getWindowPhase(currentWindow);
     const isAllowed = (!currentWindow) || (phase === 'active') || (!strictWindow && phase === 'passed');
-    
+
     let nextText = null;
     if (!isCompleted && currentWindow) {
       if (phase === 'upcoming') nextText = `Next: ${label} window opens at ${formatTime(currentWindow.start)}`;
@@ -430,9 +430,10 @@ const FacultyAttendance = () => {
   };
 
   const handleToggleAttendance = async (status: "present" | "absent", action?: string) => {
+    const isEarlyCheckOut = action === 'early_checkout';
     const isCheckInAction = action ? !['first_half_out', 'second_half_out', 'check_out', 'early_checkout'].includes(action) : false;
-    const capitalizedStatus = action ? (isCheckInAction ? "Check In" : "Check Out") : (status.charAt(0).toUpperCase() + status.slice(1));
-    const actionText = action ? (isCheckInAction ? "check in" : "check out") : `mark today's attendance as ${status}`;
+    const capitalizedStatus = action ? (isEarlyCheckOut ? "Early Check Out" : isCheckInAction ? "Check In" : "Check Out") : (status.charAt(0).toUpperCase() + status.slice(1));
+    const actionText = action ? (isEarlyCheckOut ? "check out early" : isCheckInAction ? "check in" : "check out") : `mark today's attendance as ${status}`;
     const confirmResult = await Swal.fire({
       title: `Confirm ${capitalizedStatus}?`,
       text: `Are you sure you want to ${actionText}?`,
@@ -558,8 +559,8 @@ const FacultyAttendance = () => {
           color: theme === "dark" ? "#f5f5f5" : "#111827",
         });
       } else if (response.allow_self_declaration) {
-        const distanceInfo = response.location?.distance_meters 
-          ? ` (Distance: ${Math.round(response.location.distance_meters)}m outside boundary)` 
+        const distanceInfo = response.location?.distance_meters
+          ? ` (Distance: ${Math.round(response.location.distance_meters)}m outside boundary)`
           : "";
         const selfDeclarationResult = await Swal.fire({
           title: "Outside Campus Boundary",
@@ -805,134 +806,133 @@ const FacultyAttendance = () => {
           <CardContent className="space-y-6 pb-0">
             {attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off' || (attendanceStatus === 'on_leave' && (!todayLeaveType || !todayLeaveType.toLowerCase().includes('half-day'))) ? (
               <div className="flex flex-col items-center py-6 space-y-3">
-                <div className={`p-4 rounded-full ${
-                  attendanceStatus === 'holiday'
+                <div className={`p-4 rounded-full ${attendanceStatus === 'holiday'
                     ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700')
                     : attendanceStatus === 'on_leave'
-                    ? (theme === 'dark' ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700')
-                    : (theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700')
-                }`}>
+                      ? (theme === 'dark' ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700')
+                      : (theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700')
+                  }`}>
                   <CalendarIcon className="w-10 h-10" />
                 </div>
                 <span className="text-xl font-bold capitalize">
                   {attendanceStatus === 'holiday' ? 'Institutional Holiday' : attendanceStatus === 'on_leave' ? (todayLeaveType ? `On Approved Leave (${todayLeaveType})` : 'On Approved Leave') : 'Weekly Off'}
                 </span>
                 <p className="text-xs text-muted-foreground text-center max-w-xs">
-                  {attendanceStatus === 'on_leave' 
+                  {attendanceStatus === 'on_leave'
                     ? 'You are on an approved full-day leave. No attendance check-in is required today.'
                     : 'No attendance check-in is required today. Enjoy your day off!'}
                 </p>
               </div>
             ) : (
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="flex items-center space-x-4">
-                    
-                    {/* Check In / Check Out Button */}
-                    {attendanceStatus !== "absent" && (() => {
-                      const { currentAction, isCheckOut, isAllowed, isCompleted } = getFlowState();
-                      return (
-                        <motion.button
-                          onClick={() => handleToggleAttendance("present", currentAction as any)}
-                          disabled={isSubmitting || isCompleted || !isAllowed}
-                          className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:cursor-not-allowed ${markingStatus === 'present' ?
-                            'bg-blue-500 text-white animate-pulse' :
-                            isCompleted ?
-                              (theme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-400') :
+              <div className="flex flex-col items-center space-y-4">
+                <div className="flex items-center space-x-4">
+
+                  {/* Check In / Check Out Button */}
+                  {attendanceStatus !== "absent" && (() => {
+                    const { currentAction, isCheckOut, isAllowed, isCompleted } = getFlowState();
+                    return (
+                      <motion.button
+                        onClick={() => handleToggleAttendance("present", currentAction as any)}
+                        disabled={isSubmitting || isCompleted || !isAllowed}
+                        className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:cursor-not-allowed ${markingStatus === 'present' ?
+                          'bg-blue-500 text-white animate-pulse' :
+                          isCompleted ?
+                            (theme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-400') :
                             !isAllowed ?
                               (theme === 'dark' ? 'bg-red-900/20 text-red-500/50 border-2 border-red-900/30' : 'bg-red-50 text-red-400 border-2 border-red-100 opacity-60') :
-                            isCheckOut ?
-                              'bg-orange-500 text-white scale-110' :
-                              theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
-                          }
-                          whileHover={{ scale: isCompleted || !isAllowed ? 1 : 1.05 }}
-                          whileTap={{ scale: isCompleted || !isAllowed ? 1 : 0.95 }}
-                        >
-                          {markingStatus === 'present' ?
-                            <Loader2 className="w-8 h-8 animate-spin" /> :
-                            isCompleted ? <CheckCircle className="w-8 h-8" /> :
-                            !isAllowed ? <XCircle className="w-8 h-8" /> :
-                            isCheckOut ? <Clock className="w-8 h-8" /> : <CheckCircle className="w-8 h-8" />
-                          }
-                        </motion.button>
-                      );
-                    })()}
-  
-                    {/* Absent Button (only if not checked in) */}
-                    {!(todayRecord?.first_check_in || todayRecord?.check_in_time) && (() => {
-                      const { isCompleted } = getFlowState();
-                      return (
-                        <motion.button
-                          onClick={() => handleToggleAttendance("absent")}
-                          disabled={isSubmitting || !!attendanceStatus || isCompleted}
-                          className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'absent' ?
-                            'bg-blue-500 text-white animate-pulse' :
-                            attendanceStatus === 'absent' ?
-                              'bg-red-500 text-white scale-110' :
-                              theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
-                          }
-                          whileHover={{ scale: attendanceStatus === 'absent' || markingStatus === 'absent' || isCompleted ? 1 : (isCompleted ? 1 : 1.05) }}
-                          whileTap={{ scale: isCompleted ? 1 : 0.95 }}
-                        >
-                          {markingStatus === 'absent' ?
-                            <Loader2 className="w-8 h-8 animate-spin" /> :
-                            <XCircle className="w-8 h-8" />
-                          }
-                        </motion.button>
-                      );
-                    })()}
-                  </div>
-  
-                  {/* Button Labels */}
-                  <div className="flex items-center space-x-8 text-sm font-medium">
-                    {attendanceStatus !== "absent" && (() => {
-                      const { label, isCheckOut, isCompleted } = getFlowState();
-                      return (
-                        <motion.span
-                          className={markingStatus === 'present' ? 'text-blue-500' : isCompleted ? 'text-gray-400' : isCheckOut ? 'text-orange-600' : 'text-gray-500'}
-                        >
-                          {markingStatus === 'present' ? 'Processing...' : isCompleted ? 'Completed' : label}
-                        </motion.span>
-                      );
-                    })()}
-                    {!(todayRecord?.first_check_in || todayRecord?.check_in_time) && (
-                      <motion.span
-                        className={markingStatus === 'absent' ? 'text-blue-500' : attendanceStatus === 'absent' ? 'text-red-600' : 'text-gray-500'}
+                              isCheckOut ?
+                                'bg-orange-500 text-white scale-110' :
+                                theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+                        }
+                        whileHover={{ scale: isCompleted || !isAllowed ? 1 : 1.05 }}
+                        whileTap={{ scale: isCompleted || !isAllowed ? 1 : 0.95 }}
                       >
-                        {markingStatus === 'absent' ? 'Marking...' : 'Absent'}
-                      </motion.span>
-                    )}
-                  </div>
-                  
-                  {(() => {
-                    const { nextText } = getFlowState();
-                    if (!nextText) return null;
-                    return (
-                      <div className={`mt-2 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-                        <Clock className="w-3.5 h-3.5" />
-                        {nextText}
-                      </div>
+                        {markingStatus === 'present' ?
+                          <Loader2 className="w-8 h-8 animate-spin" /> :
+                          isCompleted ? <CheckCircle className="w-8 h-8" /> :
+                            !isAllowed ? <XCircle className="w-8 h-8" /> :
+                              isCheckOut ? <Clock className="w-8 h-8" /> : <CheckCircle className="w-8 h-8" />
+                        }
+                      </motion.button>
                     );
                   })()}
-                
+
+                  {/* Absent Button (only if not checked in) */}
+                  {!(todayRecord?.first_check_in || todayRecord?.check_in_time) && (() => {
+                    const { isCompleted } = getFlowState();
+                    return (
+                      <motion.button
+                        onClick={() => handleToggleAttendance("absent")}
+                        disabled={isSubmitting || !!attendanceStatus || isCompleted}
+                        className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'absent' ?
+                          'bg-blue-500 text-white animate-pulse' :
+                          attendanceStatus === 'absent' ?
+                            'bg-red-500 text-white scale-110' :
+                            theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+                        }
+                        whileHover={{ scale: attendanceStatus === 'absent' || markingStatus === 'absent' || isCompleted ? 1 : (isCompleted ? 1 : 1.05) }}
+                        whileTap={{ scale: isCompleted ? 1 : 0.95 }}
+                      >
+                        {markingStatus === 'absent' ?
+                          <Loader2 className="w-8 h-8 animate-spin" /> :
+                          <XCircle className="w-8 h-8" />
+                        }
+                      </motion.button>
+                    );
+                  })()}
+                </div>
+
+                {/* Button Labels */}
+                <div className="flex items-center space-x-8 text-sm font-medium">
+                  {attendanceStatus !== "absent" && (() => {
+                    const { label, isCheckOut, isCompleted } = getFlowState();
+                    return (
+                      <motion.span
+                        className={markingStatus === 'present' ? 'text-blue-500' : isCompleted ? 'text-gray-400' : isCheckOut ? 'text-orange-600' : 'text-gray-500'}
+                      >
+                        {markingStatus === 'present' ? 'Processing...' : isCompleted ? 'Completed' : label}
+                      </motion.span>
+                    );
+                  })()}
+                  {!(todayRecord?.first_check_in || todayRecord?.check_in_time) && (
+                    <motion.span
+                      className={markingStatus === 'absent' ? 'text-blue-500' : attendanceStatus === 'absent' ? 'text-red-600' : 'text-gray-500'}
+                    >
+                      {markingStatus === 'absent' ? 'Marking...' : 'Absent'}
+                    </motion.span>
+                  )}
+                </div>
+
+                {(() => {
+                  const { nextText } = getFlowState();
+                  if (!nextText) return null;
+                  return (
+                    <div className={`mt-2 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                      <Clock className="w-3.5 h-3.5" />
+                      {nextText}
+                    </div>
+                  );
+                })()}
+
                 {/* Early Half-Day Checkout — only when checked in, not fully done, and flow not completed */}
-                {(todayRecord?.first_check_in || todayRecord?.check_in_time) &&
+                {(todayRecord?.first_check_in || todayRecord?.check_in_time || todayRecord?.second_check_in) &&
                   !(todayRecord?.second_check_out || todayRecord?.check_out_time) &&
                   !getFlowState().isCompleted && (
-                  <div className="mt-2">
-                    <button
-                      onClick={() => handleToggleAttendance("present", "early_checkout")}
-                      disabled={isSubmitting}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
+                    <div className="mt-2">
+                      <button
+                        onClick={() => handleToggleAttendance("present", "early_checkout")}
+                        disabled={isSubmitting}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
                         ${theme === 'dark'
-                          ? 'border-orange-500/50 text-orange-400 hover:bg-orange-500/10'
-                          : 'border-orange-400 text-orange-600 hover:bg-orange-50'
-                        }`}
-                    >
-                      <Clock className="w-3.5 h-3.5" />
-                      Early / Half-Day Checkout
-                    </button>
-                  </div>
-                )}
+                            ? 'border-orange-500/50 text-orange-400 hover:bg-orange-500/10'
+                            : 'border-orange-400 text-orange-600 hover:bg-orange-50'
+                          }`}
+                      >
+                        <Clock className="w-3.5 h-3.5" />
+                        Early / Half-Day Checkout
+                      </button>
+                    </div>
+                  )}
 
                 {/* Off-Campus Duty Button — shown only when not yet checked in and not absent */}
                 {!(todayRecord?.first_check_in || todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.length > 0)) && attendanceStatus !== 'absent' && (
@@ -958,23 +958,23 @@ const FacultyAttendance = () => {
                   const userCat = todayRecord.staff_category || 'teaching';
                   const catConfig = catWorkflows[userCat] || catWorkflows['teaching'];
                   const mode = catConfig?.mode || 'half_day_split';
-                  
+
                   const toMinutes = (t?: string) => {
                     if (!t) return 0;
                     const [h, m] = t.split(':').map(Number);
                     return h * 60 + m;
                   };
                   const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
-                  
+
                   const hds = catConfig?.half_day_split;
                   const fd = catConfig?.full_day;
 
-                  const getMissed = (timeVal: string|null|undefined, w?: {end:string}) => {
+                  const getMissed = (timeVal: string | null | undefined, w?: { end: string }) => {
                     if (timeVal) return false;
                     if (!w || !w.end) return false;
                     return nowMin > toMinutes(w.end);
                   };
-                  
+
                   const checkpoints = mode === 'half_day_split' ? [
                     { label: '1st Half In', time: todayRecord.first_check_in, missed: getMissed(todayRecord.first_check_in, hds?.first_half_in), delay: todayRecord.delays?.[0] },
                     { label: '1st Half Out', time: todayRecord.first_check_out, missed: getMissed(todayRecord.first_check_out, hds?.first_half_out), delay: todayRecord.delays?.[1] },
@@ -1012,7 +1012,7 @@ const FacultyAttendance = () => {
                           </div>
                         ))}
                       </div>
-                      
+
                       {todayRecord?.total_hours && (
                         <div className="flex justify-between text-sm font-bold border-t border-gray-300 dark:border-gray-700 pt-2 mt-2">
                           <span>Total Worked:</span>
@@ -1035,49 +1035,48 @@ const FacultyAttendance = () => {
             )}
 
 
-              {/* Progress Message */}
-              <AnimatePresence>
-                {isSubmitting && loadingMessage &&
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="flex items-center gap-2 text-xs font-medium text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800">
+            {/* Progress Message */}
+            <AnimatePresence>
+              {isSubmitting && loadingMessage &&
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="flex items-center gap-2 text-xs font-medium text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800">
 
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    {loadingMessage}
-                  </motion.div>
-                }
-              </AnimatePresence>
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  {loadingMessage}
+                </motion.div>
+              }
+            </AnimatePresence>
 
-              {/* Status Indicator */}
-              <AnimatePresence mode="wait">
-                {attendanceStatus && (todayRecord?.marked_at || todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.some(ts => ts && ts !== 'Missed')) || attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off' || attendanceStatus === 'on_leave') &&
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="text-center mt-4">
+            {/* Status Indicator */}
+            <AnimatePresence mode="wait">
+              {attendanceStatus && (todayRecord?.marked_at || todayRecord?.check_in_time || (todayRecord?.checkin_timestamps && todayRecord.checkin_timestamps.some(ts => ts && ts !== 'Missed')) || attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off' || attendanceStatus === 'on_leave') &&
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="text-center mt-4">
 
-                    <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full border ${
-                      attendanceStatus === 'present' ?
-                        (theme === 'dark' ? 'bg-green-900/20 border-green-800 text-green-400' : 'bg-green-50 border-green-200 text-green-800') :
+                  <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full border ${attendanceStatus === 'present' ?
+                      (theme === 'dark' ? 'bg-green-900/20 border-green-800 text-green-400' : 'bg-green-50 border-green-200 text-green-800') :
                       attendanceStatus === 'holiday' ?
                         (theme === 'dark' ? 'bg-blue-900/20 border-blue-800 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700') :
-                      attendanceStatus === 'on_leave' ?
-                        (theme === 'dark' ? 'bg-purple-900/20 border-purple-800 text-purple-300' : 'bg-purple-50 border-purple-200 text-purple-700') :
-                      attendanceStatus === 'weekly_off' ?
-                        (theme === 'dark' ? 'bg-slate-900/20 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-800') :
-                        (theme === 'dark' ? 'bg-red-900/20 border-red-800 text-red-400' : 'bg-red-50 border-red-200 text-red-800')
+                        attendanceStatus === 'on_leave' ?
+                          (theme === 'dark' ? 'bg-purple-900/20 border-purple-800 text-purple-300' : 'bg-purple-50 border-purple-200 text-purple-700') :
+                          attendanceStatus === 'weekly_off' ?
+                            (theme === 'dark' ? 'bg-slate-900/20 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-800') :
+                            (theme === 'dark' ? 'bg-red-900/20 border-red-800 text-red-400' : 'bg-red-50 border-red-200 text-red-800')
                     }`}>
-                      {getStatusIcon(attendanceStatus)}
-                      <span className="font-medium capitalize">
-                        {attendanceStatus === 'weekly_off' ? 'Weekly Off' : attendanceStatus === 'on_leave' ? (todayLeaveType ? `On Leave (${todayLeaveType})` : 'On Leave') : attendanceStatus}
-                      </span>
-                    </div>
-                  </motion.div>
-                }
-              </AnimatePresence>
+                    {getStatusIcon(attendanceStatus)}
+                    <span className="font-medium capitalize">
+                      {attendanceStatus === 'weekly_off' ? 'Weekly Off' : attendanceStatus === 'on_leave' ? (todayLeaveType ? `On Leave (${todayLeaveType})` : 'On Leave') : attendanceStatus}
+                    </span>
+                  </div>
+                </motion.div>
+              }
+            </AnimatePresence>
 
           </CardContent>
         </div>
@@ -1513,7 +1512,7 @@ const FacultyAttendance = () => {
         const isFuture = selectedRecordDetails.date > todayStr;
         const isPresent = selectedRecordDetails.status?.toLowerCase() === 'present';
         const isAbsent = selectedRecordDetails.status?.toLowerCase() === 'absent';
-        
+
         return (
           <Dialog open={!!selectedRecordDetails} onOpenChange={(open) => {
             if (!open) setSelectedRecordDetails(null);
@@ -1531,10 +1530,10 @@ const FacultyAttendance = () => {
               <div className="p-5">
                 <div className="space-y-4">
                   <div className={`${isPresent ? 'text-green-500 bg-green-500/10' : isAbsent ? 'text-red-500 bg-red-500/10' : 'text-gray-500 bg-gray-500/10'} p-3 rounded-xl font-bold flex items-center gap-2 text-base`}>
-                    {isPresent ? <CheckCircle className="w-5 h-5" /> : isAbsent ? <XCircle className="w-5 h-5" /> : <Clock className="w-5 h-5" />} 
+                    {isPresent ? <CheckCircle className="w-5 h-5" /> : isAbsent ? <XCircle className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
                     {selectedRecordDetails.status === 'not_marked' ? 'Not Marked' : selectedRecordDetails.status.charAt(0).toUpperCase() + selectedRecordDetails.status.slice(1)}
                   </div>
-                  
+
                   {selectedRecordDetails.checkin_timestamps && selectedRecordDetails.checkin_timestamps.length > 0 ? (
                     <div className={`space-y-2 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                       {selectedRecordDetails.checkin_timestamps.map((ts: any, idx: number) => (
@@ -1566,7 +1565,7 @@ const FacultyAttendance = () => {
                       ))}
                       {selectedRecordDetails.check_out_time && (
                         <div className={`flex items-center justify-between font-bold pt-2 border-t mt-2 ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
-                          <span className="text-gray-500">Check Out</span> 
+                          <span className="text-gray-500">Check Out</span>
                           <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                             {new Date(selectedRecordDetails.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                           </span>
@@ -1577,7 +1576,7 @@ const FacultyAttendance = () => {
                     <div className={`space-y-2 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                       {(selectedRecordDetails.first_check_in || selectedRecordDetails.check_in_time) && (
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-500">{selectedRecordDetails.first_check_in ? '1st Half In' : 'Check In'}</span> 
+                          <span className="font-semibold text-gray-500">{selectedRecordDetails.first_check_in ? '1st Half In' : 'Check In'}</span>
                           <span className={`font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                             {new Date(selectedRecordDetails.first_check_in || selectedRecordDetails.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                             {selectedRecordDetails.delays?.[0] > 0 && (
@@ -1590,7 +1589,7 @@ const FacultyAttendance = () => {
                       )}
                       {selectedRecordDetails.first_check_out && (
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-500">1st Half Out</span> 
+                          <span className="font-semibold text-gray-500">1st Half Out</span>
                           <span className={`font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                             {new Date(selectedRecordDetails.first_check_out).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                           </span>
@@ -1598,7 +1597,7 @@ const FacultyAttendance = () => {
                       )}
                       {selectedRecordDetails.second_check_in && (
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-500">2nd Half In</span> 
+                          <span className="font-semibold text-gray-500">2nd Half In</span>
                           <span className={`font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                             {new Date(selectedRecordDetails.second_check_in).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                             {selectedRecordDetails.delays?.[2] > 0 && (
@@ -1611,7 +1610,7 @@ const FacultyAttendance = () => {
                       )}
                       {(selectedRecordDetails.second_check_out || selectedRecordDetails.check_out_time) && (
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-500">{selectedRecordDetails.second_check_out ? '2nd Half Out' : 'Check Out'}</span> 
+                          <span className="font-semibold text-gray-500">{selectedRecordDetails.second_check_out ? '2nd Half Out' : 'Check Out'}</span>
                           <span className={`font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                             {new Date(selectedRecordDetails.second_check_out || selectedRecordDetails.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                           </span>
@@ -1619,7 +1618,7 @@ const FacultyAttendance = () => {
                       )}
                     </div>
                   )}
-                  
+
                   {selectedRecordDetails.total_hours && (
                     <div className="flex items-center justify-between font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-4 py-3 rounded-xl border border-blue-500/20">
                       <span>Total Worked</span>
