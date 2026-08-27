@@ -447,18 +447,20 @@ const handleApprove = async (index: number) => {
               <h2 className="text-xl sm:text-2xl font-semibold mb-1">Non-Teaching HOD Portal</h2>
               <p className="text-sm text-muted-foreground mb-6">Manage staff leaves, track attendance, assign tasks, and send team announcements.</p>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4">
                 {quickActions.map((act) => (
                   <div 
                     key={act.page} 
                     onClick={() => setPage(act.page)}
-                    className={`p-4 rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] border ${theme === 'dark' ? 'bg-card/50 hover:bg-card border-border' : 'bg-gray-50/50 hover:bg-white border-gray-200'} shadow-sm hover:shadow-md`}
+                    className={`p-4 rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] border min-w-0 overflow-hidden flex flex-col justify-between ${theme === 'dark' ? 'bg-card/50 hover:bg-card border-border' : 'bg-gray-50/50 hover:bg-white border-gray-200'} shadow-sm hover:shadow-md`}
                   >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 rounded-xl bg-background border shadow-xs">{act.icon}</div>
-                      <h3 className="font-semibold text-base">{act.title}</h3>
+                    <div>
+                      <div className="flex items-center gap-3 mb-2 min-w-0">
+                        <div className="p-2 rounded-xl bg-background border shadow-xs flex-shrink-0">{act.icon}</div>
+                        <h3 className="font-semibold text-sm sm:text-base leading-snug break-words min-w-0 flex-1">{act.title}</h3>
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{act.desc}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground">{act.desc}</p>
                   </div>
                 ))}
               </div>
