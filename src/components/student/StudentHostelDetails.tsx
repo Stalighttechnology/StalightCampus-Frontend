@@ -610,9 +610,9 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
                             </h2>
                           </div>
                         </div>
-                        {room && (
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider ${roomTypeBadge}`}>
-                            {room.capacity ? `${room.capacity}-Sharing ` : ''}{room.room_type_display ?? room.room_type ?? 'Room'}
+                        {room && room.capacity && (
+                          <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${roomTypeBadge}`}>
+                            {room.capacity}-Sharing
                           </span>
                         )}
                       </div>
@@ -632,9 +632,7 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
                               Bed & Sharing
                             </span>
                             <span className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                              {room.capacity ? `${room.capacity} Sharing` : ''}
-                              {room.capacity && (room.room_type_display || room.room_type) ? ' • ' : ''}
-                              {room.room_type_display ?? room.room_type ?? 'Bunk'}
+                              {room.capacity ? `${room.capacity} Sharing` : 'Assigned Bed'}
                             </span>
                           </div>
                         </div>
