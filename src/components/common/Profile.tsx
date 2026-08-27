@@ -343,6 +343,7 @@ const Profile = ({ role, user }: ProfileProps) => {
     if (role === 'library_admin') return 'Library Admin';
     if (role === 'admission_manager') return 'Admission Manager';
     if (role === 'counsellor') return 'Admission Counsellor';
+    if (role === 'group_d') return 'Group D';
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
 

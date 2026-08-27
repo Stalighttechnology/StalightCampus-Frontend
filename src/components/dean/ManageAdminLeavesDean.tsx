@@ -479,6 +479,7 @@ const ManageAdminLeavesDean = () => {
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900'}>
                     <SelectItem value="All">All Roles</SelectItem>
                     <SelectItem value="teacher">Faculty / Teacher</SelectItem>
+                    <SelectItem value="group_d">Group D</SelectItem>
                     <SelectItem value="principal">Principal</SelectItem>
                     <SelectItem value="coe">COE</SelectItem>
                     <SelectItem value="fees_manager">Fees Manager</SelectItem>

@@ -89,6 +89,8 @@ const Index = () => {
             navigate("/driver", { replace: true });
             break;
           case "teacher":
+          case "faculty":
+          case "group_d":
             navigate("/faculty", { replace: true });
             break;
           case "student":

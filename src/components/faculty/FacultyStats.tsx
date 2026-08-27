@@ -265,9 +265,11 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
 
   const branchName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
   const deptName = (user?.department || '').toString().toLowerCase();
-  const isNonTeaching = branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
+  const isGroupDRole = user?.role === 'group_d';
+  const isNonTeaching = isGroupDRole || branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
 
   if (isNonTeaching) {
+    const portalTitle = isGroupDRole ? "Group D Portal" : "Non-Teaching Staff Portal";
     const quickActions = [
       { title: "My Attendance", desc: "View and track attendance history", icon: <CheckSquare className="w-6 h-6 text-indigo-500" />, page: "faculty-attendance" },
       { title: "Apply Leave", desc: "Request leave and check approval status", icon: <Calendar className="w-6 h-6 text-blue-500" />, page: "apply-leave" },
@@ -282,7 +284,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
     return (
       <div className="space-y-6">
         <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`}>
-          <h2 className="text-xl sm:text-2xl font-semibold mb-1">Non-Teaching Staff Portal</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold mb-1">{portalTitle}</h2>
           <p className="text-sm text-muted-foreground mb-6">Access staff tools, submit leave requests, view tasks, and check payroll.</p>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

@@ -469,7 +469,7 @@ export default function ScheduleMeeting() {
             const bName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
             const dName = (user?.department || '').toString().toLowerCase();
             const isNonTeachingBranch = bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
-            const isRestricted = isNonTeachingBranch || ['warden', 'library_admin', 'transport_admin'].includes(userRole || '');
+            const isRestricted = isNonTeachingBranch || ['warden', 'library_admin', 'transport_admin', 'group_d'].includes(userRole || '') || user?.role === 'group_d';
             
             return !isRestricted && (
               <Dialog open={showDialog} onOpenChange={setShowDialog}>

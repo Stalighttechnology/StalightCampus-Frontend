@@ -57,7 +57,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
   const [currentUser, setCurrentUser] = useState(user);
   const branchName = (currentUser?.branch_name || currentUser?.branch || '').toString().toLowerCase();
   const deptName = (currentUser?.department || '').toString().toLowerCase();
-  const isNonTeaching = branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
+  const isNonTeaching = currentUser?.role === 'group_d' || branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
 
   const getActivePageFromPath = (pathname: string): string => {
     const pathParts = pathname.split('/').filter(Boolean);
