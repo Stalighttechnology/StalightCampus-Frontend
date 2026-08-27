@@ -1657,18 +1657,41 @@ test_number: number)
   return data.data;
 };
 
-export const getFacultyLeaveRequests = async (): Promise<FacultyLeaveRequest[]> => {
-  const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/leave-requests/`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-      "Content-Type": "application/json"
-    },
-    credentials: 'include'
-  });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.message || 'Failed to fetch leave requests');
-  return data.data;
+export const getFacultyLeaveRequests = async (params?: { page?: number; page_size?: number }): Promise<any> => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.page_size) queryParams.append('page_size', params.page_size.toString());
+
+    const qs = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/leave-requests/${qs}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      credentials: 'include'
+    });
+    return await res.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getFacultyLeaveDetails = async (leaveId: string | number): Promise<any> => {
+  try {
+    const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/leaves/${leaveId}/details/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      credentials: 'include'
+    });
+    return await res.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
 };
 
 export const getFacultyProfile = async () => {

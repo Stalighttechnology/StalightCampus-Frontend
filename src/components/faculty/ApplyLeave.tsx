@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import {
   applyLeave,
   getApplyLeaveBootstrap,
+  getFacultyLeaveRequests,
+  getFacultyLeaveDetails,
   getAvailableColleagues,
   getAlternateDutyRequests,
   alternateDutyAction,
@@ -67,10 +69,10 @@ const getSubstituteStatusBadge = (status: string, currentTheme: string) => {
 
 const renderSubstituteCategoryBadge = (leaveType: string, isHalfDay?: boolean, halfDaySession?: string | null, odCategory?: string | null) => {
   const normalizedType = (leaveType || 'casual').toLowerCase();
-  
+
   let label = 'Casual (CL)';
   let colorClass = 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300';
-  
+
   if (normalizedType === 'od' || normalizedType === 'on_duty') {
     label = 'On Duty (OD)';
     colorClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300';
@@ -299,8 +301,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [viewReason, setViewReason] = useState<string | null>(null);
   const [selectedLeaveForFlow, setSelectedLeaveForFlow] = useState<LeaveRequestDisplay | null>(null);
   const [isRenominating, setIsRenominating] = useState<boolean>(false);
+  const [renominateRole, setRenominateRole] = useState<string>('');
+  const [renominateBranch, setRenominateBranch] = useState<string>('');
   const [newColleagueId, setNewColleagueId] = useState<string>('');
   const [renominatingLoading, setRenominatingLoading] = useState<boolean>(false);
+  const [renominateColleagues, setRenominateColleagues] = useState<ColleagueOption[]>([]);
+  const [renominateColleaguesLoading, setRenominateColleaguesLoading] = useState<boolean>(false);
   const pagination = usePagination({
     queryKey: ['facultyLeaves'],
     pageSize: 10
@@ -337,7 +343,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       setAvailableColleagues([]);
       return;
     }
-    if ((targetRole === 'faculty' || targetRole === 'teacher') && !selectedSubstituteBranch) {
+    const requiresBranch = targetRole === 'faculty' || targetRole === 'teacher' || targetRole === 'hod';
+    if (requiresBranch && !selectedSubstituteBranch) {
       setAvailableColleagues([]);
       return;
     }
@@ -365,13 +372,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   startOfToday.setHours(0, 0, 0, 0);
   const [leaveList, setLeaveList] = useState<LeaveRequestDisplay[]>([]);
 
-  // Fetch branches, bootstrap quotas, colleagues & leave history
+  // Fetch branches, bootstrap quotas & policy rules in one call
   const fetchBootstrapData = () => {
-    setLoading(true);
-    getApplyLeaveBootstrap({ page: pagination.page, page_size: pagination.pageSize })
+    getApplyLeaveBootstrap()
       .then((res) => {
         if (res.success && res.data) {
-          const { leave_requests, branches, faculty_branch, leave_quota, available_colleagues } = res.data;
+          const { branches, faculty_branch, leave_quota, available_colleagues } = res.data;
 
           if (leave_quota) {
             setLeaveQuota(leave_quota);
@@ -431,8 +437,19 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           } else if (branches && branches.length > 0 && !selectedBranch) {
             setSelectedBranch(branches[0].id.toString());
           }
+        }
+      })
+      .catch((err) => console.error("Error fetching bootstrap data:", err));
+  };
 
-          const transformedLeaves: LeaveRequestDisplay[] = leave_requests.map((leave: any) => {
+  // Dedicated separate backend call for Leave History
+  const fetchLeaveHistory = (page: number = pagination.page, pageSize: number = pagination.pageSize) => {
+    setLoading(true);
+    getFacultyLeaveRequests({ page, page_size: pageSize })
+      .then((res: any) => {
+        if (res.success && res.data) {
+          const rawLeaves = Array.isArray(res.data) ? res.data : (Array.isArray(res.data.leave_requests) ? res.data.leave_requests : []);
+          const transformedLeaves: LeaveRequestDisplay[] = rawLeaves.map((leave: any) => {
             const mappedStatus = (leave.status === 'PENDING' ? 'Pending' :
               leave.status === 'APPROVED' ? 'Approved' :
                 leave.status === 'REJECTED' ? 'Rejected' : 'Pending') as LeaveStatus;
@@ -480,10 +497,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           setLeaveList(transformedLeaves);
           pagination.updatePagination(res);
         } else {
-          setError(res.message || 'Failed to load data');
+          setLeaveList([]);
         }
       })
-      .catch(() => setError('Failed to load data'))
+      .catch((err) => {
+        console.error("Error fetching leave requests:", err);
+        setLeaveList([]);
+      })
       .finally(() => setLoading(false));
   };
 
@@ -518,10 +538,11 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('substitute-requests-viewed'));
+    fetchBootstrapData();
   }, []);
 
   useEffect(() => {
-    fetchBootstrapData();
+    fetchLeaveHistory(pagination.page, pagination.pageSize);
   }, [pagination.page, pagination.pageSize]);
 
   useEffect(() => {
@@ -529,6 +550,103 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       fetchSubstituteRequests(substitutePage, substituteStatusFilter);
     }
   }, [activeMainTab, substitutePage, substituteStatusFilter]);
+
+  const [detailsLoading, setDetailsLoading] = useState<boolean>(false);
+
+  // Dedicated separate backend call for a specific leave request's details & approval flow
+  const handleOpenLeaveDetails = async (leave: LeaveRequestDisplay) => {
+    setSelectedLeaveForFlow(leave);
+    setDetailsLoading(true);
+    try {
+      const res = await getFacultyLeaveDetails(leave.id);
+      if (res.success && res.data) {
+        const d = res.data;
+        const mappedStatus = (d.status === 'PENDING' ? 'Pending' :
+          d.status === 'APPROVED' ? 'Approved' :
+            d.status === 'REJECTED' ? 'Rejected' : 'Pending') as LeaveStatus;
+
+        setSelectedLeaveForFlow({
+          id: d.id,
+          title: d.title || `Leave Request ${d.id}`,
+          from: d.start_date,
+          to: d.end_date,
+          leave_type: d.leave_type || 'casual',
+          start_time: d.start_time,
+          end_time: d.end_time,
+          is_half_day: d.is_half_day,
+          half_day_session: d.half_day_session,
+          reason: d.reason,
+          status: mappedStatus,
+          current_stage: d.current_stage,
+          configured_stages: d.configured_stages,
+          od_purpose_category: d.od_purpose_category,
+          initial_document_url: d.initial_document_url,
+          completion_document_url: d.completion_document_url,
+          od_completion_verified: d.od_completion_verified,
+          od_completion_verified_by: d.od_completion_verified_by,
+          od_completion_verified_at: d.od_completion_verified_at,
+          od_completion_remarks: d.od_completion_remarks,
+          alternate_faculty_name: d.alternate_faculty_name,
+          alternate_duty_status: d.alternate_duty_status,
+          alternate_duty_remarks: d.alternate_duty_remarks,
+          alternate_duty_acted_at: d.alternate_duty_acted_at,
+          hod_approval_status: d.hod_approval_status,
+          hod_remarks: d.hod_remarks,
+          hod_reviewed_by: d.hod_reviewed_by,
+          hod_reviewed_at: d.hod_reviewed_at,
+          intermediate_approval_status: d.intermediate_approval_status,
+          intermediate_remarks: d.intermediate_remarks,
+          intermediate_reviewed_by: d.intermediate_reviewed_by,
+          intermediate_reviewed_at: d.intermediate_reviewed_at,
+          principal_approval_status: d.principal_approval_status,
+          principal_remarks: d.principal_remarks,
+          principal_reviewed_by: d.principal_reviewed_by,
+          principal_reviewed_at: d.principal_reviewed_at,
+          appliedOn: d.applied_on
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching leave details:", err);
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  // Start re-nomination in modal with clean cascading states
+  const handleStartRenominating = () => {
+    setIsRenominating(true);
+    setRenominateRole('');
+    setRenominateBranch('');
+    setNewColleagueId('');
+    setRenominateColleagues([]);
+  };
+
+  // Cascading fetch for re-nomination colleague dropdown
+  useEffect(() => {
+    if (!isRenominating || !renominateRole || renominateRole === 'none') {
+      setRenominateColleagues([]);
+      return;
+    }
+    const isBranchRole = renominateRole === 'faculty' || renominateRole === 'teacher' || renominateRole === 'hod';
+    if (isBranchRole && !renominateBranch) {
+      setRenominateColleagues([]);
+      return;
+    }
+    setRenominateColleaguesLoading(true);
+    getAvailableColleagues({ role: renominateRole, branch_id: renominateBranch })
+      .then((res) => {
+        if (res.success && res.data) {
+          setRenominateColleagues(res.data);
+        } else {
+          setRenominateColleagues([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching colleagues for re-nomination:", err);
+        setRenominateColleagues([]);
+      })
+      .finally(() => setRenominateColleaguesLoading(false));
+  }, [isRenominating, renominateRole, renominateBranch]);
 
   // Handle re-nominating a substitute colleague if declined/pending
   const handleRenominateColleague = async () => {
@@ -550,7 +668,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           color: theme === 'dark' ? '#ffffff' : '#000000'
         });
 
-        const newColleagueObj = availableColleagues.find(c => String(c.id) === String(newColleagueId));
+        const pool = renominateColleagues.length > 0 ? renominateColleagues : availableColleagues;
+        const newColleagueObj = pool.find(c => String(c.id) === String(newColleagueId));
         const newName = newColleagueObj ? newColleagueObj.name : 'Nominated Colleague';
 
         setSelectedLeaveForFlow(prev => prev ? ({
@@ -967,6 +1086,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
         window.dispatchEvent(new CustomEvent('leaves-updated'));
         fetchBootstrapData();
+        fetchLeaveHistory();
       } else {
         throw new Error(res.message || 'Failed to apply for leave');
       }
@@ -1006,7 +1126,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     return (
       <div
         className="flex flex-col gap-0.5 items-start cursor-pointer group"
-        onClick={() => setSelectedLeaveForFlow(leave)}
+        onClick={() => handleOpenLeaveDetails(leave)}
         title="Click to view complete approval workflow pipeline"
       >
         <span className={`px-2.5 py-0.5 text-[11px] font-semibold rounded-full inline-flex items-center justify-center gap-1 transition-transform group-hover:scale-105 ${bgClass} shrink-0 whitespace-nowrap min-w-[86px]`}>
@@ -1261,7 +1381,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           )}
         </div>
 
-        {/* Top Header Tab Switcher (Apply Leave vs Substitute Requests) */}
+        {/* Top Header Tab Switcher (Apply Leave & History vs Substitute Requests) */}
         <div className="flex items-center w-full border-b border-border pb-3">
           <div className={`flex items-center p-1 rounded-xl border w-full ${theme === 'dark' ? 'bg-background/80 border-border' : 'bg-muted/40 border-border/60'
             }`}>
@@ -1274,7 +1394,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 }`}
             >
               <CalendarCheck2 className="w-4 h-4 shrink-0" />
-              <span className="whitespace-nowrap">Apply Leave & History</span>
+              <span className="whitespace-nowrap">Apply Leave </span>
             </button>
             <button
               type="button"
@@ -1353,13 +1473,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       {substituteRequests.map((req) => (
                         <div
                           key={req.id}
-                          className={`p-3 rounded-lg border transition-all ${
-                            req.alternate_duty_status === 'PENDING'
+                          className={`p-3 rounded-lg border transition-all ${req.alternate_duty_status === 'PENDING'
                               ? 'border-amber-300 dark:border-amber-800 bg-amber-50/40 dark:bg-amber-950/20'
                               : theme === 'dark'
-                              ? 'bg-card border-border text-foreground'
-                              : 'bg-white border-gray-200 text-gray-900'
-                          }`}
+                                ? 'bg-card border-border text-foreground'
+                                : 'bg-white border-gray-200 text-gray-900'
+                            }`}
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
@@ -1404,11 +1523,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className={`w-full h-9 font-semibold transition border ${
-                                  theme === 'dark'
+                                className={`w-full h-9 font-semibold transition border ${theme === 'dark'
                                     ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
                                     : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                                }`}
+                                  }`}
                                 onClick={() => setSubstituteViewReason(req.reason)}
                               >
                                 View Reason
@@ -1421,11 +1539,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                       href={req.initial_document_url}
                                       target="_blank"
                                       rel="noreferrer"
-                                      className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md border shadow-xs transition-all ${
-                                        theme === 'dark'
+                                      className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md border shadow-xs transition-all ${theme === 'dark'
                                           ? 'border-sky-500/30 bg-sky-950/30 text-sky-300 hover:bg-sky-950/50'
                                           : 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100'
-                                      }`}
+                                        }`}
                                     >
                                       <FileText className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                                       <span>View Attachment</span>
@@ -1437,11 +1554,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                       href={req.completion_document_url}
                                       target="_blank"
                                       rel="noreferrer"
-                                      className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md border shadow-xs transition-all ${
-                                        theme === 'dark'
+                                      className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md border shadow-xs transition-all ${theme === 'dark'
                                           ? 'border-emerald-500/30 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-950/50'
                                           : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                                      }`}
+                                        }`}
                                     >
                                       <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                                       <span>View Attendance Certificate</span>
@@ -1578,11 +1694,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                               <td className="py-4 px-3 md:px-4 text-sm text-center">
                                 <button
                                   onClick={() => setSubstituteViewReason(req.reason)}
-                                  className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${
-                                    theme === 'dark'
+                                  className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${theme === 'dark'
                                       ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
                                       : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                                  }`}
+                                    }`}
                                 >
                                   View
                                 </button>
@@ -1599,22 +1714,20 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   <div className="flex flex-col md:flex-row justify-center gap-2">
                                     <Button
                                       variant="outline"
-                                      className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
-                                        theme === 'dark'
+                                      className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark'
                                           ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
                                           : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
-                                      }`}
+                                        }`}
                                       onClick={() => handleSubstituteAction(req.id, 'ACCEPT')}
                                     >
                                       <CheckCircle2 size={16} /> Accept
                                     </Button>
                                     <Button
                                       variant="outline"
-                                      className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
-                                        theme === 'dark'
+                                      className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark'
                                           ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
                                           : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
-                                      }`}
+                                        }`}
                                       onClick={() => handleSubstituteAction(req.id, 'DECLINE')}
                                     >
                                       <XCircle size={16} /> Decline
@@ -2082,8 +2195,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                     </Select>
                   </div>
 
-                  {/* Step 1.5: Select Department / Branch (Only when Faculty Member / Teacher is selected) */}
-                  {!isStageZero && targetRole !== 'none' && (targetRole === 'faculty' || targetRole === 'teacher') && (
+                  {/* Step 1.5: Select Department / Branch (When Faculty Member / Teacher or HOD is selected) */}
+                  {!isStageZero && targetRole !== 'none' && (targetRole === 'faculty' || targetRole === 'teacher' || targetRole === 'hod') && (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -2130,8 +2243,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         <span className="text-[11px] text-muted-foreground">Optional</span>
                       </div>
                       {(() => {
-                        const isFacultyRole = targetRole === 'faculty' || targetRole === 'teacher';
-                        const isBranchMissing = isFacultyRole && !selectedSubstituteBranch;
+                        const isBranchRole = targetRole === 'faculty' || targetRole === 'teacher' || targetRole === 'hod';
+                        const isBranchMissing = isBranchRole && !selectedSubstituteBranch;
 
                         return (
                           <Select
@@ -2145,10 +2258,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   !targetRole
                                     ? "Select substitute role first..."
                                     : isBranchMissing
-                                    ? "Select department / branch above first..."
-                                    : colleaguesLoading
-                                    ? "Loading colleagues..."
-                                    : "Select colleague..."
+                                      ? "Select department / branch above first..."
+                                      : colleaguesLoading
+                                        ? "Loading colleagues..."
+                                        : "Select colleague..."
                                 }
                               />
                             </SelectTrigger>
@@ -2724,7 +2837,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                           <div className="mt-3 flex flex-col gap-2">
                             <button
-                              onClick={() => setSelectedLeaveForFlow(leave)}
+                              onClick={() => handleOpenLeaveDetails(leave)}
                               className="w-full text-center text-xs font-medium py-2 px-3 rounded-lg border border-primary/20 text-primary bg-primary/5 hover:bg-primary/10 flex items-center justify-center gap-1.5"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -2762,15 +2875,15 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                     </div>
                   ) : (
                     <div className="hidden md:block w-full overflow-x-auto custom-scrollbar">
-                      <table className="w-full min-w-[840px] table-fixed text-sm text-left border-collapse">
+                      <table className="w-full min-w-[780px] text-sm text-left border-collapse">
                         <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50/80'}`}>
                           <tr>
-                            <th className="w-[20%] py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Title</th>
-                            <th className="w-[18%] py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Category</th>
-                            <th className="w-[18%] py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Period</th>
-                            <th className="w-[14%] py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Substitute</th>
-                            <th className="w-[18%] py-3 px-3 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider">Status & Pipeline</th>
-                            <th className="w-[12%] py-3 px-3 text-right font-semibold text-xs text-muted-foreground uppercase tracking-wider">Action</th>
+                            <th className="py-3 px-3.5 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider min-w-[140px]">Title</th>
+                            <th className="py-3 px-3.5 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider min-w-[140px]">Category</th>
+                            <th className="py-3 px-3.5 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider min-w-[160px]">Period</th>
+                            <th className="py-3 px-3.5 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider min-w-[140px]">Substitute</th>
+                            <th className="py-3 px-3.5 text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider min-w-[130px]">Status & Pipeline</th>
+                            <th className="py-3 px-3.5 text-right font-semibold text-xs text-muted-foreground uppercase tracking-wider min-w-[70px]">Action</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2886,7 +2999,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                     size="sm"
                                     variant="outline"
                                     className="text-xs h-7 px-2.5 inline-flex items-center justify-center gap-1 ml-auto border-primary/30 text-primary hover:bg-primary/10 shadow-none font-medium whitespace-nowrap"
-                                    onClick={() => setSelectedLeaveForFlow(leave)}
+                                    onClick={() => handleOpenLeaveDetails(leave)}
                                   >
                                     <Eye className="w-3.5 h-3.5" />
                                     <span>View</span>
@@ -2944,9 +3057,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[95%] sm:max-w-xl mx-auto rounded-xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto' : 'bg-white text-gray-900 border border-gray-200 max-w-[95%] sm:max-w-xl mx-auto rounded-xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto'}>
             <DialogHeader>
               <div className="flex items-center justify-between gap-2 pr-4">
-                <DialogTitle className=" sm:text-lg font-semibold flex items-center gap-2">
+                <DialogTitle className="sm:text-lg font-semibold flex items-center gap-2 w-full">
                   <ShieldCheck className="w-5 h-5 text-primary" />
-                  Leave Approval Workflow Flow
+                  <span>Leave Approval Workflow Flow</span>
+                  {detailsLoading && (
+                    <Clock className="w-4 h-4 text-muted-foreground animate-spin ml-auto" />
+                  )}
                 </DialogTitle>
               </div>
             </DialogHeader>
@@ -3034,62 +3150,160 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => {
-                                      setIsRenominating(true);
-                                      setNewColleagueId('');
-                                    }}
+                                    onClick={handleStartRenominating}
                                     className="text-xs h-7 px-2.5 font-semibold text-primary border-primary/30 hover:bg-primary/5 flex items-center gap-1.5"
                                   >
                                     <UserCheck className="w-3.5 h-3.5" />
                                     {selectedLeaveForFlow.alternate_duty_status === 'DECLINED' ? 'Change / Re-nominate Colleague' : 'Change Nominated Colleague'}
                                   </Button>
                                 ) : (
-                                  <div className="space-y-2 p-2.5 rounded-lg bg-muted/20 border border-border">
-                                    <div className="flex items-center justify-between">
-                                      <Label className="text-[11px] font-semibold text-foreground">
-                                        Select Different Colleague:
-                                      </Label>
-                                      <button
-                                        type="button"
-                                        onClick={() => setIsRenominating(false)}
-                                        className="text-[10px] text-muted-foreground hover:text-foreground underline"
-                                      >
-                                        Cancel
-                                      </button>
-                                    </div>
-                                    <Select value={newColleagueId} onValueChange={setNewColleagueId}>
+                                <div className="space-y-3 p-3 rounded-lg bg-muted/20 border border-border">
+                                  <div className="flex items-center justify-between pb-1 border-b border-border/40">
+                                    <Label className="text-xs font-semibold text-foreground">
+                                      Re-nominate Substitute Colleague
+                                    </Label>
+                                    <button
+                                      type="button"
+                                      onClick={() => setIsRenominating(false)}
+                                      className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+
+                                  {/* Step 1: Substitute Role */}
+                                  <div className="space-y-1.5">
+                                    <Label className="text-[11px] font-medium text-foreground">
+                                      Substitute Role <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Select
+                                      value={renominateRole || undefined}
+                                      onValueChange={(val) => {
+                                        setRenominateRole(val);
+                                        setRenominateBranch('');
+                                        setNewColleagueId('');
+                                      }}
+                                    >
                                       <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
-                                        <SelectValue placeholder="-- Choose Different Colleague --" />
+                                        <SelectValue placeholder="Choose role for duty coverage..." />
                                       </SelectTrigger>
-                                      <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                                        {availableColleagues
-                                          .filter(c => c.username !== user?.username)
-                                          .map((c) => (
-                                            <SelectItem key={c.id} value={String(c.id)}>
-                                              {c.name}
-                                            </SelectItem>
-                                          ))}
+                                      <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                        <SelectItem value="faculty">Faculty Member / Teacher</SelectItem>
+                                        <SelectItem value="hod">Head of Department (HOD)</SelectItem>
+                                        <SelectItem value="dean">Dean</SelectItem>
+                                        <SelectItem value="principal">Principal</SelectItem>
+                                        <SelectItem value="coe">Controller of Examinations (COE)</SelectItem>
+                                        <SelectItem value="fees_manager">Fees & Accounts Manager</SelectItem>
+                                        <SelectItem value="admission_manager">Admission Manager</SelectItem>
+                                        <SelectItem value="hms_admin">Hostel Manager (HMS)</SelectItem>
+                                        <SelectItem value="library_admin">Library Admin</SelectItem>
+                                        <SelectItem value="transport_admin">Transport Admin</SelectItem>
+                                        <SelectItem value="driver">Driver / Fleet Staff</SelectItem>
                                       </SelectContent>
                                     </Select>
-                                    <div className="flex gap-2 justify-end pt-1">
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => setIsRenominating(false)}
-                                        className="h-7 text-xs px-2"
-                                      >
-                                        Cancel
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        onClick={handleRenominateColleague}
-                                        disabled={!newColleagueId || renominatingLoading}
-                                        className="h-7 text-xs px-3 font-semibold bg-primary text-white hover:bg-primary/90"
-                                      >
-                                        {renominatingLoading ? 'Sending...' : 'Confirm & Nominate'}
-                                      </Button>
-                                    </div>
                                   </div>
+
+                                  {/* Step 1.5: Department / Branch (When Faculty/Teacher or HOD is selected) */}
+                                  {renominateRole && (renominateRole === 'faculty' || renominateRole === 'teacher' || renominateRole === 'hod') && (
+                                    <div className="space-y-1.5">
+                                      <div className="flex items-center justify-between">
+                                        <Label className="text-[11px] font-medium text-foreground">
+                                          Department / Branch <span className="text-red-500">*</span>
+                                        </Label>
+                                        <span className="text-[10px] text-muted-foreground">Select branch first</span>
+                                      </div>
+                                      <Select
+                                        value={renominateBranch || undefined}
+                                        onValueChange={(val) => {
+                                          setRenominateBranch(val);
+                                          setNewColleagueId('');
+                                        }}
+                                      >
+                                        <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                          <SelectValue placeholder="Choose Department / Branch..." />
+                                        </SelectTrigger>
+                                        <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                          {branches.map((b) => (
+                                            <SelectItem key={b.id} value={b.id.toString()}>
+                                              {b.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  )}
+
+                                  {/* Step 2: Assign To Colleague */}
+                                  <div className="space-y-1.5">
+                                    <Label className="text-[11px] font-medium text-foreground">
+                                      Assign To <span className="text-red-500">*</span>
+                                    </Label>
+                                    {(() => {
+                                      const isBranchRole = renominateRole === 'faculty' || renominateRole === 'teacher' || renominateRole === 'hod';
+                                      const isBranchMissing = isBranchRole && !renominateBranch;
+
+                                      return (
+                                        <Select
+                                          value={newColleagueId || undefined}
+                                          onValueChange={setNewColleagueId}
+                                          disabled={!renominateRole || isBranchMissing || renominateColleaguesLoading}
+                                        >
+                                          <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
+                                            <SelectValue
+                                              placeholder={
+                                                !renominateRole
+                                                  ? "Select substitute role first..."
+                                                  : isBranchMissing
+                                                    ? "Select department / branch above first..."
+                                                    : renominateColleaguesLoading
+                                                      ? "Loading colleagues..."
+                                                      : "Select colleague..."
+                                              }
+                                            />
+                                          </SelectTrigger>
+                                          <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
+                                            {renominateColleaguesLoading ? (
+                                              <SelectItem value="loading_colleagues" disabled>
+                                                Loading colleagues...
+                                              </SelectItem>
+                                            ) : renominateColleagues.length === 0 ? (
+                                              <SelectItem value="no_colleagues" disabled>
+                                                No colleagues found for this role/branch
+                                              </SelectItem>
+                                            ) : (
+                                              renominateColleagues
+                                                .filter(c => c.username !== user?.username)
+                                                .map((c) => (
+                                                  <SelectItem key={c.id} value={String(c.id)}>
+                                                    {c.name}
+                                                  </SelectItem>
+                                                ))
+                                            )}
+                                          </SelectContent>
+                                        </Select>
+                                      );
+                                    })()}
+                                  </div>
+
+                                  <div className="flex gap-2 justify-end pt-2 border-t border-border/40">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => setIsRenominating(false)}
+                                      className="h-7 text-xs px-2.5"
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={handleRenominateColleague}
+                                      disabled={!newColleagueId || renominatingLoading}
+                                      className="h-7 text-xs px-3 font-semibold bg-primary text-white hover:bg-primary/90 shadow-xs"
+                                    >
+                                      {renominatingLoading ? 'Sending...' : 'Confirm & Nominate'}
+                                    </Button>
+                                  </div>
+                                </div>
                                 )}
                               </div>
                             )}
@@ -3537,6 +3751,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           setTargetOdLeave(null);
                           setCompletionCertFile(null);
                           fetchBootstrapData();
+                          fetchLeaveHistory();
                         } else {
                           throw new Error(res.message || 'Failed to upload certificate');
                         }
