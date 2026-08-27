@@ -784,6 +784,11 @@ export interface AlternateDutyRequestItem {
 export interface GetAlternateDutyRequestsResponse {
   success: boolean;
   message?: string;
+  count?: number;
+  total_pages?: number;
+  current_page?: number;
+  next?: string | null;
+  previous?: string | null;
   data?: AlternateDutyRequestItem[] | {
     requests?: AlternateDutyRequestItem[];
     pending_count?: number;
@@ -996,10 +1001,21 @@ export const uploadOdCompletionCertificate = async (data: {
   }
 };
 
-export const getAlternateDutyRequests = async (): Promise<GetAlternateDutyRequestsResponse> => {
+export const getAlternateDutyRequests = async (params?: {
+  page?: number;
+  page_size?: number;
+  status?: string;
+}): Promise<GetAlternateDutyRequestsResponse> => {
   try {
     const token = sessionStorage.getItem("access_token") || localStorage.getItem("access_token");
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/alternate-duty-requests/`, {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.page_size) queryParams.append('page_size', params.page_size.toString());
+    if (params?.status && params.status !== 'All' && params.status !== 'ALL') {
+      queryParams.append('status', params.status);
+    }
+    const qs = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/alternate-duty-requests/${qs}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -1009,6 +1025,29 @@ export const getAlternateDutyRequests = async (): Promise<GetAlternateDutyReques
     return await response.json();
   } catch (error) {
     return { success: false, message: "Network error" };
+  }
+};
+
+export const getAvailableColleagues = async (params: {
+  role?: string;
+  branch_id?: number | string;
+}): Promise<{ success: boolean; data?: ColleagueOption[]; message?: string }> => {
+  try {
+    const token = sessionStorage.getItem("access_token") || localStorage.getItem("access_token");
+    const queryParams = new URLSearchParams();
+    if (params.role) queryParams.append('role', params.role);
+    if (params.branch_id) queryParams.append('branch_id', params.branch_id.toString());
+    const qs = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/available-colleagues/${qs}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error fetching colleagues" };
   }
 };
 

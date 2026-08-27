@@ -11,10 +11,11 @@ import { CalendarIcon, UserCheck, Clock, CheckCircle2, XCircle, AlertCircle, Use
 import { format, isSameDay } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import {
   applyLeave,
   getApplyLeaveBootstrap,
+  getAvailableColleagues,
   getAlternateDutyRequests,
   alternateDutyAction,
   renominateAlternateFaculty,
@@ -25,7 +26,7 @@ import {
 } from '../../utils/faculty_api';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
-import { SkeletonList } from '@/components/ui/skeleton';
+import { SkeletonList, SkeletonTable } from '@/components/ui/skeleton';
 import { usePagination } from '@/hooks/useOptimizations';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
@@ -34,6 +35,84 @@ import { CalendarCheck2, Filter } from 'lucide-react';
 const MySwal = withReactContent(Swal);
 
 type LeaveStatus = 'Pending' | 'Approved' | 'Rejected';
+
+const formatDateDisplay = (dateStr?: string) => {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T00:00:00`);
+    if (isNaN(d.getTime())) return dateStr;
+    return format(d, 'MMM dd, yyyy');
+  } catch {
+    return dateStr;
+  }
+};
+
+const getSubstituteStatusBadge = (status: string, currentTheme: string) => {
+  const norm = (status || 'PENDING').toUpperCase();
+  switch (norm) {
+    case "PENDING":
+      return <span className={`px-3 py-1 rounded-full text-xs font-medium ${currentTheme === 'dark' ? 'bg-yellow-900/50 text-yellow-200 border border-yellow-800' : 'bg-yellow-100 text-yellow-800 border border-yellow-200'}`}>Pending</span>;
+    case "ACCEPTED":
+    case "APPROVE":
+    case "APPROVED":
+      return <span className={`px-3 py-1 rounded-full text-xs font-medium ${currentTheme === 'dark' ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-800' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'}`}>Accepted</span>;
+    case "DECLINED":
+    case "REJECTED":
+    case "REJECT":
+      return <span className={`px-3 py-1 rounded-full text-xs font-medium ${currentTheme === 'dark' ? 'bg-rose-950/50 text-rose-300 border border-rose-800' : 'bg-rose-100 text-rose-800 border border-rose-200'}`}>Declined</span>;
+    default:
+      return <span className={`px-3 py-1 rounded-full text-xs font-medium ${currentTheme === 'dark' ? 'bg-gray-800 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>{status}</span>;
+  }
+};
+
+const renderSubstituteCategoryBadge = (leaveType: string, isHalfDay?: boolean, halfDaySession?: string | null, odCategory?: string | null) => {
+  const normalizedType = (leaveType || 'casual').toLowerCase();
+  
+  let label = 'Casual (CL)';
+  let colorClass = 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300';
+  
+  if (normalizedType === 'od' || normalizedType === 'on_duty') {
+    label = 'On Duty (OD)';
+    colorClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300';
+  } else if (normalizedType === 'short_permission') {
+    label = 'Short Permission';
+    colorClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300';
+  } else if (normalizedType === 'earned' || normalizedType === 'el') {
+    label = 'Earned (EL)';
+    colorClass = 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300';
+  } else if (normalizedType === 'vacation') {
+    label = 'Vacation Leave';
+    colorClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300';
+  } else if (normalizedType === 'rh' || normalizedType === 'restricted_holiday') {
+    label = 'Holiday (RH)';
+    colorClass = 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300';
+  } else if (normalizedType === 'maternity' || normalizedType === 'ml') {
+    label = 'Maternity (ML)';
+    colorClass = 'bg-pink-100 text-pink-800 dark:bg-pink-950/40 dark:text-pink-300';
+  }
+
+  const showHalfDay = Boolean(isHalfDay || normalizedType === 'half_day');
+  const sessionNormalized = (halfDaySession || '').toLowerCase();
+  const sessionText = (sessionNormalized === 'forenoon' || sessionNormalized === 'morning') ? 'Morning' : 'Afternoon';
+
+  return (
+    <div className="flex flex-wrap items-center gap-1 mt-1">
+      <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded w-fit ${colorClass}`}>
+        {label}
+      </span>
+      {odCategory && (
+        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 w-fit">
+          OD: {odCategory.replace(/_/g, ' ').toUpperCase()}
+        </span>
+      )}
+      {showHalfDay && (
+        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 w-fit">
+          Half-Day ({sessionText})
+        </span>
+      )}
+    </div>
+  );
+};
 
 const hoursOptions = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
 const minutesOptions = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
@@ -135,6 +214,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [targetRole, setTargetRole] = useState<string>('');
   const [selectedAlternateFaculty, setSelectedAlternateFaculty] = useState<string>('');
   const [availableColleagues, setAvailableColleagues] = useState<ColleagueOption[]>([]);
+  const [colleaguesLoading, setColleaguesLoading] = useState<boolean>(false);
   const [permissionDate, setPermissionDate] = useState<Date | undefined>();
 
   // Post-OD Certificate Upload state
@@ -169,6 +249,11 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [substituteRequests, setSubstituteRequests] = useState<AlternateDutyRequestItem[]>([]);
   const [pendingSubstituteCount, setPendingSubstituteCount] = useState<number>(0);
   const [substituteLoading, setSubstituteLoading] = useState<boolean>(false);
+  const [substitutePage, setSubstitutePage] = useState<number>(1);
+  const [substituteTotalPages, setSubstituteTotalPages] = useState<number>(1);
+  const [substituteTotalCount, setSubstituteTotalCount] = useState<number>(0);
+  const [substituteStatusFilter, setSubstituteStatusFilter] = useState<string>("All");
+  const [substituteViewReason, setSubstituteViewReason] = useState<string | null>(null);
 
   // Helper to get default initial times based on clock
   const getInitialTimes = () => {
@@ -245,6 +330,36 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       setSelectedSubstituteBranch('');
     }
   }, [isStageZero]);
+
+  // Dynamically fetch colleagues on-demand when substitute role and branch are selected
+  useEffect(() => {
+    if (!targetRole || targetRole === 'none' || isStageZero) {
+      setAvailableColleagues([]);
+      return;
+    }
+    if ((targetRole === 'faculty' || targetRole === 'teacher') && !selectedSubstituteBranch) {
+      setAvailableColleagues([]);
+      return;
+    }
+
+    setColleaguesLoading(true);
+    getAvailableColleagues({
+      role: targetRole,
+      branch_id: selectedSubstituteBranch || undefined
+    })
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setAvailableColleagues(res.data);
+        } else {
+          setAvailableColleagues([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching colleagues:", err);
+        setAvailableColleagues([]);
+      })
+      .finally(() => setColleaguesLoading(false));
+  }, [targetRole, selectedSubstituteBranch, isStageZero]);
 
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
@@ -373,9 +488,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   };
 
   // Fetch substitute duty requests
-  const fetchSubstituteRequests = () => {
+  const fetchSubstituteRequests = (page: number = substitutePage, status: string = substituteStatusFilter) => {
     setSubstituteLoading(true);
-    getAlternateDutyRequests()
+    getAlternateDutyRequests({ page, page_size: 10, status: status !== 'All' ? status : undefined })
       .then((res: any) => {
         if (res.success && res.data) {
           const rawList = Array.isArray(res.data)
@@ -384,6 +499,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           setSubstituteRequests(rawList);
           const count = res.pending_count ?? (res.data?.pending_count ?? rawList.filter((r: any) => r.alternate_duty_status === 'PENDING').length);
           setPendingSubstituteCount(count);
+          setSubstituteTotalCount(res.count ?? rawList.length);
+          setSubstituteTotalPages(res.total_pages ?? 1);
+          setSubstitutePage(res.current_page ?? page);
           window.dispatchEvent(new CustomEvent('substitute-requests-updated', {
             detail: { pending_count: count }
           }));
@@ -408,9 +526,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
   useEffect(() => {
     if (activeMainTab === 'substitute_requests') {
-      fetchSubstituteRequests();
+      fetchSubstituteRequests(substitutePage, substituteStatusFilter);
     }
-  }, [activeMainTab]);
+  }, [activeMainTab, substitutePage, substituteStatusFilter]);
 
   // Handle re-nominating a substitute colleague if declined/pending
   const handleRenominateColleague = async () => {
@@ -1182,8 +1300,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
         {activeMainTab === 'substitute_requests' ? (
           /* Alternate Duty / Substitute Requests Assigned to You */
-          <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-            <CardHeader className="border-b">
+          <Card className={`border shadow-sm flex flex-col ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+            <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-4">
               <div>
                 <CardTitle className="text-lg sm:text-xl font-semibold">
                   Alternate Duty / Substitute Requests Assigned to You
@@ -1192,89 +1310,384 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   Colleagues who nominated you to cover their duties while they are on leave. Accept or decline to allow their request to proceed.
                 </p>
               </div>
-            </CardHeader>
-            <CardContent className="p-4">
-              {substituteLoading ? (
-                <SkeletonList count={3} />
-              ) : (!Array.isArray(substituteRequests) || substituteRequests.length === 0) ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <UserCheck className="w-12 h-12 mx-auto mb-2 text-muted-foreground/40" />
-                  <p className="font-semibold text-foreground">No substitute duty requests assigned</p>
-                  <p className="text-xs">When a colleague nominates you for alternate duty, it will appear here.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {(Array.isArray(substituteRequests) ? substituteRequests : []).map((req) => (
-                    <div
-                      key={req.id}
-                      className={`p-4 rounded-xl border transition-all ${req.alternate_duty_status === 'PENDING'
-                        ? 'border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20'
-                        : 'border-border bg-card'
-                        }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-foreground">{req.applicant_name}</span>
-                            <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground capitalize font-medium">
-                              {req.applicant_role?.replace('_', ' ')}
-                              {(['teacher', 'faculty', 'hod'].includes(req.applicant_role?.toLowerCase()) && req.department && req.department !== 'General' && req.department !== 'Unknown' && req.department !== 'N/A') ? ` • ${req.department}` : ''}
-                            </span>
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            <span className="font-medium text-foreground">Leave Period:</span> {req.start_date} to {req.end_date}
-                            {req.start_time && req.end_time && ` (${req.start_time} - ${req.end_time})`}
-                            <span className="mx-2">•</span>
-                            <span className="font-medium text-foreground">Type:</span> {req.leave_type.toUpperCase()}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            <span className="font-medium text-foreground">Reason:</span> {req.reason}
-                          </div>
-                          {req.alternate_duty_remarks && (
-                            <div className="text-xs text-foreground/80 mt-1 italic">
-                              Remarks: {req.alternate_duty_remarks}
-                            </div>
-                          )}
-                        </div>
 
-                        <div className="flex items-center gap-2">
-                          {req.alternate_duty_status === 'PENDING' ? (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() => handleSubstituteAction(req.id, 'ACCEPT')}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold"
-                              >
-                                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                                Accept Duty
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleSubstituteAction(req.id, 'DECLINE')}
-                                className="border-rose-300 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:hover:bg-rose-950/40 text-xs font-semibold"
-                              >
-                                <XCircle className="w-3.5 h-3.5 mr-1" />
-                                Decline
-                              </Button>
-                            </>
-                          ) : (
-                            <span
-                              className={`px-3 py-1 text-xs font-semibold rounded-full ${req.alternate_duty_status === 'ACCEPTED'
-                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                : 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-400'
-                                }`}
-                            >
-                              {req.alternate_duty_status === 'ACCEPTED' ? 'Duty Accepted' : 'Duty Declined'}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+              {/* Status Filter */}
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <Select value={substituteStatusFilter} onValueChange={(val) => { setSubstituteStatusFilter(val); setSubstitutePage(1); }}>
+                  <SelectTrigger className="leave-filter-select min-w-[110px] w-auto px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 shadow-sm font-medium text-sm">
+                    <Filter className="h-4 w-4" />
+                    <span>{substituteStatusFilter === "All" ? "Filter" : (substituteStatusFilter === 'PENDING' ? 'Pending' : (substituteStatusFilter === 'ACCEPTED' ? 'Accepted' : 'Declined'))}</span>
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
+                    <SelectItem value="All">All Statuses</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="ACCEPTED">Accepted</SelectItem>
+                    <SelectItem value="DECLINED">Declined</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+
+            <CardContent className="flex-1 px-2 sm:px-6 pt-4">
+              <div className="border rounded-xl overflow-hidden shadow-sm">
+                {substituteLoading ? (
+                  <SkeletonTable rows={5} columns={7} />
+                ) : (!Array.isArray(substituteRequests) || substituteRequests.length === 0) ? (
+                  <div className="flex flex-col items-center justify-center py-16 px-4">
+                    <div className={`p-4 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                      <UserCheck className="w-10 h-10 text-primary opacity-50" />
                     </div>
-                  ))}
-                </div>
-              )}
+                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      No Substitute Requests
+                    </h3>
+                    <p className={`text-xs text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      {substituteStatusFilter !== 'All'
+                        ? `There are no ${substituteStatusFilter.toLowerCase()} substitute requests.`
+                        : 'When a colleague nominates you for alternate duty, it will appear here.'}
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Mobile: stacked cards */}
+                    <div className="md:hidden space-y-3 p-2">
+                      {substituteRequests.map((req) => (
+                        <div
+                          key={req.id}
+                          className={`p-3 rounded-lg border transition-all ${
+                            req.alternate_duty_status === 'PENDING'
+                              ? 'border-amber-300 dark:border-amber-800 bg-amber-50/40 dark:bg-amber-950/20'
+                              : theme === 'dark'
+                              ? 'bg-card border-border text-foreground'
+                              : 'bg-white border-gray-200 text-gray-900'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="font-semibold text-base break-words">{req.applicant_name}</div>
+                              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                  {req.applicant_role?.replace('_', ' ')}
+                                </span>
+                                {req.department && req.department !== 'General' && req.department !== 'Unknown' && (
+                                  <span className="text-xs text-muted-foreground font-medium">{req.department}</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="shrink-0">{getSubstituteStatusBadge(req.alternate_duty_status, theme)}</div>
+                          </div>
+
+                          <div className="mt-2.5">
+                            <div className="text-sm font-semibold text-foreground">{req.title}</div>
+                            {renderSubstituteCategoryBadge(req.leave_type, req.is_half_day, req.half_day_session, req.od_purpose_category)}
+                          </div>
+
+                          <div className="mt-2.5 space-y-2.5">
+                            <div className={`p-2.5 rounded-lg border text-sm flex flex-col gap-1 ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50/50 border-gray-100'}`}>
+                              <div className="flex items-center gap-2">
+                                <CalendarIcon className="w-4 h-4 text-primary/60" />
+                                <span className="font-medium text-foreground">{formatDateDisplay(req.start_date)}</span>
+                                {req.start_date !== req.end_date && (
+                                  <>
+                                    <span className="text-muted-foreground">to</span>
+                                    <span className="font-medium text-foreground">{formatDateDisplay(req.end_date)}</span>
+                                  </>
+                                )}
+                              </div>
+                              {req.start_time && req.end_time && (
+                                <div className="text-xs font-semibold text-primary pl-6">
+                                  {req.start_time} - {req.end_time}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className={`w-full h-9 font-semibold transition border ${
+                                  theme === 'dark'
+                                    ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                    : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                                }`}
+                                onClick={() => setSubstituteViewReason(req.reason)}
+                              >
+                                View Reason
+                              </Button>
+
+                              {(req.initial_document_url || req.completion_document_url) && (
+                                <>
+                                  {req.initial_document_url && (
+                                    <a
+                                      href={req.initial_document_url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md border shadow-xs transition-all ${
+                                        theme === 'dark'
+                                          ? 'border-sky-500/30 bg-sky-950/30 text-sky-300 hover:bg-sky-950/50'
+                                          : 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100'
+                                      }`}
+                                    >
+                                      <FileText className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                                      <span>View Attachment</span>
+                                      <ExternalLink className="w-3 h-3 opacity-70" />
+                                    </a>
+                                  )}
+                                  {req.completion_document_url && (
+                                    <a
+                                      href={req.completion_document_url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md border shadow-xs transition-all ${
+                                        theme === 'dark'
+                                          ? 'border-emerald-500/30 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-950/50'
+                                          : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                      }`}
+                                    >
+                                      <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                      <span>View Attendance Certificate</span>
+                                      <ExternalLink className="w-3 h-3 opacity-70" />
+                                    </a>
+                                  )}
+                                </>
+                              )}
+                            </div>
+
+                            {req.alternate_duty_status === 'PENDING' ? (
+                              <div className="grid grid-cols-2 gap-2.5 pt-1">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSubstituteAction(req.id, 'ACCEPT')}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold h-9"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                                  Accept Duty
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleSubstituteAction(req.id, 'DECLINE')}
+                                  className="border-rose-300 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:hover:bg-rose-950/40 text-xs font-semibold h-9"
+                                >
+                                  <XCircle className="w-3.5 h-3.5 mr-1" />
+                                  Decline
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="pt-2 text-center border-t border-border/40">
+                                <span className="text-xs text-muted-foreground">
+                                  {req.alternate_duty_status === 'ACCEPTED' ? '✓ You accepted this alternate duty' : '✗ You declined this alternate duty'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Desktop / Tablet: table */}
+                    <div className="hidden md:block overflow-x-auto custom-scrollbar">
+                      <table className="w-full text-sm text-left border-collapse">
+                        <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-border bg-card shadow-sm' : 'border-gray-200 bg-gray-50 shadow-sm'}`}>
+                          <tr>
+                            <th className={`py-3 px-3 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Applicant</th>
+                            <th className={`py-3 px-3 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Category / Title</th>
+                            <th className={`py-3 px-4 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period & Time</th>
+                            <th className={`py-3 px-3 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attachments</th>
+                            <th className={`py-3 px-3 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
+                            <th className={`py-3 px-3 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                            <th className={`py-3 px-3 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {substituteRequests.map((req) => (
+                            <tr
+                              key={req.id}
+                              className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}
+                            >
+                              <td className="py-4 px-3 md:px-4 text-left">
+                                <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{req.applicant_name}</div>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                    {req.applicant_role?.replace('_', ' ')}
+                                  </span>
+                                  {req.department && req.department !== 'General' && req.department !== 'Unknown' && (
+                                    <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{req.department}</span>
+                                  )}
+                                </div>
+                              </td>
+
+                              <td className="py-4 px-3 md:px-4 text-left">
+                                <div className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{req.title}</div>
+                                {renderSubstituteCategoryBadge(req.leave_type, req.is_half_day, req.half_day_session, req.od_purpose_category)}
+                              </td>
+
+                              <td className={`py-4 px-3 md:px-4 text-sm text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                <div>
+                                  {formatDateDisplay(req.start_date)}
+                                  {req.start_date !== req.end_date && (
+                                    <>
+                                      <span className={theme === 'dark' ? 'text-muted-foreground mx-1' : 'text-gray-500 mx-1'}>to</span>
+                                      {formatDateDisplay(req.end_date)}
+                                    </>
+                                  )}
+                                </div>
+                                {req.start_time && req.end_time && (
+                                  <div className="text-xs font-semibold text-primary mt-0.5">
+                                    {req.start_time} - {req.end_time}
+                                  </div>
+                                )}
+                              </td>
+
+                              {/* Attachments Column */}
+                              <td className="py-4 px-3 md:px-4 text-sm text-center">
+                                {req.initial_document_url || req.completion_document_url ? (
+                                  <div className="flex flex-col items-center justify-center gap-1.5">
+                                    {req.initial_document_url && (
+                                      <a
+                                        href={req.initial_document_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors shrink-0 whitespace-nowrap"
+                                        title="View Attached Order / Document Proof"
+                                      >
+                                        <FileText className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                                        <span>Attachment</span>
+                                        <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                                      </a>
+                                    )}
+                                    {req.completion_document_url && (
+                                      <a
+                                        href={req.completion_document_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors shrink-0 whitespace-nowrap"
+                                        title="View Attendance Certificate"
+                                      >
+                                        <FileText className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                        <span>Attendance Cert</span>
+                                        <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                                      </a>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground text-xs italic">—</span>
+                                )}
+                              </td>
+
+                              {/* Reason Column */}
+                              <td className="py-4 px-3 md:px-4 text-sm text-center">
+                                <button
+                                  onClick={() => setSubstituteViewReason(req.reason)}
+                                  className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${
+                                    theme === 'dark'
+                                      ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                      : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                                  }`}
+                                >
+                                  View
+                                </button>
+                              </td>
+
+                              {/* Status Column */}
+                              <td className="py-4 px-3 md:px-4 text-center">
+                                {getSubstituteStatusBadge(req.alternate_duty_status, theme)}
+                              </td>
+
+                              {/* Action Column */}
+                              <td className="py-4 px-3 md:px-4 text-center">
+                                {req.alternate_duty_status === 'PENDING' ? (
+                                  <div className="flex flex-col md:flex-row justify-center gap-2">
+                                    <Button
+                                      variant="outline"
+                                      className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
+                                        theme === 'dark'
+                                          ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                                          : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                                      }`}
+                                      onClick={() => handleSubstituteAction(req.id, 'ACCEPT')}
+                                    >
+                                      <CheckCircle2 size={16} /> Accept
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
+                                        theme === 'dark'
+                                          ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                                          : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                                      }`}
+                                      onClick={() => handleSubstituteAction(req.id, 'DECLINE')}
+                                    >
+                                      <XCircle size={16} /> Decline
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                                    {req.alternate_duty_status === 'ACCEPTED' ? 'Accepted' : 'Declined'}
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+              </div>
             </CardContent>
+
+            {/* Pagination Footer */}
+            {substituteTotalPages > 1 && (
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div>
+                  Showing {Math.min((substitutePage - 1) * 10 + 1, substituteTotalCount)} to {Math.min(substitutePage * 10, substituteTotalCount)} of {substituteTotalCount} requests
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSubstitutePage(Math.max(1, substitutePage - 1))}
+                    disabled={substitutePage === 1 || substituteLoading}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Previous
+                  </Button>
+
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {substitutePage}
+                    </span>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSubstitutePage(Math.min(substituteTotalPages, substitutePage + 1))}
+                    disabled={substitutePage === substituteTotalPages || substituteLoading}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
+
+            {/* View Reason Dialog */}
+            <Dialog open={!!substituteViewReason} onOpenChange={() => setSubstituteViewReason(null)}>
+              <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}>
+                <DialogHeader>
+                  <DialogTitle className="text-base font-semibold">Leave Application Reason</DialogTitle>
+                </DialogHeader>
+                <div className="mt-3 text-sm text-foreground/90 whitespace-pre-wrap max-h-[300px] overflow-y-auto p-3 rounded-lg bg-muted/40 border border-border">
+                  {substituteViewReason}
+                </div>
+                <DialogFooter className="mt-4">
+                  <Button variant="outline" size="sm" onClick={() => setSubstituteViewReason(null)}>
+                    Close
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </Card>
         ) : (
           /* Main Layout: Form (Left) & Recent Applications (Right) */
@@ -1717,57 +2130,6 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         <span className="text-[11px] text-muted-foreground">Optional</span>
                       </div>
                       {(() => {
-                        const matchSubstituteRole = (colleagueRole: string, targetRole: string): boolean => {
-                          if (!targetRole || targetRole === 'all') return true;
-                          const role = (colleagueRole || '').toLowerCase().replace(/[\s_-]+/g, '');
-                          const target = targetRole.toLowerCase().replace(/[\s_-]+/g, '');
-
-                          if (target === 'faculty' || target === 'teacher') {
-                            return ['teacher', 'faculty', 'prof', 'professor', 'lecturer', 'instructor'].some(r => role.includes(r));
-                          }
-                          if (target === 'hod') {
-                            return ['hod', 'headofdepartment', 'headofbranch', 'branchhead'].some(r => role.includes(r));
-                          }
-                          if (target === 'dean') {
-                            return role.includes('dean');
-                          }
-                          if (target === 'principal') {
-                            return role.includes('principal');
-                          }
-                          if (target === 'coe') {
-                            return ['coe', 'exam', 'examination'].some(r => role.includes(r));
-                          }
-                          if (target === 'feesmanager' || target === 'fees_manager' || target === 'fees') {
-                            return ['fee', 'account', 'accountant'].some(r => role.includes(r));
-                          }
-                          if (target === 'admissionmanager' || target === 'admission_manager' || target === 'admission') {
-                            return ['admission', 'counsel', 'counsellor', 'counselor'].some(r => role.includes(r));
-                          }
-                          if (target === 'hmsadmin' || target === 'hms_admin' || target === 'hms') {
-                            return ['hms', 'hostel', 'warden'].some(r => role.includes(r));
-                          }
-                          if (target === 'libraryadmin' || target === 'library_admin' || target === 'library') {
-                            return ['library', 'librarian'].some(r => role.includes(r));
-                          }
-                          if (target === 'transportadmin' || target === 'transport_admin' || target === 'transport') {
-                            return ['transportadmin', 'transportmanager'].some(r => role.includes(r)) || (role.includes('transport') && !role.includes('driver'));
-                          }
-                          if (target === 'driver') {
-                            return ['driver', 'busdriver', 'vandriver', 'transportdriver'].some(r => role.includes(r));
-                          }
-
-                          return role === target || role.includes(target) || target.includes(role);
-                        };
-
-                        const filteredColleagues = availableColleagues.filter((c) => {
-                          if (!matchSubstituteRole(c.role, targetRole)) return false;
-                          if (targetRole === 'faculty' || targetRole === 'teacher') {
-                            if (!selectedSubstituteBranch) return false;
-                            return String(c.branch_id) === String(selectedSubstituteBranch);
-                          }
-                          return true;
-                        });
-
                         const isFacultyRole = targetRole === 'faculty' || targetRole === 'teacher';
                         const isBranchMissing = isFacultyRole && !selectedSubstituteBranch;
 
@@ -1775,19 +2137,33 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           <Select
                             value={selectedAlternateFaculty || undefined}
                             onValueChange={setSelectedAlternateFaculty}
-                            disabled={!targetRole || isBranchMissing}
+                            disabled={!targetRole || isBranchMissing || colleaguesLoading}
                           >
                             <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                              <SelectValue placeholder={!targetRole ? "Select substitute role first..." : isBranchMissing ? "Select department / branch above first..." : "Select colleague..."} />
+                              <SelectValue
+                                placeholder={
+                                  !targetRole
+                                    ? "Select substitute role first..."
+                                    : isBranchMissing
+                                    ? "Select department / branch above first..."
+                                    : colleaguesLoading
+                                    ? "Loading colleagues..."
+                                    : "Select colleague..."
+                                }
+                              />
                             </SelectTrigger>
                             <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
                               <SelectItem value="none">-- None (Direct review) --</SelectItem>
-                              {filteredColleagues.length === 0 ? (
+                              {colleaguesLoading ? (
+                                <SelectItem value="loading_colleagues" disabled>
+                                  Loading colleagues...
+                                </SelectItem>
+                              ) : availableColleagues.length === 0 ? (
                                 <SelectItem value="none_available" disabled>
-                                  {isBranchMissing ? "Please select a department / branch above" : `No staff found with role "${targetRole.replace('_', ' ')}"`}
+                                  {isBranchMissing ? "Please select a department / branch above" : `No staff found for role "${targetRole.replace('_', ' ')}"`}
                                 </SelectItem>
                               ) : (
-                                filteredColleagues.map((c) => (
+                                availableColleagues.map((c) => (
                                   <SelectItem key={c.id} value={c.id.toString()}>
                                     {c.name}
                                   </SelectItem>
