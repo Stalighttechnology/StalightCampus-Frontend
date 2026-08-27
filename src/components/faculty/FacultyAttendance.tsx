@@ -280,8 +280,14 @@ const FacultyAttendance = () => {
     const catWorkflows = (todayRecord as any).category_attendance_workflows || {};
     const userCat = todayRecord.staff_category || 'teaching';
     const catConfig = catWorkflows[userCat] || catWorkflows['teaching'];
-    const mode = catConfig?.mode || 'half_day_split';
-    const strictWindow = todayRecord.strict_checkin_window === false ? false : (catConfig?.strict_window !== false);
+    let mode = catConfig?.mode || 'half_day_split';
+    let strictWindow = todayRecord.strict_checkin_window === false ? false : (catConfig?.strict_window !== false);
+
+    // If today has an approved half-day leave, switch to a flexible 1-in/1-out flow
+    if (attendanceStatus === 'on_leave' && todayLeaveType?.toLowerCase().includes('half-day')) {
+      mode = 'standard_full_day';
+      strictWindow = false;
+    }
 
     const toMinutes = (t?: string) => {
       if (!t) return 0;
@@ -366,7 +372,7 @@ const FacultyAttendance = () => {
 
     const currentWindow = windows[currentAction];
     const phase = getWindowPhase(currentWindow);
-    const isAllowed = (!currentWindow) || (phase === 'active') || (!strictWindow && phase === 'passed');
+    let isAllowed = (!currentWindow) || (phase === 'active') || (!strictWindow && phase === 'passed');
 
     let nextText = null;
     if (!isCompleted && currentWindow) {
@@ -374,6 +380,11 @@ const FacultyAttendance = () => {
       else if (phase === 'active') nextText = `${label} window active (Closes at ${formatTime(currentWindow.end)})`;
       else if (phase === 'passed' && !strictWindow) nextText = `${label} window passed (Late allowed)`;
       else if (phase === 'passed' && strictWindow) nextText = `${label} window closed`;
+    }
+
+    if (attendanceStatus === 'on_leave' && todayLeaveType?.toLowerCase().includes('half-day')) {
+      isAllowed = true;
+      nextText = null;
     }
 
     return { currentAction, label, isCheckOut, isAllowed, nextText, isCompleted };
@@ -957,7 +968,14 @@ const FacultyAttendance = () => {
                   const catWorkflows = (todayRecord as any).category_attendance_workflows || {};
                   const userCat = todayRecord.staff_category || 'teaching';
                   const catConfig = catWorkflows[userCat] || catWorkflows['teaching'];
-                  const mode = catConfig?.mode || 'half_day_split';
+                  let mode = catConfig?.mode || 'half_day_split';
+                  let strictWindow = todayRecord.strict_checkin_window === false ? false : (catConfig?.strict_window !== false);
+
+                  // If today has an approved half-day leave, switch to a flexible 1-in/1-out flow
+                  if (attendanceStatus === 'on_leave' && todayLeaveType?.toLowerCase().includes('half-day')) {
+                    mode = 'standard_full_day';
+                    strictWindow = false;
+                  }
 
                   const toMinutes = (t?: string) => {
                     if (!t) return 0;
@@ -971,7 +989,7 @@ const FacultyAttendance = () => {
 
                   const getMissed = (timeVal: string | null | undefined, w?: { end: string }) => {
                     if (timeVal) return false;
-                    if (!w || !w.end) return false;
+                    if (!w || !w.end || !strictWindow) return false;
                     return nowMin > toMinutes(w.end);
                   };
 
@@ -1563,7 +1581,7 @@ const FacultyAttendance = () => {
                           </div>
                         </div>
                       ))}
-                      {selectedRecordDetails.check_out_time && (
+                      {selectedRecordDetails.check_out_time && selectedRecordDetails.checkin_timestamps[selectedRecordDetails.checkin_timestamps.length - 1] !== selectedRecordDetails.check_out_time && (
                         <div className={`flex items-center justify-between font-bold pt-2 border-t mt-2 ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
                           <span className="text-gray-500">Check Out</span>
                           <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -1623,6 +1641,13 @@ const FacultyAttendance = () => {
                     <div className="flex items-center justify-between font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-4 py-3 rounded-xl border border-blue-500/20">
                       <span>Total Worked</span>
                       <span>{formatTotalHours(selectedRecordDetails.total_hours)}</span>
+                    </div>
+                  )}
+
+                  {selectedRecordDetails.leave_type && (
+                    <div className="flex items-center justify-center font-bold text-purple-700 dark:text-purple-400 bg-purple-500/10 px-4 py-3 rounded-xl border border-purple-500/20 gap-2 text-sm text-center">
+                      <Clock className="w-5 h-5 opacity-75 flex-shrink-0" />
+                      <span>On Leave ({selectedRecordDetails.leave_type})</span>
                     </div>
                   )}
 
