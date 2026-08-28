@@ -162,9 +162,9 @@ export default function AdmissionStudents() {
 
         {/* Batch (FIRST) & Branch (SECOND) Filters using Shadcn UI Select */}
         <div className="p-4 border-b border-border bg-muted/20 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-          <div className="flex flex-wrap items-center gap-3 flex-1">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 flex-1">
             {/* Search Input */}
-            <div className="relative flex-1 min-w-[200px] max-w-xs">
+            <div className="relative w-full sm:w-64 min-w-0">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
@@ -175,44 +175,47 @@ export default function AdmissionStudents() {
               />
             </div>
 
-            {/* 1. FIRST: Batch Filter (Shadcn UI Select) */}
-            <div className="w-[180px] sm:w-[200px]">
-              <Select value={selectedBatch} onValueChange={setSelectedBatch}>
-                <SelectTrigger className="h-9 text-xs border-border bg-background">
-                  <div className="flex items-center gap-2 truncate">
-                    <Filter className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                    <SelectValue placeholder="All Batches" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="text-xs font-medium">All Batches</SelectItem>
-                  {batchesList.map(b => (
-                    <SelectItem key={b} value={b} className="text-xs font-medium">{b}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* 2 Dropdowns in single row on mobile: Grid 2 Columns on Mobile, Auto width on Desktop */}
+            <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center sm:gap-3">
+              {/* 1. FIRST: Batch Filter (Shadcn UI Select) */}
+              <div className="w-full sm:w-[180px]">
+                <Select value={selectedBatch} onValueChange={setSelectedBatch}>
+                  <SelectTrigger className="h-9 text-xs border-border bg-background w-full">
+                    <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+                      <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      <SelectValue placeholder="All Batches" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="text-xs font-medium">All Batches</SelectItem>
+                    {batchesList.map(b => (
+                      <SelectItem key={b} value={b} className="text-xs font-medium">{b}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* 2. SECOND: Branch / Department Filter (Shadcn UI Select) */}
-            <div className="w-[200px] sm:w-[260px]">
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="h-9 text-xs border-border bg-background">
-                  <div className="flex items-center gap-2 truncate">
-                    <GraduationCap className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                    <SelectValue placeholder="All Branches / Departments" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="text-xs font-medium">All Branches / Departments</SelectItem>
-                  {branchesList.map(b => (
-                    <SelectItem key={b} value={b} className="text-xs font-medium">{b}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* 2. SECOND: Branch / Department Filter (Shadcn UI Select) */}
+              <div className="w-full sm:w-[220px]">
+                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                  <SelectTrigger className="h-9 text-xs border-border bg-background w-full">
+                    <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+                      <GraduationCap className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      <SelectValue placeholder="All Branches" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="text-xs font-medium">All Branches / Depts</SelectItem>
+                    {branchesList.map(b => (
+                      <SelectItem key={b} value={b} className="text-xs font-medium">{b}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-muted-foreground pt-1 md:pt-0">
             Showing <strong className="text-foreground">{filteredStudents.length}</strong> of {students.length} students
           </div>
         </div>
@@ -229,90 +232,177 @@ export default function AdmissionStudents() {
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[850px] text-sm text-left">
-                <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">App ID</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Student Details</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Batch & Academic Class</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Branch / Department</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Phone Number</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Date of Enrollment</th>
-                    <th className="px-6 py-4 text-right font-semibold whitespace-nowrap">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {filteredStudents.map(student => {
-                    const branchDisplay = student.branch_name || student.enquiry_details?.course_name || 'N/A';
-                    const batchDisplay = student.batch_name || 'N/A';
-                    const semDisplay = student.semester_name ? ` • ${student.semester_name}` : '';
-                    const secDisplay = student.section_name ? ` (${student.section_name})` : '';
+            <>
+              {/* Mobile View: Stacked Cards (Hidden on Desktop) */}
+              <div className="block md:hidden divide-y divide-border p-3 space-y-3">
+                {filteredStudents.map(student => {
+                  const branchDisplay = student.branch_name || student.enquiry_details?.course_name || 'N/A';
+                  const batchDisplay = student.batch_name || 'N/A';
+                  const semDisplay = student.semester_name ? ` • ${student.semester_name}` : '';
+                  const secDisplay = student.section_name ? ` (${student.section_name})` : '';
 
-                    return (
-                      <tr key={student.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-6 py-4 font-mono font-medium whitespace-nowrap">#{student.id}</td>
-                        <td className="px-6 py-4 font-medium">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-muted overflow-hidden border border-border flex items-center justify-center flex-shrink-0">
-                              {student.photo ? (
-                                <img src={student.photo} alt="Student" className="w-full h-full object-cover" />
-                              ) : (
-                                <User className="w-4 h-4 text-muted-foreground" />
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-semibold text-foreground">{student.enquiry_details?.name}</p>
-                              {student.enquiry_details?.email && (
-                                <a
-                                  href={`mailto:${student.enquiry_details.email}`}
-                                  className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline mt-0.5"
-                                  title="Send Email"
-                                >
-                                  <Mail className="w-3 h-3" /> {student.enquiry_details.email}
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-xs">
-                            <span className="font-semibold text-foreground">Batch: {batchDisplay}</span>
-                            {(semDisplay || secDisplay) && (
-                              <span className="text-muted-foreground block mt-0.5">{semDisplay}{secDisplay}</span>
+                  return (
+                    <div
+                      key={student.id}
+                      className="p-4 rounded-xl bg-card border border-border/80 shadow-xs space-y-3 hover:border-primary/30 transition-all duration-200"
+                    >
+                      {/* Top Row: App ID, Student Info & Enrolled Badge */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-muted overflow-hidden border border-border flex items-center justify-center shrink-0">
+                            {student.photo ? (
+                              <img src={student.photo} alt="Student" className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="w-5 h-5 text-muted-foreground" />
                             )}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="font-semibold text-foreground">{branchDisplay}</span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {student.enquiry_details?.phone ? (
-                            <a
-                              href={`tel:${student.enquiry_details.phone}`}
-                              className="inline-flex items-center gap-1.5 font-mono text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline"
-                              title="Call Student"
-                            >
-                              <Phone className="w-3.5 h-3.5" /> {student.enquiry_details.phone}
-                            </a>
-                          ) : (
-                            <span className="text-muted-foreground text-xs font-mono">N/A</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-muted-foreground whitespace-nowrap text-xs">
-                          {new Date(student.updated_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 text-right whitespace-nowrap">
-                          <span className="bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
-                            Enrolled
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-mono font-semibold text-muted-foreground">#{student.id}</span>
+                              <h4 className="text-sm font-semibold text-foreground tracking-tight truncate">
+                                {student.enquiry_details?.name}
+                              </h4>
+                            </div>
+                            {student.enquiry_details?.email && (
+                              <a
+                                href={`mailto:${student.enquiry_details.email}`}
+                                className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline truncate max-w-[200px]"
+                                title="Send Email"
+                              >
+                                <Mail className="w-3 h-3 shrink-0" /> {student.enquiry_details.email}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <span className="bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase shrink-0">
+                          Enrolled
+                        </span>
+                      </div>
+
+                      {/* Details Box: Branch, Batch & Enrolled Date */}
+                      <div className="space-y-1.5 text-xs bg-muted/30 p-2.5 rounded-lg border border-border/40">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-muted-foreground shrink-0">Branch / Dept:</span>
+                          <span className="font-semibold text-foreground text-right truncate">{branchDisplay}</span>
+                        </div>
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-muted-foreground shrink-0">Batch & Class:</span>
+                          <span className="font-medium text-foreground text-right">
+                            {batchDisplay}{(semDisplay || secDisplay) && ` • ${semDisplay.replace(' • ', '')}${secDisplay}`}
                           </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        </div>
+                        <div className="flex items-baseline justify-between gap-2 pt-1 border-t border-border/30">
+                          <span className="text-muted-foreground shrink-0">Enrolled On:</span>
+                          <span className="font-medium text-foreground font-mono">
+                            {new Date(student.updated_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Contact row if phone is present */}
+                      {student.enquiry_details?.phone && (
+                        <div className="flex items-center justify-between pt-0.5 text-xs">
+                          <span className="text-muted-foreground">Phone:</span>
+                          <a
+                            href={`tel:${student.enquiry_details.phone}`}
+                            className="inline-flex items-center gap-1.5 font-mono text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline"
+                            title="Call Student"
+                          >
+                            <Phone className="w-3.5 h-3.5" /> {student.enquiry_details.phone}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop View: Table (Hidden on Mobile) */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[850px] text-sm text-left">
+                  <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
+                    <tr>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">App ID</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Student Details</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Batch & Academic Class</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Branch / Department</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Phone Number</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Date of Enrollment</th>
+                      <th className="px-6 py-4 text-right font-semibold whitespace-nowrap">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredStudents.map(student => {
+                      const branchDisplay = student.branch_name || student.enquiry_details?.course_name || 'N/A';
+                      const batchDisplay = student.batch_name || 'N/A';
+                      const semDisplay = student.semester_name ? ` • ${student.semester_name}` : '';
+                      const secDisplay = student.section_name ? ` (${student.section_name})` : '';
+
+                      return (
+                        <tr key={student.id} className="hover:bg-muted/30 transition-colors">
+                          <td className="px-6 py-4 font-mono font-medium whitespace-nowrap">#{student.id}</td>
+                          <td className="px-6 py-4 font-medium">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-full bg-muted overflow-hidden border border-border flex items-center justify-center flex-shrink-0">
+                                {student.photo ? (
+                                  <img src={student.photo} alt="Student" className="w-full h-full object-cover" />
+                                ) : (
+                                  <User className="w-4 h-4 text-muted-foreground" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-foreground">{student.enquiry_details?.name}</p>
+                                {student.enquiry_details?.email && (
+                                  <a
+                                    href={`mailto:${student.enquiry_details.email}`}
+                                    className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline mt-0.5"
+                                    title="Send Email"
+                                  >
+                                    <Mail className="w-3 h-3" /> {student.enquiry_details.email}
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-xs">
+                              <span className="font-semibold text-foreground">Batch: {batchDisplay}</span>
+                              {(semDisplay || secDisplay) && (
+                                <span className="text-muted-foreground block mt-0.5">{semDisplay}{secDisplay}</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="font-semibold text-foreground">{branchDisplay}</span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {student.enquiry_details?.phone ? (
+                              <a
+                                href={`tel:${student.enquiry_details.phone}`}
+                                className="inline-flex items-center gap-1.5 font-mono text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline"
+                                title="Call Student"
+                              >
+                                <Phone className="w-3.5 h-3.5" /> {student.enquiry_details.phone}
+                              </a>
+                            ) : (
+                              <span className="text-muted-foreground text-xs font-mono">N/A</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-muted-foreground whitespace-nowrap text-xs">
+                            {new Date(student.updated_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 text-right whitespace-nowrap">
+                            <span className="bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
+                              Enrolled
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </CardContent>
         {totalPages > 1 && (
