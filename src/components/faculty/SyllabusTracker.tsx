@@ -363,6 +363,59 @@ const SyllabusTracker = () => {
     }
   };
 
+  // Delete Day Log with confirmation dialog and direct backend persistence
+  const handleDeleteDayLog = async (weekNum: number, dayIdx: number) => {
+    if (!subjectId) return;
+    const edit = progressEdits[weekNum];
+    const targetDay = edit?.daily_logs?.[dayIdx];
+    const dayName = targetDay?.day_name || (DAY_OPTIONS.find(d => d.value === targetDay?.day)?.label || `Day ${targetDay?.day || dayIdx + 1}`);
+
+    const confirmResult = await showConfirmAlert(
+      `Delete Day Log?`,
+      `Are you sure you want to delete the lecture log for ${dayName} (Week ${weekNum})?`,
+      `Yes, delete`
+    );
+
+    if (!confirmResult.isConfirmed) return;
+
+    const currentLogs = edit?.daily_logs || [];
+    const updated = currentLogs.filter((_: any, i: number) => i !== dayIdx);
+    
+    // Update local state immediately for instant UI feedback
+    setProgressEdits({
+      ...progressEdits,
+      [weekNum]: { ...edit, daily_logs: updated }
+    });
+
+    try {
+      const matchingAssignment = normalizedAssignments.find(a => a.subject_id === subjectId && a.semester_id === semesterId);
+      const res = await updateSyllabusProgress({
+        subject_id: subjectId.toString(),
+        branch_id: isElective ? undefined : matchingAssignment?.branch_id?.toString(),
+        semester_id: isElective ? undefined : semesterId?.toString(),
+        section_id: isElective ? undefined : sectionId?.toString(),
+        batch_id: batchId!.toString(),
+        week_number: weekNum,
+        is_completed: edit.is_completed ?? false,
+        topics_covered: edit.topics_covered || "",
+        notes: edit.notes || "",
+        daily_logs: updated
+      });
+
+      if (res.success) {
+        toast({
+          title: "Day Log Deleted",
+          description: `${dayName} lecture log for Week ${weekNum} has been deleted.`
+        });
+        fetchSyllabus();
+      } else {
+        toast({ title: "Error", description: res.message || "Failed to delete day log", variant: "destructive" });
+      }
+    } catch (e) {
+      toast({ title: "Error", description: "Failed to delete day log from server", variant: "destructive" });
+    }
+  };
+
   // Toggle completion with confirmation dialog
   const handleToggleCompletion = async (weekNum: number, currentCompleted: boolean) => {
     if (!subjectId) return;
@@ -753,20 +806,20 @@ const SyllabusTracker = () => {
                         {/* Expandable Day-Wise Teaching Log Section */}
                         {isExpanded && (
                           <div className="mt-2 pt-4 border-t border-dashed space-y-3 bg-muted/20 p-4 rounded-xl">
-                            <div className="flex justify-between items-center flex-wrap gap-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                               <div>
                                 <h5 className="text-sm font-semibold flex items-center gap-1.5">
                                   <Calendar className="w-4 h-4 text-primary" />
                                   Day-Wise Lecture & Progress Log
                                 </h5>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-muted-foreground mt-0.5">
                                   Track daily lectures, topics covered on specific dates, and verify syllabus completion day by day.
                                 </p>
                               </div>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-8 text-xs gap-1"
+                                className="w-full sm:w-auto h-8 text-xs gap-1.5 shadow-xs bg-background hover:bg-muted justify-center"
                                 onClick={() => {
                                   const currentLogs = [...dailyLogs];
                                   const nextDayNum = currentLogs.length + 1;
@@ -831,7 +884,7 @@ const SyllabusTracker = () => {
                             )}
 
                             {dailyLogs.length > 0 && (
-                              <div className="space-y-2.5">
+                              <div className="space-y-3">
                                 {dailyLogs.map((log: any, idx: number) => {
                                   const plannedForDay = plannedDays.find((pd: any) => pd.day === log.day);
                                   const logDate = log.date ? new Date(log.date) : undefined;
@@ -841,26 +894,26 @@ const SyllabusTracker = () => {
                                   return (
                                     <div
                                       key={idx}
-                                      className={`p-3.5 rounded-xl border flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between transition-all ${
+                                      className={`p-3.5 rounded-xl border flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between transition-all ${
                                         log.is_completed ? "bg-emerald-500/5 border-emerald-500/30" : "bg-card border-border shadow-sm"
                                       }`}
                                     >
-                                      {/* Completion Checkbox & Day Name Select (Monday, Tuesday...) */}
-                                      <div className="flex items-center gap-2.5 shrink-0">
-                                        <input
-                                          type="checkbox"
-                                          checked={!!log.is_completed}
-                                          onChange={(e) => {
-                                            const updated = [...dailyLogs];
-                                            updated[idx] = { ...log, is_completed: e.target.checked };
-                                            setProgressEdits({
-                                              ...progressEdits,
-                                              [w.week]: { ...edit, daily_logs: updated }
-                                            });
-                                          }}
-                                          className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer accent-primary"
-                                        />
-                                        <div className="flex items-center gap-1.5">
+                                      {/* Top Row on mobile / Left column on desktop: Completion Checkbox & Day Name Select */}
+                                      <div className="flex items-center justify-between lg:justify-start gap-2.5 shrink-0">
+                                        <div className="flex items-center gap-2">
+                                          <input
+                                            type="checkbox"
+                                            checked={!!log.is_completed}
+                                            onChange={(e) => {
+                                              const updated = [...dailyLogs];
+                                              updated[idx] = { ...log, is_completed: e.target.checked };
+                                              setProgressEdits({
+                                                ...progressEdits,
+                                                [w.week]: { ...edit, daily_logs: updated }
+                                              });
+                                            }}
+                                            className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer accent-primary"
+                                          />
                                           <Select
                                             value={String(log.day || idx + 1)}
                                             onValueChange={(val) => {
@@ -880,7 +933,7 @@ const SyllabusTracker = () => {
                                               });
                                             }}
                                           >
-                                            <SelectTrigger className="h-8 min-w-28 text-xs font-semibold">
+                                            <SelectTrigger className="h-8 min-w-28 text-xs font-semibold bg-background">
                                               <SelectValue placeholder="Select Day" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -892,6 +945,13 @@ const SyllabusTracker = () => {
                                             </SelectContent>
                                           </Select>
                                         </div>
+
+                                        {/* Status Badge */}
+                                        <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full lg:hidden ${
+                                          log.is_completed ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"
+                                        }`}>
+                                          {log.is_completed ? "Completed" : "Pending"}
+                                        </span>
                                       </div>
 
                                       {/* Topic Taught & Date Picker using Shadcn Popover + Calendar */}
@@ -924,7 +984,7 @@ const SyllabusTracker = () => {
                                                   !log.date ? "text-muted-foreground" : "text-foreground font-medium"
                                                 }`}
                                               >
-                                                <Calendar className="mr-2 h-3.5 w-3.5 text-primary" />
+                                                <Calendar className="mr-2 h-3.5 w-3.5 text-primary shrink-0" />
                                                 {log.date ? formatDateToDDMMYYYY(log.date) : <span>Select Date</span>}
                                               </Button>
                                             </PopoverTrigger>
@@ -954,11 +1014,11 @@ const SyllabusTracker = () => {
                                       </div>
 
                                       {/* Individual Day Save Action & Delete buttons */}
-                                      <div className="flex items-center gap-1.5 shrink-0 self-end lg:self-center">
+                                      <div className="flex items-center justify-end gap-2 shrink-0 pt-1 lg:pt-0">
                                         <Button
                                           size="sm"
                                           variant="outline"
-                                          className="h-8 px-2.5 text-xs font-semibold text-primary border-primary/30 hover:bg-primary/10 gap-1"
+                                          className="h-8 px-3 text-xs font-semibold text-primary border-primary/30 hover:bg-primary/10 gap-1.5 shadow-2xs"
                                           onClick={() => handleSaveDayProgress(w.week, idx)}
                                           disabled={isSavingThisDay}
                                         >
@@ -972,14 +1032,9 @@ const SyllabusTracker = () => {
                                         <Button
                                           size="icon"
                                           variant="ghost"
-                                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                          onClick={() => {
-                                            const updated = dailyLogs.filter((_: any, i: number) => i !== idx);
-                                            setProgressEdits({
-                                              ...progressEdits,
-                                              [w.week]: { ...edit, daily_logs: updated }
-                                            });
-                                          }}
+                                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                                          title="Delete day log"
+                                          onClick={() => handleDeleteDayLog(w.week, idx)}
                                         >
                                           <Trash2 className="w-3.5 h-3.5" />
                                         </Button>
