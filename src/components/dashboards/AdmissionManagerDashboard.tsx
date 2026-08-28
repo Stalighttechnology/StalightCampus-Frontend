@@ -25,6 +25,8 @@ import { HolidayCalendar } from "../admin/HolidayCalendar";
 import ScheduleMeeting from "../common/ScheduleMeeting";
 
 import AnnouncementManagement from "../admin/AnnouncementManagement";
+import DesktopOnly from "../common/DesktopOnly";
+import { useIsDesktop } from "../../hooks/use-desktop";
 
 interface DashboardProps {
   user: any;
@@ -34,6 +36,7 @@ interface DashboardProps {
 const AdmissionManagerDashboard = ({ user }: DashboardProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const isDesktop = useIsDesktop();
 
   const getActivePageFromPath = (pathname: string) => {
     const path = pathname.replace('/admission-manager', '').split('/').filter(Boolean)[0];
@@ -55,9 +58,27 @@ const AdmissionManagerDashboard = ({ user }: DashboardProps) => {
       case "announcements":
         return <AnnouncementManagement />;
       case "campus-builder":
-        return <CampusPageBuilder />;
+        return isDesktop ? (
+          <CampusPageBuilder />
+        ) : (
+          <DesktopOnly
+            title="Desktop Screen Required"
+            featureName="Campus Page Management"
+            description="requires a desktop view for live page previews, multi-section drag-and-drop builders, and template layout configuration. Please switch to a desktop or laptop browser."
+            backPath="/admission-manager"
+          />
+        );
       case "admission-enquiries":
-        return <LeadPipeline />;
+        return isDesktop ? (
+          <LeadPipeline />
+        ) : (
+          <DesktopOnly
+            title="Desktop Screen Required"
+            featureName="Enquiries & Lead Pipeline"
+            description="requires a desktop view for multi-column Kanban workflows, lead activity logs, and batch status pipelines. Please switch to a desktop or laptop browser."
+            backPath="/admission-manager"
+          />
+        );
       case "admission-applications":
         return <AdmissionApplications />;
       case "admission-students":
