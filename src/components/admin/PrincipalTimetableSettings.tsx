@@ -833,7 +833,12 @@ export default function PrincipalTimetableSettings() {
       let cleanedCardRule: any = {};
       const payload: Record<string, any> = {};
 
-      if (cardKey === 'casual_leave') {
+      if (cardKey === 'academic_year') {
+        const ay = rules.academic_year || {};
+        cleanedCardRule = {
+          start_month: ay.start_month === '' || ay.start_month === undefined ? 6 : Number(ay.start_month)
+        };
+      } else if (cardKey === 'casual_leave') {
         const cl = rules.casual_leave || {};
         cleanedCardRule = {
           is_enabled: cl.is_enabled !== false,
@@ -925,6 +930,9 @@ export default function PrincipalTimetableSettings() {
     try {
       setLeaveRulesSaving(true);
       const cleanRules = {
+        academic_year: {
+          start_month: leavePolicy.leave_policy_rules?.academic_year?.start_month === '' || leavePolicy.leave_policy_rules?.academic_year?.start_month === undefined ? 6 : Number(leavePolicy.leave_policy_rules?.academic_year?.start_month)
+        },
         casual_leave: {
           is_enabled: leavePolicy.leave_policy_rules?.casual_leave?.is_enabled !== false,
           annual_quota: leavePolicy.leave_policy_rules?.casual_leave?.annual_quota === '' ? 15 : Number(leavePolicy.leave_policy_rules?.casual_leave?.annual_quota),
@@ -1874,6 +1882,21 @@ export default function PrincipalTimetableSettings() {
                                 </div>
                                 <p className="text-[10px] text-muted-foreground">EL semester credits (H1 vs H2) synchronize with this cycle.</p>
                               </div>
+                            </div>
+
+                            {/* Individual Save for Academic Year Leave Cycle */}
+                            <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2 mt-2">
+                              <span className="text-[11px] text-muted-foreground">Save Academic Year Leave Cycle & Reset Month configuration</span>
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => handleSaveIndividualLeaveCard('academic_year', 'Academic Year Leave Cycle')}
+                                disabled={savingCard === 'academic_year'}
+                                className="h-7 px-3 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
+                              >
+                                <Save className="w-3 h-3 mr-1.5" />
+                                {savingCard === 'academic_year' ? 'Saving...' : 'Save Cycle Policy'}
+                              </Button>
                             </div>
                           </CardContent>
                         </Card>
