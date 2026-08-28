@@ -789,13 +789,14 @@ const SubjectManagement = () => {
                 </label>
                 <Input
                   type="number"
-                  min={1}
+                  min={0}
                   value={state.newSubject.credits}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
                     updateState({
-                      newSubject: { ...state.newSubject, credits: e.target.value === "" ? "" : parseInt(e.target.value) || "" }
-                    })
-                  }
+                      newSubject: { ...state.newSubject, credits: e.target.value === "" ? "" : (isNaN(val) ? "" : val) }
+                    });
+                  }}
                   disabled={state.loading}
                   className={`${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 rounded`}
                 />
