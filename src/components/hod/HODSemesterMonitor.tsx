@@ -764,7 +764,7 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
           )}
 
           <Dialog open={!!selectedSubject} onOpenChange={(open) => !open && setSelectedSubject(null)}>
-            <DialogContent className={`w-[90%] h-[80vh] sm:max-w-2xl sm:h-auto sm:max-h-[85vh] flex flex-col rounded-xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
+            <DialogContent className={`w-[90%] max-h-[80vh] sm:max-w-2xl sm:h-auto sm:max-h-[85vh] overflow-hidden flex flex-col rounded-2xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                   Section-wise Syllabus Coverage
@@ -831,17 +831,17 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
                       </div>
 
                       {/* View Teaching Progress Action Button */}
-                      <div className="mt-3 pt-3 border-t border-dashed flex justify-between items-center">
+                      <div className="mt-3 pt-3 border-t border-dashed flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 sm:gap-2">
                         <span className="text-xs font-semibold text-muted-foreground">
                           Recorded: <strong className="text-primary">{sec.completed_weeks}</strong> of {sec.total_weeks} Weeks
                         </span>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-8 text-xs font-medium flex items-center gap-1.5 bg-background hover:bg-muted"
+                          className="w-full sm:w-auto h-8 text-xs font-medium flex items-center justify-center gap-1.5 bg-background hover:bg-muted"
                           onClick={() => handleOpenSectionProgress(sec)}
                         >
-                          <Eye className="w-3.5 h-3.5 text-primary" />
+                          <Eye className="w-3.5 h-3.5 text-primary shrink-0" />
                           View Teaching Progress
                         </Button>
                       </div>
@@ -895,7 +895,7 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
         {/* Survey Analytics Dialog */}
         {selectedSurveySubject && selectedSurveySubject.survey_stats && (
           <Dialog open={!!selectedSurveySubject} onOpenChange={(open) => { if (!open) setSelectedSurveySubject(null); }}>
-            <DialogContent className={`w-[95vw] sm:max-w-3xl overflow-y-auto max-h-[90vh] p-4 sm:p-6 rounded-2xl ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+            <DialogContent className={`w-[90%] max-h-[80vh] sm:w-[95vw] sm:max-w-3xl overflow-y-auto sm:max-h-[90vh] p-4 sm:p-6 rounded-2xl ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
               <DialogHeader className="border-b pb-4 pr-6">
                 <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
                   <Star className="w-5 h-5 fill-current text-yellow-500" />
@@ -954,42 +954,63 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
         {/* Dedicated Section Teaching Progress Modal Dialog */}
         {selectedSectionProgressModal && (
           <Dialog open={!!selectedSectionProgressModal} onOpenChange={(open) => { if (!open) setSelectedSectionProgressModal(null); }}>
-            <DialogContent className={`w-[95vw] sm:max-w-3xl overflow-y-auto max-h-[90vh] p-4 sm:p-6 rounded-2xl flex flex-col ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+            <DialogContent className={`w-[90%] max-h-[80vh] sm:w-[95vw] sm:max-w-3xl overflow-y-auto sm:max-h-[90vh] p-4 sm:p-6 rounded-2xl flex flex-col ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
               <DialogHeader className="border-b pb-3 pr-6 shrink-0">
-                <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  Teaching Progress — {selectedSectionProgressModal.sectionName}
+                <DialogTitle className="text-base sm:text-xl font-bold text-primary flex items-center gap-1.5 sm:gap-2 leading-tight">
+                  <Calendar className="hidden sm:inline-block w-5 h-5 shrink-0" />
+                  <span className="truncate">Teaching Progress — {selectedSectionProgressModal.sectionName}</span>
                 </DialogTitle>
-                <DialogDescription className="text-sm">
+                <DialogDescription className="text-xs sm:text-sm">
                   {selectedSectionProgressModal.subjectName} ({selectedSectionProgressModal.subjectCode}) • Faculty: <strong>{selectedSectionProgressModal.facultyName}</strong>
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 pt-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
                 {/* Header Stats Strip */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 rounded-xl bg-muted/20 border text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-muted/20 border text-xs">
                   <div>
-                    <span className="text-muted-foreground block text-[11px]">Syllabus Coverage</span>
-                    <strong className="text-sm text-foreground">{selectedSectionProgressModal.progressPercentage}%</strong>
+                    <span className="text-muted-foreground block text-xs font-medium">Syllabus Coverage</span>
+                    <strong className="text-sm sm:text-base text-foreground font-semibold">{selectedSectionProgressModal.progressPercentage}%</strong>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block text-[11px]">Completed Weeks</span>
-                    <strong className="text-sm text-emerald-600 dark:text-emerald-400">
+                    <span className="text-muted-foreground block text-xs font-medium">Completed Weeks</span>
+                    <strong className="text-sm sm:text-base text-emerald-600 dark:text-emerald-400 font-semibold">
                       {selectedSectionProgressModal.completedWeeks} / {selectedSectionProgressModal.totalWeeks} Weeks
                     </strong>
                   </div>
                   <div className="col-span-2 sm:col-span-1">
-                    <span className="text-muted-foreground block text-[11px]">Selected Filter</span>
-                    <strong className="text-sm text-primary">Week {selectedSectionProgressModal.selectedWeek}</strong>
+                    <span className="text-muted-foreground block text-xs font-medium">Selected Filter</span>
+                    <strong className="text-sm sm:text-base text-primary font-semibold">Week {selectedSectionProgressModal.selectedWeek}</strong>
                   </div>
                 </div>
 
-                {/* Interactive Week Pills */}
+                {/* Week Filter Selector: Mobile Dropdown / Desktop Pills */}
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
                     Filter by Week:
                   </label>
-                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+
+                  {/* Mobile View: Dropdown Selector (< sm) */}
+                  <div className="block sm:hidden">
+                    <Select
+                      value={String(selectedSectionProgressModal.selectedWeek)}
+                      onValueChange={(val) => handleSelectWeekInModal(Number(val))}
+                    >
+                      <SelectTrigger className="w-full h-10 bg-background border-border text-xs font-semibold">
+                        <SelectValue placeholder="Select Week" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {selectedSectionProgressModal.weeks.map((w: any) => (
+                          <SelectItem key={w.week} value={String(w.week)} className="text-xs font-medium">
+                            Week {w.week} {w.is_completed ? '• Completed' : (w.daily_logs?.length || w.topics_covered) ? '• In Progress' : '• Pending'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Desktop View: Grid Pills (sm+) with proper 'Week X' text */}
+                  <div className="hidden sm:grid sm:grid-cols-5 md:grid-cols-8 gap-2">
                     {selectedSectionProgressModal.weeks.map((w: any) => {
                       const isSelected = selectedSectionProgressModal.selectedWeek === w.week;
                       const hasLogs = (w.daily_logs && w.daily_logs.length > 0) || w.topics_covered;
@@ -999,7 +1020,7 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
                           key={w.week}
                           type="button"
                           onClick={() => handleSelectWeekInModal(w.week)}
-                          className={`h-10 rounded-xl text-xs font-semibold flex flex-col items-center justify-center transition-all relative border ${
+                          className={`h-11 rounded-xl text-xs font-semibold flex flex-col items-center justify-center transition-all relative border px-1 ${
                             isSelected
                               ? "bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]"
                               : w.is_completed
@@ -1009,9 +1030,9 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
                               : "bg-muted/40 text-muted-foreground border-transparent hover:bg-muted"
                           }`}
                         >
-                          <span className="text-xs font-bold">W{w.week}</span>
+                          <span className="text-xs font-semibold">Week {w.week}</span>
                           {w.is_completed && (
-                            <span className={`w-1.5 h-1.5 rounded-full absolute bottom-1 ${isSelected ? "bg-white" : "bg-emerald-500"}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full absolute bottom-1.5 ${isSelected ? "bg-white" : "bg-emerald-500"}`} />
                           )}
                         </button>
                       );
