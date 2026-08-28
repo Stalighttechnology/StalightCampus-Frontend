@@ -34,8 +34,11 @@ import { SkeletonTable, SkeletonPageHeader } from "../ui/skeleton";
 interface User {
   id: number;
   name: string;
+  first_name?: string;
+  last_name?: string;
   email: string;
   role: string;
+  designation?: string;
   status: string;
   username?: string; // Added to store original username
   department?: string;
@@ -391,8 +394,11 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           const transformedUsers = Array.isArray(usersData) ? usersData.map((user: any) => ({
             id: user.id,
             name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.username || "N/A",
+            first_name: user.first_name || "",
+            last_name: user.last_name || "",
             email: user.email || "N/A",
             role: user.role || "N/A",
+            designation: user.designation || "",
             status: user.is_active ? "Active" : "Inactive",
             username: user.username || "",
             department: user.department || "N/A",
@@ -441,7 +447,20 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
   const handleEdit = (user: User) => {
     setEditingId(user.id);
-    setEditData({ ...user }); // Include original username in editData
+    let fName = user.first_name || "";
+    let lName = user.last_name || "";
+    if (!fName && user.name && user.name !== "N/A") {
+      const parts = user.name.split(" ");
+      fName = parts[0] || "";
+      lName = parts.slice(1).join(" ");
+    }
+    setEditData({
+      ...user,
+      first_name: fName,
+      last_name: lName,
+      mobile: user.mobile || "",
+      designation: user.designation || ""
+    });
   };
 
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -452,18 +471,82 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
   const saveEdit = async () => {
     if (editData) {
+      const currentTheme = theme === 'dark' ? 'dark' : 'light';
+      const roleLabel = Object.keys(roleMap).find(k => roleMap[k] === editData.role) || editData.role;
+      const firstName = (editData.first_name || "").trim();
+      const lastName = (editData.last_name || "").trim();
+      const designation = (editData.designation || "").trim();
+      const email = editData.email.trim();
+      const phone = (editData.mobile || "").trim();
+
+      const bgCard = currentTheme === 'dark' ? '#1e293b' : '#f8fafc';
+      const borderCol = currentTheme === 'dark' ? '#334155' : '#e2e8f0';
+      const textMuted = currentTheme === 'dark' ? '#94a3b8' : '#64748b';
+      const textBold = currentTheme === 'dark' ? '#f1f5f9' : '#0f172a';
+
+      const result = await Swal.fire({
+        title: 'Confirm Changes',
+        html: `
+          <div style="text-align: left; margin-top: 10px; font-size: 13px;">
+            <p style="margin-bottom: 12px; color: ${textMuted}; font-size: 13px;">
+              Are you sure you want to save these updated details for this user?
+            </p>
+            <div style="background: ${bgCard}; border: 1px solid ${borderCol}; border-radius: 8px; padding: 12px 14px; line-height: 1.6;">
+              <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed ${borderCol};">
+                <span style="color: ${textMuted}; font-weight: 500;">Role:</span>
+                <span style="color: ${textBold}; font-weight: 600;">${roleLabel || '—'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed ${borderCol};">
+                <span style="color: ${textMuted}; font-weight: 500;">First Name:</span>
+                <span style="color: ${textBold}; font-weight: 600;">${firstName || '—'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed ${borderCol};">
+                <span style="color: ${textMuted}; font-weight: 500;">Last Name:</span>
+                <span style="color: ${textBold}; font-weight: 600;">${lastName || '—'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed ${borderCol};">
+                <span style="color: ${textMuted}; font-weight: 500;">Designation:</span>
+                <span style="color: ${textBold}; font-weight: 600;">${designation || '—'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed ${borderCol};">
+                <span style="color: ${textMuted}; font-weight: 500;">Email:</span>
+                <span style="color: ${textBold}; font-weight: 600;">${email || '—'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 3px 0;">
+                <span style="color: ${textMuted}; font-weight: 500;">Phone Number:</span>
+                <span style="color: ${textBold}; font-weight: 600;">${phone || '—'}</span>
+              </div>
+            </div>
+          </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3b82f6',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, save changes',
+        cancelButtonText: 'Cancel',
+        background: currentTheme === 'dark' ? '#0f172a' : '#fff',
+        color: currentTheme === 'dark' ? '#fff' : '#000'
+      });
+
+      if (!result.isConfirmed) {
+        return;
+      }
+
       setLoading(true);
       setError(null);
       try {
-        const [firstName, ...lastNameParts] = editData.name.split(" ");
-        const lastName = lastNameParts.join(" ");
-        const originalUser = users.find((u) => u.id === editData.id);
-        const username = editData.email; // Use the new email as username for login compatibility
+        const firstName = (editData.first_name || "").trim();
+        const lastName = (editData.last_name || "").trim();
+        const username = editData.email.trim();
         const updates = {
           username,
-          email: editData.email,
-          first_name: firstName || "",
-          last_name: lastName || ""
+          email: editData.email.trim(),
+          first_name: firstName,
+          last_name: lastName,
+          designation: (editData.designation || "").trim(),
+          mobile_number: (editData.mobile || "").trim(),
+          role: editData.role
         };
         const response = await manageUserAction({
           user_id: editData.id.toString(),
@@ -479,10 +562,32 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                   {
                     ...user,
                     name: `${response.user.first_name || ""} ${response.user.last_name || ""}`.trim() || response.user.username || "N/A",
+                    first_name: response.user.first_name || "",
+                    last_name: response.user.last_name || "",
                     email: response.user.email || "N/A",
                     role: response.user.role || "N/A",
+                    designation: response.user.designation || "",
+                    mobile: response.user.mobile_number || "",
                     status: response.user.is_active ? "Active" : "Inactive",
                     username: response.user.username || ""
+                  } :
+                  user
+              )
+            );
+          } else {
+            // Fallback: update with local edit data
+            setUsers((prevUsers) =>
+              prevUsers.map((user) =>
+                user.id === editData.id ?
+                  {
+                    ...user,
+                    name: `${firstName} ${lastName}`.trim() || editData.email,
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: editData.email,
+                    role: editData.role,
+                    designation: editData.designation,
+                    mobile: editData.mobile
                   } :
                   user
               )
@@ -500,7 +605,6 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           });
         }
       } catch (err) {
-
         setError("Network error");
         toast({
           variant: "destructive",
@@ -864,6 +968,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                           <th className="py-2 px-1 md:w-[150px]">{translateTerminology("USN")}</th>
                         )}
                         <th className="py-2 px-1 md:w-[120px]">Role</th>
+                        <th className="py-2 px-1 md:w-[140px]">Designation</th>
                         {(roleFilter === "" || rolesNeedingDept.includes(roleFilter)) && (
                           <th className="py-2 px-1 md:w-[250px]">Department</th>
                         )}
@@ -893,6 +998,15 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                             </td>
                           )}
                           <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getRoleBadge(user.role, theme)}</td>
+                          <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[140px] text-sm font-medium">
+                            {user.designation ? (
+                              <span className="text-xs px-2.5 py-0.5 rounded-md font-medium bg-muted/60 text-foreground border border-border/50">
+                                {user.designation}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
                           {(roleFilter === "" || rolesNeedingDept.includes(roleFilter)) && (
                             <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[250px]">
                               <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -1018,35 +1132,102 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         <DialogContent
           className={
             theme === 'dark' ?
-              'bg-card border border-border text-foreground w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto' :
-              'bg-white border border-gray-200 text-gray-900 w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto'
+              'bg-card border border-border text-foreground w-[92%] max-w-[500px] rounded-xl mx-auto' :
+              'bg-white border border-gray-200 text-gray-900 w-[92%] max-w-[500px] rounded-xl mx-auto'
           }>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Edit User Details</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Full Name</label>
+          <div className="space-y-3.5 py-2">
+            {/* Role Select */}
+            <div className="space-y-1.5">
+              <label className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Role</label>
+              <Select
+                value={editData?.role || ""}
+                onValueChange={(val) => {
+                  if (editData) {
+                    setEditData({ ...editData, role: val });
+                  }
+                }}
+              >
+                <SelectTrigger className={`h-9 text-xs ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900'}`}>
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white'}>
+                  {Object.entries(roleMap).map(([label, value]) => (
+                    <SelectItem key={value} value={value} className="text-xs">
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* First Name & Last Name (Initials) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>First Name</label>
+                <Input
+                  name="first_name"
+                  placeholder="Head of Branch/Faculty name"
+                  value={editData?.first_name || ""}
+                  onChange={handleEditChange}
+                  className={`h-9 text-xs ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'}`}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Last Name</label>
+                <Input
+                  name="last_name"
+                  placeholder="initials"
+                  value={editData?.last_name || ""}
+                  onChange={handleEditChange}
+                  className={`h-9 text-xs ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'}`}
+                />
+              </div>
+            </div>
+
+            {/* Designation */}
+            <div className="space-y-1.5">
+              <label className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Designation</label>
               <Input
-                name="name"
-                value={editData?.name || ""}
+                name="designation"
+                placeholder="Enter designation"
+                value={editData?.designation || ""}
                 onChange={handleEditChange}
-                className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}
+                className={`h-9 text-xs ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'}`}
               />
             </div>
-            <div className="space-y-2">
-              <label className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Email</label>
+
+            {/* Email */}
+            <div className="space-y-1.5">
+              <label className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Email</label>
               <Input
                 name="email"
+                type="email"
+                placeholder="user@example.com"
                 value={editData?.email || ""}
                 onChange={handleEditChange}
-                className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}
+                className={`h-9 text-xs ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'}`}
+              />
+            </div>
+
+            {/* Phone Number */}
+            <div className="space-y-1.5">
+              <label className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Phone Number</label>
+              <Input
+                name="mobile"
+                placeholder="Phone Number"
+                value={editData?.mobile || ""}
+                onChange={handleEditChange}
+                className={`h-9 text-xs ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'}`}
               />
             </div>
           </div>
-          <DialogFooter className="flex flex-row justify-end gap-2">
+          <DialogFooter className="flex flex-row justify-end gap-2 pt-2 border-t border-border/40">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => { setEditingId(null); setEditData(null); }}
               disabled={loading}
               className={theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
@@ -1054,6 +1235,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
               Cancel
             </Button>
             <Button
+              size="sm"
               onClick={saveEdit}
               disabled={loading}
               className="bg-primary text-white hover:bg-primary/90"
