@@ -83,7 +83,7 @@ const MODULE_PAGE_MAP: Record<string, string[]> = {
   academics_extra: ['syllabus-monitor', 'syllabus-status', 'study-materials', 'student-study-material', 'assignments', 'faculty-assignments', 'student-assignment', 'co-attainment']
 };
 
-const APPLY_LEAVE_PAGES = ['apply-leave', 'apply-leaves'];
+const APPLY_LEAVE_PAGES = ['apply-leave', 'apply-leaves', 'leave'];
 const LEAVE_APPROVAL_PAGES = ['hod-leaves', 'leaves', 'manage-leaves', 'admin-leaves', 'student-leave', 'manage-warden-leaves', 'department-admin-leaves'];
 
 interface SidebarProps {
@@ -117,8 +117,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   useEffect(() => {
     const roleLower = (role || '').toLowerCase();
-    const canHaveSubstituteRequests = ['teacher', 'faculty', 'hod', 'group_d', 'hms', 'hms_admin', 'warden', 'transport_admin', 'driver'].includes(roleLower);
-    const canApproveLeaves = ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe', 'teacher', 'faculty', 'group_d', 'hms', 'hms_admin', 'transport_admin'].includes(roleLower);
+    const isStudentOrParent = roleLower === 'student' || roleLower === 'parent';
+    const canHaveSubstituteRequests = !isStudentOrParent;
+    const canApproveLeaves = ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe', 'teacher', 'faculty', 'hms', 'hms_admin', 'transport_admin'].includes(roleLower);
 
     if (canHaveSubstituteRequests || canApproveLeaves) {
       const checkSubstituteRequests = async () => {
@@ -492,7 +493,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Payment Settings", page: "payment-settings" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Staff Tasks", page: "staff-tasks" },
-      { name: "Leave", page: "leave" },
+      { name: "Apply Leave", page: "leave" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "My Salary & Payroll", page: "my-payroll" },
