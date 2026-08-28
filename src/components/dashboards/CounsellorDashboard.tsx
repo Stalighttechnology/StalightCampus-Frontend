@@ -14,6 +14,8 @@ import { HolidayCalendar } from "../admin/HolidayCalendar";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 
 import AnnouncementManagement from "../admin/AnnouncementManagement";
+import DesktopOnly from "../common/DesktopOnly";
+import { useIsDesktop } from "../../hooks/use-desktop";
 
 interface DashboardProps {
   user: any;
@@ -23,6 +25,7 @@ interface DashboardProps {
 const CounsellorDashboard = ({ user }: DashboardProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const isDesktop = useIsDesktop();
 
   const getActivePageFromPath = (pathname: string) => {
     const path = pathname.replace('/counsellor', '').split('/').filter(Boolean)[0];
@@ -44,7 +47,16 @@ const CounsellorDashboard = ({ user }: DashboardProps) => {
       case "announcements":
         return <AnnouncementManagement />;
       case "admission-enquiries":
-        return <LeadPipeline />;
+        return isDesktop ? (
+          <LeadPipeline />
+        ) : (
+          <DesktopOnly
+            title="Desktop Screen Required"
+            featureName="Enquiries & Lead Pipeline"
+            description="requires a desktop view for multi-column Kanban workflows, lead activity logs, and batch status pipelines. Please switch to a desktop or laptop browser."
+            backPath="/counsellor"
+          />
+        );
       case "admission-applications":
         return <AdmissionApplications />;
       case "admission-documents":

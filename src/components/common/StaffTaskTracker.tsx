@@ -1335,48 +1335,50 @@ const StaffTaskTracker = () => {
         )}
 
         {/* Filters Toolbar (Category & Status) */}
-        <div className="flex flex-wrap items-center gap-4 mb-6">
-          <div className="flex items-center gap-2">
-            <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">Filter Category:</Label>
-            <Select value={categoryFilter} onValueChange={(val) => {
-              setCategoryFilter(val);
-              setMyTasksPage(1);
-              setAssignedTasksPage(1);
-            }}>
-              <SelectTrigger className="w-[190px] sm:w-[210px] h-9 bg-background">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="task">Task</SelectItem>
-                <SelectItem value="issue">Issue / Ticket</SelectItem>
-                <SelectItem value="academic_excellence">Academic Excellence</SelectItem>
-                <SelectItem value="student_success">Student Success</SelectItem>
-                <SelectItem value="institutional_maturity">Institutional Maturity</SelectItem>
-                <SelectItem value="research_innovation">Research & Innovation</SelectItem>
-                <SelectItem value="academic">Academic</SelectItem>
-                <SelectItem value="administrative">Administrative</SelectItem>
-                <SelectItem value="general">General</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center sm:gap-4">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Label className="hidden sm:inline-block text-sm font-medium text-muted-foreground whitespace-nowrap">Filter Category:</Label>
+              <Select value={categoryFilter} onValueChange={(val) => {
+                setCategoryFilter(val);
+                setMyTasksPage(1);
+                setAssignedTasksPage(1);
+              }}>
+                <SelectTrigger className="w-full sm:w-[200px] h-9 text-xs sm:text-sm bg-background">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-xs sm:text-sm">All Categories</SelectItem>
+                  <SelectItem value="task" className="text-xs sm:text-sm">Task</SelectItem>
+                  <SelectItem value="issue" className="text-xs sm:text-sm">Issue / Ticket</SelectItem>
+                  <SelectItem value="academic_excellence" className="text-xs sm:text-sm">Academic Excellence</SelectItem>
+                  <SelectItem value="student_success" className="text-xs sm:text-sm">Student Success</SelectItem>
+                  <SelectItem value="institutional_maturity" className="text-xs sm:text-sm">Institutional Maturity</SelectItem>
+                  <SelectItem value="research_innovation" className="text-xs sm:text-sm">Research & Innovation</SelectItem>
+                  <SelectItem value="academic" className="text-xs sm:text-sm">Academic</SelectItem>
+                  <SelectItem value="administrative" className="text-xs sm:text-sm">Administrative</SelectItem>
+                  <SelectItem value="general" className="text-xs sm:text-sm">General</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="flex items-center gap-2">
-            <Label className="text-sm font-medium text-muted-foreground whitespace-nowrap">Filter Status:</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px] sm:w-[180px] h-9 bg-background">
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="under_review">Under Review</SelectItem>
-                <SelectItem value="on_hold">On Hold</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Label className="hidden sm:inline-block text-sm font-medium text-muted-foreground whitespace-nowrap">Filter Status:</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[170px] h-9 text-xs sm:text-sm bg-background">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-xs sm:text-sm">All Statuses</SelectItem>
+                  <SelectItem value="pending" className="text-xs sm:text-sm">Pending</SelectItem>
+                  <SelectItem value="in_progress" className="text-xs sm:text-sm">In Progress</SelectItem>
+                  <SelectItem value="under_review" className="text-xs sm:text-sm">Under Review</SelectItem>
+                  <SelectItem value="on_hold" className="text-xs sm:text-sm">On Hold</SelectItem>
+                  <SelectItem value="completed" className="text-xs sm:text-sm">Completed</SelectItem>
+                  <SelectItem value="cancelled" className="text-xs sm:text-sm">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 

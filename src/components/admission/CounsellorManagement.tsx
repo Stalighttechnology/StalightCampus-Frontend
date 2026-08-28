@@ -147,14 +147,14 @@ export default function CounsellorManagement() {
   return (
     <div id="counsellor-management-container" className="space-y-6 w-full max-w-full overflow-hidden">
       <Card className="overflow-hidden w-full border-border">
-        <CardHeader id="counsellor-management-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+        <CardHeader id="counsellor-management-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 space-y-0 pb-4 border-b">
           <div>
             <CardTitle className="sm:text-2xl text-xl font-semibold">Counsellors</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">Manage admission counsellors and their accounts.</p>
           </div>
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
-              <Button size="sm" className="shadow-sm">
+              <Button size="sm" className="w-full sm:w-auto shadow-sm">
                 <Plus size={16} className="mr-2" /> Add Counsellor
               </Button>
             </DialogTrigger>
@@ -223,43 +223,111 @@ export default function CounsellorManagement() {
               </Button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px] text-sm text-left">
-                <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Name</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Email</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Username</th>
-                    <th className="px-6 py-4 text-right font-semibold whitespace-nowrap">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {counsellors.map(counsellor => (
-                    <tr key={counsellor.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
-                        {counsellor.first_name} {counsellor.last_name}
-                      </td>
-                      <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
-                        {counsellor.email}
-                      </td>
-                      <td className="px-6 py-4 text-muted-foreground font-mono whitespace-nowrap">
-                        {counsellor.username}
-                      </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => setEditingCounsellor({ ...counsellor })} className="h-8 w-8 text-primary hover:bg-primary/10">
-                            <Edit size={16} />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => setDeletingCounsellor(counsellor)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
-                            <Trash2 size={16} />
-                          </Button>
+            <>
+              {/* Mobile View: Stacked Cards (Hidden on Desktop) */}
+              <div className="block md:hidden divide-y divide-border p-3 space-y-3">
+                {counsellors.map(counsellor => (
+                  <div
+                    key={counsellor.id}
+                    className="p-4 rounded-xl bg-card border border-border/80 shadow-xs space-y-3 hover:border-primary/30 transition-all duration-200"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="text-sm font-semibold text-foreground tracking-tight">
+                          {counsellor.first_name} {counsellor.last_name}
+                        </h4>
+                        <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                          @{counsellor.username}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEditingCounsellor({ ...counsellor })}
+                          className="h-8 w-8 text-primary hover:bg-primary/10"
+                          title="Edit Counsellor"
+                        >
+                          <Edit size={16} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeletingCounsellor(counsellor)}
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                          title="Delete Counsellor"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 text-xs bg-muted/30 p-2.5 rounded-lg border border-border/40">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground">Email:</span>
+                        <a
+                          href={`mailto:${counsellor.email}`}
+                          className="text-primary hover:underline font-medium truncate max-w-[200px]"
+                        >
+                          {counsellor.email}
+                        </a>
+                      </div>
+                      {counsellor.phone && (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-muted-foreground">Phone:</span>
+                          <span className="font-mono text-foreground">{counsellor.phone}</span>
                         </div>
-                      </td>
+                      )}
+                      {counsellor.designation && (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-muted-foreground">Designation:</span>
+                          <span className="text-foreground font-medium">{counsellor.designation}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop View: Table (Hidden on Mobile) */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[600px] text-sm text-left">
+                  <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
+                    <tr>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Name</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Email</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Username</th>
+                      <th className="px-6 py-4 text-right font-semibold whitespace-nowrap">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {counsellors.map(counsellor => (
+                      <tr key={counsellor.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
+                          {counsellor.first_name} {counsellor.last_name}
+                        </td>
+                        <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
+                          {counsellor.email}
+                        </td>
+                        <td className="px-6 py-4 text-muted-foreground font-mono whitespace-nowrap">
+                          {counsellor.username}
+                        </td>
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => setEditingCounsellor({ ...counsellor })} className="h-8 w-8 text-primary hover:bg-primary/10">
+                              <Edit size={16} />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => setDeletingCounsellor(counsellor)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </CardContent>
 

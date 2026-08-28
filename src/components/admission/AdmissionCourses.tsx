@@ -166,7 +166,7 @@ const AdmissionCourses: React.FC = () => {
       </Dialog>
 
       <Card className="overflow-hidden w-full border-border">
-        <CardHeader id="admission-courses-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+        <CardHeader id="admission-courses-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 space-y-0 pb-4 border-b">
           <div>
             <CardTitle className="sm:text-2xl text-xl font-semibold">Manage Courses</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">Create and modify courses offered by your institution.</p>
@@ -174,7 +174,7 @@ const AdmissionCourses: React.FC = () => {
           <Button onClick={() => {
             setIsEditing(true);
             setCurrentCourse({ name: '', code: '', duration_years: 4, description: '' });
-          }} size="sm" className="shadow-sm">
+          }} size="sm" className="w-full sm:w-auto shadow-sm">
             <Plus size={16} className="mr-2" /> Add Course
           </Button>
         </CardHeader>
@@ -184,47 +184,102 @@ const AdmissionCourses: React.FC = () => {
               <p>No courses found. Add a course to display it on the admission landing page.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-sm text-left">
-                <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Course Code</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Course Name</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Duration</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Description</th>
-                    <th className="px-6 py-4 text-right font-semibold whitespace-nowrap">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {paginatedCourses.map(course => (
-                    <tr key={course.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 font-mono font-medium text-foreground whitespace-nowrap">
-                        {course.code}
-                      </td>
-                      <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
-                        {course.name}
-                      </td>
-                      <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
-                        {course.duration_years} Year{course.duration_years > 1 ? 's' : ''}
-                      </td>
-                      <td className="px-6 py-4 text-muted-foreground max-w-xs truncate whitespace-nowrap">
+            <>
+              {/* Mobile View: Stacked Cards (Hidden on Desktop) */}
+              <div className="block md:hidden divide-y divide-border p-3 space-y-3">
+                {paginatedCourses.map(course => (
+                  <div
+                    key={course.id}
+                    className="p-4 rounded-xl bg-card border border-border/80 shadow-xs space-y-3 hover:border-primary/30 transition-all duration-200"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-mono font-semibold bg-primary/10 text-primary border border-primary/20">
+                          {course.code}
+                        </span>
+                        <h4 className="text-sm font-semibold text-foreground tracking-tight">
+                          {course.name}
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => { setIsEditing(true); setCurrentCourse(course); }}
+                          className="h-8 w-8 text-primary hover:bg-primary/10"
+                          title="Edit Course"
+                        >
+                          <Edit size={16} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(course.id!)}
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                          title="Delete Course"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+                      <span className="font-medium text-foreground/80">Duration:</span>
+                      <span>{course.duration_years} Year{course.duration_years > 1 ? 's' : ''}</span>
+                    </div>
+
+                    {course.description && (
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 bg-muted/30 p-2.5 rounded-lg border border-border/40">
                         {course.description}
-                      </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => { setIsEditing(true); setCurrentCourse(course); }} className="h-8 w-8 text-primary hover:bg-primary/10">
-                            <Edit size={16} />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(course.id!)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
-                            <Trash2 size={16} />
-                          </Button>
-                        </div>
-                      </td>
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop View: Table (Hidden on Mobile) */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[800px] text-sm text-left">
+                  <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
+                    <tr>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Course Code</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Course Name</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Duration</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Description</th>
+                      <th className="px-6 py-4 text-right font-semibold whitespace-nowrap">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {paginatedCourses.map(course => (
+                      <tr key={course.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-6 py-4 font-mono font-medium text-foreground whitespace-nowrap">
+                          {course.code}
+                        </td>
+                        <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
+                          {course.name}
+                        </td>
+                        <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
+                          {course.duration_years} Year{course.duration_years > 1 ? 's' : ''}
+                        </td>
+                        <td className="px-6 py-4 text-muted-foreground max-w-xs truncate whitespace-nowrap">
+                          {course.description}
+                        </td>
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => { setIsEditing(true); setCurrentCourse(course); }} className="h-8 w-8 text-primary hover:bg-primary/10">
+                              <Edit size={16} />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(course.id!)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </CardContent>
 

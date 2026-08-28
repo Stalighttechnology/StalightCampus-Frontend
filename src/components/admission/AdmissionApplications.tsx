@@ -5,26 +5,26 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
-import { 
-  Loader2, 
-  UserCheck, 
-  FileText, 
-  CheckCircle, 
-  XCircle, 
-  Search, 
-  Upload, 
-  Plus, 
-  Edit, 
-  ChevronLeft, 
-  ChevronRight, 
-  Check, 
-  Eye, 
-  GraduationCap, 
-  User, 
-  MapPin, 
-  Phone, 
-  Award, 
-  Building2, 
+import {
+  Loader2,
+  UserCheck,
+  FileText,
+  CheckCircle,
+  XCircle,
+  Search,
+  Upload,
+  Plus,
+  Edit,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Eye,
+  GraduationCap,
+  User,
+  MapPin,
+  Phone,
+  Award,
+  Building2,
   FileCheck,
   FolderOpen,
   Calendar as CalendarIcon,
@@ -244,14 +244,14 @@ const initialFormState: FormState = {
 };
 
 const appStages = [
-  'new', 
-  'contacted', 
-  'interested', 
-  'application_started', 
-  'documents_pending', 
-  'documents_verified', 
-  'admission_confirmed', 
-  'enrolled', 
+  'new',
+  'contacted',
+  'interested',
+  'application_started',
+  'documents_pending',
+  'documents_verified',
+  'admission_confirmed',
+  'enrolled',
   'rejected'
 ];
 
@@ -272,7 +272,7 @@ const ThemedDatePicker: React.FC<ThemedDatePickerProps> = ({
   toYear = new Date().getFullYear() + 2
 }) => {
   const [open, setOpen] = useState(false);
-  
+
   const parsedDate = value ? new Date(value) : undefined;
   const isValidDate = parsedDate && !isNaN(parsedDate.getTime());
 
@@ -561,7 +561,7 @@ export default function AdmissionApplications() {
       });
       if (response.ok) {
         toast.success(`Status updated to ${status.replace('_', ' ')}`);
-        setApplications(apps => apps.map(app => 
+        setApplications(apps => apps.map(app =>
           app.id === id ? { ...app, enquiry_details: { ...app.enquiry_details, status } } : app
         ));
         if (selectedApp?.id === id) {
@@ -626,7 +626,7 @@ export default function AdmissionApplications() {
       });
       if (response.ok) {
         toast.success("Student Enrolled Successfully!");
-        setApplications(apps => apps.map(app => 
+        setApplications(apps => apps.map(app =>
           app.id === enrollAppId ? { ...app, enquiry_details: { ...app.enquiry_details, status: 'enrolled' } } : app
         ));
         if (selectedApp?.id === enrollAppId) {
@@ -927,7 +927,7 @@ export default function AdmissionApplications() {
         if (updated.maths_marks) countSubjects++;
         if (updated.chemistry_marks) countSubjects++;
         if (updated.biology_others_marks) countSubjects++;
-        
+
         if (countSubjects > 0) {
           updated.total_subject_marks = String(total);
           updated.subject_percentage = ((total / (countSubjects * 100)) * 100).toFixed(2);
@@ -980,9 +980,9 @@ export default function AdmissionApplications() {
         if (res.ok) {
           const updated = await res.json();
           toast.success("Application details updated successfully!");
-          setApplications(prev => prev.map(a => a.id === editingAppId ? { 
-            ...a, 
-            ...updated, 
+          setApplications(prev => prev.map(a => a.id === editingAppId ? {
+            ...a,
+            ...updated,
             form_data: formData,
             enquiry_details: {
               ...a.enquiry_details,
@@ -993,9 +993,9 @@ export default function AdmissionApplications() {
             }
           } : a));
           if (selectedApp?.id === editingAppId) {
-            setSelectedApp((prev: any) => prev ? ({ 
-              ...prev, 
-              ...updated, 
+            setSelectedApp((prev: any) => prev ? ({
+              ...prev,
+              ...updated,
               form_data: formData,
               enquiry_details: {
                 ...prev.enquiry_details,
@@ -1219,22 +1219,23 @@ export default function AdmissionApplications() {
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">Review, collect step-wise applicant details, verify documents, and enroll students.</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative w-full sm:w-64">
+          <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-64 min-w-0">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search by name, email..." 
-                className="pl-9 h-9 text-xs"
+              <Input
+                placeholder="Search by name, email..."
+                className="pl-9 h-9 text-xs w-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button 
-              onClick={() => openWizardForApp()} 
-              size="sm" 
-              className="bg-primary hover:bg-primary/90 text-white h-9 px-3 text-xs gap-1.5 shadow-sm"
+            <Button
+              onClick={() => openWizardForApp()}
+              size="sm"
+              className="bg-primary hover:bg-primary/90 text-white h-9 px-2.5 sm:px-3 text-xs gap-1 shadow-sm whitespace-nowrap shrink-0"
             >
-              <Plus className="w-4 h-4" /> Collect Application
+              <Plus className="w-4 h-4" />
+              <span>Collect<span className="hidden sm:inline"> Application</span></span>
             </Button>
           </div>
         </CardHeader>
@@ -1246,93 +1247,180 @@ export default function AdmissionApplications() {
               <p className="text-sm font-medium">No applications found.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[850px] text-sm text-left">
-                <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">#</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Applicant Name</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Course</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">10th %</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">12th / PUC %</th>
-                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Status</th>
-                    <th className="px-6 py-4 text-right font-semibold whitespace-nowrap">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {paginatedApplications.map((app, index) => {
-                    const itemIndex = (currentPage - 1) * 20 + index + 1;
-                    return (
-                      <tr key={app.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-6 py-4 text-xs font-semibold text-muted-foreground">
-                          #{itemIndex}
-                        </td>
-                        <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
-                          <div className="font-semibold text-sm">{app.enquiry_details?.name || 'Applicant'}</div>
-                          {app.enquiry_details?.email && (
-                            <div className="text-xs text-muted-foreground font-normal mt-0.5">{app.enquiry_details?.email}</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
-                          {app?.enrolled_course_name || app?.course_name || app?.enquiry_details?.course_name || app?.branch_name || 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 text-muted-foreground font-mono whitespace-nowrap">
-                          {app.marks_10th ? `${app.marks_10th}%` : 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 text-muted-foreground font-mono whitespace-nowrap">
-                          {app.marks_12th ? `${app.marks_12th}%` : 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+            <>
+              {/* Mobile View: Stacked Cards (Hidden on Desktop) */}
+              <div className="block md:hidden divide-y divide-border p-3 space-y-3">
+                {paginatedApplications.map((app, index) => {
+                  const itemIndex = (currentPage - 1) * 20 + index + 1;
+                  const courseName = app?.enrolled_course_name || app?.course_name || app?.enquiry_details?.course_name || app?.branch_name || 'N/A';
+                  return (
+                    <div
+                      key={app.id}
+                      className="p-4 rounded-xl bg-card border border-border/80 shadow-xs space-y-3 hover:border-primary/30 transition-all duration-200"
+                    >
+                      {/* Top Row: Item Index Badge, Applicant Name, Status */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2 min-w-0">
+                          <span className="text-xs font-semibold text-muted-foreground pt-0.5 shrink-0">
+                            #{itemIndex}
+                          </span>
+                          <div className="min-w-0">
+                            <h4 className="text-sm font-semibold text-foreground tracking-tight truncate">
+                              {app.enquiry_details?.name || 'Applicant'}
+                            </h4>
+                            {app.enquiry_details?.email && (
+                              <p className="text-xs text-muted-foreground truncate">
+                                {app.enquiry_details?.email}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="shrink-0">
                           {renderStatusBadge(app.enquiry_details?.status)}
-                        </td>
-                        <td className="px-6 py-4 text-right whitespace-nowrap space-x-2">
-                          {app.enquiry_details?.status === 'enrolled' && (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-8 text-xs gap-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-300 dark:border-emerald-800" 
-                              onClick={() => printFullAdmissionApplication(app)}
-                              title="Download Complete 5-Page Filled Admission Application & Confirmation Dossier"
+                        </div>
+                      </div>
+
+                      {/* Details: Course & Academic Scores */}
+                      <div className="grid grid-cols-2 gap-2 text-xs bg-muted/30 p-2.5 rounded-lg border border-border/40">
+                        <div className="col-span-2">
+                          <span className="text-muted-foreground">Course: </span>
+                          <span className="font-medium text-foreground">{courseName}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">10th: </span>
+                          <span className="font-mono font-medium text-foreground">{app.marks_10th ? `${app.marks_10th}%` : 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">12th / PUC: </span>
+                          <span className="font-mono font-medium text-foreground">{app.marks_12th ? `${app.marks_12th}%` : 'N/A'}</span>
+                        </div>
+                      </div>
+
+                      {/* Actions Toolbar */}
+                      <div className={`grid gap-2 pt-1 ${app.enquiry_details?.status === 'enrolled' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                        {app.enquiry_details?.status === 'enrolled' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full h-8 text-xs px-2 gap-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-300 dark:border-emerald-800 justify-center"
+                            onClick={() => printFullAdmissionApplication(app)}
+                            title="Download Application Dossier"
+                          >
+                            <Download className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Download</span>
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full h-8 text-xs px-2 gap-1 justify-center"
+                          onClick={() => openWizardForApp(app)}
+                          title="Edit / Fill Full Application Form"
+                        >
+                          <Edit className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Edit</span>
+                        </Button>
+                        <Button
+                          variant="default"
+                          className="w-full bg-primary hover:bg-primary/90 text-white h-8 text-xs px-2 gap-1 shadow-sm justify-center"
+                          size="sm"
+                          onClick={() => setSelectedApp(app)}
+                        >
+                          <Eye className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Review</span>
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop View: Table (Hidden on Mobile) */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[850px] text-sm text-left">
+                  <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
+                    <tr>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">#</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Applicant Name</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Course</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">10th %</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">12th / PUC %</th>
+                      <th className="px-6 py-4 font-semibold whitespace-nowrap">Status</th>
+                      <th className="px-6 py-4 text-right font-semibold whitespace-nowrap">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {paginatedApplications.map((app, index) => {
+                      const itemIndex = (currentPage - 1) * 20 + index + 1;
+                      return (
+                        <tr key={app.id} className="hover:bg-muted/30 transition-colors">
+                          <td className="px-6 py-4 text-xs font-semibold text-muted-foreground">
+                            #{itemIndex}
+                          </td>
+                          <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
+                            <div className="font-semibold text-sm">{app.enquiry_details?.name || 'Applicant'}</div>
+                            {app.enquiry_details?.email && (
+                              <div className="text-xs text-muted-foreground font-normal mt-0.5">{app.enquiry_details?.email}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
+                            {app?.enrolled_course_name || app?.course_name || app?.enquiry_details?.course_name || app?.branch_name || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 text-muted-foreground font-mono whitespace-nowrap">
+                            {app.marks_10th ? `${app.marks_10th}%` : 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 text-muted-foreground font-mono whitespace-nowrap">
+                            {app.marks_12th ? `${app.marks_12th}%` : 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {renderStatusBadge(app.enquiry_details?.status)}
+                          </td>
+                          <td className="px-6 py-4 text-right whitespace-nowrap space-x-2">
+                            {app.enquiry_details?.status === 'enrolled' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 text-xs gap-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-300 dark:border-emerald-800"
+                                onClick={() => printFullAdmissionApplication(app)}
+                                title="Download Complete 5-Page Filled Admission Application & Confirmation Dossier"
+                              >
+                                <Download className="w-3.5 h-3.5" /> Download
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs gap-1"
+                              onClick={() => handleOpenEdit(app)}
+                              disabled={loadingEditId === app.id}
+                              title="Edit / Fill Full Application Form"
                             >
-                              <Download className="w-3.5 h-3.5" /> Download App
+                              {loadingEditId === app.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Edit className="w-3.5 h-3.5" />
+                              )}
+                              <span>Edit Form</span>
                             </Button>
-                          )}
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="h-8 text-xs gap-1" 
-                            onClick={() => handleOpenEdit(app)}
-                            disabled={loadingEditId === app.id}
-                            title="Edit / Fill Full Application Form"
-                          >
-                            {loadingEditId === app.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <Edit className="w-3.5 h-3.5" />
-                            )}
-                            <span>Edit Form</span>
-                          </Button>
-                          <Button 
-                            variant="default" 
-                            className="bg-primary hover:bg-primary/90 text-white h-8 text-xs gap-1 shadow-sm" 
-                            size="sm" 
-                            onClick={() => handleOpenReview(app)}
-                            disabled={loadingReviewId === app.id}
-                          >
-                            {loadingReviewId === app.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <Eye className="w-3.5 h-3.5" />
-                            )}
-                            <span>Review</span>
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                            <Button
+                              variant="default"
+                              className="bg-primary hover:bg-primary/90 text-white h-8 text-xs gap-1 shadow-sm"
+                              size="sm"
+                              onClick={() => handleOpenReview(app)}
+                              disabled={loadingReviewId === app.id}
+                            >
+                              {loadingReviewId === app.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Eye className="w-3.5 h-3.5" />
+                              )}
+                              <span>Review</span>
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </CardContent>
 
@@ -1419,11 +1507,11 @@ export default function AdmissionApplications() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label className="text-xs">Name of Applicant <span className="text-destructive">*</span></Label>
-                    <Input 
-                      value={formData.name} 
-                      onChange={(e) => handleFormChange('name', e.target.value)} 
-                      placeholder="e.g. SHIVARAJ MANJUNATH ATIL" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.name}
+                      onChange={(e) => handleFormChange('name', e.target.value)}
+                      placeholder="e.g. SHIVARAJ MANJUNATH ATIL"
+                      className="text-xs"
                     />
                   </div>
 
@@ -1453,48 +1541,48 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Father's Name</Label>
-                    <Input 
-                      value={formData.father_name} 
-                      onChange={(e) => handleFormChange('father_name', e.target.value)} 
-                      placeholder="e.g. MANJUNATH" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.father_name}
+                      onChange={(e) => handleFormChange('father_name', e.target.value)}
+                      placeholder="e.g. MANJUNATH"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Father's Occupation</Label>
-                    <Input 
-                      value={formData.father_occupation} 
-                      onChange={(e) => handleFormChange('father_occupation', e.target.value)} 
-                      placeholder="e.g. HANDLOOMS" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.father_occupation}
+                      onChange={(e) => handleFormChange('father_occupation', e.target.value)}
+                      placeholder="e.g. HANDLOOMS"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Mother's Name</Label>
-                    <Input 
-                      value={formData.mother_name} 
-                      onChange={(e) => handleFormChange('mother_name', e.target.value)} 
-                      placeholder="e.g. SUMITRA" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.mother_name}
+                      onChange={(e) => handleFormChange('mother_name', e.target.value)}
+                      placeholder="e.g. SUMITRA"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Mother's Occupation</Label>
-                    <Input 
-                      value={formData.mother_occupation} 
-                      onChange={(e) => handleFormChange('mother_occupation', e.target.value)} 
-                      placeholder="e.g. HOUSE WIFE" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.mother_occupation}
+                      onChange={(e) => handleFormChange('mother_occupation', e.target.value)}
+                      placeholder="e.g. HOUSE WIFE"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Nationality</Label>
-                    <Select 
-                      value={formData.nationality || 'INDIAN'} 
+                    <Select
+                      value={formData.nationality || 'INDIAN'}
                       onValueChange={(val) => handleFormChange('nationality', val)}
                     >
                       <SelectTrigger className="text-xs h-9">
@@ -1513,8 +1601,8 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Religion</Label>
-                    <Select 
-                      value={formData.religion || 'HINDU'} 
+                    <Select
+                      value={formData.religion || 'HINDU'}
                       onValueChange={(val) => handleFormChange('religion', val)}
                     >
                       <SelectTrigger className="text-xs h-9">
@@ -1533,18 +1621,18 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Caste</Label>
-                    <Input 
-                      value={formData.caste} 
-                      onChange={(e) => handleFormChange('caste', e.target.value)} 
-                      placeholder="e.g. KURUBANASHETTI" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.caste}
+                      onChange={(e) => handleFormChange('caste', e.target.value)}
+                      placeholder="e.g. KURUBANASHETTI"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Category</Label>
-                    <Select 
-                      value={formData.category || 'GM'} 
+                    <Select
+                      value={formData.category || 'GM'}
                       onValueChange={(val) => handleFormChange('category', val)}
                     >
                       <SelectTrigger className="text-xs h-9">
@@ -1576,71 +1664,71 @@ export default function AdmissionApplications() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label className="text-xs">Permanent Home Address</Label>
-                    <Textarea 
-                      value={formData.permanent_address} 
-                      onChange={(e) => handleFormChange('permanent_address', e.target.value)} 
-                      placeholder="Enter full permanent address..." 
-                      className="text-xs h-18 resize-none" 
+                    <Textarea
+                      value={formData.permanent_address}
+                      onChange={(e) => handleFormChange('permanent_address', e.target.value)}
+                      placeholder="Enter full permanent address..."
+                      className="text-xs h-18 resize-none"
                     />
                   </div>
 
                   <div className="space-y-1.5 sm:col-span-2">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs">Local Guardian Address</Label>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => handleFormChange('local_guardian_address', formData.permanent_address)}
                         className="text-[11px] text-primary hover:underline"
                       >
                         Copy Permanent Address
                       </button>
                     </div>
-                    <Textarea 
-                      value={formData.local_guardian_address} 
-                      onChange={(e) => handleFormChange('local_guardian_address', e.target.value)} 
-                      placeholder="Enter local guardian address..." 
-                      className="text-xs h-18 resize-none" 
+                    <Textarea
+                      value={formData.local_guardian_address}
+                      onChange={(e) => handleFormChange('local_guardian_address', e.target.value)}
+                      placeholder="Enter local guardian address..."
+                      className="text-xs h-18 resize-none"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Candidate Mobile Number <span className="text-destructive">*</span></Label>
-                    <Input 
-                      value={formData.candidate_mobile} 
-                      onChange={(e) => handleFormChange('candidate_mobile', e.target.value)} 
-                      placeholder="e.g. 6360759200" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.candidate_mobile}
+                      onChange={(e) => handleFormChange('candidate_mobile', e.target.value)}
+                      placeholder="e.g. 6360759200"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Parents Mobile Number</Label>
-                    <Input 
-                      value={formData.parent_mobile} 
-                      onChange={(e) => handleFormChange('parent_mobile', e.target.value)} 
-                      placeholder="e.g. 6360759200" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.parent_mobile}
+                      onChange={(e) => handleFormChange('parent_mobile', e.target.value)}
+                      placeholder="e.g. 6360759200"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Candidate Email ID</Label>
-                    <Input 
-                      type="email" 
-                      value={formData.candidate_email} 
-                      onChange={(e) => handleFormChange('candidate_email', e.target.value)} 
-                      placeholder="e.g. shivarajali1@gmail.com" 
-                      className="text-xs" 
+                    <Input
+                      type="email"
+                      value={formData.candidate_email}
+                      onChange={(e) => handleFormChange('candidate_email', e.target.value)}
+                      placeholder="e.g. shivarajali1@gmail.com"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">City / Town</Label>
-                    <Input 
-                      value={formData.city} 
-                      onChange={(e) => handleFormChange('city', e.target.value)} 
-                      placeholder="e.g. Gadag" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.city}
+                      onChange={(e) => handleFormChange('city', e.target.value)}
+                      placeholder="e.g. Gadag"
+                      className="text-xs"
                     />
                   </div>
 
@@ -1673,28 +1761,28 @@ export default function AdmissionApplications() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label className="text-xs">School Name & Address</Label>
-                    <Input 
-                      value={formData.sslc_school_name} 
-                      onChange={(e) => handleFormChange('sslc_school_name', e.target.value)} 
-                      placeholder="e.g. SENT JOHN ENGLISH MEDIUM SCHOOL, HEALTH CAMP BETGERI" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.sslc_school_name}
+                      onChange={(e) => handleFormChange('sslc_school_name', e.target.value)}
+                      placeholder="e.g. SENT JOHN ENGLISH MEDIUM SCHOOL, HEALTH CAMP BETGERI"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">SSLC Registration No.</Label>
-                    <Input 
-                      value={formData.sslc_reg_no} 
-                      onChange={(e) => handleFormChange('sslc_reg_no', e.target.value)} 
-                      placeholder="e.g. 20210091906" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.sslc_reg_no}
+                      onChange={(e) => handleFormChange('sslc_reg_no', e.target.value)}
+                      placeholder="e.g. 20210091906"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Board</Label>
-                    <Select 
-                      value={formData.sslc_board || 'KSEAB / KSEEB'} 
+                    <Select
+                      value={formData.sslc_board || 'KSEAB / KSEEB'}
                       onValueChange={(val) => handleFormChange('sslc_board', val)}
                     >
                       <SelectTrigger className="text-xs h-9">
@@ -1713,43 +1801,43 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Maximum Marks</Label>
-                    <Input 
-                      type="number" 
-                      value={formData.sslc_max_marks} 
-                      onChange={(e) => handleFormChange('sslc_max_marks', e.target.value)} 
-                      placeholder="625" 
-                      className="text-xs" 
+                    <Input
+                      type="number"
+                      value={formData.sslc_max_marks}
+                      onChange={(e) => handleFormChange('sslc_max_marks', e.target.value)}
+                      placeholder="625"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Obtained Marks</Label>
-                    <Input 
-                      type="number" 
-                      value={formData.sslc_obtained_marks} 
-                      onChange={(e) => handleFormChange('sslc_obtained_marks', e.target.value)} 
-                      placeholder="529" 
-                      className="text-xs" 
+                    <Input
+                      type="number"
+                      value={formData.sslc_obtained_marks}
+                      onChange={(e) => handleFormChange('sslc_obtained_marks', e.target.value)}
+                      placeholder="529"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Percentage (%)</Label>
-                    <Input 
-                      value={formData.sslc_percentage} 
-                      onChange={(e) => handleFormChange('sslc_percentage', e.target.value)} 
-                      placeholder="84.64" 
-                      className="text-xs font-mono font-semibold" 
+                    <Input
+                      value={formData.sslc_percentage}
+                      onChange={(e) => handleFormChange('sslc_percentage', e.target.value)}
+                      placeholder="84.64"
+                      className="text-xs font-mono font-semibold"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Year of Passing</Label>
-                    <Input 
-                      value={formData.sslc_passing_year} 
-                      onChange={(e) => handleFormChange('sslc_passing_year', e.target.value)} 
-                      placeholder="e.g. JUL 2021" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.sslc_passing_year}
+                      onChange={(e) => handleFormChange('sslc_passing_year', e.target.value)}
+                      placeholder="e.g. JUL 2021"
+                      className="text-xs"
                     />
                   </div>
                 </div>
@@ -1768,38 +1856,38 @@ export default function AdmissionApplications() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label className="text-xs">Institute Name</Label>
-                    <Input 
-                      value={formData.puc_institute_name} 
-                      onChange={(e) => handleFormChange('puc_institute_name', e.target.value)} 
-                      placeholder="e.g. GOVERNMENT PU COLLEGE GADAG" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.puc_institute_name}
+                      onChange={(e) => handleFormChange('puc_institute_name', e.target.value)}
+                      placeholder="e.g. GOVERNMENT PU COLLEGE GADAG"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label className="text-xs">Institute Address</Label>
-                    <Input 
-                      value={formData.puc_address} 
-                      onChange={(e) => handleFormChange('puc_address', e.target.value)} 
-                      placeholder="e.g. MULAGUND ROAD, GADAG" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.puc_address}
+                      onChange={(e) => handleFormChange('puc_address', e.target.value)}
+                      placeholder="e.g. MULAGUND ROAD, GADAG"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">PUC Registration No.</Label>
-                    <Input 
-                      value={formData.puc_reg_no} 
-                      onChange={(e) => handleFormChange('puc_reg_no', e.target.value)} 
-                      placeholder="e.g. 661180" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.puc_reg_no}
+                      onChange={(e) => handleFormChange('puc_reg_no', e.target.value)}
+                      placeholder="e.g. 661180"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Board / University</Label>
-                    <Select 
-                      value={formData.puc_board || 'DPUE / KSEAB'} 
+                    <Select
+                      value={formData.puc_board || 'DPUE / KSEAB'}
                       onValueChange={(val) => handleFormChange('puc_board', val)}
                     >
                       <SelectTrigger className="text-xs h-9">
@@ -1818,43 +1906,43 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Maximum Marks</Label>
-                    <Input 
-                      type="number" 
-                      value={formData.puc_max_marks} 
-                      onChange={(e) => handleFormChange('puc_max_marks', e.target.value)} 
-                      placeholder="600" 
-                      className="text-xs" 
+                    <Input
+                      type="number"
+                      value={formData.puc_max_marks}
+                      onChange={(e) => handleFormChange('puc_max_marks', e.target.value)}
+                      placeholder="600"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Obtained Marks</Label>
-                    <Input 
-                      type="number" 
-                      value={formData.puc_obtained_marks} 
-                      onChange={(e) => handleFormChange('puc_obtained_marks', e.target.value)} 
-                      placeholder="375" 
-                      className="text-xs" 
+                    <Input
+                      type="number"
+                      value={formData.puc_obtained_marks}
+                      onChange={(e) => handleFormChange('puc_obtained_marks', e.target.value)}
+                      placeholder="375"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Percentage (%)</Label>
-                    <Input 
-                      value={formData.puc_percentage} 
-                      onChange={(e) => handleFormChange('puc_percentage', e.target.value)} 
-                      placeholder="62.50" 
-                      className="text-xs font-mono font-semibold" 
+                    <Input
+                      value={formData.puc_percentage}
+                      onChange={(e) => handleFormChange('puc_percentage', e.target.value)}
+                      placeholder="62.50"
+                      className="text-xs font-mono font-semibold"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Year of Passing</Label>
-                    <Input 
-                      value={formData.puc_passing_year} 
-                      onChange={(e) => handleFormChange('puc_passing_year', e.target.value)} 
-                      placeholder="e.g. MAR 2023" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.puc_passing_year}
+                      onChange={(e) => handleFormChange('puc_passing_year', e.target.value)}
+                      placeholder="e.g. MAR 2023"
+                      className="text-xs"
                     />
                   </div>
                 </div>
@@ -1887,28 +1975,28 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">KEA/MNGT No.</Label>
-                    <Input 
-                      value={formData.kea_mngt_no} 
-                      onChange={(e) => handleFormChange('kea_mngt_no', e.target.value)} 
-                      placeholder="e.g. 00" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.kea_mngt_no}
+                      onChange={(e) => handleFormChange('kea_mngt_no', e.target.value)}
+                      placeholder="e.g. 00"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Rank</Label>
-                    <Input 
-                      value={formData.kea_rank} 
-                      onChange={(e) => handleFormChange('kea_rank', e.target.value)} 
-                      placeholder="e.g. 001" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.kea_rank}
+                      onChange={(e) => handleFormChange('kea_rank', e.target.value)}
+                      placeholder="e.g. 001"
+                      className="text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Category Claimed</Label>
-                    <Select 
-                      value={formData.category_claimed || ''} 
+                    <Select
+                      value={formData.category_claimed || ''}
                       onValueChange={(val) => handleFormChange('category_claimed', val)}
                     >
                       <SelectTrigger className="text-xs h-9">
@@ -1927,8 +2015,8 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Allotted Category</Label>
-                    <Select 
-                      value={formData.allotted_category || ''} 
+                    <Select
+                      value={formData.allotted_category || ''}
                       onValueChange={(val) => handleFormChange('allotted_category', val)}
                     >
                       <SelectTrigger className="text-xs h-9">
@@ -1947,11 +2035,11 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Fees Collected in KEA/MNGT (Rs.)</Label>
-                    <Input 
-                      value={formData.fees_collected_kea} 
-                      onChange={(e) => handleFormChange('fees_collected_kea', e.target.value)} 
-                      placeholder="e.g. 120000" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.fees_collected_kea}
+                      onChange={(e) => handleFormChange('fees_collected_kea', e.target.value)}
+                      placeholder="e.g. 120000"
+                      className="text-xs"
                     />
                   </div>
 
@@ -1968,11 +2056,11 @@ export default function AdmissionApplications() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs">Admission Order Number</Label>
-                    <Input 
-                      value={formData.admission_order_number} 
-                      onChange={(e) => handleFormChange('admission_order_number', e.target.value)} 
-                      placeholder="e.g. 1526" 
-                      className="text-xs" 
+                    <Input
+                      value={formData.admission_order_number}
+                      onChange={(e) => handleFormChange('admission_order_number', e.target.value)}
+                      placeholder="e.g. 1526"
+                      className="text-xs"
                     />
                   </div>
                 </div>
@@ -2014,8 +2102,8 @@ export default function AdmissionApplications() {
 
                         <div className="flex items-center justify-between w-full pt-1.5 border-t border-border/50">
                           {fileUrl ? (
-                            <a 
-                              href={fileUrl} 
+                            <a
+                              href={fileUrl}
                               onClick={(e) => handlePreview(e, fileUrl)}
                               className="text-primary font-semibold hover:underline cursor-pointer flex items-center gap-1"
                             >
@@ -2066,65 +2154,65 @@ export default function AdmissionApplications() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     <div className="space-y-1.5">
                       <Label className="text-xs">Physics</Label>
-                      <Input 
+                      <Input
                         type="number"
-                        value={formData.physics_marks} 
-                        onChange={(e) => handleFormChange('physics_marks', e.target.value)} 
-                        placeholder="59" 
-                        className="text-xs" 
+                        value={formData.physics_marks}
+                        onChange={(e) => handleFormChange('physics_marks', e.target.value)}
+                        placeholder="59"
+                        className="text-xs"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <Label className="text-xs">Maths</Label>
-                      <Input 
+                      <Input
                         type="number"
-                        value={formData.maths_marks} 
-                        onChange={(e) => handleFormChange('maths_marks', e.target.value)} 
-                        placeholder="37" 
-                        className="text-xs" 
+                        value={formData.maths_marks}
+                        onChange={(e) => handleFormChange('maths_marks', e.target.value)}
+                        placeholder="37"
+                        className="text-xs"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <Label className="text-xs">Chemistry</Label>
-                      <Input 
+                      <Input
                         type="number"
-                        value={formData.chemistry_marks} 
-                        onChange={(e) => handleFormChange('chemistry_marks', e.target.value)} 
-                        placeholder="59" 
-                        className="text-xs" 
+                        value={formData.chemistry_marks}
+                        onChange={(e) => handleFormChange('chemistry_marks', e.target.value)}
+                        placeholder="59"
+                        className="text-xs"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <Label className="text-xs">Biology / Others</Label>
-                      <Input 
+                      <Input
                         type="number"
-                        value={formData.biology_others_marks} 
-                        onChange={(e) => handleFormChange('biology_others_marks', e.target.value)} 
-                        placeholder="78" 
-                        className="text-xs" 
+                        value={formData.biology_others_marks}
+                        onChange={(e) => handleFormChange('biology_others_marks', e.target.value)}
+                        placeholder="78"
+                        className="text-xs"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <Label className="text-xs">Total Marks</Label>
-                      <Input 
-                        value={formData.total_subject_marks} 
-                        onChange={(e) => handleFormChange('total_subject_marks', e.target.value)} 
-                        placeholder="196" 
-                        className="text-xs font-semibold" 
+                      <Input
+                        value={formData.total_subject_marks}
+                        onChange={(e) => handleFormChange('total_subject_marks', e.target.value)}
+                        placeholder="196"
+                        className="text-xs font-semibold"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <Label className="text-xs">Percentage (%)</Label>
-                      <Input 
-                        value={formData.subject_percentage} 
-                        onChange={(e) => handleFormChange('subject_percentage', e.target.value)} 
-                        placeholder="65.33" 
-                        className="text-xs font-mono font-semibold" 
+                      <Input
+                        value={formData.subject_percentage}
+                        onChange={(e) => handleFormChange('subject_percentage', e.target.value)}
+                        placeholder="65.33"
+                        className="text-xs font-mono font-semibold"
                       />
                     </div>
                   </div>
@@ -2135,41 +2223,41 @@ export default function AdmissionApplications() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5 sm:col-span-2">
                       <Label className="text-xs">Extra Curricular and Achievements</Label>
-                      <Textarea 
-                        value={formData.extra_curricular} 
-                        onChange={(e) => handleFormChange('extra_curricular', e.target.value)} 
-                        placeholder="Sports, state/national awards, arts..." 
-                        className="text-xs h-16 resize-none" 
+                      <Textarea
+                        value={formData.extra_curricular}
+                        onChange={(e) => handleFormChange('extra_curricular', e.target.value)}
+                        placeholder="Sports, state/national awards, arts..."
+                        className="text-xs h-16 resize-none"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <Label className="text-xs">Aadhaar Number (12 Digits)</Label>
-                      <Input 
-                        value={formData.aadhaar_no} 
-                        onChange={(e) => handleFormChange('aadhaar_no', e.target.value)} 
-                        placeholder="e.g. 550390906299" 
-                        className="text-xs" 
+                      <Input
+                        value={formData.aadhaar_no}
+                        onChange={(e) => handleFormChange('aadhaar_no', e.target.value)}
+                        placeholder="e.g. 550390906299"
+                        className="text-xs"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <Label className="text-xs">PAN Card Number</Label>
-                      <Input 
-                        value={formData.pan_no} 
-                        onChange={(e) => handleFormChange('pan_no', e.target.value)} 
-                        placeholder="e.g. ABCDE1234F" 
-                        className="text-xs" 
+                      <Input
+                        value={formData.pan_no}
+                        onChange={(e) => handleFormChange('pan_no', e.target.value)}
+                        placeholder="e.g. ABCDE1234F"
+                        className="text-xs"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <Label className="text-xs">Place of Application</Label>
-                      <Input 
-                        value={formData.place} 
-                        onChange={(e) => handleFormChange('place', e.target.value)} 
-                        placeholder="e.g. Gadag" 
-                        className="text-xs" 
+                      <Input
+                        value={formData.place}
+                        onChange={(e) => handleFormChange('place', e.target.value)}
+                        placeholder="e.g. Gadag"
+                        className="text-xs"
                       />
                     </div>
 
@@ -2192,10 +2280,10 @@ export default function AdmissionApplications() {
           <DialogFooter className="p-4 border-t border-border bg-muted/20 flex flex-row items-center justify-between">
             <div>
               {wizardStep > 1 && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setWizardStep(s => s - 1)}
                   className="h-8 text-xs"
                 >
@@ -2205,10 +2293,10 @@ export default function AdmissionApplications() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setWizardOpen(false)}
                 className="h-8 text-xs"
               >
@@ -2216,18 +2304,18 @@ export default function AdmissionApplications() {
               </Button>
 
               {wizardStep < 7 ? (
-                <Button 
-                  type="button" 
-                  size="sm" 
+                <Button
+                  type="button"
+                  size="sm"
                   onClick={() => setWizardStep(s => s + 1)}
                   className="h-8 text-xs bg-primary text-white"
                 >
                   Next <ChevronRight className="w-3.5 h-3.5 ml-1" />
                 </Button>
               ) : (
-                <Button 
-                  type="button" 
-                  size="sm" 
+                <Button
+                  type="button"
+                  size="sm"
                   disabled={isSavingForm}
                   onClick={handleSaveWizard}
                   className="h-8 text-xs bg-green-600 hover:bg-green-700 text-white"
@@ -2259,9 +2347,9 @@ export default function AdmissionApplications() {
 
               <div className="flex flex-wrap items-center gap-2">
                 {selectedApp?.enquiry_details?.status === 'enrolled' && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => printFullAdmissionApplication(selectedApp)}
                     className="h-8 text-xs gap-1.5 shrink-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-300 dark:border-emerald-800 font-medium"
                     title="Download Complete 5-Page Filled Admission Application & Confirmation Dossier"
@@ -2269,9 +2357,9 @@ export default function AdmissionApplications() {
                     <Download className="w-3.5 h-3.5" /> Download Application Form
                   </Button>
                 )}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => {
                     const target = selectedApp;
                     setSelectedApp(null);
@@ -2410,10 +2498,10 @@ export default function AdmissionApplications() {
                           <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-semibold">
                             <Check className="w-3 h-3" /> Attached
                           </span>
-                          <a 
-                            href={doc.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
+                          <a
+                            href={doc.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="block text-[10px] text-primary hover:underline truncate w-full"
                           >
                             View File
@@ -2454,7 +2542,7 @@ export default function AdmissionApplications() {
                 <div className="flex items-center gap-2 text-primary font-semibold text-xs uppercase tracking-wider border-b border-border pb-2">
                   <UserCheck className="w-4 h-4" /> 9. Application Actions & Status Progression
                 </div>
-                
+
                 {(() => {
                   const currentStatus = selectedApp?.enquiry_details?.status;
                   const isRejected = currentStatus === 'rejected';
@@ -2462,7 +2550,7 @@ export default function AdmissionApplications() {
                   const isVerified = currentStatus === 'documents_verified' || selectedApp?.is_verified || currentIndex >= appStages.indexOf('documents_verified');
                   const isConfirmed = currentStatus === 'admission_confirmed' || currentIndex >= appStages.indexOf('admission_confirmed');
                   const isEnrolled = currentStatus === 'enrolled';
-                  
+
                   const verifyDisabled = isRejected || isVerified;
                   const confirmDisabled = isRejected || isConfirmed;
                   const enrollDisabled = isRejected || isEnrolled;
@@ -2470,15 +2558,15 @@ export default function AdmissionApplications() {
                   return (
                     <div className={cn(
                       "grid gap-2.5 w-full",
-                      isEnrolled 
-                        ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-5" 
+                      isEnrolled
+                        ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-5"
                         : "grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
                     )}>
                       {isEnrolled && (
-                        <Button 
+                        <Button
                           onClick={() => printFullAdmissionApplication(selectedApp)}
-                          variant="outline" 
-                          size="sm" 
+                          variant="outline"
+                          size="sm"
                           className="w-full text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-300 justify-center text-xs h-9 font-medium"
                           title="Download Complete 5-Page Filled Admission Application & Confirmation Dossier"
                         >
@@ -2486,14 +2574,14 @@ export default function AdmissionApplications() {
                         </Button>
                       )}
 
-                      <Button 
+                      <Button
                         onClick={() => handleUpdateStatus(selectedApp.id, 'documents_verified')}
                         variant={isVerified ? "default" : "outline"}
-                        size="sm" 
+                        size="sm"
                         className={cn(
                           "w-full justify-center text-xs h-9 font-medium transition-colors",
-                          isVerified 
-                            ? "bg-emerald-600 hover:bg-emerald-600 text-white cursor-default opacity-100 shadow-sm" 
+                          isVerified
+                            ? "bg-emerald-600 hover:bg-emerald-600 text-white cursor-default opacity-100 shadow-sm"
                             : "text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200 dark:border-blue-800"
                         )}
                         disabled={verifyDisabled}
@@ -2504,15 +2592,15 @@ export default function AdmissionApplications() {
                           <><FileText className="w-4 h-4 mr-1.5 shrink-0" /> Verify Documents</>
                         )}
                       </Button>
-                      
-                      <Button 
+
+                      <Button
                         onClick={() => handleUpdateStatus(selectedApp.id, 'admission_confirmed')}
                         variant={isConfirmed ? "default" : "outline"}
-                        size="sm" 
+                        size="sm"
                         className={cn(
                           "w-full justify-center text-xs h-9 font-medium transition-colors",
-                          isConfirmed 
-                            ? "bg-blue-600 hover:bg-blue-600 text-white cursor-default opacity-100 shadow-sm" 
+                          isConfirmed
+                            ? "bg-blue-600 hover:bg-blue-600 text-white cursor-default opacity-100 shadow-sm"
                             : "text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200 dark:border-green-800"
                         )}
                         disabled={confirmDisabled}
@@ -2523,14 +2611,14 @@ export default function AdmissionApplications() {
                           <><CheckCircle className="w-4 h-4 mr-1.5 shrink-0" /> Confirm Admission</>
                         )}
                       </Button>
-                      
-                      <Button 
+
+                      <Button
                         onClick={() => handleEnroll(selectedApp.id)}
-                        size="sm" 
+                        size="sm"
                         className={cn(
                           "w-full justify-center text-xs h-9 shadow-sm font-medium transition-colors",
-                          isEnrolled 
-                            ? "bg-purple-600 hover:bg-purple-600 text-white cursor-default opacity-100" 
+                          isEnrolled
+                            ? "bg-purple-600 hover:bg-purple-600 text-white cursor-default opacity-100"
                             : "bg-primary text-primary-foreground hover:bg-primary/90"
                         )}
                         disabled={enrollDisabled}
@@ -2541,11 +2629,11 @@ export default function AdmissionApplications() {
                           <><UserCheck className="w-4 h-4 mr-1.5 shrink-0" /> Enroll as Student</>
                         )}
                       </Button>
-                      
-                      <Button 
+
+                      <Button
                         onClick={() => handleUpdateStatus(selectedApp.id, 'rejected')}
-                        variant="outline" 
-                        size="sm" 
+                        variant="outline"
+                        size="sm"
                         className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200 dark:border-red-800 justify-center text-xs h-9"
                         disabled={isRejected}
                       >
@@ -2570,7 +2658,7 @@ export default function AdmissionApplications() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-xs text-muted-foreground">Please assign the student to their respective batch, branch, semester, and section to finalize enrollment.</p>
-            
+
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Batch *</Label>
               <Select value={enrollBatchId} onValueChange={setEnrollBatchId}>
