@@ -368,6 +368,37 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       .finally(() => setColleaguesLoading(false));
   }, [targetRole, selectedSubstituteBranch, isStageZero]);
 
+  // Dynamically fetch colleagues for re-nomination modal
+  useEffect(() => {
+    if (!renominateRole) {
+      setRenominateColleagues([]);
+      return;
+    }
+    const requiresBranch = renominateRole === 'faculty' || renominateRole === 'teacher' || renominateRole === 'hod';
+    if (requiresBranch && !renominateBranch) {
+      setRenominateColleagues([]);
+      return;
+    }
+
+    setRenominateColleaguesLoading(true);
+    getAvailableColleagues({
+      role: renominateRole,
+      branch_id: renominateBranch || undefined
+    })
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setRenominateColleagues(res.data);
+        } else {
+          setRenominateColleagues([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching renominate colleagues:", err);
+        setRenominateColleagues([]);
+      })
+      .finally(() => setRenominateColleaguesLoading(false));
+  }, [renominateRole, renominateBranch]);
+
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
   const [leaveList, setLeaveList] = useState<LeaveRequestDisplay[]>([]);
@@ -421,10 +452,6 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               setSelectedAlternateFaculty('');
               setSelectedSubstituteBranch('');
             }
-          }
-
-          if (available_colleagues) {
-            setAvailableColleagues(available_colleagues);
           }
 
           if (branches) {
@@ -536,10 +563,36 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       .finally(() => setSubstituteLoading(false));
   };
 
+  const fetchPendingSubstituteCountOnly = () => {
+    getAlternateDutyRequests({ count_only: true })
+      .then((res: any) => {
+        if (res && res.success) {
+          const count = res.pending_count ?? (res.data?.pending_count ?? 0);
+          setPendingSubstituteCount(typeof count === 'number' ? count : 0);
+        }
+      })
+      .catch((err) => console.error("Error fetching pending substitute count:", err));
+  };
+
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('substitute-requests-viewed'));
     fetchBootstrapData();
-  }, []);
+    fetchPendingSubstituteCountOnly();
+
+    const handleLeavesUpdated = () => {
+      fetchPendingSubstituteCountOnly();
+      if (activeMainTab === 'substitute_requests') {
+        fetchSubstituteRequests(substitutePage, substituteStatusFilter);
+      }
+    };
+
+    window.addEventListener('leaves-updated', handleLeavesUpdated);
+    window.addEventListener('substitute-requests-updated', handleLeavesUpdated);
+    return () => {
+      window.removeEventListener('leaves-updated', handleLeavesUpdated);
+      window.removeEventListener('substitute-requests-updated', handleLeavesUpdated);
+    };
+  }, [activeMainTab, substitutePage, substituteStatusFilter]);
 
   useEffect(() => {
     fetchLeaveHistory(pagination.page, pagination.pageSize);
@@ -2186,9 +2239,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             <SelectItem value="fees_manager">Fees & Accounts Manager</SelectItem>
                             <SelectItem value="admission_manager">Admission Manager</SelectItem>
                             <SelectItem value="hms_admin">Hostel Manager (HMS)</SelectItem>
+                            <SelectItem value="warden">Hostel Warden</SelectItem>
                             <SelectItem value="library_admin">Library Admin</SelectItem>
                             <SelectItem value="transport_admin">Transport Admin</SelectItem>
                             <SelectItem value="driver">Driver / Fleet Staff</SelectItem>
+                            <SelectItem value="group_d">Group D / Support Staff</SelectItem>
+                            <SelectItem value="counsellor">Counsellor</SelectItem>
                           </>
                         )}
                       </SelectContent>
@@ -3196,9 +3252,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                         <SelectItem value="fees_manager">Fees & Accounts Manager</SelectItem>
                                         <SelectItem value="admission_manager">Admission Manager</SelectItem>
                                         <SelectItem value="hms_admin">Hostel Manager (HMS)</SelectItem>
+                                        <SelectItem value="warden">Hostel Warden</SelectItem>
                                         <SelectItem value="library_admin">Library Admin</SelectItem>
                                         <SelectItem value="transport_admin">Transport Admin</SelectItem>
                                         <SelectItem value="driver">Driver / Fleet Staff</SelectItem>
+                                        <SelectItem value="group_d">Group D / Support Staff</SelectItem>
+                                        <SelectItem value="counsellor">Counsellor</SelectItem>
                                       </SelectContent>
                                     </Select>
                                   </div>
