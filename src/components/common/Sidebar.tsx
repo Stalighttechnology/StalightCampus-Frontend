@@ -122,12 +122,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       const checkSubstituteRequests = async () => {
         if (!canHaveSubstituteRequests) return;
         try {
-          const res = await getAlternateDutyRequests();
+          const res = await getAlternateDutyRequests({ count_only: true });
           if (res && res.success) {
-            const rawList = Array.isArray(res.data)
-              ? res.data
-              : (Array.isArray(res.data?.requests) ? res.data.requests : []);
-            const count = res.pending_count ?? (res.data?.pending_count ?? rawList.filter((d: any) => d.alternate_duty_status === 'PENDING').length);
+            const count = res.pending_count ?? (res.data?.pending_count ?? 0);
             setPendingSubstituteCount(typeof count === 'number' ? count : 0);
           }
         } catch (err) {
@@ -141,7 +138,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           let count = 0;
           if (roleLower === 'teacher' || roleLower === 'faculty') {
             try {
-              const proctorRes = await getProctorStudentLeaves({ status: 'PENDING', page_size: 1 });
+              const proctorRes = await getProctorStudentLeaves({ status: 'PENDING', count_only: true });
               if (proctorRes && (proctorRes as any).pending_count !== undefined) {
                 count = Number((proctorRes as any).pending_count);
               } else if (proctorRes && proctorRes.pagination?.total_count !== undefined) {
@@ -157,7 +154,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
             }
             if (roleLower === 'hod') {
               try {
-                const studentRes = await getHodStudentLeaves({ status: 'FORWARDED_TO_HOD', page_size: 1 });
+                const studentRes = await getHodStudentLeaves({ status: 'FORWARDED_TO_HOD', count_only: true });
                 if (studentRes && studentRes.pending_count !== undefined) {
                   count += Number(studentRes.pending_count);
                 } else if (studentRes && studentRes.pagination?.total_count !== undefined) {

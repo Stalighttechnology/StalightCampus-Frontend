@@ -2835,6 +2835,7 @@ export const getHodStudentLeaves = async (params?: {
   page_size?: number;
   search?: string;
   status?: string;
+  count_only?: boolean;
 }): Promise<GetHodStudentLeavesResponse> => {
   try {
     const queryParams = new URLSearchParams();
@@ -2842,6 +2843,7 @@ export const getHodStudentLeaves = async (params?: {
     if (params?.page_size) queryParams.append("page_size", params.page_size.toString());
     if (params?.search) queryParams.append("search", params.search);
     if (params?.status) queryParams.append("status", params.status);
+    if (params?.count_only) queryParams.append("count_only", "true");
 
     const url = `${API_ENDPOINT}/hod/student-leaves/${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
 
