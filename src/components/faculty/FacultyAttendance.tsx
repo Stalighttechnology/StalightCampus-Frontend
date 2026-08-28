@@ -15,6 +15,7 @@ import { fetchWithTokenRefresh } from "@/utils/authService";
 import { API_ENDPOINT } from "@/utils/config";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Device } from '@capacitor/device';
+import { Geolocation } from '@capacitor/geolocation';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -370,10 +371,10 @@ const FacultyAttendance = () => {
       const has2ndIn = !!ts[2] && ts[2] !== 'Missed';
       const has2ndOut = !!ts[3] && ts[3] !== 'Missed';
 
-      const missed1stIn = !has1stIn && checkMissed(has1stIn, 'first_half_in');
-      const missed1stOut = !has1stOut && checkMissed(has1stOut, 'first_half_out');
-      const missed2ndIn = !has2ndIn && checkMissed(has2ndIn, 'second_half_in');
-      const missed2ndOut = !has2ndOut && checkMissed(has2ndOut, 'second_half_out');
+      const missed1stIn = ts[0] === 'Missed' || (!has1stIn && checkMissed(has1stIn, 'first_half_in'));
+      const missed1stOut = ts[1] === 'Missed' || (!has1stOut && checkMissed(has1stOut, 'first_half_out'));
+      const missed2ndIn = ts[2] === 'Missed' || (!has2ndIn && checkMissed(has2ndIn, 'second_half_in'));
+      const missed2ndOut = ts[3] === 'Missed' || (!has2ndOut && checkMissed(has2ndOut, 'second_half_out'));
 
       if (has2ndOut || todayRecord.notes?.includes('[Early Checkout]')) isCompleted = true;
       else if (!has1stIn && !missed1stIn) currentAction = 'first_half_in';
@@ -517,20 +518,9 @@ const FacultyAttendance = () => {
       if (status === 'present') {
         setLoadingMessage("Detecting your location...");
         // Require geolocation for marking present
-        if (!navigator.geolocation) {
-          toast.error('Geolocation not supported by this browser. Cannot mark present.');
-          setIsSubmitting(false);
-          setMarkingStatus(null);
-          return;
-        }
-
-        const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-          const timer = setTimeout(() => reject(new Error('Location timeout')), 10000);
-          navigator.geolocation.getCurrentPosition((p) => { clearTimeout(timer); resolve(p); }, (err) => { clearTimeout(timer); reject(err); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-        }).catch((err) => {
-
-          if (err && err.code === 1) toast.error('Location permission denied. Enable location to mark present.'); else
-            toast.error('Unable to get device location. Cannot mark present.');
+        const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }).catch((err) => {
+          if (err?.message?.includes('denied') || (err && err.code === 1)) toast.error('Location permission denied. Enable location to mark present.');
+          else toast.error('Unable to get device location. Cannot mark present.');
           return null;
         });
 
@@ -554,10 +544,7 @@ const FacultyAttendance = () => {
         setLoadingMessage("Capturing context...");
         // For absent, try to capture location if available but do not block
         try {
-          const pos = await new Promise<GeolocationPosition | null>((resolve) => {
-            if (!navigator.geolocation) return resolve(null);
-            navigator.geolocation.getCurrentPosition((p) => resolve(p), () => resolve(null), { enableHighAccuracy: true, timeout: 5000, maximumAge: 300000 });
-          });
+          const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 5000, maximumAge: 300000 }).catch(() => null);
           if (pos) {
             latitude = pos.coords.latitude;
             longitude = pos.coords.longitude;
@@ -724,15 +711,8 @@ const FacultyAttendance = () => {
     let device_info: object | undefined;
 
     try {
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error('Location timeout')), 10000);
-        navigator.geolocation.getCurrentPosition(
-          (p) => { clearTimeout(timer); resolve(p); },
-          (err) => { clearTimeout(timer); reject(err); },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-      }).catch((err) => {
-        if (err && err.code === 1) toast.error('Location permission denied. Enable location to check in.');
+      const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }).catch((err) => {
+        if (err?.message?.includes('denied') || (err && err.code === 1)) toast.error('Location permission denied. Enable location to check in.');
         else toast.error('Unable to get device location.');
         return null;
       });
