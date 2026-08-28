@@ -13,6 +13,8 @@ import { fetchParentChildrenCached } from "../../utils/student_api";
 import { getAlternateDutyRequests, getProctorStudentLeaves } from "../../utils/faculty_api";
 import { manageHODLeaves } from "../../utils/admin_api";
 import { getHodStudentLeaves } from "../../utils/hod_api";
+import { manageWardenLeaves } from "../../utils/hms_api";
+import { manageDriverLeaves } from "../../utils/transport_api";
 import {
   LayoutDashboard,
   Users,
@@ -115,8 +117,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   useEffect(() => {
     const roleLower = (role || '').toLowerCase();
-    const canHaveSubstituteRequests = ['teacher', 'faculty', 'hod', 'group_d'].includes(roleLower);
-    const canApproveLeaves = ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe', 'teacher', 'faculty', 'group_d'].includes(roleLower);
+    const canHaveSubstituteRequests = ['teacher', 'faculty', 'hod', 'group_d', 'hms', 'hms_admin', 'warden', 'transport_admin', 'driver'].includes(roleLower);
+    const canApproveLeaves = ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe', 'teacher', 'faculty', 'group_d', 'hms', 'hms_admin', 'transport_admin'].includes(roleLower);
 
     if (canHaveSubstituteRequests || canApproveLeaves) {
       const checkSubstituteRequests = async () => {
@@ -146,6 +148,24 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
               }
             } catch (err) {
               console.error("Error checking proctor student leave pending count in sidebar:", err);
+            }
+          } else if (roleLower === 'hms' || roleLower === 'hms_admin') {
+            try {
+              const res = await manageWardenLeaves({ status: 'PENDING', count_only: true });
+              if (res) {
+                count = res.pending_count ?? res.count ?? (res.leaves?.filter((l: any) => l.status === 'PENDING').length ?? 0);
+              }
+            } catch (err) {
+              console.error("Error checking warden leave pending count in sidebar:", err);
+            }
+          } else if (roleLower === 'transport_admin') {
+            try {
+              const res = await manageDriverLeaves('?status=PENDING&count_only=true');
+              if (res) {
+                count = res.pending_count ?? res.count ?? (res.leaves?.filter((l: any) => l.status === 'PENDING').length ?? 0);
+              }
+            } catch (err) {
+              console.error("Error checking transport leave pending count in sidebar:", err);
             }
           } else {
             const res = await manageHODLeaves({ status: 'PENDING', count_only: true });
