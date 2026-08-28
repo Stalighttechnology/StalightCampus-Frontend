@@ -220,42 +220,49 @@ export default function AdmissionSeatMatrix() {
             <CardTitle className="text-lg md:text-xl font-semibold">Seat Matrix</CardTitle>
             <p className="text-muted-foreground text-xs md:text-sm mt-1">Monitor seat allocations and availability per batch and branch.</p>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-            <Select value={selectedBatchFilter} onValueChange={setSelectedBatchFilter}>
-              <SelectTrigger className="w-full sm:w-[170px]">
-                <SelectValue placeholder="Filter by Batch" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Batches</SelectItem>
-                {batches.map((b: any) => (
-                  <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
-              <SelectTrigger className="w-full sm:w-[170px]">
-                <SelectValue placeholder="Filter by Branch" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Branches</SelectItem>
-                {branches.map((br: any) => (
-                  <SelectItem key={br.id} value={br.id.toString()}>{br.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="sm"
-              className="shadow-sm w-full sm:w-auto whitespace-nowrap gap-1.5 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50"
-              onClick={handleOpenReportModal}
-              disabled={reportLoading}
-            >
-              {reportLoading ? <Loader2 size={15} className="animate-spin" /> : <FileText size={15} />}
-              Admission Details Report
-            </Button>
-            <Button size="sm" className="shadow-sm w-full sm:w-auto whitespace-nowrap" onClick={openAllocateModal}>
-              <Plus size={16} className="mr-2" /> Allocate Seats
-            </Button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+            {/* 2 Filter Dropdowns: Side-by-side on Mobile */}
+            <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center sm:gap-3">
+              <Select value={selectedBatchFilter} onValueChange={setSelectedBatchFilter}>
+                <SelectTrigger className="w-full sm:w-[160px] text-xs h-9">
+                  <SelectValue placeholder="Filter by Batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-xs">All Batches</SelectItem>
+                  {batches.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id.toString()} className="text-xs">{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedBranchFilter} onValueChange={setSelectedBranchFilter}>
+                <SelectTrigger className="w-full sm:w-[170px] text-xs h-9">
+                  <SelectValue placeholder="Filter by Branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-xs">All Branches</SelectItem>
+                  {branches.map((br: any) => (
+                    <SelectItem key={br.id} value={br.id.toString()} className="text-xs">{br.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Action Buttons: 2-column grid on mobile, inline on desktop */}
+            <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center sm:gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto h-9 text-xs whitespace-nowrap gap-1 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50 justify-center px-2"
+                onClick={handleOpenReportModal}
+                disabled={reportLoading}
+              >
+                {reportLoading ? <Loader2 size={14} className="animate-spin shrink-0" /> : <FileText size={14} className="shrink-0" />}
+                <span className="truncate">Report</span>
+              </Button>
+              <Button size="sm" className="w-full sm:w-auto h-9 text-xs shadow-sm whitespace-nowrap justify-center px-2 bg-primary text-white" onClick={openAllocateModal}>
+                <Plus size={15} className="mr-1 shrink-0" /> <span className="truncate">Allocate Seats</span>
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-4 space-y-6">
