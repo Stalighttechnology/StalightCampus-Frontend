@@ -110,7 +110,11 @@ interface FilterData {
   admission_modes: string[];
 }
 
-const InvoiceManagement: React.FC = () => {
+interface InvoiceManagementProps {
+  isReadOnly?: boolean;
+}
+
+const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = false }) => {
   const { theme } = useTheme();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [invoicesMeta, setInvoicesMeta] = useState<InvoicesMeta | null>(null);
