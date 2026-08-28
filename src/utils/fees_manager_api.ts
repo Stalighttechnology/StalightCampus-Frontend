@@ -803,9 +803,13 @@ export const savePayrollSettings = async (data: any) => {
   }
 };
 
-export const getSalaryStructures = async (page: number = 1, search: string = '', role: string = '', limit: number = 10) => {
+export const getSalaryStructures = async (page: number = 1, search: string = '', role: string = '', limit: number = 10, branch_id: string = '') => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/salary-structures/?page=${page}&search=${encodeURIComponent(search)}&role=${encodeURIComponent(role)}&page_size=${limit}`, {
+    let url = `${API_ENDPOINT}/fees-manager/payroll/salary-structures/?page=${page}&search=${encodeURIComponent(search)}&role=${encodeURIComponent(role)}&page_size=${limit}`;
+    if (branch_id && branch_id !== 'all') {
+      url += `&branch_id=${encodeURIComponent(branch_id)}`;
+    }
+    const response = await fetchWithTokenRefresh(url, {
       method: 'GET'
     });
     return await response.json();
