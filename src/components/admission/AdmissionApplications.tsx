@@ -377,6 +377,8 @@ export default function AdmissionApplications() {
   const [editingAppId, setEditingAppId] = useState<number | null>(null);
   const [formData, setFormData] = useState<FormState>(initialFormState);
   const [isSavingForm, setIsSavingForm] = useState(false);
+  const [loadingReviewId, setLoadingReviewId] = useState<number | null>(null);
+  const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 
   // Enrollment Modal State
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
@@ -703,6 +705,47 @@ export default function AdmissionApplications() {
     } catch (error) {
       console.error("Error previewing file:", error);
       toast.error("Failed to preview file");
+    }
+  };
+
+  const handleOpenReview = async (app: any) => {
+    if (!app?.id) return;
+    setLoadingReviewId(app.id);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/${app.id}/`);
+      if (response.ok) {
+        const fullData = await response.json();
+        setSelectedApp(fullData);
+      } else {
+        toast.error("Failed to load application details.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error while loading application details.");
+    } finally {
+      setLoadingReviewId(null);
+    }
+  };
+
+  const handleOpenEdit = async (app?: any) => {
+    if (!app || !app.id) {
+      openWizardForApp();
+      return;
+    }
+    setLoadingEditId(app.id);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admission/manager/applications/${app.id}/`);
+      if (response.ok) {
+        const fullData = await response.json();
+        openWizardForApp(fullData);
+      } else {
+        toast.error("Failed to load application form details.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error while loading application form details.");
+    } finally {
+      setLoadingEditId(null);
     }
   };
 
@@ -1345,18 +1388,30 @@ export default function AdmissionApplications() {
                               variant="outline"
                               size="sm"
                               className="h-8 text-xs gap-1"
-                              onClick={() => openWizardForApp(app)}
+                              onClick={() => handleOpenEdit(app)}
+                              disabled={loadingEditId === app.id}
                               title="Edit / Fill Full Application Form"
                             >
-                              <Edit className="w-3.5 h-3.5" /> Edit Form
+                              {loadingEditId === app.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Edit className="w-3.5 h-3.5" />
+                              )}
+                              <span>Edit Form</span>
                             </Button>
                             <Button
                               variant="default"
                               className="bg-primary hover:bg-primary/90 text-white h-8 text-xs gap-1 shadow-sm"
                               size="sm"
-                              onClick={() => setSelectedApp(app)}
+                              onClick={() => handleOpenReview(app)}
+                              disabled={loadingReviewId === app.id}
                             >
-                              <Eye className="w-3.5 h-3.5" /> Review
+                              {loadingReviewId === app.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Eye className="w-3.5 h-3.5" />
+                              )}
+                              <span>Review</span>
                             </Button>
                           </td>
                         </tr>
