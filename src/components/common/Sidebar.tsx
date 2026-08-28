@@ -151,7 +151,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
               console.error("Error checking proctor student leave pending count in sidebar:", err);
             }
           } else {
-            const res = await manageHODLeaves({ status: 'PENDING', page_size: 1 });
+            const res = await manageHODLeaves({ status: 'PENDING', count_only: true });
             if (res) {
               count = (res as any).pending_count ?? (res as any).count ?? (res as any).total_records ?? res.pagination?.total_records ?? (res.leaves?.filter((l: any) => l.status === 'PENDING').length ?? 0);
             }
