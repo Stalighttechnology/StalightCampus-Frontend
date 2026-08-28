@@ -1010,21 +1010,31 @@ export const createPayrollAdjustment = async (data: any) => {
 };
 
 export const deletePayrollAdjustment = async (id: number) => {
+  try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/adjustments/`, {
-        method: 'DELETE',
-        body: JSON.stringify({ adjustment_id: id })
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adjustment_id: id })
     });
     if (response) return await response.json();
     return { success: false, message: 'Network error deleting payroll adjustment' };
+  } catch (error) {
+    return { success: false, message: 'Network error deleting payroll adjustment' };
+  }
 };
 
 export const updatePayrollAdjustmentStatus = async (id: number, action: 'approve' | 'reject') => {
+  try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payroll/adjustments/${id}/`, {
-        method: 'PUT',
-        body: JSON.stringify({ action })
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
     });
     if (response) return await response.json();
     return { success: false, message: 'Network error updating payroll adjustment status' };
+  } catch (error) {
+    return { success: false, message: 'Network error updating payroll adjustment status' };
+  }
 };
 
 // Attendance Lock

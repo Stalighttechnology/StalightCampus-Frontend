@@ -1813,6 +1813,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                   <th className="px-6 py-4 text-center">Days (Present/LOP)</th>
                   <th className="px-6 py-4 text-right">Gross Salary</th>
                   <th className="px-6 py-4 text-right">Approved Reimbursements</th>
+                  <th className="px-6 py-4 text-right">Adjustments</th>
                   <th className="px-6 py-4 text-right">PF Deduction</th>
                   <th className="px-6 py-4 text-right">ESI Deduction</th>
                   <th className="px-6 py-4 text-right">TDS (Tax)</th>
@@ -1835,6 +1836,15 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                     <td className="px-6 py-4 text-right font-semibold text-slate-900 dark:text-white">{formatCurrency(det.gross_salary)}</td>
                     <td className="px-6 py-4 text-right font-medium text-blue-600 dark:text-blue-400">
                       {Number(det.reimbursements) > 0 ? `+${formatCurrency(det.reimbursements)}` : '₹0'}
+                    </td>
+                    <td className={`px-6 py-4 text-right font-medium ${
+                      Number(det.adjustments) > 0 ? 'text-emerald-600 dark:text-emerald-400' :
+                      Number(det.adjustments) < 0 ? 'text-red-500' :
+                      'text-slate-500 dark:text-slate-400'
+                    }`}>
+                      {Number(det.adjustments) > 0 ? `+${formatCurrency(det.adjustments)}` :
+                       Number(det.adjustments) < 0 ? `-${formatCurrency(Math.abs(Number(det.adjustments)))}` :
+                       '₹0'}
                     </td>
                     <td className="px-6 py-4 text-right text-red-500">{formatCurrency(det.pf_deduction)}</td>
                     <td className="px-6 py-4 text-right text-red-500">{formatCurrency(det.esi_deduction)}</td>
