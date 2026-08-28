@@ -19,6 +19,7 @@ import { Button } from "../ui/button";
 import { useTheme } from "@/context/ThemeContext";
 import { 
   getBatches,
+  getBranches,
   getSemesterSyllabusMonitor,
   getSubjectSyllabusMonitor,
   getSectionWeekProgress,
@@ -52,12 +53,21 @@ const SURVEY_QUESTIONS = [
   { id: "Q10", text: "Overall, rate the learning value, academic growth, and professional benefit you gained from this course." },
 ];
 
-const HODSemesterMonitor = () => {
+interface HODSemesterMonitorProps {
+  userRole?: string;
+}
+
+const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
   const { toast } = useToast();
   const { theme } = useTheme();
 
+  const isPrincipalUser = userRole === 'principal' || userRole === 'admin' || userRole === 'dean' || userRole === 'org_admin';
+
   const [batches, setBatches] = useState<any[]>([]);
   const [batchId, setBatchId] = useState<number | null>(null);
+  const [branches, setBranches] = useState<any[]>([]);
+  const [branchId, setBranchId] = useState<number | null>(null);
+  const [subjectType, setSubjectType] = useState<string>("all");
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [semesters, setSemesters] = useState<any[]>([]);
   const [bootstrapLoading, setBootstrapLoading] = useState(true);
@@ -68,6 +78,7 @@ const HODSemesterMonitor = () => {
   const [loadingSubjectProgress, setLoadingSubjectProgress] = useState(false);
   const [exportingSubjectId, setExportingSubjectId] = useState<number | null>(null);
   const [exportingSectionId, setExportingSectionId] = useState<number | null>(null);
+  const [exportingSemester, setExportingSemester] = useState(false);
   const [togglingSubjectId, setTogglingSubjectId] = useState<number | null>(null);
   const [selectedSurveySubject, setSelectedSurveySubject] = useState<any | null>(null);
   const [selectedSectionProgressModal, setSelectedSectionProgressModal] = useState<{
@@ -281,10 +292,15 @@ const HODSemesterMonitor = () => {
   // Fetch Semester syllabus monitoring metrics
   const fetchMonitorData = async (showLoader = false, overrideSemesterId?: string) => {
     if (!batchId) return;
+    if (isPrincipalUser && !branchId) return;
     const sId = overrideSemesterId || semesterId?.toString();
     if (showLoader) setLoadingMonitor(true);
     try {
-      const res = await getSemesterSyllabusMonitor(batchId.toString(), sId);
+      const res = await getSemesterSyllabusMonitor(
+        batchId.toString(),
+        sId,
+        branchId ? branchId.toString() : undefined
+      );
       if (res.success) {
         if (res.semesters && res.semesters.length > 0 && semesters.length === 0) {
           setSemesters(res.semesters);
@@ -310,32 +326,54 @@ const HODSemesterMonitor = () => {
 
   useEffect(() => {
     const initBatches = async () => {
-      const bRes = await getBatches();
-      if (bRes.success && bRes.data && bRes.data.length > 0) {
-        setBatches(bRes.data);
-        // No auto-select — user must choose
+      setBootstrapLoading(true);
+      try {
+        if (isPrincipalUser) {
+          const [bRes, brRes] = await Promise.all([getBatches(), getBranches()]);
+          if (bRes.success && bRes.data && bRes.data.length > 0) {
+            setBatches(bRes.data);
+          }
+          if (brRes.success && brRes.data) {
+            setBranches(brRes.data);
+          }
+        } else {
+          const bRes = await getBatches();
+          if (bRes.success && bRes.data && bRes.data.length > 0) {
+            setBatches(bRes.data);
+          }
+        }
+      } finally {
+        setBootstrapLoading(false);
       }
-      setBootstrapLoading(false);
     };
     initBatches();
-  }, []);
+  }, [isPrincipalUser]);
 
-  // When batch changes: reset semester, fetch semesters list, then auto-open semester dropdown
+  // When batch or branch changes: reset semester, fetch semesters list
   useEffect(() => {
     if (!batchId) return;
+    if (isPrincipalUser && !branchId) {
+      setSemesters([]);
+      setSemesterId(null);
+      setMonitorData(null);
+      return;
+    }
     setSemesterId(null);
     setMonitorData(null);
-    // Fetch semesters list by hitting the monitor with no semester (backend returns semesters)
     (async () => {
       try {
-        const res = await getSemesterSyllabusMonitor(batchId.toString());
+        const res = await getSemesterSyllabusMonitor(
+          batchId.toString(),
+          undefined,
+          branchId ? branchId.toString() : undefined
+        );
         if (res.success && res.semesters) {
           setSemesters(res.semesters);
-          setIsSemesterOpen(true); // auto-open semester dropdown
+          setIsSemesterOpen(true);
         }
       } catch {}
     })();
-  }, [batchId]);
+  }, [batchId, branchId, isPrincipalUser]);
 
   // When semester is explicitly chosen, fetch the data
   useEffect(() => {
@@ -345,9 +383,54 @@ const HODSemesterMonitor = () => {
   const handleSemesterChange = (val: string) => {
     const newId = Number(val);
     setSemesterId(newId);
-    // NOTE: fetchMonitorData is triggered by the useEffect watching [semesterId]
-    // No need to call it here — avoids double API call on semester selection
   };
+
+  const handleExportSemesterPDF = async () => {
+    if (!batchId || !semesterId) return;
+    setExportingSemester(true);
+    try {
+      const blob = await exportSemesterSyllabusMonitorPdf(
+        batchId.toString(),
+        semesterId.toString(),
+        branchId ? branchId.toString() : undefined
+      );
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Semester_${semesterId}_Syllabus_Coverage_Monitor_${new Date().toISOString().slice(0, 10)}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast({
+        title: 'Success',
+        description: 'Semester monitor PDF report downloaded successfully',
+      });
+    } catch {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to export semester monitor PDF',
+      });
+    } finally {
+      setExportingSemester(false);
+    }
+  };
+
+  const filteredSubjects = useMemo(() => {
+    if (!monitorData?.subjects) return [];
+    if (subjectType === "all") return monitorData.subjects;
+    if (subjectType === "regular") {
+      return monitorData.subjects.filter(s => s.subject_type !== "elective" && s.subject_type !== "open_elective" && s.subject_type !== "lab");
+    }
+    if (subjectType === "elective") {
+      return monitorData.subjects.filter(s => s.subject_type === "elective" || s.subject_type === "open_elective");
+    }
+    if (subjectType === "others") {
+      return monitorData.subjects.filter(s => s.subject_type === "lab" || (s.subject_type !== "regular" && s.subject_type !== "elective" && s.subject_type !== "open_elective"));
+    }
+    return monitorData.subjects;
+  }, [monitorData?.subjects, subjectType]);
 
   const handleViewSectionProgress = async (subj: any) => {
     if (!semesterId) return;
@@ -389,23 +472,52 @@ const HODSemesterMonitor = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
             <div className="flex-1 min-w-0 text-left">
               <CardTitle className="text-xl sm:text-2xl font-semibold mb-2">
-                {getInstitutionType() === 'school' ? 'Class Syllabus Overview' : 'Semester Syllabus Overview'}
+                {isPrincipalUser
+                  ? "Institutional Syllabus Monitor"
+                  : (getInstitutionType() === 'school' ? 'Class Syllabus Overview' : 'Semester Syllabus Overview')}
               </CardTitle>
               <CardDescription>
-                {getInstitutionType() === 'school'
-                  ? 'Track weekly teaching completions across all subjects in the stream.'
-                  : 'Track weekly teaching completions across all subjects in the department.'}
+                {isPrincipalUser
+                  ? "Monitor syllabus completion rates and faculty progress across branches and semesters."
+                  : (getInstitutionType() === 'school'
+                    ? 'Track weekly teaching completions across all subjects in the stream.'
+                    : 'Track weekly teaching completions across all subjects in the department.')}
               </CardDescription>
             </div>
 
+            {monitorData && monitorData.subjects && monitorData.subjects.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportSemesterPDF}
+                disabled={exportingSemester}
+                className="bg-primary hover:bg-primary/90 text-white hover:text-white border-primary h-9 px-4 transition-all text-sm flex items-center justify-center gap-2 shrink-0"
+              >
+                {exportingSemester ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileDown className="w-4 h-4" />
+                    <span>Export Semester PDF</span>
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+
+          {/* Top Filter Bar */}
+          <div className={`grid grid-cols-1 ${isPrincipalUser ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4 pt-4`}>
             {/* Batch Filter */}
-            <div className="flex flex-col items-start gap-1 shrink-0 w-full sm:w-auto mr-4">
-              <span className="text-xs font-semibold uppercase opacity-80 shrink-0">Batch</span>
+            <div className="space-y-1">
+              <span className="text-xs font-semibold uppercase opacity-80">Batch</span>
               <Select 
                 value={batchId?.toString() || ""} 
                 onValueChange={(v) => setBatchId(Number(v))}
               >
-                <SelectTrigger className="w-full sm:w-40">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select Batch" />
                 </SelectTrigger>
                 <SelectContent>
@@ -418,20 +530,47 @@ const HODSemesterMonitor = () => {
               </Select>
             </div>
 
+            {/* Branch Filter (Principal Only) */}
+            {isPrincipalUser && (
+              <div className="space-y-1">
+                <span className="text-xs font-semibold uppercase opacity-80">{getTerm("branch")}</span>
+                <Select 
+                  value={branchId?.toString() || ""} 
+                  onValueChange={(v) => setBranchId(Number(v))}
+                  disabled={!batchId || bootstrapLoading}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={!batchId ? "Select Batch first" : `Select ${getTerm("branch")}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches.map(b => (
+                      <SelectItem key={b.id} value={b.id.toString()}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* Semester Filter */}
-            <div className="flex flex-col items-start gap-1 shrink-0 w-full sm:w-auto">
-              <span className="text-xs font-semibold uppercase opacity-80 shrink-0">
+            <div className="space-y-1">
+              <span className="text-xs font-semibold uppercase opacity-80">
                 {getInstitutionType() === 'school' ? 'Class' : translateTerminology("Semester")}
               </span>
               <Select 
                 value={semesterId?.toString() || ""} 
                 onValueChange={handleSemesterChange}
-                disabled={!batchId || bootstrapLoading}
+                disabled={isPrincipalUser ? (!batchId || !branchId || bootstrapLoading) : (!batchId || bootstrapLoading)}
                 open={isSemesterOpen}
                 onOpenChange={setIsSemesterOpen}
               >
-                <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder={getInstitutionType() === 'school' ? 'Choose Class' : translateTerminology("Select Semester")} />
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={
+                    isPrincipalUser && !branchId
+                      ? `Select ${getTerm("branch")} first`
+                      : (getInstitutionType() === 'school' ? 'Choose Class' : translateTerminology("Select Semester"))
+                  } />
                 </SelectTrigger>
                 <SelectContent>
                   {semesters.map(s => (
@@ -439,6 +578,22 @@ const HODSemesterMonitor = () => {
                       {getInstitutionType() === 'school' ? `Class ${s.number}` : `Semester ${s.number}`}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Subject Type Filter */}
+            <div className="space-y-1">
+              <span className="text-xs font-semibold uppercase opacity-80">Subject Type</span>
+              <Select value={subjectType} onValueChange={(v) => setSubjectType(v)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Subjects</SelectItem>
+                  <SelectItem value="regular">Regular / Core</SelectItem>
+                  <SelectItem value="elective">Electives</SelectItem>
+                  <SelectItem value="others">Labs & Others</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -469,9 +624,9 @@ const HODSemesterMonitor = () => {
                 </Card>
               ))}
             </div>
-          ) : monitorData && monitorData.subjects && monitorData.subjects.length > 0 ? (
+          ) : filteredSubjects && filteredSubjects.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {monitorData.subjects.map((subj) => {
+              {filteredSubjects.map((subj) => {
                 const avgProgress = subj.avg_progress || 0;
 
                 return (

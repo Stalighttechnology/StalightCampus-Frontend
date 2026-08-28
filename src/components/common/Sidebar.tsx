@@ -505,6 +505,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: getTerm("branches"), page: "branches" },
       { name: "Batches", page: "batches" },
       { name: "Faculty Assignments", page: "teacher-assignments" },
+      { name: "Syllabus Monitor", page: "syllabus-monitor" },
       { name: "Branch Transfer", page: "student-transfer" },
       { name: "Enroll Staff", page: "enroll-user" },
       { name: "Users", page: "users" },

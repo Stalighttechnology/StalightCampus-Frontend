@@ -2652,7 +2652,7 @@ export const updateSyllabusProgress = async (data: {
   }
 };
 
-export const getSyllabusBootstrap = async (): Promise<{
+export const getSyllabusBootstrap = async (branchId?: string): Promise<{
   success: boolean;
   is_hod?: boolean;
   semesters?: Array<{ id: number; number: number }>;
@@ -2661,7 +2661,8 @@ export const getSyllabusBootstrap = async (): Promise<{
   message?: string;
 }> => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/bootstrap/`, {
+    const query = branchId ? `?branch_id=${branchId}` : "";
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/bootstrap/${query}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
@@ -2698,10 +2699,11 @@ export interface SemesterSyllabusMonitorResponse {
   }[];
 }
 
-export const getSemesterSyllabusMonitor = async (batchId: string, semesterId?: string): Promise<SemesterSyllabusMonitorResponse> => {
+export const getSemesterSyllabusMonitor = async (batchId: string, semesterId?: string, branchId?: string): Promise<SemesterSyllabusMonitorResponse> => {
   try {
     let query = `?batch_id=${batchId}`;
     if (semesterId) query += `&semester_id=${semesterId}`;
+    if (branchId) query += `&branch_id=${branchId}`;
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/semester-monitor/${query}`, {
       method: "GET",
       headers: {
@@ -2813,8 +2815,10 @@ export const getSectionWeekProgress = async (params: {
   }
 };
 
-export const exportSemesterSyllabusMonitorPdf = async (batchId: string, semesterId: string): Promise<Blob> => {
-  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/semester-monitor/export-pdf/?batch_id=${batchId}&semester_id=${semesterId}`, {
+export const exportSemesterSyllabusMonitorPdf = async (batchId: string, semesterId: string, branchId?: string): Promise<Blob> => {
+  let query = `batch_id=${batchId}&semester_id=${semesterId}`;
+  if (branchId) query += `&branch_id=${branchId}`;
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/semester-monitor/export-pdf/?${query}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
