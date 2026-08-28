@@ -224,7 +224,12 @@ const FacultyAttendance = () => {
           setAttendanceStatus("on_leave");
           setTodayLeaveType((response as any).today_leave_type || null);
         } else if (foundTodayRec) {
-          setAttendanceStatus(foundTodayRec.status as "present" | "absent" | "holiday" | "weekly_off" | "on_leave");
+          // If the API returns a synthesized "absent" or "not_marked" record for today, leave status as null so the user can check in
+          if (foundTodayRec.id && foundTodayRec.id.toString().startsWith('simulated-') && (foundTodayRec.status === 'absent' || foundTodayRec.status === 'not_marked') && foundTodayRec.date === today) {
+            setAttendanceStatus(null);
+          } else {
+            setAttendanceStatus(foundTodayRec.status as "present" | "absent" | "holiday" | "weekly_off" | "on_leave");
+          }
           setNotes(foundTodayRec.notes || "");
           setTodayLeaveType(null);
         } else if ((response as any).is_today_holiday) {
