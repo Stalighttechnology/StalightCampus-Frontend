@@ -469,14 +469,14 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
     <div className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'} agent`}>
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader id="hod-semester-monitor-header" className="border-b mb-3">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
+          <div className="flex flex-row justify-between items-start gap-3 w-full">
             <div className="flex-1 min-w-0 text-left">
-              <CardTitle className="text-xl sm:text-2xl font-semibold mb-2">
+              <CardTitle className="text-xl sm:text-2xl font-semibold mb-1 sm:mb-2">
                 {isPrincipalUser
                   ? "Institutional Syllabus Monitor"
                   : (getInstitutionType() === 'school' ? 'Class Syllabus Overview' : 'Semester Syllabus Overview')}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 {isPrincipalUser
                   ? "Monitor syllabus completion rates and faculty progress across branches and semesters."
                   : (getInstitutionType() === 'school'
@@ -491,17 +491,18 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
                 size="sm"
                 onClick={handleExportSemesterPDF}
                 disabled={exportingSemester}
-                className="bg-primary hover:bg-primary/90 text-white hover:text-white border-primary h-9 px-4 transition-all text-sm flex items-center justify-center gap-2 shrink-0"
+                title="Export Semester PDF"
+                className="bg-transparent hover:bg-primary/10 text-primary border-border/80 sm:bg-primary sm:hover:bg-primary/90 sm:text-white sm:hover:text-white sm:border-primary h-9 w-9 p-0 sm:w-auto sm:px-4 transition-all text-sm flex items-center justify-center gap-2 shrink-0 rounded-lg shadow-xs"
               >
                 {exportingSemester ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Exporting...</span>
+                    <span className="hidden sm:inline">Exporting...</span>
                   </>
                 ) : (
                   <>
                     <FileDown className="w-4 h-4" />
-                    <span>Export Semester PDF</span>
+                    <span className="hidden sm:inline">Export Semester PDF</span>
                   </>
                 )}
               </Button>
