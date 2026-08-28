@@ -575,24 +575,18 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   };
 
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent('substitute-requests-viewed'));
     fetchBootstrapData();
     fetchPendingSubstituteCountOnly();
 
     const handleLeavesUpdated = () => {
       fetchPendingSubstituteCountOnly();
-      if (activeMainTab === 'substitute_requests') {
-        fetchSubstituteRequests(substitutePage, substituteStatusFilter);
-      }
     };
 
     window.addEventListener('leaves-updated', handleLeavesUpdated);
-    window.addEventListener('substitute-requests-updated', handleLeavesUpdated);
     return () => {
       window.removeEventListener('leaves-updated', handleLeavesUpdated);
-      window.removeEventListener('substitute-requests-updated', handleLeavesUpdated);
     };
-  }, [activeMainTab, substitutePage, substituteStatusFilter]);
+  }, []);
 
   useEffect(() => {
     fetchLeaveHistory(pagination.page, pagination.pageSize);
