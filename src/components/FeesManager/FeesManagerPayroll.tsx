@@ -64,7 +64,8 @@ import {
   updatePayrollAdjustmentStatus,
   getAttendanceLockStatus,
   toggleAttendanceLock,
-  downloadPayrollReport
+  downloadPayrollReport,
+  getFeesManagerBranches
 } from "../../utils/fees_manager_api";
 import { format } from 'date-fns';
 
@@ -247,6 +248,8 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
 
   // Combobox state for Adjustment Employees
   const [adjustmentRole, setAdjustmentRole] = useState('');
+  const [adjustmentBranch, setAdjustmentBranch] = useState('');
+  const [branches, setBranches] = useState<any[]>([]);
   const [adjustmentEmpPage, setAdjustmentEmpPage] = useState(1);
   const [adjustmentEmpTotalPages, setAdjustmentEmpTotalPages] = useState(1);
   const [adjustmentEmpSearch, setAdjustmentEmpSearch] = useState('');
@@ -391,10 +394,21 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
     }
   };
 
-  const fetchAdjustmentEmployees = async (page: number, search: string, role: string, append = false) => {
+  // Fetch organization branches for cascading selector
+  useEffect(() => {
+    getFeesManagerBranches()
+      .then((res: any) => {
+        if (res.success && res.data) {
+          setBranches(Array.isArray(res.data) ? res.data : (res.data.branches || []));
+        }
+      })
+      .catch((err: any) => console.error("Error fetching branches:", err));
+  }, []);
+
+  const fetchAdjustmentEmployees = async (page: number, search: string, role: string, branch: string = '', append = false) => {
     setIsAdjustmentEmpLoading(true);
     try {
-      const res = await getSalaryStructures(page, search, role === 'all' ? '' : role);
+      const res = await getSalaryStructures(page, search, role === 'all' ? '' : role, 10, branch);
       if (res.success) {
         if (append) {
           setAdjustmentEmployees(prev => {
@@ -413,18 +427,27 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
   };
 
   useEffect(() => {
-    if (isEmpComboboxOpen) {
-      fetchAdjustmentEmployees(1, adjustmentEmpSearch, adjustmentRole, false);
-      setAdjustmentEmpPage(1);
+    if (showAddAdjustment) {
+      const isBranchRole = adjustmentRole === 'teacher' || adjustmentRole === 'faculty' || adjustmentRole === 'hod';
+      if (isBranchRole && !adjustmentBranch) {
+        setAdjustmentEmployees([]);
+        return;
+      }
+      if (adjustmentRole && adjustmentRole !== 'all') {
+        fetchAdjustmentEmployees(1, adjustmentEmpSearch, adjustmentRole, adjustmentBranch, false);
+        setAdjustmentEmpPage(1);
+      } else {
+        setAdjustmentEmployees([]);
+      }
     }
-  }, [adjustmentRole, isEmpComboboxOpen]);
+  }, [adjustmentRole, adjustmentBranch, showAddAdjustment]);
 
   const handleAdjustmentEmpSearch = (val: string) => {
     setAdjustmentEmpSearch(val);
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
     searchTimeout.current = setTimeout(() => {
       setAdjustmentEmpPage(1);
-      fetchAdjustmentEmployees(1, val, adjustmentRole, false);
+      fetchAdjustmentEmployees(1, val, adjustmentRole, adjustmentBranch, false);
     }, 400);
   };
 
@@ -1893,13 +1916,14 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
             <DialogDescription>Apply a one-time bonus, deduction, or arrears to an employee's payroll.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 my-2">
-            <div className="grid grid-cols-2 gap-4">
+            <div className={`grid ${(adjustmentRole === 'teacher' || adjustmentRole === 'faculty' || adjustmentRole === 'hod') ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-2'} gap-4`}>
               <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Role</label>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Role <span className="text-red-500">*</span></label>
                 <Select
                   value={adjustmentRole}
                   onValueChange={(val) => {
                     setAdjustmentRole(val);
+                    setAdjustmentBranch('');
                     setNewAdjustment({ ...newAdjustment, employee_id: '' });
                   }}
                 >
@@ -1915,83 +1939,125 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Department / Branch Selector (When Faculty/Teacher or HOD is selected) */}
+              {(adjustmentRole === 'teacher' || adjustmentRole === 'faculty' || adjustmentRole === 'hod') && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-slate-400 block">Department / Branch <span className="text-red-500">*</span></label>
+                  </div>
+                  <Select
+                    value={adjustmentBranch}
+                    onValueChange={(val) => {
+                      setAdjustmentBranch(val);
+                      setNewAdjustment({ ...newAdjustment, employee_id: '' });
+                    }}
+                  >
+                    <SelectTrigger className={`w-full rounded-md p-2 h-9 text-sm border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
+                      <SelectValue placeholder="Choose Department / Branch..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branches.map((b: any) => (
+                        <SelectItem key={b.id} value={b.id.toString()}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div>
                 <label className="text-xs font-semibold text-slate-400 block mb-1">Employee <span className="text-red-500">*</span></label>
-                <Popover open={isEmpComboboxOpen} onOpenChange={setIsEmpComboboxOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={isEmpComboboxOpen}
-                      disabled={!adjustmentRole || adjustmentRole === 'all'}
-                      className={`w-full justify-between h-9 px-3 border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'} ${(!adjustmentRole || adjustmentRole === 'all') ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <span className="truncate">
-                        {newAdjustment.employee_id
-                          ? adjustmentEmployees.find((emp) => emp.employee_id === newAdjustment.employee_id)?.name || "Selected Employee"
-                          : (!adjustmentRole || adjustmentRole === 'all') ? "Select role first..." : "Select employee..."}
-                      </span>
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[300px] p-0" align="start">
-                    <Command shouldFilter={false}>
-                      <CommandInput 
-                        placeholder="Search employee..." 
-                        value={adjustmentEmpSearch}
-                        onValueChange={handleAdjustmentEmpSearch}
-                      />
-                      <CommandList>
-                        {isAdjustmentEmpLoading && adjustmentEmpPage === 1 && (
-                          <div className="p-4 text-center text-sm text-slate-500 flex items-center justify-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" /> Loading...
-                          </div>
-                        )}
-                        {!isAdjustmentEmpLoading && adjustmentEmployees.length === 0 && (
-                          <CommandEmpty>No employee found.</CommandEmpty>
-                        )}
-                        <CommandGroup>
-                          {adjustmentEmployees.map((emp) => (
-                            <CommandItem
-                              key={emp.employee_id}
-                              value={emp.employee_id}
-                              onSelect={() => {
-                                setNewAdjustment({ ...newAdjustment, employee_id: emp.employee_id });
-                                setIsEmpComboboxOpen(false);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  newAdjustment.employee_id === emp.employee_id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {emp.name} <span className="text-xs text-slate-400 ml-1">({emp.role})</span>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                        {adjustmentEmpPage < adjustmentEmpTotalPages && (
-                          <div className="p-2">
-                            <Button 
-                              variant="ghost" 
-                              className="w-full text-xs h-8" 
-                              disabled={isAdjustmentEmpLoading}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const nextPage = adjustmentEmpPage + 1;
-                                setAdjustmentEmpPage(nextPage);
-                                fetchAdjustmentEmployees(nextPage, adjustmentEmpSearch, adjustmentRole, true);
-                              }}
-                            >
-                              {isAdjustmentEmpLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Load More"}
-                            </Button>
-                          </div>
-                        )}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                {(() => {
+                  const isBranchRole = adjustmentRole === 'teacher' || adjustmentRole === 'faculty' || adjustmentRole === 'hod';
+                  const isBranchMissing = isBranchRole && !adjustmentBranch;
+                  const isDisabled = !adjustmentRole || adjustmentRole === 'all' || isBranchMissing;
+
+                  const placeholderText = (!adjustmentRole || adjustmentRole === 'all')
+                    ? "Select role first..."
+                    : isBranchMissing
+                      ? "Select department / branch above first..."
+                      : "Select employee...";
+
+                  return (
+                    <Popover open={isEmpComboboxOpen} onOpenChange={setIsEmpComboboxOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={isEmpComboboxOpen}
+                          disabled={isDisabled}
+                          className={`w-full justify-between h-9 px-3 border ${theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          <span className="truncate">
+                            {newAdjustment.employee_id
+                              ? adjustmentEmployees.find((emp) => emp.employee_id === newAdjustment.employee_id)?.name || "Selected Employee"
+                              : placeholderText}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] p-0" align="start">
+                        <Command shouldFilter={false}>
+                          <CommandInput 
+                            placeholder="Search employee..." 
+                            value={adjustmentEmpSearch}
+                            onValueChange={handleAdjustmentEmpSearch}
+                          />
+                          <CommandList>
+                            {isAdjustmentEmpLoading && adjustmentEmpPage === 1 && (
+                              <div className="p-4 text-center text-sm text-slate-500 flex items-center justify-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+                              </div>
+                            )}
+                            {!isAdjustmentEmpLoading && adjustmentEmployees.length === 0 && (
+                              <CommandEmpty>No employee found.</CommandEmpty>
+                            )}
+                            <CommandGroup>
+                              {adjustmentEmployees.map((emp) => (
+                                <CommandItem
+                                  key={emp.employee_id}
+                                  value={String(emp.employee_id)}
+                                  onSelect={() => {
+                                    setNewAdjustment({ ...newAdjustment, employee_id: emp.employee_id });
+                                    setIsEmpComboboxOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      newAdjustment.employee_id === emp.employee_id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {emp.name} <span className="text-xs text-slate-400 ml-1">({emp.role})</span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                            {adjustmentEmpPage < adjustmentEmpTotalPages && (
+                              <div className="p-2">
+                                <Button 
+                                  variant="ghost" 
+                                  className="w-full text-xs h-8" 
+                                  disabled={isAdjustmentEmpLoading}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const nextPage = adjustmentEmpPage + 1;
+                                    setAdjustmentEmpPage(nextPage);
+                                    fetchAdjustmentEmployees(nextPage, adjustmentEmpSearch, adjustmentRole, adjustmentBranch, true);
+                                  }}
+                                >
+                                  {isAdjustmentEmpLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Load More"}
+                                </Button>
+                              </div>
+                            )}
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  );
+                })()}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">

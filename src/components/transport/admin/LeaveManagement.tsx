@@ -190,6 +190,7 @@ const DriverLeavesManagement = () => {
       const response = await processDriverLeave({ leave_id: id, action: "APPROVE" });
 
       if (response.success) {
+        window.dispatchEvent(new CustomEvent('leaves-updated'));
         setLeaveRequests((prevRequests) =>
           prevRequests.map((leave) =>
             leave.id === id ?
@@ -251,9 +252,10 @@ const DriverLeavesManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await processDriverLeave({ leave_id: id, action: "REJECT" });
+      const response = await processDriverLeave({ leave_id: id.toString(), action: "REJECT" });
 
       if (response.success) {
+        window.dispatchEvent(new CustomEvent('leaves-updated'));
         setLeaveRequests((prevRequests) =>
           prevRequests.map((leave) =>
             leave.id === id ?

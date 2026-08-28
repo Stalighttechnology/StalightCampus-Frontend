@@ -197,6 +197,7 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
       const response = await manageWardenLeaves({ leave_id: id, action: "approve" }, "POST");
 
       if (response.success) {
+        window.dispatchEvent(new CustomEvent('leaves-updated'));
         setLeaveRequests((prevRequests) =>
           prevRequests.map((leave) =>
             leave.id === id ?
@@ -261,6 +262,7 @@ const WardenLeaveManagement = ({ setError, toast }: WardenLeaveManagementProps) 
       const response = await manageWardenLeaves({ leave_id: id, action: "reject" }, "POST");
 
       if (response.success) {
+        window.dispatchEvent(new CustomEvent('leaves-updated'));
         setLeaveRequests((prevRequests) =>
           prevRequests.map((leave) =>
             leave.id === id ?

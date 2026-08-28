@@ -395,6 +395,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
       case 'reports': return <Reports />;
       case 'student-reports': return <StudentFeeReports />;
       case 'announcement-management': return <AnnouncementManagement />;
+      case 'apply-leave':
       case 'leave': return <FeesManagerLeave />;
       case 'my-attendance': return <FacultyAttendance />;
       case 'profile': return <FeesManagerProfile user={user} />;

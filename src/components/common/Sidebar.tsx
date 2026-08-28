@@ -13,6 +13,8 @@ import { fetchParentChildrenCached } from "../../utils/student_api";
 import { getAlternateDutyRequests, getProctorStudentLeaves } from "../../utils/faculty_api";
 import { manageHODLeaves } from "../../utils/admin_api";
 import { getHodStudentLeaves } from "../../utils/hod_api";
+import { manageWardenLeaves } from "../../utils/hms_api";
+import { manageDriverLeaves } from "../../utils/transport_api";
 import {
   LayoutDashboard,
   Users,
@@ -81,7 +83,7 @@ const MODULE_PAGE_MAP: Record<string, string[]> = {
   academics_extra: ['syllabus-monitor', 'syllabus-status', 'study-materials', 'student-study-material', 'assignments', 'faculty-assignments', 'student-assignment', 'co-attainment']
 };
 
-const APPLY_LEAVE_PAGES = ['apply-leave', 'apply-leaves'];
+const APPLY_LEAVE_PAGES = ['apply-leave', 'apply-leaves', 'leave'];
 const LEAVE_APPROVAL_PAGES = ['hod-leaves', 'leaves', 'manage-leaves', 'admin-leaves', 'student-leave', 'manage-warden-leaves', 'department-admin-leaves'];
 
 interface SidebarProps {
@@ -115,19 +117,17 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   useEffect(() => {
     const roleLower = (role || '').toLowerCase();
-    const canHaveSubstituteRequests = ['teacher', 'faculty', 'hod', 'group_d'].includes(roleLower);
-    const canApproveLeaves = ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe', 'teacher', 'faculty', 'group_d'].includes(roleLower);
+    const isStudentOrParent = roleLower === 'student' || roleLower === 'parent';
+    const canHaveSubstituteRequests = !isStudentOrParent;
+    const canApproveLeaves = ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe', 'teacher', 'faculty', 'hms', 'hms_admin', 'transport_admin'].includes(roleLower);
 
     if (canHaveSubstituteRequests || canApproveLeaves) {
       const checkSubstituteRequests = async () => {
         if (!canHaveSubstituteRequests) return;
         try {
-          const res = await getAlternateDutyRequests();
+          const res = await getAlternateDutyRequests({ count_only: true });
           if (res && res.success) {
-            const rawList = Array.isArray(res.data)
-              ? res.data
-              : (Array.isArray(res.data?.requests) ? res.data.requests : []);
-            const count = res.pending_count ?? (res.data?.pending_count ?? rawList.filter((d: any) => d.alternate_duty_status === 'PENDING').length);
+            const count = res.pending_count ?? (res.data?.pending_count ?? 0);
             setPendingSubstituteCount(typeof count === 'number' ? count : 0);
           }
         } catch (err) {
@@ -141,7 +141,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           let count = 0;
           if (roleLower === 'teacher' || roleLower === 'faculty') {
             try {
-              const proctorRes = await getProctorStudentLeaves({ status: 'PENDING', page_size: 1 });
+              const proctorRes = await getProctorStudentLeaves({ status: 'PENDING', count_only: true });
               if (proctorRes && (proctorRes as any).pending_count !== undefined) {
                 count = Number((proctorRes as any).pending_count);
               } else if (proctorRes && proctorRes.pagination?.total_count !== undefined) {
@@ -150,14 +150,32 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
             } catch (err) {
               console.error("Error checking proctor student leave pending count in sidebar:", err);
             }
+          } else if (roleLower === 'hms' || roleLower === 'hms_admin') {
+            try {
+              const res = await manageWardenLeaves({ status: 'PENDING', count_only: true });
+              if (res) {
+                count = res.pending_count ?? res.count ?? (res.leaves?.filter((l: any) => l.status === 'PENDING').length ?? 0);
+              }
+            } catch (err) {
+              console.error("Error checking warden leave pending count in sidebar:", err);
+            }
+          } else if (roleLower === 'transport_admin') {
+            try {
+              const res = await manageDriverLeaves('?status=PENDING&count_only=true');
+              if (res) {
+                count = res.pending_count ?? res.count ?? (res.leaves?.filter((l: any) => l.status === 'PENDING').length ?? 0);
+              }
+            } catch (err) {
+              console.error("Error checking transport leave pending count in sidebar:", err);
+            }
           } else {
-            const res = await manageHODLeaves({ status: 'PENDING', page_size: 1 });
+            const res = await manageHODLeaves({ status: 'PENDING', count_only: true });
             if (res) {
               count = (res as any).pending_count ?? (res as any).count ?? (res as any).total_records ?? res.pagination?.total_records ?? (res.leaves?.filter((l: any) => l.status === 'PENDING').length ?? 0);
             }
             if (roleLower === 'hod') {
               try {
-                const studentRes = await getHodStudentLeaves({ status: 'FORWARDED_TO_HOD', page_size: 1 });
+                const studentRes = await getHodStudentLeaves({ status: 'FORWARDED_TO_HOD', count_only: true });
                 if (studentRes && studentRes.pending_count !== undefined) {
                   count += Number(studentRes.pending_count);
                 } else if (studentRes && studentRes.pagination?.total_count !== undefined) {
@@ -475,7 +493,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Payment Settings", page: "payment-settings" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Staff Tasks", page: "staff-tasks" },
-      { name: "Leave", page: "leave" },
+      { name: "Apply Leave", page: "leave" },
       { name: "My Attendance", page: "my-attendance" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "My Salary & Payroll", page: "my-payroll" },

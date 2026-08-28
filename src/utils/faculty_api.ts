@@ -1005,12 +1005,14 @@ export const getAlternateDutyRequests = async (params?: {
   page?: number;
   page_size?: number;
   status?: string;
+  count_only?: boolean;
 }): Promise<GetAlternateDutyRequestsResponse> => {
   try {
     const token = sessionStorage.getItem("access_token") || localStorage.getItem("access_token");
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.page_size) queryParams.append('page_size', params.page_size.toString());
+    if (params?.count_only) queryParams.append('count_only', 'true');
     if (params?.status && params.status !== 'All' && params.status !== 'ALL') {
       queryParams.append('status', params.status);
     }
@@ -2078,6 +2080,7 @@ export const getProctorStudentLeaves = async (params?: {
   page_size?: number;
   search?: string;
   status?: string;
+  count_only?: boolean;
 }): Promise<GetProctorStudentLeavesResponse> => {
   try {
     const queryParams = new URLSearchParams();
@@ -2085,6 +2088,7 @@ export const getProctorStudentLeaves = async (params?: {
     if (params?.page_size) queryParams.append('page_size', params.page_size.toString());
     if (params?.search) queryParams.append('search', params.search);
     if (params?.status && params.status !== 'All') queryParams.append('status', params.status);
+    if (params?.count_only) queryParams.append('count_only', 'true');
     const url = `${API_ENDPOINT}/faculty/proctor-student-leaves/${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",

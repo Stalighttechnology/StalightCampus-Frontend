@@ -134,7 +134,7 @@ const LeaveManagement = () => {
   useEffect(() => {
     const fetchStudentPendingCount = async () => {
       try {
-        const res = await getHodStudentLeaves({ status: 'FORWARDED_TO_HOD', page_size: 1 });
+        const res = await getHodStudentLeaves({ status: 'FORWARDED_TO_HOD', count_only: true });
         if (res && res.pending_count !== undefined) {
           setStudentPendingCount(Number(res.pending_count));
         } else if (res && res.pagination?.total_count !== undefined) {
