@@ -21,13 +21,14 @@ import {
   getBatches,
   getSemesterSyllabusMonitor,
   getSubjectSyllabusMonitor,
+  getSectionWeekProgress,
   SemesterSyllabusMonitorResponse,
   exportSemesterSyllabusMonitorPdf,
   exportSyllabusPdf,
   exportSubjectSyllabusMonitorPdf,
   toggleCourseExitSurvey
 } from "@/utils/faculty_api";
-import { BookOpen, BarChart3, Users, Clock, AlertCircle, Eye, FileDown, Loader2, Star } from "lucide-react";
+import { BookOpen, BarChart3, Users, Clock, AlertCircle, Eye, FileDown, Loader2, Star, Calendar, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -69,6 +70,105 @@ const HODSemesterMonitor = () => {
   const [exportingSectionId, setExportingSectionId] = useState<number | null>(null);
   const [togglingSubjectId, setTogglingSubjectId] = useState<number | null>(null);
   const [selectedSurveySubject, setSelectedSurveySubject] = useState<any | null>(null);
+  const [selectedSectionProgressModal, setSelectedSectionProgressModal] = useState<{
+    subjectId: number;
+    subjectName: string;
+    subjectCode: string;
+    sectionId: number | null;
+    sectionName: string;
+    facultyName: string;
+    progressPercentage: number;
+    completedWeeks: number;
+    totalWeeks: number;
+    weeks: any[];
+    selectedWeek: number;
+  } | null>(null);
+  const [loadingSectionWeek, setLoadingSectionWeek] = useState(false);
+
+  const handleOpenSectionProgress = async (sec: any) => {
+    const totalW = sec.total_weeks || 16;
+    const initialPlaceholderWeeks = Array.from({ length: totalW }, (_, i) => ({
+      week: i + 1,
+      expected_topics: "",
+      days: [],
+      is_completed: false,
+      topics_covered: "",
+      daily_logs: [],
+      completed_date: null,
+      faculty_name: sec.faculty_name,
+      notes: ""
+    }));
+
+    setSelectedSectionProgressModal({
+      subjectId: selectedSubject?.subject_id,
+      subjectName: selectedSubject?.subject_name,
+      subjectCode: selectedSubject?.subject_code,
+      sectionId: sec.section_id,
+      sectionName: sec.section_name,
+      facultyName: sec.faculty_name,
+      progressPercentage: sec.progress_percentage,
+      completedWeeks: sec.completed_weeks,
+      totalWeeks: totalW,
+      weeks: initialPlaceholderWeeks,
+      selectedWeek: 1
+    });
+
+    // Make dedicated call to get latest up-to-date data for this section
+    try {
+      setLoadingSectionWeek(true);
+      const res = await getSectionWeekProgress({
+        subject_id: selectedSubject?.subject_id.toString(),
+        section_id: sec.section_id ? sec.section_id.toString() : null,
+        batch_id: batchId ? batchId.toString() : null
+      });
+      if (res.success && res.weeks) {
+        setSelectedSectionProgressModal(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            progressPercentage: res.progress_percentage ?? prev.progressPercentage,
+            completedWeeks: res.completed_weeks ?? prev.completedWeeks,
+            totalWeeks: res.total_weeks ?? prev.totalWeeks,
+            weeks: res.weeks ?? prev.weeks
+          };
+        });
+      }
+    } catch {
+      // Graceful fallback to placeholder modal data
+    } finally {
+      setLoadingSectionWeek(false);
+    }
+  };
+
+  const handleSelectWeekInModal = async (weekNum: number) => {
+    if (!selectedSectionProgressModal) return;
+    setSelectedSectionProgressModal(prev => prev ? { ...prev, selectedWeek: weekNum } : null);
+
+    // Dedicated single-week fetch to ensure instant freshness
+    try {
+      setLoadingSectionWeek(true);
+      const res = await getSectionWeekProgress({
+        subject_id: selectedSectionProgressModal.subjectId.toString(),
+        section_id: selectedSectionProgressModal.sectionId ? selectedSectionProgressModal.sectionId.toString() : null,
+        batch_id: batchId ? batchId.toString() : null,
+        week_number: weekNum
+      });
+      if (res.success && res.week_detail) {
+        setSelectedSectionProgressModal(prev => {
+          if (!prev) return null;
+          const updatedWeeks = prev.weeks.map(w => w.week === weekNum ? res.week_detail : w);
+          return {
+            ...prev,
+            weeks: updatedWeeks
+          };
+        });
+      }
+    } catch {
+      // keep existing state
+    } finally {
+      setLoadingSectionWeek(false);
+    }
+  };
 
   const handleToggleSurvey = async (subj: any) => {
     setTogglingSubjectId(subj.subject_id);
@@ -575,6 +675,22 @@ const HODSemesterMonitor = () => {
                         </div>
                       </div>
 
+                      {/* View Teaching Progress Action Button */}
+                      <div className="mt-3 pt-3 border-t border-dashed flex justify-between items-center">
+                        <span className="text-xs font-semibold text-muted-foreground">
+                          Recorded: <strong className="text-primary">{sec.completed_weeks}</strong> of {sec.total_weeks} Weeks
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs font-medium flex items-center gap-1.5 bg-background hover:bg-muted"
+                          onClick={() => handleOpenSectionProgress(sec)}
+                        >
+                          <Eye className="w-3.5 h-3.5 text-primary" />
+                          View Teaching Progress
+                        </Button>
+                      </div>
+
                       {/* Per-Section Survey Rating */}
                       {sec.survey_stats && sec.survey_stats.total_responses > 0 && (
                         <div className={`mt-2 pt-3 border-t space-y-2 ${theme === 'dark' ? 'border-border/30' : 'border-gray-200'}`}>
@@ -675,6 +791,211 @@ const HODSemesterMonitor = () => {
 
               <DialogFooter className="border-t pt-4">
                 <Button onClick={() => setSelectedSurveySubject(null)}>Close</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Dedicated Section Teaching Progress Modal Dialog */}
+        {selectedSectionProgressModal && (
+          <Dialog open={!!selectedSectionProgressModal} onOpenChange={(open) => { if (!open) setSelectedSectionProgressModal(null); }}>
+            <DialogContent className={`w-[95vw] sm:max-w-3xl overflow-y-auto max-h-[90vh] p-4 sm:p-6 rounded-2xl flex flex-col ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+              <DialogHeader className="border-b pb-3 pr-6 shrink-0">
+                <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Teaching Progress — {selectedSectionProgressModal.sectionName}
+                </DialogTitle>
+                <DialogDescription className="text-sm">
+                  {selectedSectionProgressModal.subjectName} ({selectedSectionProgressModal.subjectCode}) • Faculty: <strong>{selectedSectionProgressModal.facultyName}</strong>
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 pt-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
+                {/* Header Stats Strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 rounded-xl bg-muted/20 border text-xs">
+                  <div>
+                    <span className="text-muted-foreground block text-[11px]">Syllabus Coverage</span>
+                    <strong className="text-sm text-foreground">{selectedSectionProgressModal.progressPercentage}%</strong>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[11px]">Completed Weeks</span>
+                    <strong className="text-sm text-emerald-600 dark:text-emerald-400">
+                      {selectedSectionProgressModal.completedWeeks} / {selectedSectionProgressModal.totalWeeks} Weeks
+                    </strong>
+                  </div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <span className="text-muted-foreground block text-[11px]">Selected Filter</span>
+                    <strong className="text-sm text-primary">Week {selectedSectionProgressModal.selectedWeek}</strong>
+                  </div>
+                </div>
+
+                {/* Interactive Week Pills */}
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
+                    Filter by Week:
+                  </label>
+                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+                    {selectedSectionProgressModal.weeks.map((w: any) => {
+                      const isSelected = selectedSectionProgressModal.selectedWeek === w.week;
+                      const hasLogs = (w.daily_logs && w.daily_logs.length > 0) || w.topics_covered;
+
+                      return (
+                        <button
+                          key={w.week}
+                          type="button"
+                          onClick={() => handleSelectWeekInModal(w.week)}
+                          className={`h-10 rounded-xl text-xs font-semibold flex flex-col items-center justify-center transition-all relative border ${
+                            isSelected
+                              ? "bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]"
+                              : w.is_completed
+                              ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20"
+                              : hasLogs
+                              ? "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30 hover:bg-blue-500/20"
+                              : "bg-muted/40 text-muted-foreground border-transparent hover:bg-muted"
+                          }`}
+                        >
+                          <span className="text-xs font-bold">W{w.week}</span>
+                          {w.is_completed && (
+                            <span className={`w-1.5 h-1.5 rounded-full absolute bottom-1 ${isSelected ? "bg-white" : "bg-emerald-500"}`} />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Filtered Single Week Details Card with dedicated loading state */}
+                {loadingSectionWeek ? (
+                  <div className="p-4 rounded-xl border bg-card space-y-3 animate-pulse">
+                    <div className="flex justify-between items-center pb-2 border-b">
+                      <div className="h-6 w-32 bg-muted rounded" />
+                      <div className="h-5 w-20 bg-muted rounded-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 w-3/4 bg-muted rounded" />
+                      <div className="h-4 w-1/2 bg-muted rounded" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 pt-2">
+                      <div className="h-16 bg-muted rounded-lg" />
+                      <div className="h-16 bg-muted rounded-lg" />
+                    </div>
+                  </div>
+                ) : (() => {
+                  const activeWeekData = selectedSectionProgressModal.weeks.find(
+                    (w: any) => w.week === selectedSectionProgressModal.selectedWeek
+                  ) || selectedSectionProgressModal.weeks[0];
+
+                  if (!activeWeekData) return null;
+
+                  const dailyLogs = Array.isArray(activeWeekData.daily_logs) ? activeWeekData.daily_logs : [];
+
+                  return (
+                    <div className="p-4 rounded-xl border bg-card space-y-3.5 shadow-sm">
+                      <div className="flex justify-between items-center flex-wrap gap-2 pb-2.5 border-b">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                            activeWeekData.is_completed ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
+                          }`}>
+                            {activeWeekData.week}
+                          </span>
+                          <h4 className="font-semibold text-base">Week {activeWeekData.week} Details</h4>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {activeWeekData.is_completed ? (
+                            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/30 flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Completed
+                            </span>
+                          ) : (
+                            <span className="text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
+                              In Progress / Pending
+                            </span>
+                          )}
+                          {activeWeekData.completed_date && (
+                            <span className="text-xs text-muted-foreground">
+                              Date: {activeWeekData.completed_date}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-xs">
+                        <div>
+                          <span className="font-semibold text-muted-foreground">Expected Master Plan: </span>
+                          <span className="text-foreground">
+                            {activeWeekData.expected_topics || <span className="italic opacity-60">Not planned</span>}
+                          </span>
+                        </div>
+
+                        {activeWeekData.topics_covered && (
+                          <div>
+                            <span className="font-semibold text-emerald-700 dark:text-emerald-400">Actual Topics Covered: </span>
+                            <span className="text-foreground font-medium">{activeWeekData.topics_covered}</span>
+                          </div>
+                        )}
+
+                        {activeWeekData.notes && (
+                          <div className="italic text-muted-foreground">
+                            <span className="font-semibold not-italic">Notes: </span>{activeWeekData.notes}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Day-Wise Logs for filtered week */}
+                      <div className="pt-3 border-t border-dashed space-y-2">
+                        <span className="text-xs font-semibold text-primary uppercase tracking-wider block">
+                          Day-Wise Lecture Logs ({dailyLogs.length} Sessions Recorded):
+                        </span>
+
+                        {dailyLogs.length === 0 ? (
+                          <div className="p-4 text-center border-2 border-dashed rounded-lg bg-muted/10">
+                            <p className="text-xs italic text-muted-foreground">
+                              No day-wise lecture sessions recorded by faculty for Week {activeWeekData.week}.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {dailyLogs.map((dl: any, dIdx: number) => {
+                              const dayLabels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+                              const dayTitle = dl.day_name || (dl.day >= 1 && dl.day <= 7 ? dayLabels[dl.day - 1] : `Day ${dl.day || dIdx + 1}`);
+                              let formattedDate = dl.date || "";
+                              if (dl.date && /^\d{4}-\d{2}-\d{2}$/.test(dl.date)) {
+                                const [y, m, d] = dl.date.split("-");
+                                formattedDate = `${d}-${m}-${y}`;
+                              }
+
+                              return (
+                                <div
+                                  key={dIdx}
+                                  className={`p-3 rounded-xl border text-xs flex flex-col justify-between gap-1.5 transition-all ${
+                                    dl.is_completed
+                                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-200"
+                                      : "bg-background border-border"
+                                  }`}
+                                >
+                                  <div className="flex justify-between items-center gap-1">
+                                    <span className="font-bold text-primary text-xs">{dayTitle}</span>
+                                    {formattedDate && (
+                                      <span className="text-[11px] px-2 py-0.5 rounded bg-background/80 border text-muted-foreground font-medium">
+                                        {formattedDate}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="font-medium text-foreground text-xs mt-1">
+                                    {dl.topic_covered || <span className="italic opacity-60">No topic text entered</span>}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <DialogFooter className="border-t pt-3 shrink-0">
+                <Button onClick={() => setSelectedSectionProgressModal(null)}>Close</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

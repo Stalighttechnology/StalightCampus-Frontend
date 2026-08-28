@@ -20,7 +20,9 @@ import { Input } from "../ui/input";
 import { useFacultyAssignmentsQuery } from "@/hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
 import { getSyllabusStatus, updateSyllabusProgress, exportSyllabusPdf , getBatches } from "@/utils/faculty_api";
-import { BookOpen, CheckCircle, Clock, Save, Loader2, FileDown, Star } from "lucide-react";
+import { BookOpen, CheckCircle, Clock, Save, Loader2, FileDown, Star, ChevronDown, ChevronUp, Calendar, Plus, Trash2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Calendar as CalendarComponent } from "../ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -90,8 +92,13 @@ const SyllabusTracker = () => {
   const [savingProgress, setSavingProgress] = useState<number | null>(null);
   const [selectedSurveySubject, setSelectedSurveySubject] = useState<any | null>(null);
 
-  // Local state for progress edits
-  const [progressEdits, setProgressEdits] = useState<{[weekNum: number]: { topics_covered: string; notes: string; is_completed: boolean } }>({});
+  // Local state for progress edits & day-wise expandable state
+  const [progressEdits, setProgressEdits] = useState<{[weekNum: number]: { topics_covered: string; notes: string; is_completed: boolean; daily_logs: any[] } }>({});
+  const [expandedWeeks, setExpandedWeeks] = useState<{ [weekNum: number]: boolean }>({});
+
+  const toggleWeekExpanded = (weekNum: number) => {
+    setExpandedWeeks(prev => ({ ...prev, [weekNum]: !prev[weekNum] }));
+  };
 
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
@@ -148,7 +155,6 @@ const SyllabusTracker = () => {
     getBatches().then(res => {
       if (res.success && res.data && res.data.length > 0) {
         setBatches(res.data);
-        // No auto-select — user must choose
       }
     });
   }, []);
@@ -248,13 +254,14 @@ const SyllabusTracker = () => {
       if (res.success && res.data) {
         setSyllabusData(res.data);
         
-        // Populate progress edits
+        // Populate progress edits with daily_logs support
         const edits: any = {};
         res.data.weeks.forEach((w: any) => {
           edits[w.week] = {
-            topics_covered: w.topics_covered,
-            notes: w.notes,
-            is_completed: w.is_completed
+            topics_covered: w.topics_covered || "",
+            notes: w.notes || "",
+            is_completed: w.is_completed || false,
+            daily_logs: Array.isArray(w.daily_logs) ? w.daily_logs : []
           };
         });
         setProgressEdits(edits);
@@ -272,6 +279,18 @@ const SyllabusTracker = () => {
     fetchSyllabus();
   }, [semesterId, subjectId, sectionId, isElective, batchId]);
 
+  const [savingDayKey, setSavingDayKey] = useState<string | null>(null);
+
+  const DAY_OPTIONS = [
+    { value: 1, label: "Monday" },
+    { value: 2, label: "Tuesday" },
+    { value: 3, label: "Wednesday" },
+    { value: 4, label: "Thursday" },
+    { value: 5, label: "Friday" },
+    { value: 6, label: "Saturday" },
+    { value: 7, label: "Sunday" }
+  ];
+
   // Save individual week progress
   const handleSaveProgress = async (weekNum: number, currentCompleted: boolean) => {
     if (!subjectId) return;
@@ -286,9 +305,10 @@ const SyllabusTracker = () => {
         section_id: isElective ? undefined : sectionId?.toString(),
         batch_id: batchId!.toString(),
         week_number: weekNum,
-        is_completed: currentCompleted, // Only save text, keep completion status unchanged
+        is_completed: currentCompleted,
         topics_covered: edit.topics_covered,
-        notes: edit.notes
+        notes: edit.notes,
+        daily_logs: edit.daily_logs || []
       });
       if (res.success) {
         toast({ title: "Success", description: `Week ${weekNum} progress saved!` });
@@ -300,6 +320,46 @@ const SyllabusTracker = () => {
       toast({ title: "Error", description: "Failed to save progress", variant: "destructive" });
     } finally {
       setSavingProgress(null);
+    }
+  };
+
+  // Dedicated Save for an Individual Day Log
+  const handleSaveDayProgress = async (weekNum: number, dayIdx: number) => {
+    if (!subjectId) return;
+    const saveKey = `${weekNum}-${dayIdx}`;
+    setSavingDayKey(saveKey);
+    const edit = progressEdits[weekNum];
+    const targetDay = edit.daily_logs?.[dayIdx];
+    const dayName = targetDay?.day_name || (DAY_OPTIONS.find(d => d.value === targetDay?.day)?.label || `Day ${targetDay?.day || dayIdx + 1}`);
+
+    try {
+      const matchingAssignment = normalizedAssignments.find(a => a.subject_id === subjectId && a.semester_id === semesterId);
+      const res = await updateSyllabusProgress({
+        subject_id: subjectId.toString(),
+        branch_id: isElective ? undefined : matchingAssignment?.branch_id?.toString(),
+        semester_id: isElective ? undefined : semesterId?.toString(),
+        section_id: isElective ? undefined : sectionId?.toString(),
+        batch_id: batchId!.toString(),
+        week_number: weekNum,
+        is_completed: edit.is_completed ?? false,
+        topics_covered: edit.topics_covered || "",
+        notes: edit.notes || "",
+        daily_logs: edit.daily_logs || []
+      });
+
+      if (res.success) {
+        toast({
+          title: "Day Log Saved",
+          description: `${dayName} log for Week ${weekNum} saved successfully!`
+        });
+        fetchSyllabus();
+      } else {
+        toast({ title: "Error", description: res.message || "Failed to save day log", variant: "destructive" });
+      }
+    } catch (e) {
+      toast({ title: "Error", description: "Failed to save day log", variant: "destructive" });
+    } finally {
+      setSavingDayKey(null);
     }
   };
 
@@ -317,7 +377,7 @@ const SyllabusTracker = () => {
 
     try {
       const matchingAssignment = normalizedAssignments.find(a => a.subject_id === subjectId && a.semester_id === semesterId);
-      const edit = progressEdits[weekNum] || { topics_covered: "", notes: "" };
+      const edit = progressEdits[weekNum] || { topics_covered: "", notes: "", daily_logs: [] };
       const res = await updateSyllabusProgress({
         subject_id: subjectId.toString(),
         branch_id: isElective ? undefined : matchingAssignment?.branch_id?.toString(),
@@ -327,7 +387,8 @@ const SyllabusTracker = () => {
         week_number: weekNum,
         is_completed: !currentCompleted,
         topics_covered: edit.topics_covered,
-        notes: edit.notes
+        notes: edit.notes,
+        daily_logs: edit.daily_logs || []
       });
 
       if (res.success) {
@@ -563,42 +624,105 @@ const SyllabusTracker = () => {
                   )}
 
                   {syllabusData.weeks.map((w: any) => {
-                    const edit = progressEdits[w.week] || { topics_covered: "", notes: "", is_completed: false };
+                    const edit = progressEdits[w.week] || { topics_covered: "", notes: "", is_completed: false, daily_logs: [] };
+                    const isExpanded = !!expandedWeeks[w.week];
+                    const plannedDays = Array.isArray(w.days) ? w.days : [];
+                    const dailyLogs = Array.isArray(edit.daily_logs) ? edit.daily_logs : [];
+                    const completedDaysCount = dailyLogs.filter((d: any) => d.is_completed).length;
+                    const totalDaysCount = plannedDays.length > 0 ? plannedDays.length : dailyLogs.length;
+
                     return (
                       <div
                         key={w.week}
-                        className={`p-4 rounded-xl border transition-all duration-300 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center ${
+                        className={`p-4 rounded-xl border transition-all duration-300 flex flex-col gap-4 ${
                           edit.is_completed
                             ? "border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-950/5"
                             : "border-border hover:border-primary/30"
                         }`}
                       >
-                        <div className="flex-1 space-y-2 w-full">
-                          <div className="flex items-center gap-3">
-                            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                              edit.is_completed ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
-                            }`}>
-                              {w.week}
-                            </span>
-                            <div>
-                              <h4 className="font-semibold text-base flex items-center gap-2">
-                                Week {w.week}
-                                {edit.is_completed && (
-                                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center gap-1 font-normal">
-                                    <CheckCircle className="w-3 h-3" /> Completed
-                                  </span>
-                                )}
-                              </h4>
-                              <p className="text-sm opacity-80">
-                                <strong>Expected Plan:</strong> {w.expected_topics || <span className="italic opacity-50">Not planned by HOD yet</span>}
-                              </p>
+                        <div className="flex flex-col gap-3">
+                          {/* Top Row: Week Header & Covered Meta + Action Buttons */}
+                          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 pb-2 border-b border-border/40">
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 ${
+                                edit.is_completed ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
+                              }`}>
+                                {w.week}
+                              </span>
+                              <div>
+                                <h4 className="font-semibold text-base flex items-center gap-2 flex-wrap">
+                                  Week {w.week}
+                                  {edit.is_completed && (
+                                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1 font-semibold">
+                                      <CheckCircle className="w-3.5 h-3.5" /> Completed
+                                    </span>
+                                  )}
+                                  {totalDaysCount > 0 && (
+                                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium">
+                                      {completedDaysCount}/{totalDaysCount} Days Logged
+                                    </span>
+                                  )}
+                                </h4>
+                                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                                  <strong>Expected Plan:</strong> {w.expected_topics || <span className="italic opacity-60">Not planned by HOD yet</span>}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Right-aligned Meta and Action Buttons Bar */}
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 w-full lg:w-auto self-stretch lg:self-auto justify-between lg:justify-end">
+                              {w.completed_date && (
+                                <div className="text-xs text-muted-foreground bg-muted/40 px-2.5 py-1 rounded-md border border-border/50 shrink-0">
+                                  Covered: <span className="font-semibold text-foreground">{formatDateToDDMMYYYY(w.completed_date)}</span> &bull; By: <span className="font-semibold text-foreground">{w.faculty_name}</span>
+                                </div>
+                              )}
+                              
+                              <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-xs font-medium h-8 border border-input text-foreground hover:bg-accent flex-1 sm:flex-none flex items-center justify-center gap-1.5"
+                                  onClick={() => toggleWeekExpanded(w.week)}
+                                >
+                                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                                  <span>{isExpanded ? "Hide Day Breakdown" : "Day Breakdown"}</span>
+                                  {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                </Button>
+
+                                <Button
+                                  size="sm"
+                                  variant={w.is_completed ? "outline" : "outline"}
+                                  className={`text-xs font-semibold h-8 flex-1 sm:flex-none transition-all active:scale-95 ${
+                                    w.is_completed
+                                      ? 'text-rose-600 border-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800'
+                                      : 'text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800'
+                                  }`}
+                                  onClick={() => handleToggleCompletion(w.week, w.is_completed)}
+                                >
+                                  {w.is_completed ? "Mark as Incomplete" : "Mark as Completed"}
+                                </Button>
+
+                                <Button
+                                  size="sm"
+                                  className="text-xs h-8 px-3 font-semibold flex-1 sm:flex-none transition-all active:scale-95"
+                                  onClick={() => handleSaveProgress(w.week, w.is_completed)}
+                                  disabled={savingProgress === w.week}
+                                >
+                                  {savingProgress === w.week ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                                  ) : (
+                                    <Save className="w-3.5 h-3.5 mr-1.5" />
+                                  )}
+                                  Save
+                                </Button>
+                              </div>
                             </div>
                           </div>
 
                           {/* Accordion Inputs for Progress Tracking */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-11 pt-2">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                             <div className="space-y-1">
-                              <label className="text-xs font-semibold opacity-70">Actual Topics Covered</label>
+                              <label className="text-xs font-semibold opacity-70">Actual Topics Covered (Week Summary)</label>
                               <Input
                                 placeholder="e.g. Completed ER Model basics, started SQL queries"
                                 value={edit.topics_covered}
@@ -626,36 +750,253 @@ const SyllabusTracker = () => {
                           </div>
                         </div>
 
-                         {/* Completed Toggle & Save Action */}
-                        <div className="flex flex-col items-stretch md:items-end gap-3 w-full md:w-auto pl-0 border-t md:border-t-0 pt-4 md:pt-0">
-                          {w.completed_date && (
-                            <div className="text-xs text-muted-foreground md:text-right leading-tight">
-                              Covered: <span className="font-semibold text-foreground">{formatDateToDDMMYYYY(w.completed_date)}</span> &bull; By: <span className="font-semibold text-foreground">{w.faculty_name}</span>
+                        {/* Expandable Day-Wise Teaching Log Section */}
+                        {isExpanded && (
+                          <div className="mt-2 pt-4 border-t border-dashed space-y-3 bg-muted/20 p-4 rounded-xl">
+                            <div className="flex justify-between items-center flex-wrap gap-2">
+                              <div>
+                                <h5 className="text-sm font-semibold flex items-center gap-1.5">
+                                  <Calendar className="w-4 h-4 text-primary" />
+                                  Day-Wise Lecture & Progress Log
+                                </h5>
+                                <p className="text-xs text-muted-foreground">
+                                  Track daily lectures, topics covered on specific dates, and verify syllabus completion day by day.
+                                </p>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 text-xs gap-1"
+                                onClick={() => {
+                                  const currentLogs = [...dailyLogs];
+                                  const nextDayNum = currentLogs.length + 1;
+                                  const matchedPlanned = plannedDays.find((pd: any) => pd.day === nextDayNum);
+                                  currentLogs.push({
+                                    day: nextDayNum,
+                                    topic_covered: matchedPlanned ? matchedPlanned.topic : "",
+                                    date: new Date().toISOString().slice(0, 10),
+                                    is_completed: true,
+                                    notes: ""
+                                  });
+                                  setProgressEdits({
+                                    ...progressEdits,
+                                    [w.week]: { ...edit, daily_logs: currentLogs }
+                                  });
+                                }}
+                              >
+                                <Plus className="w-3.5 h-3.5" /> Add Day Session
+                              </Button>
                             </div>
-                          )}
-                          <div className="flex flex-col sm:flex-row gap-2 w-full">
-                            <Button
-                              size="sm"
-                              variant={w.is_completed ? "destructive" : "outline"}
-                              className={`text-xs font-semibold h-9 w-full sm:w-auto transition-all active:scale-95 ${
-                                w.is_completed
-                                  ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800'
-                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-800'
-                              }`}
-                              onClick={() => handleToggleCompletion(w.week, w.is_completed)}
-                            >
-                              {w.is_completed ? "Mark as Incomplete" : "Mark as Completed"}
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="w-full sm:w-auto text-xs h-9 font-semibold transition-all active:scale-95"
-                              onClick={() => handleSaveProgress(w.week, w.is_completed)}
-                              disabled={savingProgress === w.week}
-                            >
-                              {savingProgress === w.week ? "Saving..." : <><Save className="w-4 h-4 mr-2" /> Save Progress</>}
-                            </Button>
+
+                            {/* Render list of days (combining planned template & daily logs) */}
+                            {plannedDays.length > 0 && dailyLogs.length === 0 && (
+                              <div className="space-y-2">
+                                <p className="text-xs font-semibold text-primary">Department Master Plan for Week {w.week}:</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                  {plannedDays.map((pd: any) => {
+                                    const opt = DAY_OPTIONS.find(o => o.value === pd.day);
+                                    const dayTitle = pd.day_name || opt?.label || `Day ${pd.day}`;
+                                    return (
+                                      <div key={pd.day} className="p-2.5 rounded-lg border bg-background text-xs space-y-1">
+                                        <div className="font-semibold text-foreground">{dayTitle}: {pd.topic}</div>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="h-6 text-[11px] w-full mt-1 bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary"
+                                          onClick={() => {
+                                            const newLogs = plannedDays.map((p: any) => {
+                                              const dOpt = DAY_OPTIONS.find(o => o.value === p.day);
+                                              return {
+                                                day: p.day,
+                                                day_name: p.day_name || dOpt?.label || `Day ${p.day}`,
+                                                topic_covered: p.topic,
+                                                date: new Date().toISOString().slice(0, 10),
+                                                is_completed: p.day === pd.day,
+                                                notes: ""
+                                              };
+                                            });
+                                            setProgressEdits({
+                                              ...progressEdits,
+                                              [w.week]: { ...edit, daily_logs: newLogs }
+                                            });
+                                          }}
+                                        >
+                                          Start Logging This Plan
+                                        </Button>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {dailyLogs.length > 0 && (
+                              <div className="space-y-2.5">
+                                {dailyLogs.map((log: any, idx: number) => {
+                                  const plannedForDay = plannedDays.find((pd: any) => pd.day === log.day);
+                                  const logDate = log.date ? new Date(log.date) : undefined;
+                                  const saveKey = `${w.week}-${idx}`;
+                                  const isSavingThisDay = savingDayKey === saveKey;
+
+                                  return (
+                                    <div
+                                      key={idx}
+                                      className={`p-3.5 rounded-xl border flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between transition-all ${
+                                        log.is_completed ? "bg-emerald-500/5 border-emerald-500/30" : "bg-card border-border shadow-sm"
+                                      }`}
+                                    >
+                                      {/* Completion Checkbox & Day Name Select (Monday, Tuesday...) */}
+                                      <div className="flex items-center gap-2.5 shrink-0">
+                                        <input
+                                          type="checkbox"
+                                          checked={!!log.is_completed}
+                                          onChange={(e) => {
+                                            const updated = [...dailyLogs];
+                                            updated[idx] = { ...log, is_completed: e.target.checked };
+                                            setProgressEdits({
+                                              ...progressEdits,
+                                              [w.week]: { ...edit, daily_logs: updated }
+                                            });
+                                          }}
+                                          className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer accent-primary"
+                                        />
+                                        <div className="flex items-center gap-1.5">
+                                          <Select
+                                            value={String(log.day || idx + 1)}
+                                            onValueChange={(val) => {
+                                              const updated = [...dailyLogs];
+                                              const selectedDayNum = Number(val);
+                                              const opt = DAY_OPTIONS.find(o => o.value === selectedDayNum);
+                                              const matchedPlan = plannedDays.find((pd: any) => pd.day === selectedDayNum);
+                                              updated[idx] = {
+                                                ...log,
+                                                day: selectedDayNum,
+                                                day_name: opt?.label || `Day ${selectedDayNum}`,
+                                                topic_covered: log.topic_covered || (matchedPlan ? matchedPlan.topic : "")
+                                              };
+                                              setProgressEdits({
+                                                ...progressEdits,
+                                                [w.week]: { ...edit, daily_logs: updated }
+                                              });
+                                            }}
+                                          >
+                                            <SelectTrigger className="h-8 min-w-28 text-xs font-semibold">
+                                              <SelectValue placeholder="Select Day" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              {DAY_OPTIONS.map((d) => (
+                                                <SelectItem key={d.value} value={String(d.value)} className="text-xs font-medium">
+                                                  {d.label}
+                                                </SelectItem>
+                                              ))}
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                      </div>
+
+                                      {/* Topic Taught & Date Picker using Shadcn Popover + Calendar */}
+                                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2.5 w-full">
+                                        {/* Topic Input */}
+                                        <div className="sm:col-span-8 space-y-1">
+                                          <Input
+                                            className="h-8 text-xs bg-background"
+                                            placeholder={plannedForDay ? `Planned: ${plannedForDay.topic}` : "Topic taught on this day..."}
+                                            value={log.topic_covered}
+                                            onChange={(e) => {
+                                              const updated = [...dailyLogs];
+                                              updated[idx] = { ...log, topic_covered: e.target.value };
+                                              setProgressEdits({
+                                                ...progressEdits,
+                                                [w.week]: { ...edit, daily_logs: updated }
+                                              });
+                                            }}
+                                          />
+                                        </div>
+
+                                        {/* Shadcn Popover & Calendar Date Picker */}
+                                        <div className="sm:col-span-4 space-y-1">
+                                          <Popover>
+                                            <PopoverTrigger asChild>
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className={`h-8 w-full justify-start text-left font-normal text-xs bg-background ${
+                                                  !log.date ? "text-muted-foreground" : "text-foreground font-medium"
+                                                }`}
+                                              >
+                                                <Calendar className="mr-2 h-3.5 w-3.5 text-primary" />
+                                                {log.date ? formatDateToDDMMYYYY(log.date) : <span>Select Date</span>}
+                                              </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0 z-50" align="start">
+                                              <CalendarComponent
+                                                mode="single"
+                                                selected={logDate}
+                                                onSelect={(selectedDate) => {
+                                                  if (selectedDate) {
+                                                    const year = selectedDate.getFullYear();
+                                                    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                                                    const day = String(selectedDate.getDate()).padStart(2, '0');
+                                                    const dateStr = `${year}-${month}-${day}`;
+                                                    const updated = [...dailyLogs];
+                                                    updated[idx] = { ...log, date: dateStr };
+                                                    setProgressEdits({
+                                                      ...progressEdits,
+                                                      [w.week]: { ...edit, daily_logs: updated }
+                                                    });
+                                                  }
+                                                }}
+                                                initialFocus
+                                              />
+                                            </PopoverContent>
+                                          </Popover>
+                                        </div>
+                                      </div>
+
+                                      {/* Individual Day Save Action & Delete buttons */}
+                                      <div className="flex items-center gap-1.5 shrink-0 self-end lg:self-center">
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="h-8 px-2.5 text-xs font-semibold text-primary border-primary/30 hover:bg-primary/10 gap-1"
+                                          onClick={() => handleSaveDayProgress(w.week, idx)}
+                                          disabled={isSavingThisDay}
+                                        >
+                                          {isSavingThisDay ? (
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                          ) : (
+                                            <Save className="w-3.5 h-3.5" />
+                                          )}
+                                          <span>Save Day</span>
+                                        </Button>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                          onClick={() => {
+                                            const updated = dailyLogs.filter((_: any, i: number) => i !== idx);
+                                            setProgressEdits({
+                                              ...progressEdits,
+                                              [w.week]: { ...edit, daily_logs: updated }
+                                            });
+                                          }}
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {plannedDays.length === 0 && dailyLogs.length === 0 && (
+                              <p className="text-xs text-muted-foreground italic text-center py-2">
+                                No day-wise logs recorded yet. Click "Add Day Session" to log daily lecture progress.
+                              </p>
+                            )}
                           </div>
-                        </div>
+                        )}
                       </div>
                     );
                   })}

@@ -303,6 +303,27 @@ const StudentSyllabus = () => {
                                 <strong>Actual Covered:</strong> {w.topics_covered}
                               </p>
                             )}
+                            {/* Day-wise breakdown display if present */}
+                            {Array.isArray(w.daily_logs) && w.daily_logs.length > 0 && (
+                              <div className="mt-2.5 pt-2 border-t border-dashed space-y-1.5">
+                                <span className="font-semibold text-primary block text-[11px]">Day-Wise Lectures:</span>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                  {w.daily_logs.map((dl: any, dIdx: number) => {
+                                    const dayLabels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+                                    const dayTitle = dl.day_name || (dl.day >= 1 && dl.day <= 7 ? dayLabels[dl.day - 1] : `Day ${dl.day || dIdx + 1}`);
+                                    return (
+                                      <div key={dIdx} className={`p-1.5 rounded border text-[11px] flex items-center justify-between gap-1.5 ${
+                                        dl.is_completed ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300" : "bg-muted/30 border-border"
+                                      }`}>
+                                        <span className="font-semibold">{dayTitle}: {dl.topic_covered}</span>
+                                        {dl.date && <span className="text-[10px] opacity-70 shrink-0">{formatDateToDDMMYYYY(dl.date)}</span>}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
                             {w.notes && (
                               <p className="italic opacity-75 mt-1">
                                 <strong>Note:</strong> {w.notes}

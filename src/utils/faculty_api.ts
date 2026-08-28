@@ -2516,35 +2516,63 @@ export const getCOAttainment = async (params: {
   }
 };
 
+export interface SyllabusDayPlan {
+  day: number;
+  day_name?: string;
+  topic: string;
+  hours?: number;
+}
+
+export interface SyllabusDayLog {
+  day: number;
+  day_name?: string;
+  topic_covered: string;
+  date?: string;
+  is_completed: boolean;
+  notes?: string;
+}
+
 export interface SyllabusStatusResponse {
   success: boolean;
   message?: string;
   data?: {
-    subject_id: string;
+    subject_id: number;
     subject_name: string;
     total_weeks: number;
     completed_weeks: number;
     progress_percentage: number;
+    has_section?: boolean;
+    is_elective?: boolean;
+    survey_stats?: {
+      total_responses: number;
+      average_rating: number;
+      question_averages: { [key: string]: number };
+    };
     weeks: Array<{
       week: number;
       expected_topics: string;
+      days?: SyllabusDayPlan[];
       is_completed: boolean;
       topics_covered: string;
+      daily_logs?: SyllabusDayLog[];
       completed_date: string | null;
       faculty_name: string;
       notes: string;
+      has_progress?: boolean;
+      progress_details?: string[];
     }>;
   };
 }
 
 export const getSyllabusStatus = async (params: {
   subject_id: string;
-  branch_id: string;
-  semester_id: string;
-  section_id: string;
+  branch_id?: string;
+  semester_id?: string;
+  section_id?: string;
+  batch_id?: string;
 }): Promise<SyllabusStatusResponse> => {
   try {
-    const query = new URLSearchParams(params).toString();
+    const query = new URLSearchParams(params as Record<string, string>).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/status/?${query}`, {
       method: "GET",
       headers: {
@@ -2563,8 +2591,9 @@ export const exportSyllabusPdf = async (params: {
   branch_id: string;
   semester_id: string;
   section_id: string;
+  batch_id?: string;
 }): Promise<Blob> => {
-  const query = new URLSearchParams(params).toString();
+  const query = new URLSearchParams(params as Record<string, string>).toString();
   const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/export_pdf/?${query}`, {
     method: "GET",
     headers: {
@@ -2579,7 +2608,7 @@ export const exportSyllabusPdf = async (params: {
 
 export const updateSyllabusPlan = async (data: {
   subject_id: string;
-  plan_data: Array<{ week: number; topics: string }>;
+  plan_data: Array<{ week: number; topics: string; days?: SyllabusDayPlan[] }>;
 }): Promise<{ success: boolean; message?: string }> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/plan/update/`, {
@@ -2606,6 +2635,7 @@ export const updateSyllabusProgress = async (data: {
   is_completed: boolean;
   topics_covered: string;
   notes: string;
+  daily_logs?: SyllabusDayLog[];
 }): Promise<{ success: boolean; message?: string }> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/progress/update/`, {
@@ -2711,6 +2741,75 @@ export const getSubjectSyllabusMonitor = async (batchId: string, semesterId: str
     return await response.json();
   } catch (error) {
     return { success: false, message: "Network error while fetching subject section progress data" };
+  }
+};
+
+export interface SectionWeekProgressResponse {
+  success: boolean;
+  message?: string;
+  subject_id?: number;
+  subject_name?: string;
+  subject_code?: string;
+  section_id?: string | null;
+  total_weeks?: number;
+  completed_weeks?: number;
+  progress_percentage?: number;
+  weeks?: Array<{
+    week: number;
+    expected_topics: string;
+    days?: SyllabusDayPlan[];
+    is_completed: boolean;
+    topics_covered: string;
+    daily_logs?: SyllabusDayLog[];
+    completed_date: string | null;
+    faculty_name: string;
+    notes: string;
+  }>;
+  week_detail?: {
+    week: number;
+    expected_topics: string;
+    days?: SyllabusDayPlan[];
+    is_completed: boolean;
+    topics_covered: string;
+    daily_logs?: SyllabusDayLog[];
+    completed_date: string | null;
+    faculty_name: string;
+    notes: string;
+  } | null;
+}
+
+export const getSectionWeekProgress = async (params: {
+  subject_id: string;
+  section_id?: string | null;
+  batch_id?: string | null;
+  week_number?: number;
+}): Promise<SectionWeekProgressResponse> => {
+  try {
+    const queryParams = new URLSearchParams();
+    queryParams.append("subject_id", params.subject_id);
+    if (params.section_id !== undefined && params.section_id !== null) {
+      queryParams.append("section_id", params.section_id);
+    }
+    if (params.batch_id) {
+      queryParams.append("batch_id", params.batch_id);
+    }
+    if (params.week_number) {
+      queryParams.append("week_number", String(params.week_number));
+    }
+
+    const response = await fetchWithTokenRefresh(
+      `${API_ENDPOINT}/faculty/syllabus/section-week-progress/?${queryParams.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error while fetching section week progress" };
   }
 };
 

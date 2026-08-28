@@ -73,6 +73,7 @@ const HODSyllabusTracker = () => {
   const [weeksPlan, setWeeksPlan] = useState<Array<{
     week: number;
     expected_topics: string;
+    days?: Array<{ day: number; topic: string }>;
     has_progress?: boolean;
     progress_details?: string[];
   }>>([]);
@@ -136,7 +137,6 @@ const HODSyllabusTracker = () => {
         const [res, batchRes] = await Promise.all([getSyllabusBootstrap(), getBatches()]);
         if (batchRes.success && batchRes.data && batchRes.data.length > 0) {
           setBatches(batchRes.data);
-          // No auto-select — user must choose batch first
         }
         if (res.success) {
           setSemesters(res.semesters || []);
@@ -151,16 +151,17 @@ const HODSyllabusTracker = () => {
       }
     };
     loadBootstrap();
-  }, []);
+  }, [toast]);
 
-  // Filter subjects based on chosen Semester
+  // Derived subjects
   const subjects = useMemo(() => {
     if (!semesterId) return [];
     return allSubjects.filter(s => s.semester_id === semesterId);
   }, [semesterId, allSubjects]);
 
-  // Determine if chosen subject is elective
-  const selectedSubject = useMemo(() => subjects.find(s => s.id === subjectId), [subjectId, subjects]);
+  const selectedSubject = useMemo(() => {
+    return allSubjects.find(s => s.id === subjectId);
+  }, [subjectId, allSubjects]);
   const isElective = useMemo(() => selectedSubject?.subject_type === "elective" || selectedSubject?.subject_type === "open_elective", [selectedSubject]);
 
   // Reset cascading filters
@@ -171,9 +172,9 @@ const HODSyllabusTracker = () => {
     }
   }, [semesterId]);
 
-  // Fetch Syllabus status in real time
+  // Fetch Syllabus status
   const fetchSyllabus = useCallback(async (showLoader = false) => {
-    if (!subjectId) {
+    if (!semesterId || !subjectId || !batchId) {
       setSyllabusData(null);
       return;
     }
@@ -193,6 +194,7 @@ const HODSyllabusTracker = () => {
           setWeeksPlan(res.data.weeks.map((w: any) => ({
             week: w.week,
             expected_topics: w.expected_topics,
+            days: Array.isArray(w.days) ? w.days : [],
             has_progress: !!w.has_progress,
             progress_details: w.progress_details || []
           })));
@@ -220,13 +222,17 @@ const HODSyllabusTracker = () => {
     if (!subjectId) return;
     setSavingPlan(true);
     try {
-      const planData = weeksPlan.map(w => ({ week: w.week, topics: w.expected_topics }));
+      const planData = weeksPlan.map(w => ({
+        week: w.week,
+        topics: w.expected_topics,
+        days: w.days || []
+      }));
       const res = await updateSyllabusPlan({
         subject_id: subjectId.toString(),
         plan_data: planData
       });
       if (res.success) {
-        showSuccessAlert("Template Saved", "Syllabus week-wise plan template updated successfully!");
+        showSuccessAlert("Template Saved", "Syllabus week-wise and day-wise plan template updated successfully!");
         setEditingPlan(false);
         fetchSyllabus();
       } else {
@@ -388,89 +394,184 @@ const HODSyllabusTracker = () => {
                 </div>
 
                 <div className="space-y-4">
-                  {syllabusData.weeks.map((w: any) => (
-                    <div
-                      key={w.week}
-                      className="p-4 rounded-xl border border-border hover:border-primary/30 transition-all duration-300 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center"
-                    >
-                      <div className="flex-1 space-y-1 w-full">
-                        <div className="flex items-center gap-3">
-                          <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-muted text-muted-foreground">
-                            {w.week}
-                          </span>
-                          <div>
-                            <h4 className="font-semibold text-base flex items-center gap-2">
-                              Week {w.week}
-                            </h4>
-                            <p className="text-sm opacity-80">
-                              <strong>Expected Plan:</strong> {w.expected_topics || <span className="italic opacity-50">Not planned yet</span>}
-                            </p>
+                  {syllabusData.weeks.map((w: any) => {
+                    const days = Array.isArray(w.days) ? w.days : [];
+                    return (
+                      <div
+                        key={w.week}
+                        className="p-4 rounded-xl border border-border hover:border-primary/30 transition-all duration-300 flex flex-col gap-3"
+                      >
+                        <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+                          <div className="flex-1 space-y-1 w-full">
+                            <div className="flex items-center gap-3">
+                              <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-muted text-muted-foreground">
+                                {w.week}
+                              </span>
+                              <div>
+                                <h4 className="font-semibold text-base flex items-center gap-2">
+                                  Week {w.week}
+                                  {days.length > 0 && (
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-normal">
+                                      {days.length} Days Planned
+                                    </span>
+                                  )}
+                                </h4>
+                                <p className="text-sm opacity-80">
+                                  <strong>Expected Plan:</strong> {w.expected_topics || <span className="italic opacity-50">Not planned yet</span>}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
+
+                        {days.length > 0 && (
+                          <div className="pl-0 sm:pl-11 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1">
+                            {days.map((d: any) => {
+                              const dayLabels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+                              const dayLabel = d.day_name || (d.day >= 1 && d.day <= 7 ? dayLabels[d.day - 1] : `Day ${d.day}`);
+                              return (
+                                <div key={d.day} className="p-2 rounded-lg border bg-muted/20 text-xs flex items-start gap-1.5">
+                                  <span className="font-bold text-primary shrink-0">{dayLabel}:</span>
+                                  <span className="text-foreground">{d.topic}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
               <Dialog open={editingPlan} onOpenChange={setEditingPlan}>
-                <DialogContent className={`w-[90%] h-[80vh] sm:max-w-3xl sm:h-auto sm:max-h-[85vh] flex flex-col rounded-xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
+                <DialogContent className={`w-[95%] sm:max-w-4xl max-h-[90vh] flex flex-col rounded-xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
                   <DialogHeader className="shrink-0 pb-2 border-b border-border/40">
                     <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                      Edit Syllabus Plan Template
+                       Edit Syllabus Plan Template
                     </DialogTitle>
                     <DialogDescription className="text-sm opacity-75">
-                      Configure the weekly expected topics template for this subject.
+                      Configure the weekly topics and optional day-by-day lesson breakdown for this subject.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="flex-1 overflow-y-auto py-4 pr-1 custom-scrollbar space-y-3">
-                    {weeksPlan.map((w, index) => (
-                      <div key={w.week} className="flex gap-3 items-center p-2 rounded-lg border border-border/80 bg-muted/20 hover:border-primary/40 transition-colors duration-200">
-                        <span className="font-semibold text-xs min-w-16 text-center text-muted-foreground">Week {w.week}:</span>
-                        <div className="flex-1 flex flex-col">
-                          <div className="relative w-full">
-                            <Input
-                              placeholder="Enter expected topics for this week"
-                              value={w.expected_topics}
-                              onChange={(e) => {
-                                const updated = [...weeksPlan];
-                                updated[index].expected_topics = e.target.value;
-                                setWeeksPlan(updated);
+                  <div className="flex-1 overflow-y-auto py-4 pr-1 custom-scrollbar space-y-4">
+                    {weeksPlan.map((w, index) => {
+                      const days = Array.isArray(w.days) ? w.days : [];
+                      const dayLabels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+                      return (
+                        <div key={w.week} className="flex flex-col gap-2 p-3 rounded-lg border border-border/80 bg-muted/20 hover:border-primary/40 transition-colors duration-200">
+                          <div className="flex gap-3 items-center">
+                            <span className="font-semibold text-xs min-w-16 text-center text-muted-foreground">Week {w.week}:</span>
+                            <div className="flex-1 flex flex-col">
+                              <div className="relative w-full">
+                                <Input
+                                  placeholder="Enter expected week overview topic"
+                                  value={w.expected_topics}
+                                  onChange={(e) => {
+                                    const updated = [...weeksPlan];
+                                    updated[index].expected_topics = e.target.value;
+                                    setWeeksPlan(updated);
+                                  }}
+                                  className={`bg-background ${w.has_progress ? "pr-8 opacity-75 cursor-not-allowed" : ""}`}
+                                  disabled={w.has_progress}
+                                />
+                                {w.has_progress && (
+                                  <Lock className="w-4 h-4 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2" />
+                                )}
+                              </div>
+                              {w.progress_details && w.progress_details.length > 0 && (
+                                <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 font-medium flex items-center gap-1">
+                                  <AlertCircle className="w-3 h-3 shrink-0" />
+                                  Locked: {w.progress_details.join(", ")}
+                                </p>
+                              )}
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-2"
+                              onClick={() => {
+                                if (weeksPlan.length > 1) {
+                                  const updated = weeksPlan.filter((_, idx) => idx !== index)
+                                    .map((item, idx) => ({ ...item, week: idx + 1 }));
+                                  setWeeksPlan(updated);
+                                }
                               }}
-                              className={`bg-background ${w.has_progress ? "pr-8 opacity-75 cursor-not-allowed" : ""}`}
-                              disabled={w.has_progress}
-                            />
-                            {w.has_progress && (
-                              <Lock className="w-4 h-4 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2" />
-                            )}
+                              disabled={weeksPlan.length <= 1 || w.has_progress || weeksPlan.slice(index).some(item => item.has_progress)}
+                              title={w.has_progress ? "Cannot delete: Week is in use by faculty" : weeksPlan.slice(index).some(item => item.has_progress) ? "Cannot delete: Shifting would affect later locked weeks" : ""}
+                            >
+                              Remove
+                            </Button>
                           </div>
-                          {w.progress_details && w.progress_details.length > 0 && (
-                            <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 font-medium flex items-center gap-1">
-                              <AlertCircle className="w-3 h-3 shrink-0" />
-                              Locked: {w.progress_details.join(", ")}
-                            </p>
-                          )}
+
+                          {/* Day-Wise Breakdown editor inside the week */}
+                          <div className="pl-0 sm:pl-16 space-y-2 pt-1 border-t border-dashed">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                Day-Wise Lesson Plan (Optional)
+                              </span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-[11px] px-2 text-primary hover:bg-primary/10"
+                                onClick={() => {
+                                  const updated = [...weeksPlan];
+                                  const curDays = [...days];
+                                  const nextDayNum = curDays.length + 1;
+                                  const dayName = nextDayNum <= 7 ? dayLabels[nextDayNum - 1] : `Day ${nextDayNum}`;
+                                  curDays.push({ day: nextDayNum, day_name: dayName, topic: "" });
+                                  updated[index].days = curDays;
+                                  setWeeksPlan(updated);
+                                }}
+                              >
+                                + Add Day
+                              </Button>
+                            </div>
+
+                            {days.map((d, dIdx) => {
+                              const dayName = d.day_name || (d.day >= 1 && d.day <= 7 ? dayLabels[d.day - 1] : `Day ${d.day}`);
+                              return (
+                                <div key={dIdx} className="flex items-center gap-2">
+                                  <span className="text-xs font-semibold text-primary min-w-20">{dayName}:</span>
+                                  <Input
+                                    className="h-7 text-xs bg-background"
+                                    placeholder={`${dayName} planned topic`}
+                                    value={d.topic}
+                                    onChange={(e) => {
+                                      const updated = [...weeksPlan];
+                                      const curDays = [...days];
+                                      curDays[dIdx] = { ...d, topic: e.target.value };
+                                      updated[index].days = curDays;
+                                      setWeeksPlan(updated);
+                                    }}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 p-0 text-muted-foreground hover:text-red-500 shrink-0"
+                                    onClick={() => {
+                                      const updated = [...weeksPlan];
+                                      const curDays = days.filter((_, i) => i !== dIdx).map((item, idx) => ({
+                                        ...item,
+                                        day: idx + 1,
+                                        day_name: idx < 7 ? dayLabels[idx] : `Day ${idx + 1}`
+                                      }));
+                                      updated[index].days = curDays;
+                                      setWeeksPlan(updated);
+                                    }}
+                                  >
+                                    &times;
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-2"
-                          onClick={() => {
-                            // If they want to delete a specific week, or just filter it out
-                            if (weeksPlan.length > 1) {
-                              const updated = weeksPlan.filter((_, idx) => idx !== index)
-                                .map((item, idx) => ({ ...item, week: idx + 1 }));
-                              setWeeksPlan(updated);
-                            }
-                          }}
-                          disabled={weeksPlan.length <= 1 || w.has_progress || weeksPlan.slice(index).some(item => item.has_progress)}
-                          title={w.has_progress ? "Cannot delete: Week is in use by faculty" : weeksPlan.slice(index).some(item => item.has_progress) ? "Cannot delete: Shifting would affect later locked weeks" : ""}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
 
                     {/* Real-time Inline Add Button at the Bottom */}
                     <div className="pt-2 flex justify-center">
