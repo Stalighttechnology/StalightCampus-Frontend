@@ -36,6 +36,7 @@ import DeanFinance from "../dean/DeanFinance";
 import Reports from "../FeesManager/Reports";
 import ComplianceReports from "../admin/ComplianceReports";
 import ExternalLinksPage from "../admin/ExternalLinksPage";
+import HODSemesterMonitor from "../hod/HODSemesterMonitor";
 
 import {
   Users,
@@ -155,6 +156,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <BatchManagement setError={setError} toast={toast} />
+          </div>);
+
+      case "syllabus-monitor":
+        return (
+          <div>
+            <HODSemesterMonitor userRole={user?.role || "principal"} />
           </div>);
 
       case "holiday-calendar":
