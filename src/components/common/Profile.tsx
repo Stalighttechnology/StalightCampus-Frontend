@@ -53,7 +53,7 @@ const Profile = ({ role, user }: ProfileProps) => {
   
   const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
   const [googleConnectLoading, setGoogleConnectLoading] = useState(false);
-
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   useEffect(() => {
     checkNotificationPermission(setNotificationsEnabled);
