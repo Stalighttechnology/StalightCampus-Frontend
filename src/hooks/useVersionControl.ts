@@ -1,7 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { API_ENDPOINT } from "../utils/config";
+
+const STORAGE_KEY = "stalight_update_required";
+const STORE_URL_KEY = "stalight_update_store_url";
 
 interface VersionConfig {
   android: { latest_version: string; minimum_supported_version: string; store_url: string };
@@ -9,23 +12,28 @@ interface VersionConfig {
   web: { latest_version: string; minimum_supported_version: string };
 }
 
+const compareVersions = (v1: string, v2: string) => {
+  const p1 = v1.split('.').map(Number);
+  const p2 = v2.split('.').map(Number);
+  for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
+    const n1 = p1[i] || 0;
+    const n2 = p2[i] || 0;
+    if (n1 > n2) return 1;
+    if (n1 < n2) return -1;
+  }
+  return 0;
+};
+
 export const useVersionControl = () => {
-  const [isUpdateRequired, setIsUpdateRequired] = useState(false);
-  const [storeUrl, setStoreUrl] = useState("");
+  // Initialize from sessionStorage so the flag survives component re-mounts
+  const [isUpdateRequired, setIsUpdateRequired] = useState(() => {
+    try { return sessionStorage.getItem(STORAGE_KEY) === "true"; } catch { return false; }
+  });
+  const [storeUrl, setStoreUrl] = useState(() => {
+    try { return sessionStorage.getItem(STORE_URL_KEY) || ""; } catch { return ""; }
+  });
 
-  const compareVersions = (v1: string, v2: string) => {
-    const p1 = v1.split('.').map(Number);
-    const p2 = v2.split('.').map(Number);
-    for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
-      const n1 = p1[i] || 0;
-      const n2 = p2[i] || 0;
-      if (n1 > n2) return 1;
-      if (n1 < n2) return -1;
-    }
-    return 0;
-  };
-
-  const handleVersionConfig = async (config: VersionConfig) => {
+  const handleVersionConfig = useCallback(async (config: VersionConfig) => {
     try {
       let installedVersion = "1.0.0";
       let minimumVersion = "1.0.0";
@@ -48,16 +56,19 @@ export const useVersionControl = () => {
       }
 
       setStoreUrl(url);
+      try { sessionStorage.setItem(STORE_URL_KEY, url); } catch {}
 
       if (compareVersions(installedVersion, minimumVersion) < 0) {
         setIsUpdateRequired(true);
+        try { sessionStorage.setItem(STORAGE_KEY, "true"); } catch {}
       } else {
         setIsUpdateRequired(false);
+        try { sessionStorage.removeItem(STORAGE_KEY); } catch {}
       }
     } catch (err) {
       console.error("Failed to parse app version config", err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Initial check on mount
@@ -86,7 +97,7 @@ export const useVersionControl = () => {
     return () => {
       window.removeEventListener('app_version_update', handleAppVersionUpdate);
     };
-  }, []);
+  }, [handleVersionConfig]);
 
   return { isUpdateRequired, storeUrl };
 };
