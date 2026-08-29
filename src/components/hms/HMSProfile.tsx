@@ -133,7 +133,10 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
             address: payload.address || "",
             bio: payload.bio || "",
             designation: payload.designation || "HMS Manager",
-            profile_picture: payload.profile_picture ? (payload.profile_picture.startsWith('http') ? payload.profile_picture : `${API_ENDPOINT.replace('/api', '')}${payload.profile_picture}`) : ""
+            profile_picture: payload.profile_picture ? (payload.profile_picture.startsWith('http') ? payload.profile_picture : `${API_ENDPOINT.replace('/api', '')}${payload.profile_picture}`) : "",
+            library_id: payload.library_id || "",
+            vtu_staff_id: payload.vtu_staff_id || "",
+            aicte_id: payload.aicte_id || ""
           });
         } else {
           showErrorAlert("Error", result.message || "Failed to fetch profile");
@@ -162,22 +165,22 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
   };
 
   const handleSaveProfile = async () => {
-      const idRegex = /^[a-zA-Z0-9\-_ ]*$/;
-      if (profile.library_id && !idRegex.test(profile.library_id.trim())) {
-        showErrorAlert("Error", "Library ID must be alphanumeric");
-        setLoading(false);
-        return;
-      }
-      if (profile.vtu_staff_id && !idRegex.test(profile.vtu_staff_id.trim())) {
-        showErrorAlert("Error", "VTU Staff ID must be alphanumeric");
-        setLoading(false);
-        return;
-      }
-      if (profile.aicte_id && !idRegex.test(profile.aicte_id.trim())) {
-        showErrorAlert("Error", "AICTE ID must be alphanumeric");
-        setLoading(false);
-        return;
-      }
+    const idRegex = /^[a-zA-Z0-9\-_ ]*$/;
+    if (profile.library_id && !idRegex.test(profile.library_id.trim())) {
+      showErrorAlert("Error", "Library ID must be alphanumeric");
+      setLoading(false);
+      return;
+    }
+    if (profile.vtu_staff_id && !idRegex.test(profile.vtu_staff_id.trim())) {
+      showErrorAlert("Error", "VTU Staff ID must be alphanumeric");
+      setLoading(false);
+      return;
+    }
+    if (profile.aicte_id && !idRegex.test(profile.aicte_id.trim())) {
+      showErrorAlert("Error", "AICTE ID must be alphanumeric");
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -195,10 +198,32 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
       const result = await response.json();
 
       if (result.success) {
+        const resData = result.data || result.profile || {};
+        setProfile((prev) => ({
+          ...prev,
+          ...resData,
+          library_id: resData.library_id !== undefined ? resData.library_id : prev.library_id,
+          vtu_staff_id: resData.vtu_staff_id !== undefined ? resData.vtu_staff_id : prev.vtu_staff_id,
+          aicte_id: resData.aicte_id !== undefined ? resData.aicte_id : prev.aicte_id
+        }));
+        const respData = result.data || result.profile || {};
+        setProfile((prev) => ({
+          ...prev,
+          first_name: respData.first_name || prev.first_name,
+          last_name: respData.last_name || prev.last_name,
+          email: respData.email || prev.email,
+          mobile_number: respData.mobile_number || prev.mobile_number,
+          address: respData.address || prev.address,
+          bio: respData.bio || prev.bio,
+          designation: respData.designation || prev.designation,
+          library_id: respData.library_id ?? prev.library_id,
+          vtu_staff_id: respData.vtu_staff_id ?? prev.vtu_staff_id,
+          aicte_id: respData.aicte_id ?? prev.aicte_id
+        }));
         showSuccessAlert("Success", "Profile saved successfully");
         setEditing(false);
         const userData = JSON.parse(sessionStorage.getItem("user") || "{}");
-        sessionStorage.setItem("user", JSON.stringify({ ...userData, ...result.data }));
+        sessionStorage.setItem("user", JSON.stringify({ ...userData, ...respData }));
       } else {
         showErrorAlert("Error", result.message || "Failed to save profile");
       }

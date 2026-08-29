@@ -165,7 +165,10 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
             profile_picture: payload.profile_picture || payload.profile_picture_url || "",
             department: payload.department || payload.branch || "",
             branch_name: payload.branch_name || "",
-            branch_code: payload.branch_code || ""
+            branch_code: payload.branch_code || "",
+            library_id: payload.library_id || "",
+            vtu_staff_id: payload.vtu_staff_id || "",
+            aicte_id: payload.aicte_id || ""
           };
           setProfile(fetchedProfile as any);
         } else {
@@ -181,12 +184,11 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
               mobile_number: "",
               address: "",
               bio: "",
-              department: ""
-            ,
-          library_id: payload.library_id || "",
-          vtu_staff_id: payload.vtu_staff_id || "",
-          aicte_id: payload.aicte_id || ""
-        });
+              department: "",
+              library_id: "",
+              vtu_staff_id: "",
+              aicte_id: ""
+            });
           }
         }
       } catch (err) {
@@ -249,21 +251,32 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
       setUploadProgress(90);
       if (fileUrl) {
         // Update backend immediately
-        const res = await manageProfile({ profile_picture_url: fileUrl }, "PATCH");
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/update/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ profile_picture_url: fileUrl })
+        });
+        const res = await response.json();
         if (res.success) {
-          setProfile(prev => ({ ...prev, profile_picture: fileUrl } as any));
-          // Update local storage
-          const user = JSON.parse(sessionStorage.getItem("user") || '{}');
-          user.profile_picture = fileUrl;
-          sessionStorage.setItem("user", JSON.stringify(user));
-          window.dispatchEvent(new Event("userProfileUpdated"));
+          setProfile((prev: any) => ({ ...prev, profile_picture: fileUrl, profile_image: fileUrl }));
+          const userStr = sessionStorage.getItem("user");
+          if (userStr) {
+            const user = JSON.parse(userStr);
+            user.profile_picture = fileUrl;
+            user.profile_image = fileUrl;
+            sessionStorage.setItem("user", JSON.stringify(user));
+            window.dispatchEvent(new Event("userProfileUpdated"));
+          }
           showSuccessAlert("Success", "Profile picture updated!");
         } else {
           showErrorAlert("Error", res.message || "Failed to update profile picture");
         }
       }
-    } catch (err) {
-      showErrorAlert("Error", "Upload failed");
+    } catch (error) {
+
+      showErrorAlert("Error", "Failed to upload image");
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -273,11 +286,13 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     if (name === "mobile_number") {
-      const numericValue = value.replace(/[^0-9]/g, "");
-      setProfile((prev) => ({ ...prev, [name]: numericValue }));
+      const cleaned = value.replace(/\D/g, "");
+      if (cleaned.length <= 10) {
+        setProfile((prev: any) => ({ ...prev, [name]: cleaned }));
+      }
       return;
     }
-    setProfile((prev) => ({ ...prev, [name]: value }));
+    setProfile((prev: any) => ({ ...prev, [name]: value }));
   };
 
   const handleSaveProfile = async () => {
@@ -352,42 +367,43 @@ function HodProfile({ user: propUser, setError }: HodProfileProps) {
         library_id?: string;
         vtu_staff_id?: string;
         aicte_id?: string;
-      } = {};
-      if (profile.first_name !== (currentUser.first_name || "")) updates.first_name = profile.first_name;
-      if (profile.last_name !== (currentUser.last_name || "")) updates.last_name = profile.last_name;
-      if (profile.email !== (currentUser.email || "")) updates.email = profile.email;
-      if (profile.mobile_number !== (currentUser.mobile_number || "")) updates.mobile_number = profile.mobile_number;
-      if (profile.address !== (currentUser.address || "")) updates.address = profile.address;
-      if (profile.bio !== (currentUser.bio || "")) updates.bio = profile.bio;
-      if (profile.library_id !== (currentUser.library_id || "")) updates.library_id = profile.library_id;
-      if (profile.vtu_staff_id !== (currentUser.vtu_staff_id || "")) updates.vtu_staff_id = profile.vtu_staff_id;
-      if (profile.aicte_id !== (currentUser.aicte_id || "")) updates.aicte_id = profile.aicte_id;
-
-      if (Object.keys(updates).length === 0) {
-        showInfoAlert("Info", "No changes to save");
-        setEditing(false);
-        setLoading(false);
-        return;
-      }
+      } = {
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        email: profile.email,
+        mobile_number: profile.mobile_number,
+        address: profile.address,
+        bio: profile.bio,
+        library_id: profile.library_id,
+        vtu_staff_id: profile.vtu_staff_id,
+        aicte_id: profile.aicte_id
+      };
 
       // set skip flag to avoid immediate refetch triggered elsewhere
       skipFetch.current = true;
       const response = await manageProfile(updates, "PATCH");
-      if (response.success && response.data) {
+      const resData = (response && (response.data || response.profile)) || {};
+      if (response.success && (response.data || response.profile)) {
         const updatedProfile: Profile = {
-          first_name: response.data.first_name || "",
-          last_name: response.data.last_name || "",
-          email: response.data.email || "",
-          mobile_number: response.data.mobile_number || "",
-          address: response.data.address || "",
-          bio: response.data.bio || "",
-          profile_picture: response.data.profile_picture || profile?.profile_picture || ""
+          first_name: resData.first_name || profile.first_name || "",
+          last_name: resData.last_name || profile.last_name || "",
+          email: resData.email || profile.email || "",
+          mobile_number: resData.mobile_number || profile.mobile_number || "",
+          address: resData.address || profile.address || "",
+          bio: resData.bio || profile.bio || "",
+          profile_picture: resData.profile_picture || profile?.profile_picture || "",
+          department: resData.department || profile.department || "",
+          branch_name: resData.branch_name || profile.branch_name || "",
+          branch_code: resData.branch_code || profile.branch_code || "",
+          library_id: resData.library_id !== undefined ? resData.library_id : profile.library_id,
+          vtu_staff_id: resData.vtu_staff_id !== undefined ? resData.vtu_staff_id : profile.vtu_staff_id,
+          aicte_id: resData.aicte_id !== undefined ? resData.aicte_id : profile.aicte_id
         };
         setProfile(updatedProfile);
         showSuccessAlert("Success", "Profile saved successfully");
         sessionStorage.setItem("user", JSON.stringify({
           ...JSON.parse(sessionStorage.getItem("user") || "{}"),
-          ...response.data,
+          ...resData,
           user_id: currentUser.user_id
         }));
         setEditing(false);
