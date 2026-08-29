@@ -684,6 +684,9 @@ export interface ManageProfileRequest {
   experience_years?: string | number;
   office_location?: string;
   office_hours?: string;
+  library_id?: string;
+  vtu_staff_id?: string;
+  aicte_id?: string;
 }
 
 interface ManageProfileResponse {
@@ -1533,6 +1536,9 @@ data: ManageProfileRequest)
     if (typeof data.experience_years !== 'undefined' && data.experience_years !== null) formData.append("experience_years", String(data.experience_years));
     if (data.office_location) formData.append("office_location", data.office_location);
     if (data.office_hours) formData.append("office_hours", data.office_hours);
+    if (data.library_id) formData.append("library_id", data.library_id);
+    if (data.vtu_staff_id) formData.append("vtu_staff_id", data.vtu_staff_id);
+    if (data.aicte_id) formData.append("aicte_id", data.aicte_id);
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/profile/`, {
       method: "POST",
       headers: {
