@@ -71,8 +71,8 @@ export const useVersionControl = () => {
   }, []);
 
   useEffect(() => {
-    // Initial check on mount
-    const checkInitialVersion = async () => {
+    // Shared fetch function
+    const checkVersion = async () => {
       try {
         const response = await fetch(`${API_ENDPOINT}/public/app-version/`);
         if (response.ok) {
@@ -80,11 +80,26 @@ export const useVersionControl = () => {
           handleVersionConfig(config);
         }
       } catch (err) {
-        console.error("Failed to check initial app version", err);
+        console.error("Failed to check app version", err);
       }
     };
 
-    checkInitialVersion();
+    // Initial check on mount
+    checkVersion();
+
+    // Re-check when app returns to foreground (native)
+    let appStateListener: any = null;
+    if (Capacitor.isNativePlatform()) {
+      App.addListener('appStateChange', ({ isActive }) => {
+        if (isActive) checkVersion();
+      }).then(listener => { appStateListener = listener; });
+    }
+
+    // Re-check when browser tab becomes visible (web)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') checkVersion();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     const handleAppVersionUpdate = (e: any) => {
       if (e.detail) {
@@ -96,6 +111,8 @@ export const useVersionControl = () => {
 
     return () => {
       window.removeEventListener('app_version_update', handleAppVersionUpdate);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      if (appStateListener) appStateListener.remove();
     };
   }, [handleVersionConfig]);
 

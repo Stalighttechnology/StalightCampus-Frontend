@@ -59,25 +59,20 @@ export const MandatoryUpdateScreen: React.FC<MandatoryUpdateScreenProps> = ({ st
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-primary/5 blur-[120px]" />
       </div>
 
-      {/* Top Branding */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="absolute top-8 left-0 right-0 flex justify-center items-center gap-3 z-10"
-      >
-        <img src="/logo.jpeg" alt="Logo" className="w-12 h-12 rounded-full object-cover shadow-sm border border-border/50" />
-        <span className="text-lg font-bold tracking-tight text-foreground">Stalight Campus</span>
-      </motion.div>
-
       {/* Main Content */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-10 w-full max-w-lg flex flex-col items-center text-center space-y-6 mt-12">
+        className="relative z-10 w-full max-w-lg flex flex-col items-center text-center space-y-6">
         
         <motion.div variants={itemVariants} className="space-y-4 flex flex-col items-center">
+          {/* Logo Branding — inside content flow, above the pill */}
+          <div className="flex flex-col items-center gap-2 mb-2">
+            <img src="/logo.jpeg" alt="Logo" className="w-16 h-16 rounded-full object-cover shadow-md border-2 border-primary/20" />
+            <span className="text-lg font-bold tracking-tight text-foreground">Stalight Campus</span>
+          </div>
+
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold border border-primary/20">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
@@ -90,7 +85,7 @@ export const MandatoryUpdateScreen: React.FC<MandatoryUpdateScreenProps> = ({ st
             <ArrowUpCircle className="w-12 h-12 text-primary" />
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-br from-primary to-indigo-500 bg-clip-text text-transparent pb-1">
             Time to Upgrade
           </h1>
           
