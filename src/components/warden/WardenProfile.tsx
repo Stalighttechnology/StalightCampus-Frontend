@@ -141,7 +141,10 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
             mobile_number: payload.mobile_number || payload.mobile || "",
             address: payload.address || "",
             bio: payload.bio || "",
-            designation: payload.designation || "Hostel Warden"
+            designation: payload.designation || "Hostel Warden",
+            library_id: payload.library_id || "",
+            vtu_staff_id: payload.vtu_staff_id || "",
+            aicte_id: payload.aicte_id || ""
           };
           setProfile(fetchedProfile);
         } else {
@@ -227,15 +230,19 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
       });
       const result = await response.json();
 
-      if (result.success && result.data) {
+      if (result.success && (result.data || result.profile)) {
+        const resData = result.data || result.profile;
         const updatedProfile: Profile = {
-          first_name: result.data.first_name || "",
-          last_name: result.data.last_name || "",
-          email: result.data.email || "",
-          mobile_number: result.data.mobile_number || "",
-          address: result.data.address || "",
-          bio: result.data.bio || "",
-          designation: result.data.designation || profile.designation
+          first_name: resData.first_name || "",
+          last_name: resData.last_name || "",
+          email: resData.email || "",
+          mobile_number: resData.mobile_number || "",
+          address: resData.address || "",
+          bio: resData.bio || "",
+          designation: resData.designation || profile.designation,
+          library_id: resData.library_id !== undefined ? resData.library_id : profile.library_id,
+          vtu_staff_id: resData.vtu_staff_id !== undefined ? resData.vtu_staff_id : profile.vtu_staff_id,
+          aicte_id: resData.aicte_id !== undefined ? resData.aicte_id : profile.aicte_id
         };
         setProfile(updatedProfile);
         showSuccessAlert("Success", "Profile saved successfully");

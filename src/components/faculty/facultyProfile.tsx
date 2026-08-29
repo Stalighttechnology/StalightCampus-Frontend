@@ -361,6 +361,13 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             vtu_staff_id: payload.vtu_staff_id || prev.vtu_staff_id,
             aicte_id: payload.aicte_id || prev.aicte_id
           }));
+
+          const currentUser = JSON.parse(sessionStorage.getItem("user") || "{}");
+          sessionStorage.setItem("user", JSON.stringify({
+            ...currentUser,
+            ...payload
+          }));
+          window.dispatchEvent(new Event("userProfileUpdated"));
         }
         setIsEditing(false);
       } else {

@@ -55,11 +55,37 @@ const Profile = ({ role, user }: ProfileProps) => {
   const [googleConnectLoading, setGoogleConnectLoading] = useState(false);
 
 
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-
   useEffect(() => {
     checkNotificationPermission(setNotificationsEnabled);
   }, []);
+
+  useEffect(() => {
+    const fetchFreshProfile = async () => {
+      try {
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/`);
+        const result = await response.json();
+        if (result.success && (result.profile || result.data)) {
+          const p = result.profile || result.data;
+          setProfile(prev => ({
+            ...prev,
+            first_name: p.first_name || prev.first_name || "",
+            last_name: p.last_name || prev.last_name || "",
+            email: p.email || prev.email || "",
+            mobile_number: p.mobile_number || p.phone_number || prev.mobile_number || "",
+            address: p.address || prev.address || "",
+            bio: p.bio || prev.bio || "",
+            profile_picture: p.profile_picture || prev.profile_picture || "",
+            library_id: p.library_id || prev.library_id || "",
+            vtu_staff_id: p.vtu_staff_id || prev.vtu_staff_id || "",
+            aicte_id: p.aicte_id || prev.aicte_id || ""
+          }));
+        }
+      } catch (err) {
+        // non-fatal
+      }
+    };
+    fetchFreshProfile();
+  }, [user]);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
