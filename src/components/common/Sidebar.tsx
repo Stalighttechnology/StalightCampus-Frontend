@@ -1041,9 +1041,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
               return true;
             })
             ?.filter(item => {
-              // Hide My Attendance page if org has disabled web attendance marking
+              // Hide My Attendance page if org has disabled web attendance marking (web only, keep on mobile app)
               const allowWebAttendance = user?.org_allow_web_attendance ?? true;
-              if (!allowWebAttendance && ['my-attendance', 'faculty-attendance'].includes(item.page)) {
+              if (!allowWebAttendance && !Capacitor.isNativePlatform() && ['my-attendance', 'faculty-attendance'].includes(item.page)) {
                 return false;
               }
               return true;

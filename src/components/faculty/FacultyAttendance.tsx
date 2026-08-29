@@ -15,6 +15,7 @@ import { fetchWithTokenRefresh } from "@/utils/authService";
 import { API_ENDPOINT } from "@/utils/config";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Device } from '@capacitor/device';
+import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
@@ -57,7 +58,7 @@ const FacultyAttendance = () => {
     const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
     const storedUser = userStr ? JSON.parse(userStr) : null;
     const allowWebAttendance = storedUser?.org_allow_web_attendance ?? true;
-    if (!allowWebAttendance) {
+    if (!allowWebAttendance && !Capacitor.isNativePlatform()) {
       // Determine correct dashboard path from current URL role prefix
       const pathParts = window.location.pathname.split('/').filter(Boolean);
       const rolePrefix = pathParts[0] || 'faculty';
