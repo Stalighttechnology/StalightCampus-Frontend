@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../../ui/card";
 import { Button } from "../../ui/button";
-import { CheckCircle, XCircle, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { CheckCircle, XCircle, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Filter, FileText, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogTitle } from
-"../../ui/dialog";
+  DialogTitle
+} from "../../ui/dialog";
 import {
   Select,
   SelectTrigger,
@@ -27,15 +27,24 @@ import { SkeletonTable } from "../../ui/skeleton";
 
 interface LeaveRequest {
   id: number;
+  title: string;
   name: string;
+  role: string;
   department: string;
+  leave_type: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
   from: string;
   to: string;
   reason: string;
   status: string;
+  initial_document_url?: string | null;
+  completion_document_url?: string | null;
+  od_purpose_category?: string | null;
+  current_stage?: string;
 }
-
-// Props removed since they are handled locally
 
 const getStatusBadge = (status: string, theme: string) => {
   switch (status) {
@@ -52,10 +61,59 @@ const getStatusBadge = (status: string, theme: string) => {
   }
 };
 
+const renderLeaveCategoryBadge = (leaveType: string, isHalfDay?: boolean, halfDaySession?: string | null, odCategory?: string | null) => {
+  const normalizedType = (leaveType || 'casual').toLowerCase();
+  
+  let label = 'Casual (CL)';
+  let colorClass = 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300';
+  
+  if (normalizedType === 'od' || normalizedType === 'on_duty') {
+    label = 'On Duty (OD)';
+    colorClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300';
+  } else if (normalizedType === 'short_permission') {
+    label = 'Short Permission';
+    colorClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300';
+  } else if (normalizedType === 'earned' || normalizedType === 'el') {
+    label = 'Earned (EL)';
+    colorClass = 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300';
+  } else if (normalizedType === 'vacation') {
+    label = 'Vacation Leave';
+    colorClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300';
+  } else if (normalizedType === 'rh' || normalizedType === 'restricted_holiday') {
+    label = 'Holiday (RH)';
+    colorClass = 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300';
+  } else if (normalizedType === 'maternity' || normalizedType === 'ml') {
+    label = 'Maternity (ML)';
+    colorClass = 'bg-pink-100 text-pink-800 dark:bg-pink-950/40 dark:text-pink-300';
+  }
+
+  const showHalfDay = Boolean(isHalfDay || normalizedType === 'half_day');
+  const sessionNormalized = (halfDaySession || '').toLowerCase();
+  const sessionText = (sessionNormalized === 'forenoon' || sessionNormalized === 'morning') ? 'Morning' : 'Afternoon';
+
+  return (
+    <div className="flex flex-wrap items-center gap-1 mt-1">
+      <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded w-fit ${colorClass}`}>
+        {label}
+      </span>
+      {odCategory && (
+        <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 w-fit">
+          OD: {odCategory.replace(/_/g, ' ').toUpperCase()}
+        </span>
+      )}
+      {showHalfDay && (
+        <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 w-fit">
+          Half-Day ({sessionText})
+        </span>
+      )}
+    </div>
+  );
+};
+
 const DriverLeavesManagement = () => {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewLeave, setViewLeave] = useState<LeaveRequest | null>(null);
+  const [viewReason, setViewReason] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -89,6 +147,16 @@ const DriverLeavesManagement = () => {
     }
   }, [selectedMonth]);
 
+  const formatDateString = (dateStr: string) => {
+    if (!dateStr || dateStr === "N/A") return dateStr || '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const [y, m, d] = parts;
+      return `${d}-${m}-${y}`;
+    }
+    return dateStr;
+  };
+
   const fetchLeaves = async (month?: string, page: number = 1) => {
     setLoading(true);
     setError(null);
@@ -101,7 +169,6 @@ const DriverLeavesManagement = () => {
         qs += `&status=${statusFilter}`;
       }
       const response = await manageDriverLeaves(qs);
-
 
       // Handle invalid page due to filter changes
       if (!response.success && response.message && response.message.includes("Invalid page")) {
@@ -117,11 +184,22 @@ const DriverLeavesManagement = () => {
         const leaveData = Array.isArray(dataSource.leaves) ?
         dataSource.leaves.map((leave: any) => ({
           id: leave.id,
-          name: leave.hod?.username || leave.driver_name || "N/A",
+          title: leave.title || (leave.leave_type === 'short_permission' ? 'Short Permission' : 'Leave Request'),
+          name: leave.applicant_name || leave.driver_name || leave.hod?.username || "N/A",
+          role: leave.role || "driver",
           department: leave.branch || "N/A",
+          leave_type: leave.leave_type || "casual",
+          start_time: leave.start_time,
+          end_time: leave.end_time,
+          is_half_day: leave.is_half_day,
+          half_day_session: leave.half_day_session,
           from: leave.start_date || "N/A",
           to: leave.end_date || "N/A",
           reason: leave.reason || "N/A",
+          initial_document_url: leave.initial_document_url || null,
+          completion_document_url: leave.completion_document_url || null,
+          od_purpose_category: leave.od_purpose_category || null,
+          current_stage: leave.current_stage,
           status: leave.status === "APPROVED" ? "Approved" :
           leave.status === "REJECTED" ? "Rejected" :
           leave.status === "PENDING" ? "Pending" :
@@ -131,7 +209,7 @@ const DriverLeavesManagement = () => {
         setLeaveRequests(leaveData);
 
         // Set pagination info if available
-        const count = response.count || dataSource && dataSource.count;
+        const count = response.count || (dataSource && dataSource.count);
         if (count !== undefined) {
           setTotalPages(Math.ceil(count / 10)); // Assuming page_size is 10
           setTotalCount(count);
@@ -145,7 +223,6 @@ const DriverLeavesManagement = () => {
         });
       }
     } catch (err) {
-
       setError("Network error");
       toast({
         variant: "destructive",
@@ -218,7 +295,6 @@ const DriverLeavesManagement = () => {
         });
       }
     } catch (err) {
-
       setError("Network error");
       toast({
         variant: "destructive",
@@ -283,7 +359,6 @@ const DriverLeavesManagement = () => {
         });
       }
     } catch (err) {
-
       setError("Network error");
       toast({
         variant: "destructive",
@@ -295,13 +370,12 @@ const DriverLeavesManagement = () => {
     }
   };
 
-
   if (loading && leaveRequests.length === 0) {
     return (
       <div className="space-y-6">
-        <SkeletonTable rows={8} cols={5} />
-      </div>);
-
+        <SkeletonTable rows={8} cols={7} />
+      </div>
+    );
   }
 
   return (
@@ -323,72 +397,70 @@ const DriverLeavesManagement = () => {
       `}</style>
 
       <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Card id="hod-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
-        <CardHeader id="hod-leaves-header-section" className="leave-card-header pb-3 md:pb-4 border-b border-inherit">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <CardTitle className={`leave-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
-                {totalCount > 0 &&
-                  <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
-                    {totalCount} Total
-                  </span>
+        <Card id="transport-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
+          <CardHeader id="transport-leaves-header-section" className="leave-card-header pb-3 md:pb-4 border-b border-inherit">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+              <div>
+                <div className="flex items-center gap-3 mb-1">
+                  <CardTitle className={`leave-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
+                  {totalCount > 0 &&
+                    <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
+                      {totalCount} Total
+                    </span>
                   }
+                </div>
+                <p className={`leave-card-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Review and approve leave requests from Transport Staff & Drivers
+                </p>
               </div>
-              <p className={`leave-card-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                Review and approve leave requests from Drivers
-              </p>
-            </div>
-            <div className="leave-filter-container flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
-              <div className="leave-month-wrapper flex items-center gap-2">
-                <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Month:</label>
-                <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
+              <div className="leave-filter-container flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+                <div className="leave-month-wrapper flex items-center gap-2">
+                  <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Month:</label>
+                  <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
                         variant="outline"
                         className={`leave-month-picker ${theme === 'dark' ? 'w-40 justify-start text-left font-normal bg-card text-foreground border-border' : 'w-40 justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}`}>
-                        
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedMonth ?
-                        (() => {
-                          try {
-                            const d = new Date(`${selectedMonth}-01`);
-                            return format(d, 'MMMM yyyy');
-                          } catch (e) {
-                            return selectedMonth;
-                          }
-                        })() :
-
-                        <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select month</span>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {selectedMonth ?
+                          (() => {
+                            try {
+                              const d = new Date(`${selectedMonth}-01`);
+                              return format(d, 'MMMM yyyy');
+                            } catch (e) {
+                              return selectedMonth;
+                            }
+                          })() :
+                          <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select month</span>
                         }
-                    </Button>
-                  </PopoverTrigger>
+                      </Button>
+                    </PopoverTrigger>
 
-                  <PopoverContent className={theme === 'dark' ? 'w-64 p-3 bg-background text-foreground border-border shadow-lg' : 'w-64 p-3 bg-white text-gray-900 border-gray-200 shadow-lg'}>
-                    <div>
-                      <div className="flex items-center justify-center mb-3">
-                        <Select
-                          value={visibleMonth.getFullYear().toString()}
-                          onValueChange={(val) => setVisibleMonth(new Date(Number(val), visibleMonth.getMonth(), 1))}
-                        >
-                          <SelectTrigger className="w-[120px] h-8 text-xs font-semibold">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[200px]">
-                            {Array.from({ length: 11 }, (_, i) => {
-                              const year = (new Date().getFullYear() - i).toString();
-                              return (
-                                <SelectItem key={year} value={year} className="text-xs">
-                                  {year}
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <PopoverContent className={theme === 'dark' ? 'w-64 p-3 bg-background text-foreground border-border shadow-lg' : 'w-64 p-3 bg-white text-gray-900 border-gray-200 shadow-lg'}>
+                      <div>
+                        <div className="flex items-center justify-center mb-3">
+                          <Select
+                            value={visibleMonth.getFullYear().toString()}
+                            onValueChange={(val) => setVisibleMonth(new Date(Number(val), visibleMonth.getMonth(), 1))}
+                          >
+                            <SelectTrigger className="w-[120px] h-8 text-xs font-semibold">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[200px]">
+                              {Array.from({ length: 11 }, (_, i) => {
+                                const year = (new Date().getFullYear() - i).toString();
+                                return (
+                                  <SelectItem key={year} value={year} className="text-xs">
+                                    {year}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                      <div className="grid grid-cols-3 gap-2">
-                        {Array.from({ length: 12 }).map((_, i) => {
+                        <div className="grid grid-cols-3 gap-2">
+                          {Array.from({ length: 12 }).map((_, i) => {
                             const monthDate = new Date(visibleMonth.getFullYear(), i, 1);
                             const monthLabel = format(monthDate, 'MMM');
                             const monthValue = `${visibleMonth.getFullYear()}-${String(i + 1).padStart(2, '0')}`;
@@ -404,166 +476,147 @@ const DriverLeavesManagement = () => {
                                   setMonthPickerOpen(false);
                                 }}
                                 className={`px-3 py-2 rounded-md text-sm text-left w-full disabled:opacity-30 disabled:cursor-not-allowed ${selectedMonth === monthValue ? 'bg-primary text-primary-foreground' : theme === 'dark' ? 'bg-card hover:bg-accent text-foreground' : 'bg-white hover:bg-gray-100 text-gray-900'} `}>
-                                
-                              {monthLabel}
-                            </button>);
-
+                                {monthLabel}
+                              </button>
+                            );
                           })}
-                      </div>
+                        </div>
 
-                      <div className="mt-3 flex justify-end gap-2">
-                        <Button
+                        <div className="mt-3 flex justify-end gap-2">
+                          <Button
                             variant="outline"
                             size="sm"
                             onClick={() => {
                               setSelectedMonth('');
                               setMonthPickerOpen(false);
                             }}>
-                            
-                          Clear
-                        </Button>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="leave-filter-select w-[100px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center shadow-sm font-medium text-sm">
-                  <Filter className="h-4 w-4" />
-                  <span className="!hidden sm:!inline">Filter</span>
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
-                  <SelectItem value="All">All Statuses</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Approved">Approved</SelectItem>
-                  <SelectItem value="Rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex-1 px-2 sm:px-6 pt-2">
-          <div className="border rounded-xl overflow-hidden shadow-sm">
-            {/* Mobile: stacked cards */}
-            <div className="md:hidden space-y-3 p-2">
-              {Array.isArray(filteredLeaveRequests) && filteredLeaveRequests.length > 0 ?
-                filteredLeaveRequests.map((leave) =>
-                <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="font-semibold text-base">{leave.name}</div>
-                        <div className="text-xs text-muted-foreground font-medium">{leave.department}</div>
-                      </div>
-                      <div className="shrink-0">{getStatusBadge(leave.status, theme)}</div>
-                    </div>
-                    
-                    <div className="mt-3 space-y-3">
-                      <div className={`p-2.5 rounded-lg border text-sm flex items-center gap-2 ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50/50 border-gray-100'}`}>
-                        <CalendarIcon className="w-4 h-4 text-primary/60" />
-                        <span className="font-medium text-foreground">{leave.from}</span>
-                        <span className="text-muted-foreground">to</span>
-                        <span className="font-medium text-foreground">{leave.to}</span>
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`leave-view-btn w-full h-9 font-semibold transition border ${
-                          theme === 'dark'
-                            ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
-                            : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                        }`}
-                        onClick={() => setViewLeave(leave)}>
-                        View Reason
-                      </Button>
-
-                      {leave.status === "Pending" ? (
-                        <div className="leave-actions-mobile flex gap-2 w-full mt-2">
-                          <Button
-                            variant="outline"
-                            className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${theme === 'dark' ?
-                                'text-green-400 border-green-400 hover:bg-green-900/20' :
-                                'text-green-700 border-green-600 hover:bg-green-100'}`
-                            }
-                            onClick={() => handleApprove(leave.id)}
-                            disabled={loading}>
-                            <CheckCircle size={15} /> Approve
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${theme === 'dark' ?
-                                'text-red-400 border-red-400 hover:bg-red-900/20' :
-                                'text-red-700 border-red-600 hover:bg-red-100'}`
-                            }
-                            onClick={() => handleReject(leave.id)}
-                            disabled={loading}>
-                            <XCircle size={15} /> Reject
+                            Clear
                           </Button>
                         </div>
-                      ) : (
-                        <div className="pt-2 text-center border-t border-border/30">
-                          <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) :
-
-                <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
-                  <CalendarIcon className="w-10 h-10 text-primary opacity-30 mb-3" />
-                  <h3 className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Leave Requests</h3>
-                  <p className={`text-xs text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>There are currently no leave requests to display for this period.</p>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
-                }
-            </div>
 
-            {/* Desktop / Tablet: table */}
-            <table className="hidden md:table w-full text-sm text-left border-collapse">
-              <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-border bg-card shadow-sm' : 'border-gray-200 bg-gray-50 shadow-sm'}`}>
-                <tr>
-                  <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Driver</th>
-                  <th className={`py-3 px-4 md:px-12 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
-                  <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
-                  <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
-                  <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="leave-filter-select w-[100px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center shadow-sm font-medium text-sm">
+                    <Filter className="h-4 w-4" />
+                    <span className="!hidden sm:!inline">Filter</span>
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
+                    <SelectItem value="All">All Statuses</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Approved">Approved</SelectItem>
+                    <SelectItem value="Rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 px-2 sm:px-6 pt-2">
+            <div className="border rounded-xl overflow-hidden shadow-sm">
+              {/* Mobile: stacked cards */}
+              <div className="md:hidden space-y-3 p-2">
                 {Array.isArray(filteredLeaveRequests) && filteredLeaveRequests.length > 0 ?
                   filteredLeaveRequests.map((leave) =>
-                  <tr
-                    key={leave.id}
-                    className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
-                    
-                      <td className="py-4 px-2 md:px-4">
-                        <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.name}</div>
-                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.department}</div>
-                      </td>
-                      <td className={`py-4 px-2 md:px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {leave.from} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {leave.to}
-                      </td>
-                      <td className="py-4 px-2 md:px-4 text-sm">
-                        <button
-                          onClick={() => setViewLeave(leave)}
-                          className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${
-                            theme === 'dark'
-                              ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
-                              : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                          }`}
-                        >
-                          View
-                        </button>
-                      </td>
-                      <td className="py-4 px-2 md:px-4">{getStatusBadge(leave.status, theme)}</td>
-                      <td className="py-4 px-2 md:px-4">
+                    <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-base break-all">{leave.name}</div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
+                              {leave.role?.replace('_', ' ')}
+                            </span>
+                            {leave.department && leave.department !== 'General' && leave.department !== 'N/A' && (
+                              <span className="text-xs text-muted-foreground font-medium">{leave.department}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="shrink-0">{getStatusBadge(leave.status, theme)}</div>
+                      </div>
+
+                      <div className="mt-2.5">
+                        <div className="text-sm font-semibold text-foreground">{leave.title}</div>
+                        {renderLeaveCategoryBadge(leave.leave_type, leave.is_half_day, leave.half_day_session, leave.od_purpose_category)}
+                      </div>
+
+                      <div className="mt-2.5 space-y-3">
+                        <div className={`p-2.5 rounded-lg border text-sm flex flex-col gap-1 ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50/50 border-gray-100'}`}>
+                          <div className="flex items-center gap-2">
+                            <CalendarIcon className="w-4 h-4 text-primary/60" />
+                            <span className="font-medium text-foreground">{formatDateString(leave.from)}</span>
+                            {leave.from !== leave.to && (
+                              <>
+                                <span className="text-muted-foreground">to</span>
+                                <span className="font-medium text-foreground">{formatDateString(leave.to)}</span>
+                              </>
+                            )}
+                          </div>
+                          {leave.start_time && leave.end_time && (
+                            <div className="text-xs font-semibold text-primary pl-6">
+                              {leave.start_time} - {leave.end_time}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`leave-view-btn w-full h-9 font-semibold transition border ${
+                              theme === 'dark'
+                                ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                            }`}
+                            onClick={() => setViewReason(leave.reason)}>
+                            View Reason
+                          </Button>
+
+                          {(leave.initial_document_url || leave.completion_document_url) && (
+                            <>
+                              {leave.initial_document_url && (
+                                <a
+                                  href={leave.initial_document_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md border shadow-sm transition-all ${
+                                    theme === 'dark'
+                                      ? 'border-sky-500/30 bg-sky-950/30 text-sky-300 hover:bg-sky-950/50'
+                                      : 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100'
+                                  }`}
+                                >
+                                  <FileText className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                                  <span>View Attachment</span>
+                                  <ExternalLink className="w-3 h-3 opacity-70" />
+                                </a>
+                              )}
+                              {leave.completion_document_url && (
+                                <a
+                                  href={leave.completion_document_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={`w-full h-9 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md border shadow-sm transition-all ${
+                                    theme === 'dark'
+                                      ? 'border-emerald-500/30 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-950/50'
+                                      : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                  }`}
+                                >
+                                  <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                  <span>View Attendance Certificate</span>
+                                  <ExternalLink className="w-3 h-3 opacity-70" />
+                                </a>
+                              )}
+                            </>
+                          )}
+                        </div>
+
                         {leave.status === "Pending" ? (
-                          <div className="flex flex-col md:flex-row gap-2">
+                          <div className="grid grid-cols-2 gap-3 mt-2">
                             <Button
                               variant="outline"
-                              className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
-                                  'text-green-400 border-green-400 hover:bg-green-900/20' :
-                                  'text-green-700 border-green-600 hover:bg-green-100'}`
+                              className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark' ?
+                                  'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20' :
+                                  'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'}`
                               }
                               onClick={() => handleApprove(leave.id)}
                               disabled={loading}>
@@ -571,9 +624,9 @@ const DriverLeavesManagement = () => {
                             </Button>
                             <Button
                               variant="outline"
-                              className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
-                                  'text-red-400 border-red-400 hover:bg-red-900/20' :
-                                  'text-red-700 border-red-600 hover:bg-red-100'}`
+                              className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark' ?
+                                  'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20' :
+                                  'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'}`
                               }
                               onClick={() => handleReject(leave.id)}
                               disabled={loading}>
@@ -581,97 +634,231 @@ const DriverLeavesManagement = () => {
                             </Button>
                           </div>
                         ) : (
-                          <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                          <div className="pt-2 text-center border-t border-border/30">
+                            <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                          </div>
                         )}
-                      </td>
-                    </tr>
-                  ) :
-
-                  <tr>
-                    <td colSpan={5} className="py-20 px-4">
-                      <div className="flex flex-col items-center justify-center">
-                        <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                          <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
-                        </div>
-                        <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests</h3>
-                        <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          There are currently no leave requests available for the selected period.
-                        </p>
                       </div>
-                    </td>
-                  </tr>
-                  }
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-        
-        {totalPages > 1 && (
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-            <div>
-              Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1 || loading}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Previous
-              </Button>
-
-              <div className="flex items-center justify-center min-w-[2rem]">
-                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {currentPage}
-                </span>
+                    </div>
+                  ) :
+                  <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
+                    <CalendarIcon className="w-10 h-10 text-primary opacity-30 mb-3" />
+                    <h3 className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Leave Requests</h3>
+                    <p className={`text-xs text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>There are currently no leave requests to display for this period.</p>
+                  </div>
+                }
               </div>
 
+              {/* Desktop / Tablet: table */}
+              <div className="hidden md:block overflow-x-auto custom-scrollbar">
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-border bg-card shadow-sm' : 'border-gray-200 bg-gray-50 shadow-sm'}`}>
+                    <tr>
+                      <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Applicant</th>
+                      <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Category / Title</th>
+                      <th className={`py-3 px-4 md:px-6 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period & Time</th>
+                      <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attachments</th>
+                      <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
+                      <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                      <th className={`py-3 px-2 text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {Array.isArray(filteredLeaveRequests) && filteredLeaveRequests.length > 0 ?
+                      filteredLeaveRequests.map((leave) =>
+                        <tr
+                          key={leave.id}
+                          className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
+                          
+                          <td className="py-4 px-2 md:px-4 text-left">
+                            <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.name}</div>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted text-muted-foreground">
+                                {leave.role?.replace('_', ' ')}
+                              </span>
+                              {leave.department && leave.department !== 'General' && leave.department !== 'N/A' && (
+                                <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.department}</span>
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="py-4 px-2 md:px-4 text-left">
+                            <div className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</div>
+                            {renderLeaveCategoryBadge(leave.leave_type, leave.is_half_day, leave.half_day_session, leave.od_purpose_category)}
+                          </td>
+
+                          <td className={`py-4 px-2 md:px-4 text-sm text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            <div>{formatDateString(leave.from)} {leave.from !== leave.to && <><span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {formatDateString(leave.to)}</>}</div>
+                            {leave.start_time && leave.end_time && (
+                              <div className="text-xs font-semibold text-primary mt-0.5">
+                                {leave.start_time} - {leave.end_time}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Attachments Column */}
+                          <td className="py-4 px-2 md:px-4 text-sm text-center">
+                            {leave.initial_document_url || leave.completion_document_url ? (
+                              <div className="flex flex-col items-center justify-center gap-1.5">
+                                {leave.initial_document_url && (
+                                  <a
+                                    href={leave.initial_document_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors shrink-0 whitespace-nowrap"
+                                    title="View Attached Order / Document Proof"
+                                  >
+                                    <FileText className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                                    <span>Attachment</span>
+                                    <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                                  </a>
+                                )}
+                                {leave.completion_document_url && (
+                                  <a
+                                    href={leave.completion_document_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors shrink-0 whitespace-nowrap"
+                                    title="View Attendance Certificate"
+                                  >
+                                    <FileText className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                    <span>Attendance Cert</span>
+                                    <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                                  </a>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground text-xs italic">—</span>
+                            )}
+                          </td>
+
+                          <td className="py-4 px-2 md:px-4 text-sm text-center">
+                            <button
+                              onClick={() => setViewReason(leave.reason)}
+                              className={`text-sm font-medium px-2.5 py-1 rounded-md transition border ${
+                                theme === 'dark'
+                                  ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                                  : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                              }`}
+                            >
+                              View
+                            </button>
+                          </td>
+
+                          <td className="py-4 px-2 md:px-4 text-center">{getStatusBadge(leave.status, theme)}</td>
+
+                          <td className="py-4 px-2 md:px-4 text-center">
+                            {leave.status === "Pending" ? (
+                              <div className="flex flex-col md:flex-row justify-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
+                                      'text-green-400 border-green-400 hover:bg-green-900/20' :
+                                      'text-green-700 border-green-600 hover:bg-green-100'}`
+                                  }
+                                  onClick={() => handleApprove(leave.id)}
+                                  disabled={loading}>
+                                  <CheckCircle size={16} /> Approve
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark' ?
+                                      'text-red-400 border-red-400 hover:bg-red-900/20' :
+                                      'text-red-700 border-red-600 hover:bg-red-100'}`
+                                  }
+                                  onClick={() => handleReject(leave.id)}
+                                  disabled={loading}>
+                                  <XCircle size={16} /> Reject
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                            )}
+                          </td>
+                        </tr>
+                      ) :
+                      <tr>
+                        <td colSpan={7} className="py-20 px-4">
+                          <div className="flex flex-col items-center justify-center">
+                            <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                              <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
+                            </div>
+                            <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests</h3>
+                            <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              There are currently no leave requests available for the selected period.
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </CardContent>
+          
+          {totalPages > 1 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1 || loading}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Previous
+                </Button>
+
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {currentPage}
+                  </span>
+                </div>
+
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages || loading}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
+        </Card>
+
+        {/* View Reason Dialog */}
+        <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}>
+          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}>
+            <DialogHeader>
+              <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Reason</DialogTitle>
+            </DialogHeader>
+
+            <div
+                className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
+                        max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              {viewReason}
+            </div>
+
+            <DialogFooter className="mt-4">
               <Button
                   variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages || loading}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Next
+                  className={theme === 'dark' ?
+                  'text-foreground bg-card border border-border bg-primary hover:text-white hover:bg-primary/80' :
+                  'border border-gray-300 hover:bg-gray-50 text bg-primary text-white hover:bg-primary/80 hover:text-white'}
+                  onClick={() => setViewReason(null)}>
+                Close
               </Button>
-            </div>
-          </CardFooter>
-        )}
-      </Card>
-
-      {/* View Reason Dialog */}
-      <Dialog open={!!viewLeave} onOpenChange={() => setViewLeave(null)}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}>
-          <DialogHeader>
-            <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Reason</DialogTitle>
-          </DialogHeader>
-
-          <div
-              className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
-                      max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              
-            {viewLeave?.reason}
-          </div>
-
-
-
-          <DialogFooter className="mt-4">
-            <Button
-                variant="outline"
-                className={theme === 'dark' ?
-                'text-foreground bg-card border border-border bg-primary hover:text-white hover:bg-primary/80' :
-                'border border-gray-300 hover:bg-gray-50 text bg-primary text-white hover:bg-primary/80 hover:text-white'}
-                onClick={() => setViewLeave(null)}>
-                
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-    </>);
-
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </>
+  );
 };
 
 export default DriverLeavesManagement;
