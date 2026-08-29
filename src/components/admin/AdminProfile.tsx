@@ -43,6 +43,9 @@ interface ProfileData {
   address: string;
   bio: string;
   profile_picture?: string;
+  library_id?: string;
+  vtu_staff_id?: string;
+  aicte_id?: string;
 }
 
 const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
@@ -55,7 +58,10 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
     mobile_number: "",
     address: "",
     bio: "",
-    profile_picture: ""
+    profile_picture: "",
+    library_id: "",
+    vtu_staff_id: "",
+    aicte_id: ""
   });
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -125,14 +131,17 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
       try {
         const response = await manageAdminProfile({ user_id: currentUser.user_id }, 'GET');
         if (response.success && response.profile) {
-          const profileData = {
+          const profileData: ProfileData = {
             first_name: response.profile.first_name || '',
             last_name: response.profile.last_name || '',
             email: response.profile.email || '',
             mobile_number: response.profile.mobile_number || '',
             address: response.profile.address || '',
             bio: response.profile.bio || '',
-            profile_picture: response.profile.profile_picture || ''
+            profile_picture: response.profile.profile_picture || '',
+            library_id: response.profile.library_id || '',
+            vtu_staff_id: response.profile.vtu_staff_id || '',
+            aicte_id: response.profile.aicte_id || ''
           };
           setProfile(profileData);
           setOriginalProfile(profileData);
@@ -148,7 +157,10 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               mobile_number: '',
               address: '',
               bio: '',
-              profile_picture: ''
+              profile_picture: '',
+              library_id: '',
+              vtu_staff_id: '',
+              aicte_id: ''
             });
           }
         }
@@ -379,6 +391,18 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
     if (!profile.last_name || profile.last_name.trim().length < 1) errs.last_name = 'Last name required';
     if (profile.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(profile.email)) errs.email = 'Invalid email';
     if (profile.mobile_number && profile.mobile_number.length !== 10) errs.mobile_number = 'Enter 10 digits';
+
+    const idRegex = /^[a-zA-Z0-9\-_ ]*$/;
+    if (profile.library_id && !idRegex.test(profile.library_id.trim())) {
+      errs.library_id = 'Library ID must be alphanumeric';
+    }
+    if (profile.vtu_staff_id && !idRegex.test(profile.vtu_staff_id.trim())) {
+      errs.vtu_staff_id = 'VTU Staff ID must be alphanumeric';
+    }
+    if (profile.aicte_id && !idRegex.test(profile.aicte_id.trim())) {
+      errs.aicte_id = 'AICTE ID must be alphanumeric';
+    }
+
     setLocalErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -405,14 +429,17 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
       if (response.success) {
         showSuccessAlert('Success', 'Profile saved successfully');
         if (response.profile) {
-          const profileData = {
+          const profileData: any = {
             first_name: response.profile.first_name || '',
             last_name: response.profile.last_name || '',
             email: response.profile.email || '',
             mobile_number: response.profile.mobile_number || '',
             address: response.profile.address || '',
             bio: response.profile.bio || '',
-            profile_picture: response.profile.profile_picture || profile?.profile_picture || ''
+            profile_picture: response.profile.profile_picture || profile?.profile_picture || '',
+            library_id: response.profile.library_id || '',
+            vtu_staff_id: response.profile.vtu_staff_id || '',
+            aicte_id: response.profile.aicte_id || ''
           };
           setProfile(profileData);
           setOriginalProfile(profileData);
@@ -421,6 +448,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             ...response.profile,
             user_id: currentUser.user_id
           }));
+          window.dispatchEvent(new Event("userProfileUpdated"));
         }
         setEditing(false);
         setLocalErrors({});
@@ -513,8 +541,29 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               {localErrors.mobile_number && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.mobile_number}</p>}
             </div>
           </div>
-        </div>);
 
+          {/* Institutional IDs */}
+          <div className="pt-4 border-t mt-4">
+            <h4 className={`text-sm font-semibold mb-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Institutional IDs</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div>
+                <label htmlFor="library_id" className={`block text-xs mb-1.5 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Library ID</label>
+                <Input id="library_id" name="library_id" value={profile.library_id || ''} onChange={handleChange} disabled={!editing} placeholder="e.g. LIB12345" className="text-base sm:text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
+                {localErrors.library_id && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.library_id}</p>}
+              </div>
+              <div>
+                <label htmlFor="vtu_staff_id" className={`block text-xs mb-1.5 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>VTU Staff ID</label>
+                <Input id="vtu_staff_id" name="vtu_staff_id" value={profile.vtu_staff_id || ''} onChange={handleChange} disabled={!editing} placeholder="e.g. VTU98765" className="text-base sm:text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
+                {localErrors.vtu_staff_id && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.vtu_staff_id}</p>}
+              </div>
+              <div>
+                <label htmlFor="aicte_id" className={`block text-xs mb-1.5 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>AICTE ID</label>
+                <Input id="aicte_id" name="aicte_id" value={profile.aicte_id || ''} onChange={handleChange} disabled={!editing} placeholder="e.g. 1-12345678" className="text-base sm:text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
+                {localErrors.aicte_id && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.aicte_id}</p>}
+              </div>
+            </div>
+          </div>
+        </div>);
     }
 
     if (activeTab === 'subscription') {

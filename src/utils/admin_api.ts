@@ -244,6 +244,10 @@ interface ManageAdminProfileRequest {
     mobile_number?: string;
     address?: string;
     bio?: string;
+    profile_picture_url?: string;
+    library_id?: string;
+    vtu_staff_id?: string;
+    aicte_id?: string;
   };
 }
 
@@ -257,6 +261,11 @@ interface ManageAdminProfileResponse {
     mobile_number: string;
     address: string;
     bio: string;
+    profile_picture?: string;
+    designation?: string;
+    library_id?: string;
+    vtu_staff_id?: string;
+    aicte_id?: string;
   };
 }
 
@@ -906,6 +915,10 @@ interface ManageAdminProfilePatchRequest {
     mobile_number?: string;
     address?: string;
     bio?: string;
+    profile_picture_url?: string;
+    library_id?: string;
+    vtu_staff_id?: string;
+    aicte_id?: string;
   };
 }
 
@@ -919,6 +932,10 @@ interface ManageAdminProfilePatchResponse {
     mobile_number: string;
     address: string;
     bio: string;
+    profile_picture?: string;
+    library_id?: string;
+    vtu_staff_id?: string;
+    aicte_id?: string;
   };
   changes?: Record<string, any>;
 }

@@ -169,6 +169,13 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
       if (result.success) {
         setEditing(false);
         await fetchProfile();
+        const payload = result.profile || result.data || formData;
+        const currentUser = JSON.parse(sessionStorage.getItem("user") || "{}");
+        sessionStorage.setItem("user", JSON.stringify({
+          ...currentUser,
+          ...payload
+        }));
+        window.dispatchEvent(new Event("userProfileUpdated"));
         Swal.fire({
           icon: 'success',
           title: 'Success',
@@ -600,6 +607,48 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <div>
                     <Label htmlFor="username_view" className={`block text-[16px] sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Username</Label>
                     <Input id="username_view" value={profile.username} disabled className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full" />
+                  </div>
+
+                  <div className="pt-4 border-t mt-4 col-span-1 sm:col-span-2">
+                    <h4 className={`text-sm font-semibold mb-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Institutional IDs</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                      <div>
+                        <Label htmlFor="library_id" className={`block text-xs mb-1.5 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Library ID</Label>
+                        <Input
+                          id="library_id"
+                          name="library_id"
+                          value={formData.library_id}
+                          disabled={!editing}
+                          placeholder="e.g. LIB12345"
+                          onChange={(e) => setFormData({ ...formData, library_id: e.target.value })}
+                          className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="vtu_staff_id" className={`block text-xs mb-1.5 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>VTU Staff ID</Label>
+                        <Input
+                          id="vtu_staff_id"
+                          name="vtu_staff_id"
+                          value={formData.vtu_staff_id}
+                          disabled={!editing}
+                          placeholder="e.g. VTU98765"
+                          onChange={(e) => setFormData({ ...formData, vtu_staff_id: e.target.value })}
+                          className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="aicte_id" className={`block text-xs mb-1.5 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>AICTE ID</Label>
+                        <Input
+                          id="aicte_id"
+                          name="aicte_id"
+                          value={formData.aicte_id}
+                          disabled={!editing}
+                          placeholder="e.g. 1-12345678"
+                          onChange={(e) => setFormData({ ...formData, aicte_id: e.target.value })}
+                          className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               }
