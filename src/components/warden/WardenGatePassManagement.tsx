@@ -759,8 +759,8 @@ const WardenGatePassManagement = () => {
 
       {/* Review / Audit Dialog (active tab only) */}
       <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
-        <DialogContent className="w-[90%] h-[80vh] sm:h-auto sm:max-w-md rounded-xl sm:rounded-2xl p-0 max-h-[85vh] overflow-y-auto custom-scrollbar bg-background">
-          <DialogHeader className="p-6 border-b shrink-0 bg-muted/10">
+        <DialogContent className="w-[92%] sm:max-w-md rounded-xl sm:rounded-2xl p-0 max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden bg-background">
+          <DialogHeader className="p-4 sm:p-5 border-b shrink-0 bg-muted/10">
             <DialogTitle className="text-lg font-semibold">
               {selectedRequest?.status === 'pending' ? 'Review Gate Pass Request' : 'Gate Pass Request Audit'}
             </DialogTitle>
@@ -769,68 +769,68 @@ const WardenGatePassManagement = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4 border p-4 rounded-xl bg-muted/5 text-xs sm:text-sm">
+          <div className="p-4 sm:p-5 space-y-3.5 flex-1 overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 border p-3.5 sm:p-4 rounded-xl bg-muted/5 text-xs sm:text-sm">
               <div>
-                <span className="text-muted-foreground uppercase text-[13px] tracking-wider block font-semibold mb-0.5">Student</span>
-                <span className="font-semibold block">{selectedRequest?.student_name}</span>
-                <span className="text-[13px] text-muted-foreground">{selectedRequest?.student_usn}</span>
+                <span className="text-muted-foreground uppercase text-[12px] tracking-wider block font-semibold mb-0.5">Student</span>
+                <span className="font-semibold block truncate">{selectedRequest?.student_name}</span>
+                <span className="text-[12px] text-muted-foreground">{selectedRequest?.student_usn}</span>
               </div>
               <div>
-                <span className="text-muted-foreground uppercase text-[13px] tracking-wider block font-semibold mb-0.5">Hostel & Room</span>
-                <span className="font-semibold block">{selectedRequest?.hostel_name}</span>
-                <span className="text-[13px] text-muted-foreground">{selectedRequest?.room_number || 'N/A'}</span>
+                <span className="text-muted-foreground uppercase text-[12px] tracking-wider block font-semibold mb-0.5">Hostel & Room</span>
+                <span className="font-semibold block truncate">{selectedRequest?.hostel_name}</span>
+                <span className="text-[12px] text-muted-foreground">{selectedRequest?.room_number || 'N/A'}</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 border p-4 rounded-xl bg-muted/5 text-xs sm:text-sm">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 border p-3.5 sm:p-4 rounded-xl bg-muted/5 text-xs sm:text-sm">
               <div>
-                <span className="text-muted-foreground uppercase text-[13px] tracking-wider block font-semibold mb-0.5">Out Time</span>
+                <span className="text-muted-foreground uppercase text-[12px] tracking-wider block font-semibold mb-0.5">Out Time</span>
                 <span className="font-semibold block">{selectedRequest ? formatDateString(selectedRequest.out_date) : ''}</span>
-                <span className="text-[13px] text-muted-foreground">{selectedRequest && formatTimeToAmPm(selectedRequest.out_time)}</span>
+                <span className="text-[12px] text-muted-foreground">{selectedRequest && formatTimeToAmPm(selectedRequest.out_time)}</span>
               </div>
               <div>
-                <span className="text-muted-foreground uppercase text-[13px] tracking-wider block font-semibold mb-0.5">Expected Return</span>
+                <span className="text-muted-foreground uppercase text-[12px] tracking-wider block font-semibold mb-0.5">Expected Return</span>
                 <span className="font-semibold block">{selectedRequest ? formatDateString(selectedRequest.expected_return_date) : ''}</span>
-                <span className="text-[13px] text-muted-foreground">{selectedRequest && formatTimeToAmPm(selectedRequest.expected_return_time)}</span>
+                <span className="text-[12px] text-muted-foreground">{selectedRequest && formatTimeToAmPm(selectedRequest.expected_return_time)}</span>
               </div>
             </div>
 
-            <div className="border p-4 rounded-xl bg-muted/5 text-xs sm:text-sm">
-              <span className="text-muted-foreground uppercase text-[13px] tracking-wider block font-semibold mb-0.5">Reason for Outing</span>
+            <div className="border p-3.5 sm:p-4 rounded-xl bg-muted/5 text-xs sm:text-sm">
+              <span className="text-muted-foreground uppercase text-[12px] tracking-wider block font-semibold mb-0.5">Reason for Outing</span>
               <p className="text-muted-foreground leading-relaxed font-medium mt-1 whitespace-pre-wrap">{selectedRequest?.reason}</p>
             </div>
 
             {selectedRequest?.status !== 'pending' ? (
-              <div className={`border p-4 rounded-xl text-xs sm:text-sm space-y-3 ${selectedRequest?.status === 'approved' ? 'bg-green-500/5 border-green-200' : 'bg-red-500/5 border-red-200'
+              <div className={`border p-3.5 sm:p-4 rounded-xl text-xs sm:text-sm space-y-2.5 ${selectedRequest?.status === 'approved' ? 'bg-green-500/5 border-green-200' : 'bg-red-500/5 border-red-200'
                 }`}>
-                <div className="flex justify-between"><span className="text-muted-foreground font-semibold">Status:</span>{getStatusBadge(selectedRequest?.status || 'pending')}</div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center"><span className="text-muted-foreground font-semibold">Status:</span>{getStatusBadge(selectedRequest?.status || 'pending')}</div>
+                <div className="flex justify-between items-center">
                   <span className="text-muted-foreground font-semibold">Action Date:</span>
                   <span className="font-semibold text-foreground/80">{selectedRequest?.actioned_at ? new Date(selectedRequest.actioned_at).toLocaleString() : 'N/A'}</span>
                 </div>
                 {selectedRequest?.action_note && (
                   <div>
-                    <strong className="block text-[13px] uppercase tracking-wider text-muted-foreground mb-1">Warden Remark</strong>
+                    <strong className="block text-[12px] uppercase tracking-wider text-muted-foreground mb-1">Warden Remark</strong>
                     <p className="text-muted-foreground font-semibold leading-relaxed">{selectedRequest.action_note}</p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="space-y-2">
-                <label className="text-[13px] font-semibold text-muted-foreground uppercase tracking-widest block">Action Note (Optional)</label>
+              <div className="space-y-1.5">
+                <label className="text-[12px] font-semibold text-muted-foreground uppercase tracking-widest block">Action Note (Optional)</label>
                 <textarea
                   placeholder="Provide approval or rejection note for the student..."
                   value={actionNote}
                   onChange={(e) => setActionNote(e.target.value)}
                   rows={2}
-                  className="w-full text-xs p-3 rounded-lg border border-border bg-background resize-none focus-visible:ring-primary focus-visible:ring-2 focus-visible:outline-none font-medium"
+                  className="w-full text-xs p-2.5 sm:p-3 rounded-lg border border-border bg-background resize-none focus-visible:ring-primary focus-visible:ring-2 focus-visible:outline-none font-medium"
                 />
               </div>
             )}
           </div>
 
-          <DialogFooter className="p-6 pt-0 flex gap-2">
+          <DialogFooter className="p-4 sm:p-5 border-t bg-muted/5 shrink-0 flex gap-2">
             {selectedRequest?.status === 'pending' ? (
               <>
                 <Button onClick={() => handleAction('reject')} disabled={actionLoading} variant="outline"
