@@ -966,7 +966,7 @@ const FacultyAttendance = () => {
                   <div className="mt-2">
                     <button
                       onClick={handleOffCampusDuty}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || getFlowState().isCompleted}
                       className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
                         ${theme === 'dark'
                           ? 'border-amber-500/50 text-amber-400 hover:bg-amber-500/10'
