@@ -15,6 +15,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Badge } from "../ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
 import { Input } from "../ui/input";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Calendar as ShadcnCalendar } from "../ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -55,8 +59,12 @@ import {
   Mail,
   Table as TableIcon,
   Filter,
-  Download
+  Download,
+  Eye,
+  Calendar as CalendarIcon,
+  RotateCcw
 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CampusMonitoring() {
   const { theme, user } = useAuth();
@@ -74,12 +82,10 @@ export default function CampusMonitoring() {
   // Reports State
   const [reports, setReports] = useState<any[]>([]);
   const [reportLoading, setReportLoading] = useState(false);
-  const [startDate, setStartDate] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 7);
-    return d.toISOString().split("T")[0];
-  });
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -109,23 +115,29 @@ export default function CampusMonitoring() {
   };
 
   const fetchReports = async (p = 1) => {
+    if (!startDate || !endDate) return;
     try {
       setReportLoading(true);
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/monitoring/reports/?start_date=${startDate}&end_date=${endDate}&page=${p}`);
       const data = await res.json();
       if (data.success) {
-        setReports(data.data);
-        setPage(data.pagination.current_page);
-        setTotalPages(data.pagination.total_pages);
+        setReports(data.data || []);
+        setPage(data.pagination?.current_page || 1);
+        setTotalPages(data.pagination?.total_pages || 1);
       }
     } catch (err) {
       console.error("Failed to fetch reports", err);
+      toast.error("Failed to fetch reports");
     } finally {
       setReportLoading(false);
     }
   };
 
   const handleExportExcel = async () => {
+    if (!startDate || !endDate) {
+      toast.error("Please select both start and end dates to export reports");
+      return;
+    }
     try {
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/monitoring/reports/?start_date=${startDate}&end_date=${endDate}&page=1&page_size=10000`);
       const data = await res.json();
@@ -140,8 +152,7 @@ export default function CampusMonitoring() {
           "Faculty Name": alert.faculty_name,
           "Email": alert.faculty_email,
           "Status": alert.is_resolved ? "Returned" : "Active Exit",
-          "Duration": getExcursionDuration(alert),
-          "Details": getFormattedDistance(alert)
+          "Duration": getExcursionDuration(alert)
         }));
 
         const ws = XLSX.utils.json_to_sheet(exportData);
@@ -151,7 +162,18 @@ export default function CampusMonitoring() {
       }
     } catch (err) {
       console.error("Failed to export reports", err);
+      toast.error("Failed to export reports");
     }
+  };
+
+  const handleRefresh = () => {
+    fetchActiveSession();
+    // Reset audit reports filter back to initial state
+    setStartDate("");
+    setEndDate("");
+    setReports([]);
+    setPage(1);
+    setTotalPages(1);
   };
 
   useEffect(() => {
@@ -169,38 +191,11 @@ export default function CampusMonitoring() {
   }, []);
 
   useEffect(() => {
-    fetchReports(1);
+    if (startDate && endDate) {
+      fetchReports(1);
+    }
   }, [startDate, endDate]);
 
-  // Polar coordinate positions for plotting faculty nodes on the radar UI
-  const getFormattedDistance = (facultyAlert: any) => {
-    if (!facultyAlert) return 'Outside Geofence';
-    if (facultyAlert.distance_meters && facultyAlert.distance_meters > 0) {
-      return `${Math.round(facultyAlert.distance_meters)} meters`;
-    }
-    
-    const alertLat = facultyAlert.latitude;
-    const alertLng = facultyAlert.longitude;
-    const campusLat = campuses[0]?.latitude;
-    const campusLng = campuses[0]?.longitude;
-
-    if (alertLat && alertLng && campusLat && campusLng) {
-      const R = 6371000; // Earth radius in meters
-      const dLat = (alertLat - campusLat) * (Math.PI / 180);
-      const dLon = (alertLng - campusLng) * (Math.PI / 180);
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(campusLat * (Math.PI / 180)) *
-          Math.cos(alertLat * (Math.PI / 180)) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const dist = Math.round(R * c);
-      return `${dist} meters`;
-    }
-    
-    return 'Outside Geofence';
-  };
 
   const getExcursionDuration = (facultyAlert: any) => {
     if (!facultyAlert) return '-';
@@ -245,7 +240,7 @@ export default function CampusMonitoring() {
   };
 
   return (
-    <div className={`p-4 sm:p-6 max-w-7xl mx-auto space-y-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+    <div className={`w-full max-w-[412px] sm:max-w-none mx-auto space-y-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-border/40 pb-5">
@@ -258,7 +253,7 @@ export default function CampusMonitoring() {
             Real-time geofence scanner tracking faculty location events.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchActiveSession} disabled={loading} className="w-full sm:w-auto">
+        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
@@ -489,7 +484,7 @@ export default function CampusMonitoring() {
                           <TableHead className="w-[110px]">Time</TableHead>
                           <TableHead className="min-w-[150px]">Faculty</TableHead>
                           <TableHead className="min-w-[160px]">Contact</TableHead>
-                          <TableHead className="text-right w-[110px]">Distance</TableHead>
+                          <TableHead className="text-right w-[110px]">Status</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -522,7 +517,7 @@ export default function CampusMonitoring() {
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap">
                               <Badge variant="destructive" className="text-[10px] whitespace-nowrap inline-flex items-center justify-center rounded-full px-2.5 py-0.5 font-semibold shrink-0">
-                                {alert.distance_meters ? `${Math.round(alert.distance_meters)}m away` : 'Out of bounds'}
+                                Outside Campus
                               </Badge>
                             </TableCell>
                           </TableRow>
@@ -546,27 +541,116 @@ export default function CampusMonitoring() {
                 <CardDescription className="text-xs sm:text-sm">Historical logs of faculty detected outside campus.</CardDescription>
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <div className="flex items-center gap-1.5 bg-background border border-input rounded-lg px-2.5 py-1 text-xs">
-                  <span className="text-muted-foreground font-medium">From</span>
-                  <Input 
-                    type="date" 
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="h-7 border-none bg-transparent p-0 text-xs shadow-none focus-visible:ring-0"
-                  />
-                </div>
-                <div className="flex items-center gap-1.5 bg-background border border-input rounded-lg px-2.5 py-1 text-xs">
-                  <span className="text-muted-foreground font-medium">To</span>
-                  <Input 
-                    type="date" 
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="h-7 border-none bg-transparent p-0 text-xs shadow-none focus-visible:ring-0"
-                  />
-                </div>
-                <Button size="sm" onClick={() => fetchReports(1)} className="h-8 text-xs font-semibold">
-                  <Filter className="w-3.5 h-3.5 mr-1.5" /> Filter
-                </Button>
+                {/* Start Date Picker */}
+                <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "h-8 justify-start text-left font-normal text-xs px-2.5",
+                        !startDate && "text-muted-foreground",
+                        theme === 'dark' ? "bg-background border-border text-foreground hover:bg-accent" : "bg-white border-input text-gray-900 hover:bg-gray-100"
+                      )}
+                    >
+                      <CalendarIcon className="mr-1.5 h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-muted-foreground mr-1">From:</span>
+                      {startDate ? (
+                        <span className="font-medium">{format(new Date(`${startDate}T00:00:00`), "MMM dd, yyyy")}</span>
+                      ) : (
+                        <span className="text-muted-foreground">Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className={cn("w-auto p-0 shadow-lg", theme === 'dark' ? "bg-card border-border text-foreground" : "bg-white border-gray-200 text-gray-900")} align="start">
+                    <ShadcnCalendar
+                      mode="single"
+                      selected={startDate ? new Date(`${startDate}T00:00:00`) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setStartDate(format(date, "yyyy-MM-dd"));
+                          setStartDateOpen(false);
+                        }
+                      }}
+                      toDate={new Date()}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(23, 59, 59, 999);
+                        if (date > today) return true;
+                        const end = endDate ? new Date(`${endDate}T00:00:00`) : null;
+                        if (end) {
+                          return date > end;
+                        }
+                        return false;
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                {/* End Date Picker */}
+                <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "h-8 justify-start text-left font-normal text-xs px-2.5",
+                        !endDate && "text-muted-foreground",
+                        theme === 'dark' ? "bg-background border-border text-foreground hover:bg-accent" : "bg-white border-input text-gray-900 hover:bg-gray-100"
+                      )}
+                    >
+                      <CalendarIcon className="mr-1.5 h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-muted-foreground mr-1">To:</span>
+                      {endDate ? (
+                        <span className="font-medium">{format(new Date(`${endDate}T00:00:00`), "MMM dd, yyyy")}</span>
+                      ) : (
+                        <span className="text-muted-foreground">Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className={cn("w-auto p-0 shadow-lg", theme === 'dark' ? "bg-card border-border text-foreground" : "bg-white border-gray-200 text-gray-900")} align="start">
+                    <ShadcnCalendar
+                      mode="single"
+                      selected={endDate ? new Date(`${endDate}T00:00:00`) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setEndDate(format(date, "yyyy-MM-dd"));
+                          setEndDateOpen(false);
+                        }
+                      }}
+                      toDate={new Date()}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(23, 59, 59, 999);
+                        if (date > today) return true;
+                        const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
+                        if (start) {
+                          return date < start;
+                        }
+                        return false;
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                {(startDate || endDate) && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      setStartDate("");
+                      setEndDate("");
+                      setReports([]);
+                      setPage(1);
+                      setTotalPages(1);
+                    }} 
+                    className="h-8 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 mr-1" /> Reset
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" onClick={handleExportExcel} className="h-8 text-xs font-semibold">
                   <Download className="w-3.5 h-3.5 mr-1.5" /> Export Excel
                 </Button>
@@ -576,6 +660,18 @@ export default function CampusMonitoring() {
               {reportLoading ? (
                 <div className="p-12 flex justify-center">
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (!startDate || !endDate) ? (
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                  <div className={`p-4 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                    <CalendarIcon className="w-8 h-8 text-primary opacity-60" />
+                  </div>
+                  <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    Ready to view audit reports?
+                  </h3>
+                  <p className="text-xs text-muted-foreground max-w-sm">
+                    Select a start date and end date above to automatically view monitoring audit records.
+                  </p>
                 </div>
               ) : reports.length === 0 ? (
                 <div className="p-12 text-center text-muted-foreground text-sm">
@@ -591,7 +687,7 @@ export default function CampusMonitoring() {
                         <TableHead className="min-w-[150px]">Faculty</TableHead>
                         <TableHead className="w-[120px]">Status</TableHead>
                         <TableHead className="w-[100px]">Duration</TableHead>
-                        <TableHead className="text-right w-[100px]">Details</TableHead>
+                        <TableHead className="text-right w-[90px]">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -640,8 +736,19 @@ export default function CampusMonitoring() {
                           <TableCell className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
                             {getExcursionDuration(alert)}
                           </TableCell>
-                          <TableCell className="text-right text-xs whitespace-nowrap font-medium">
-                            {getFormattedDistance(alert)}
+                          <TableCell className="text-right whitespace-nowrap">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2.5 text-xs font-medium gap-1 hover:bg-primary hover:text-white transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedFaculty(alert);
+                              }}
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              View
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -650,7 +757,7 @@ export default function CampusMonitoring() {
                 </div>
               )}
             </CardContent>
-            {totalPages > 1 && (
+            {totalPages > 1 && startDate && endDate && (
               <div className="p-4 border-t border-border">
                 <Pagination>
                   <PaginationContent className="flex-wrap justify-center">
@@ -757,15 +864,6 @@ export default function CampusMonitoring() {
                   </span>
                   <span className="font-semibold text-xs">
                     {new Date(selectedFaculty.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
-                    <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> Distance Est.
-                  </span>
-                  <span className="font-semibold text-xs text-amber-600">
-                    {getFormattedDistance(selectedFaculty)}
                   </span>
                 </div>
               </div>
