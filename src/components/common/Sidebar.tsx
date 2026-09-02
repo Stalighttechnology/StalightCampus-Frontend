@@ -585,7 +585,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Dashboard", page: "dashboard" },
       { name: translateTerminology("Semester Management"), page: "semesters" },
       { name: "Courses", page: "subjects" },
-      { name: "Elective Course Enrollment", page: "student-enrollment" },
+      { name: "Course Enrollment", page: "student-enrollment" },
       { name: "Faculty Assignments", page: "faculty-assignments" },
       { name: "Timetable", page: "timetable" },
       { name: "Students Enrollment", page: "students" },
@@ -1108,11 +1108,10 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
                     {!collapsed && showDot && (
                       <div className="ml-auto flex items-center shrink-0 pl-1 z-10 pointer-events-none">
                         {badgeCount > 0 ? (
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none border shadow-sm ${
-                            isItemActive(item.page)
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none border shadow-sm ${isItemActive(item.page)
                               ? "bg-white text-primary border-white/60 font-extrabold"
                               : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
-                          }`}>
+                            }`}>
                             {badgeCount}
                           </span>
                         ) : (
