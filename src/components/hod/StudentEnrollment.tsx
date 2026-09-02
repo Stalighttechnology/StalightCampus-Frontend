@@ -1,6 +1,6 @@
 import { translateTerminology, getTerm, getInstitutionType } from "@/utils/institutionConfig";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
@@ -262,7 +262,8 @@ const StudentEnrollment = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalStudents, setTotalStudents] = useState(0);
-  // studentsPerPage removed (unused)
+  const [serverBatchCounts, setServerBatchCounts] = useState<Record<string, number>>({});
+  const [serverTotalEnrolled, setServerTotalEnrolled] = useState<number>(0);
 
   // Elective subjects pagination state
   const [electivePage, setElectivePage] = useState(1);
@@ -350,6 +351,8 @@ const StudentEnrollment = () => {
     setSelectedSubjectId("");
     setElectivePage(1);
     setElectiveTotalPages(1);
+    setServerBatchCounts({});
+    setServerTotalEnrolled(0);
   }, [semesterId, subjectType]);
   // Reset when section changes as well
   useEffect(() => {
@@ -358,6 +361,8 @@ const StudentEnrollment = () => {
     setSelectedSubjectId("");
     setElectivePage(1);
     setElectiveTotalPages(1);
+    setServerBatchCounts({});
+    setServerTotalEnrolled(0);
   }, [sectionId]);
 
   // Set subjects to the loaded elective subjects
@@ -433,6 +438,12 @@ const StudentEnrollment = () => {
       setCurrentPage(page);
       setTotalPages(data.total_pages || Math.ceil(data.count / 50)); // Fixed page size of 50
       setTotalStudents(data.count);
+      if (data.batch_counts) {
+        setServerBatchCounts(data.batch_counts);
+      }
+      if (data.total_enrolled !== undefined) {
+        setServerTotalEnrolled(data.total_enrolled);
+      }
 
       // Reset enrolled count - derived when needed (removed state)
     } catch (e) {
@@ -483,6 +494,30 @@ const StudentEnrollment = () => {
   const uncheckAllEnrolled = () => {
     setStudents((prev) => prev.map((s) => s.checked ? { ...s, checked: false } : s));
   };
+
+  // Compute real-time enrolled count for the active batch or overall subject:
+  // Combines server-side total count across all pages with any pending local changes on the current page.
+  const activeEnrolledCount = useMemo(() => {
+    if (isLabSubject && activeEnrollBatchId) {
+      const base = serverBatchCounts[String(activeEnrollBatchId)] ?? 0;
+      let delta = 0;
+      students.forEach((s: any) => {
+        const wasInBatch = s.originallyEnrolled && String(s.lab_batch_id) === String(activeEnrollBatchId);
+        const isInBatch = s.checked && String(s.assignedBatchId || s.lab_batch_id) === String(activeEnrollBatchId);
+        if (!wasInBatch && isInBatch) delta += 1;
+        if (wasInBatch && !isInBatch) delta -= 1;
+      });
+      return Math.max(0, base + delta);
+    } else {
+      const base = serverTotalEnrolled;
+      let delta = 0;
+      students.forEach((s: any) => {
+        if (!s.originallyEnrolled && s.checked) delta += 1;
+        if (s.originallyEnrolled && !s.checked) delta -= 1;
+      });
+      return Math.max(0, base + delta);
+    }
+  }, [isLabSubject, activeEnrollBatchId, serverBatchCounts, serverTotalEnrolled, students]);
 
   const save = async () => {
     if (students.length === 0) return;
@@ -560,6 +595,9 @@ const StudentEnrollment = () => {
         }
         return student;
       }));
+
+      // Refresh true server batch counts and pagination metadata
+      loadStudents(currentPage, appliedSearch);
 
     } catch (e) {
 
@@ -731,7 +769,7 @@ const StudentEnrollment = () => {
                       <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                         {currentLabBatches.map((b: any) => (
                           <SelectItem key={String(b.id)} value={String(b.id)}>
-                            {b.name}
+                            {b.name}{serverBatchCounts[String(b.id)] !== undefined ? ` (${serverBatchCounts[String(b.id)]})` : ''}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -795,9 +833,7 @@ const StudentEnrollment = () => {
                       'bg-green-900/30 text-green-400 border border-green-800/50' :
                       'bg-green-100 text-green-800 border border-green-200'}`
                   }>
-                    {isLabSubject && activeEnrollBatchId
-                      ? students.filter((s: any) => s.checked && String(s.assignedBatchId || s.lab_batch_id) === String(activeEnrollBatchId)).length
-                      : students.filter((s: any) => s.checked).length}
+                    {activeEnrolledCount}
                   </span>
                 </div>
                 <label className={`flex items-center gap-2 shrink-0 ${(!semesterId || !sectionId || !subjectType || !selectedSubjectId) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer group'}`}>
@@ -877,7 +913,7 @@ const StudentEnrollment = () => {
                                     'bg-green-900/40 text-green-400 border border-green-800/50' :
                                     'bg-green-100 text-green-800 border border-green-200'}`
                                 }>
-                                  {enrolledListFiltered.length}
+                                  {activeEnrolledCount}
                                 </span>
                               </div>
                             </div>
@@ -899,7 +935,11 @@ const StudentEnrollment = () => {
                               {enrolledListFiltered.length === 0 &&
                                 <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
                                   <UserX className="w-8 h-8 mb-2 opacity-20" />
-                                  <p className="text-sm font-medium">No students enrolled in {activeBatchName}</p>
+                                  <p className="text-sm font-medium">
+                                    {activeEnrolledCount > 0
+                                      ? `All ${activeEnrolledCount} enrolled students are on other pages`
+                                      : `No students enrolled in ${activeBatchName}`}
+                                  </p>
                                 </div>
                               }
                             </div>
