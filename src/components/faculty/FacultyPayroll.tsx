@@ -241,6 +241,10 @@ const FacultyPayroll: React.FC<FacultyPayrollProps> = ({ user }) => {
                         <div className="font-semibold text-red-500">{formatCurrency(slip.esi_deduction)}</div>
                       </div>
                       <div>
+                        <div className="text-xs text-slate-400 mb-0.5">Professional Tax (PT)</div>
+                        <div className="font-semibold text-red-500">{formatCurrency(slip.professional_tax)}</div>
+                      </div>
+                      <div>
                         <div className="text-xs text-slate-400 mb-0.5">TDS (Tax)</div>
                         <div className="font-semibold text-red-500">{formatCurrency(slip.tds_deduction)}</div>
                       </div>

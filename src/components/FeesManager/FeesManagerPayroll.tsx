@@ -39,7 +39,8 @@ import {
   ClipboardCheck,
   Loader2,
   Check,
-  ChevronsUpDown
+  ChevronsUpDown,
+  ShieldCheck
 } from 'lucide-react';
 import {
   getPayrollSettings,
@@ -208,10 +209,11 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
     esi_employee_percent: 0.75,
     esi_employer_percent: 3.25,
     esi_wage_limit: 21000,
+    pt_enabled: true,
     pt_slabs: {
       "Karnataka": [
-        { min: 0, max: 25000, amount: 0 },
-        { min: 25001, max: 9999999, amount: 200 }
+        { min: 0, max: 25000, amount: 0, feb_amount: 0 },
+        { min: 25001, max: 99999999, amount: 200, feb_amount: 300 }
       ]
     },
     lwf_enabled: false,
@@ -1816,6 +1818,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                   <th className="px-6 py-4 text-right">Adjustments</th>
                   <th className="px-6 py-4 text-right">PF Deduction</th>
                   <th className="px-6 py-4 text-right">ESI Deduction</th>
+                  <th className="px-6 py-4 text-right">PT (Tax)</th>
                   <th className="px-6 py-4 text-right">TDS (Tax)</th>
                   <th className="px-6 py-4 text-right">Loans/Recovery</th>
                   <th className="px-6 py-4 text-right">Net Takehome</th>
@@ -1848,6 +1851,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                     </td>
                     <td className="px-6 py-4 text-right text-red-500">{formatCurrency(det.pf_deduction)}</td>
                     <td className="px-6 py-4 text-right text-red-500">{formatCurrency(det.esi_deduction)}</td>
+                    <td className="px-6 py-4 text-right text-red-500">{formatCurrency(det.professional_tax)}</td>
                     <td className="px-6 py-4 text-right text-red-500">{formatCurrency(det.tds_deduction)}</td>
                     <td className="px-6 py-4 text-right text-red-500">{formatCurrency(Number(det.loan_emi) + Number(det.advance_recovery))}</td>
                     <td className="px-6 py-4 text-right font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(det.net_salary)}</td>
@@ -2256,8 +2260,33 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
               </Card>
             </div>
 
-            {/* LOP/Calculation settings card */}
-            <Card className={`p-5 ${theme === 'dark' ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
+            {/* Professional Tax (PT) & LOP Calculation settings */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Professional Tax card */}
+              <Card className={`p-5 ${theme === 'dark' ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-base flex items-center gap-2">
+                    <ShieldCheck size={18} className="text-primary" /> Professional Tax (PT) Settings
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="pt_enabled"
+                      checked={payrollSettings.pt_enabled !== false}
+                      onCheckedChange={(checked) => setPayrollSettings({ ...payrollSettings, pt_enabled: !!checked })}
+                    />
+                    <label htmlFor="pt_enabled" className="text-sm font-semibold cursor-pointer">Enable State Professional Tax (PT) Deductions</label>
+                  </div>
+                  <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-800/50 text-xs space-y-1.5">
+                    <div className="font-semibold text-slate-700 dark:text-slate-300">Standard Karnataka PT Slabs:</div>
+                    <div className="text-slate-600 dark:text-slate-400">• Gross Monthly Salary ≤ ₹25,000: <span className="font-medium">₹0</span></div>
+                    <div className="text-slate-600 dark:text-slate-400">• Gross Monthly Salary &gt; ₹25,000: <span className="font-medium">₹200/month</span> (March–January)</div>
+                    <div className="text-amber-600 dark:text-amber-400 font-medium">• February Statutory Rate: ₹300 (to meet ₹2,500/year compliance)</div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* LOP/Calculation settings card */}
+              <Card className={`p-5 ${theme === 'dark' ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50/50 border-slate-200'}`}>
               <div className="space-y-4">
                 <h3 className="font-semibold text-base mb-2">Calculation Configurations</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2279,6 +2308,7 @@ const FeesManagerPayroll: React.FC<{ user: any }> = ({ user }) => {
                 </div>
               </div>
             </Card>
+          </div>
           </div>
 
           <DialogFooter className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
