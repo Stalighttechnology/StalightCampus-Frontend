@@ -31,6 +31,8 @@ interface QuestionRow {
   maxMarks: string;
   co: string;
   bloomsLevel: string;
+  partName?: string;
+  isOr?: boolean;
 }
 
 interface QuestionData {
@@ -39,6 +41,8 @@ interface QuestionData {
   co?: string;
   blooms_level?: string;
   bloomsLevel?: string;
+  part_name?: string;
+  is_or?: boolean;
   questions?: QuestionData[];
   questions_data?: QuestionData[];
   subparts?: SubPart[];
@@ -64,6 +68,8 @@ interface QuestionPaper {
   subject_name?: string;
   test_type: string;
   set_number?: string;
+  exam_date?: string;
+  exam_time?: string;
   batch?: { id: number; name: string; } | number;
   semester?: number;
   section?: number;
@@ -76,11 +82,15 @@ interface CreateQPPayload {
   subject: number;
   test_type: string;
   set_number: string;
+  exam_date?: string;
+  exam_time?: string;
   questions_data: Array<{
     question_number: string;
     co: string;
     blooms_level: string;
     subparts_data: Array<{ subpart_label: string; content: string; max_marks: number; }>;
+    part_name: string;
+    is_or: boolean;
   }>;
   batch: number;
   branch: number;
@@ -114,6 +124,8 @@ const UploadQP = () => {
 
   // start empty; populate only after Branch+Subject+TestType selection
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
+  const [examDate, setExamDate] = useState<string>('');
+  const [examTime, setExamTime] = useState<string>('');
   const [currentQPMeta, setCurrentQPMeta] = useState<QPMetadata | null>(null);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
@@ -159,7 +171,9 @@ const UploadQP = () => {
           content: s.content || '',
           maxMarks: String(s.max_marks || s.maxMarks || ''),
           co: q.co || '',
-          bloomsLevel: q.blooms_level || q.bloomsLevel || ''
+          bloomsLevel: q.blooms_level || q.bloomsLevel || '',
+          partName: q.part_name || 'PART-A',
+          isOr: q.is_or || false
         });
       });
     });
@@ -197,8 +211,8 @@ const UploadQP = () => {
       // default template to show when no saved QP exists
       const defaultTemplate: QuestionRow[] = [
         { id: '1a', number: '1a', content: 'Question 1a', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' },
-        { id: '1b', number: '1b', content: 'Question 1b', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' },
-        { id: '1c', number: '1c', content: 'Question 1c', maxMarks: '6', co: 'CO1', bloomsLevel: 'Remember' }];
+        { id: '1b', number: '1b', content: 'Question 1b', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply', partName: 'PART-A', isOr: false },
+        { id: '1c', number: '1c', content: 'Question 1c', maxMarks: '6', co: 'CO1', bloomsLevel: 'Remember', partName: 'PART-A', isOr: false }];
 
       try {
         setLoading(true);
@@ -222,22 +236,30 @@ const UploadQP = () => {
               setQuestions(rows);
               setQpId(qp.id);
               setCurrentQPMeta({ status: qp.status, last_action: qp.last_action });
+              setExamDate(qp.exam_date || '');
+              setExamTime(qp.exam_time || '');
             } else {
               setQuestions(defaultTemplate);
               setQpId(null);
               setCurrentQPMeta(null);
+              setExamDate('');
+              setExamTime('');
             }
           } else {
             // server returned QPs but none matched the requested test_type/set_number — treat as no saved QP
             setQuestions(defaultTemplate);
             setQpId(null);
             setCurrentQPMeta(null);
+              setExamDate('');
+              setExamTime('');
           }
         } else {
           // no saved QP — use default template for this selection
           setQuestions(defaultTemplate);
           setQpId(null);
           setCurrentQPMeta(null);
+              setExamDate('');
+              setExamTime('');
         }
       } catch (err) {
 
@@ -526,7 +548,18 @@ const UploadQP = () => {
 
   const addQuestion = () => {
     const nextId = `${Date.now()}`;
-    setQuestions((prev) => [...prev, { id: nextId, number: `q${prev.length + 1}`, content: `Question ${prev.length + 1}`, maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' }]);
+    setQuestions((prev) => {
+      let nextNum = 1;
+      let lastPart = 'PART-A';
+      if (prev.length > 0) {
+        const match = prev[prev.length - 1].number.match(/^(\d+)/);
+        if (match) {
+          nextNum = parseInt(match[1]) + 1;
+        }
+        lastPart = prev[prev.length - 1].partName || 'PART-A';
+      }
+      return [...prev, { id: nextId, number: `${nextNum}a`, content: `Question ${prev.length + 1}`, maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply', partName: lastPart, isOr: false }];
+    });
   };
 
   const removeQuestionById = (id: string) => {
@@ -559,7 +592,41 @@ const UploadQP = () => {
     setQuestions((prev) => prev.map((q) => q.id === id ? { ...q, [field]: value } : q));
   };
 
-  const totalMarks = questions.reduce((s, q) => s + (Number.parseInt(q.maxMarks || '0', 10) || 0), 0);
+  const calculateTotalMarks = () => {
+    const groups: Record<string, { total: number; isOr: boolean }> = {};
+    const groupOrder: string[] = [];
+    
+    questions.forEach(q => {
+      const match = (q.number || '').match(/^(\d+)/);
+      const mainNum = match ? match[1] : q.number;
+      const marks = Number.parseInt(q.maxMarks || '0', 10) || 0;
+      
+      if (!groups[mainNum]) {
+        groups[mainNum] = { total: 0, isOr: false };
+        groupOrder.push(mainNum);
+      }
+      groups[mainNum].total += marks;
+      if (q.isOr) {
+        groups[mainNum].isOr = true;
+      }
+    });
+
+    let finalTotal = 0;
+    let prevTotal = 0;
+    
+    for (let i = 0; i < groupOrder.length; i++) {
+      const g = groups[groupOrder[i]];
+      if (g.isOr && i > 0) {
+        finalTotal = finalTotal - prevTotal + Math.max(prevTotal, g.total);
+        prevTotal = Math.max(prevTotal, g.total);
+      } else {
+        finalTotal += g.total;
+        prevTotal = g.total;
+      }
+    }
+    return finalTotal;
+  };
+  const totalMarks = calculateTotalMarks();
 
   const validateSelection = () => {
     if (!selected.batch_id || !selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber) {
@@ -575,18 +642,33 @@ const UploadQP = () => {
       co: string;
       blooms_level: string;
       subparts: Array<{ subpart_label: string; content: string; max_marks: number; }>;
+      part_name: string;
+      is_or: boolean;
     }
     const grouped: Record<string, GroupedQuestion> = {};
     questions.forEach((q) => {
-      const main = q.number.charAt(0);
-      if (!grouped[main]) grouped[main] = { co: q.co, blooms_level: q.bloomsLevel, subparts: [] };
-      grouped[main].subparts.push({ subpart_label: q.number.slice(1), content: q.content, max_marks: Number.parseInt(q.maxMarks || '0', 10) });
+      const match = q.number.match(/^(\d+)(.*)$/);
+      let main = q.number;
+      let sub = '';
+      if (match) {
+        main = match[1];
+        sub = match[2];
+      }
+      if (!grouped[main]) {
+        grouped[main] = { co: q.co, blooms_level: q.bloomsLevel, subparts: [], part_name: q.partName || 'PART-A', is_or: q.isOr || false };
+      } else {
+        if (q.isOr) grouped[main].is_or = true;
+        if (q.partName && q.partName !== 'PART-A') grouped[main].part_name = q.partName;
+      }
+      grouped[main].subparts.push({ subpart_label: sub, content: q.content, max_marks: Number.parseInt(q.maxMarks || '0', 10) });
     });
     return {
       subject: selected.subject_id,
       test_type: selected.testType,
       set_number: selected.setNumber as string,
-      questions_data: Object.keys(grouped).map((k) => ({ question_number: k, co: grouped[k].co, blooms_level: grouped[k].blooms_level, subparts_data: grouped[k].subparts })),
+      exam_date: examDate || undefined,
+      exam_time: examTime || undefined,
+      questions_data: Object.keys(grouped).map((k) => ({ question_number: k, co: grouped[k].co, blooms_level: grouped[k].blooms_level, subparts_data: grouped[k].subparts, part_name: grouped[k].part_name, is_or: grouped[k].is_or })),
       batch: selected.batch_id,
       branch,
       semester,
@@ -1000,15 +1082,36 @@ const UploadQP = () => {
                                 <div className="text-sm text-muted-foreground">This question paper has been submitted for approval and cannot be edited.</div>
                               </div>
                             )}
-                            <div id="upload-qp-table" className="overflow-x-auto border rounded-lg mt-2 custom-scrollbar">
+                            
+                            <div className="flex flex-wrap gap-4 mb-4">
+                              <div className="flex flex-col gap-1 w-48">
+                                <label className="text-sm font-semibold">Exam Date</label>
+                                <Input type="date" value={examDate} disabled={isLocked} onChange={(e) => setExamDate(e.target.value)} className="h-9" />
+                              </div>
+                              <div className="flex flex-col gap-1 w-48">
+                                <label className="text-sm font-semibold">Exam Time</label>
+                                <Input type="text" placeholder="e.g. 10:00 AM - 01:00 PM" value={examTime} disabled={isLocked} onChange={(e) => setExamTime(e.target.value)} className="h-9" />
+                              </div>
+                            </div>
+
+
+                            <div className="flex justify-between items-center mb-4 mt-6">
+                              <h3 className="text-xl font-bold tracking-tight text-primary">
+                                {selected.testType ? selected.testType.replace('_', ' ') : 'Question Paper'}
+                                {selected.subject_id && dropdownData.subject.find(s => String(s.id) === String(selected.subject_id)) && ` - ${dropdownData.subject.find(s => String(s.id) === String(selected.subject_id))?.name}`}
+                              </h3>
+                            </div>
+                            <div id="upload-qp-table" className="overflow-x-auto border rounded-xl shadow-sm mt-2 custom-scrollbar bg-card">
                               <Table>
-                                <TableHeader className={theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}>
+                                <TableHeader className={theme === 'dark' ? 'bg-muted/30 border-b-2 border-primary/20' : 'bg-slate-50 border-b-2 border-primary/20'}>
                                   <TableRow>
-                                    <TableHead className="text-sm font-semibold whitespace-nowrap w-[80px] min-w-[80px]">Q No.</TableHead>
-                                    <TableHead className="text-sm font-semibold whitespace-nowrap min-w-[280px]">Question Content</TableHead>
-                                    <TableHead className="text-sm font-semibold whitespace-nowrap w-[80px] min-w-[80px]">Marks</TableHead>
-                                    <TableHead className="text-sm font-semibold whitespace-nowrap w-[100px] min-w-[100px]">CO</TableHead>
-                                    <TableHead className="text-sm font-semibold whitespace-nowrap w-[160px] min-w-[160px]">Blooms Level</TableHead>
+                                    <TableHead className="text-sm font-bold text-foreground/80 whitespace-nowrap w-[100px] min-w-[100px]">Part</TableHead>
+<TableHead className="text-sm font-bold text-foreground/80 whitespace-nowrap w-[80px] min-w-[80px]">OR?</TableHead>
+<TableHead className="text-sm font-bold text-foreground/80 whitespace-nowrap w-[80px] min-w-[80px]">Q No.</TableHead>
+                                    <TableHead className="text-sm font-bold text-foreground/80 whitespace-nowrap min-w-[280px]">Question Content</TableHead>
+                                    <TableHead className="text-sm font-bold text-foreground/80 whitespace-nowrap w-[80px] min-w-[80px]">Marks</TableHead>
+                                    <TableHead className="text-sm font-bold text-foreground/80 whitespace-nowrap w-[100px] min-w-[100px]">CO</TableHead>
+                                    <TableHead className="text-sm font-bold text-foreground/80 whitespace-nowrap w-[160px] min-w-[160px]">Blooms Level</TableHead>
                                     {!isLocked && <TableHead className="text-sm font-semibold text-right whitespace-nowrap w-[80px]">Action</TableHead>}
                                   </TableRow>
                                 </TableHeader>
@@ -1016,11 +1119,29 @@ const UploadQP = () => {
                                   {questions.map((q) =>
                                     <TableRow key={q.id} className={theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50/50'}>
                                       <TableCell className="p-1 sm:p-2 whitespace-nowrap">
-                                        <Input value={q.number} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'number', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3" />
+                                        <Select disabled={isLocked} value={q.partName || 'PART-A'} onValueChange={(val) => updateQuestion(q.id, 'partName', val)}>
+                                          <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm border-0 bg-transparent hover:bg-muted/50 focus:ring-1 ring-primary focus-visible:ring-offset-0 px-1 sm:px-3 font-semibold text-primary">
+                                            <SelectValue placeholder="Part" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="PART-A">PART-A</SelectItem>
+                                            <SelectItem value="PART-B">PART-B</SelectItem>
+                                            <SelectItem value="PART-C">PART-C</SelectItem>
+                                            <SelectItem value="PART-D">PART-D</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </TableCell>
+                                      <TableCell className="p-1 sm:p-2 whitespace-nowrap text-center">
+                                        <div className="flex justify-center items-center h-full">
+                                          <input type="checkbox" checked={q.isOr || false} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'isOr', e.target.checked as any)} className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary transition-all cursor-pointer" />
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="p-1 sm:p-2 whitespace-nowrap">
+                                        <Input value={q.number} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'number', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center border-0 bg-transparent hover:bg-muted/30 focus-visible:ring-1 ring-primary focus-visible:ring-offset-0 px-1 sm:px-3 font-medium" />
                                       </TableCell>
                                       <TableCell className="p-1 sm:p-2 whitespace-nowrap">
                                         <div className="flex items-center gap-2">
-                                          <Input value={q.content} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'content', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full focus-visible:ring-1 px-1 sm:px-3" />
+                                          <Input value={q.content} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'content', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full border-0 bg-transparent hover:bg-muted/30 focus-visible:ring-1 ring-primary focus-visible:ring-offset-0 px-1 sm:px-3" />
                                           {!isLocked && (
                                             <div className="relative">
                                               <Button
