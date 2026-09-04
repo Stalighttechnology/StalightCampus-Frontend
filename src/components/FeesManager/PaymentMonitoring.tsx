@@ -88,6 +88,7 @@ interface Payment {
   payment_date: string;
   payment_method: string;
   transaction_id?: string;
+  note?: string;
   status: 'pending' | 'completed' | 'success' | 'failed' | 'refunded';
   stripe_payment_intent_id?: string;
   created_at: string;
@@ -818,8 +819,15 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                               </div>
                             </TableCell>
                             <TableCell className="px-6 align-middle">
-                              <div className="text-[12px] font-medium text-muted-foreground italic">
-                                {subPayment.transaction_id ? `Txn: ${subPayment.transaction_id}` : `Payment ${idx + 1}`}
+                              <div className="text-[12px] font-medium text-muted-foreground">
+                                {subPayment.note ? (
+                                  <div className="text-foreground font-medium text-xs break-words bg-primary/5 px-2 py-0.5 rounded border border-primary/20 max-w-[240px] mb-0.5">
+                                    {subPayment.note}
+                                  </div>
+                                ) : null}
+                                <span className="italic">
+                                  {subPayment.transaction_id ? `Txn: ${subPayment.transaction_id}` : `Payment ${idx + 1}`}
+                                </span>
                               </div>
                             </TableCell>
                             <TableCell className="text-right align-middle">
@@ -1065,6 +1073,14 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                         {selectedPayment.transaction_id || 'N/A'}
                       </p>
                     </div>
+                    {selectedPayment.note && (
+                      <div>
+                        <p className={`text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Note / Remarks</p>
+                        <p className={`text-sm font-medium mt-1 break-words p-2.5 rounded-lg border ${theme === 'dark' ? 'bg-slate-800/60 border-slate-700 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-800'}`}>
+                          {selectedPayment.note}
+                        </p>
+                      </div>
+                    )}
                     {selectedPayment.stripe_payment_intent_id && (
                       <div>
                         <p className={`text-xs font-semibold uppercase tracking-widest font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Stripe Payment Intent</p>
@@ -1214,6 +1230,16 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Method</div>
                           {getMethodBadge(p.payment_method)}
                         </div>
+
+                        {/* Custom Note */}
+                        {p.note && (
+                          <div className="col-span-2">
+                            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Note / Remarks</div>
+                            <div className="text-xs font-medium text-foreground bg-primary/5 px-2.5 py-1.5 rounded-md border border-primary/20 break-words">
+                              {p.note}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Card Footer – amount */}

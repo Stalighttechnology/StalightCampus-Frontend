@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -101,6 +102,7 @@ interface Payment {
   payment_date: string;
   payment_method: string;
   transaction_id?: string;
+  note?: string;
   status: string;
 }
 
@@ -130,7 +132,8 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
   const [paymentForm, setPaymentForm] = useState({
     amount: '',
     mode: 'cash',
-    transactionId: ''
+    transactionId: '',
+    note: ''
   });
 
   // Group by Student toggle state
@@ -414,7 +417,8 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
         invoice_id: selectedInvoice.id,
         amount: paymentForm.amount,
         mode: paymentForm.mode,
-        transaction_id: paymentForm.transactionId
+        transaction_id: paymentForm.transactionId,
+        note: paymentForm.note
       });
 
       if (!res.success) {
@@ -422,7 +426,7 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
       }
 
       setIsPaymentDialogOpen(false);
-      setPaymentForm({ amount: '', mode: 'cash', transactionId: '' });
+      setPaymentForm({ amount: '', mode: 'cash', transactionId: '', note: '' });
       fetchInvoices(invoicesMeta?.page || 1);
       fetchStats();
       showSuccessAlert('Success!', 'Payment recorded successfully!');
@@ -437,7 +441,8 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
     setPaymentForm({
       amount: (inv.pending_amount_cents / 100).toString(),
       mode: 'cash',
-      transactionId: ''
+      transactionId: '',
+      note: ''
     });
     setIsPaymentDialogOpen(true);
   };
@@ -1137,6 +1142,7 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
                       <TableRow className="hover:bg-transparent">
                         <TableHead className="h-9 text-xs font-semibold uppercase text-muted-foreground px-4">Date</TableHead>
                         <TableHead className="h-9 text-xs font-semibold uppercase text-muted-foreground">Method</TableHead>
+                        <TableHead className="h-9 text-xs font-semibold uppercase text-muted-foreground">Note / Reference</TableHead>
                         <TableHead className="h-9 text-right text-xs font-semibold uppercase text-muted-foreground px-4">Amount</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1148,6 +1154,23 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
                           </TableCell>
                           <TableCell className="py-2.5 text-xs font-semibold uppercase text-muted-foreground">
                             {p.payment_method}
+                          </TableCell>
+                          <TableCell className="py-2.5 text-xs">
+                            <div className="flex flex-col gap-0.5">
+                              {p.note ? (
+                                <span className="text-foreground font-medium text-xs break-words bg-primary/5 px-2 py-0.5 rounded border border-primary/20 max-w-[220px]">
+                                  {p.note}
+                                </span>
+                              ) : null}
+                              {p.transaction_id ? (
+                                <span className="text-[11px] text-muted-foreground font-mono">
+                                  Ref: {p.transaction_id}
+                                </span>
+                              ) : null}
+                              {!p.note && !p.transaction_id && (
+                                <span className="text-muted-foreground/60 text-xs italic">—</span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="py-2.5 px-4 text-right font-bold text-emerald-600 text-xs">
                             {formatCurrency(p.amount)}
@@ -1249,7 +1272,26 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
                 className="h-11 border-border/50"
                 value={paymentForm.transactionId}
                 onChange={(e) => setPaymentForm((p) => ({ ...p, transactionId: e.target.value }))} />
-              
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between ml-1">
+                <Label className="text-[13px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Custom Note / Remarks {paymentForm.mode === 'other' ? <span className="text-red-500 font-bold">*</span> : <span className="text-muted-foreground/60 text-[11px] normal-case font-normal">(Optional)</span>}
+                </Label>
+                {paymentForm.mode === 'other' && (
+                  <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                    Required for 'Other' mode
+                  </span>
+                )}
+              </div>
+              <Textarea
+                placeholder={paymentForm.mode === 'other' ? "Describe payment details, authorization, or custom mode..." : "Enter any internal note or remarks for this payment..."}
+                className={`min-h-[70px] resize-none border-border/50 text-sm ${paymentForm.mode === 'other' ? 'border-amber-500/40 focus:ring-amber-500/20' : ''}`}
+                value={paymentForm.note}
+                required={paymentForm.mode === 'other'}
+                onChange={(e) => setPaymentForm((p) => ({ ...p, note: e.target.value }))}
+              />
             </div>
 
             <div className="flex gap-3 pt-4">
