@@ -591,6 +591,7 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                         <SelectItem value="principal">Principal</SelectItem>
                         <SelectItem value="teacher">Faculty / Teacher</SelectItem>
                         <SelectItem value="group_d">Group D</SelectItem>
+                        <SelectItem value="security">Security</SelectItem>
                         <SelectItem value="hod">Head of Department (HOD)</SelectItem>
                         <SelectItem value="coe">COE</SelectItem>
                         <SelectItem value="fees_manager">Fees Manager</SelectItem>
@@ -608,6 +609,7 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                       <>
                         <SelectItem value="teacher">Faculty / Teacher</SelectItem>
                         <SelectItem value="group_d">Group D</SelectItem>
+                        <SelectItem value="security">Security</SelectItem>
                         <SelectItem value="hod">Head of Department (HOD)</SelectItem>
                         <SelectItem value="dean">Dean</SelectItem>
                         <SelectItem value="coe">COE</SelectItem>

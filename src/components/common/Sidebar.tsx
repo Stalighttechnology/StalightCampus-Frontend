@@ -47,7 +47,7 @@ import {
   FilePlus, CheckSquare, Award, ScanLine, ShieldCheck, Target, ListChecks,
   CalendarCheck, Megaphone, ListTodo, RefreshCcw, FileQuestion, PieChart,
   Clock, LineChart, List, Activity, MonitorPlay, BookCopy, PenTool, DoorOpen,
-  UtensilsCrossed, ClipboardSignature, Ticket, BusFront, Map, Navigation, History, Library, Repeat, FileCode, CheckCircle2, TrendingUp, ArrowLeftRight, Link
+  UtensilsCrossed, ClipboardSignature, Ticket, BusFront, Map, Navigation, History, Library, Repeat, FileCode, CheckCircle2, TrendingUp, ArrowLeftRight, Link, QrCode
 } from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
 import {
@@ -117,9 +117,10 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   useEffect(() => {
     const roleLower = (role || '').toLowerCase();
+    const isNonTeachingRole = user?.role === 'security' || user?.role === 'group_d' || roleLower === 'security' || roleLower === 'group_d';
     const isStudentOrParent = roleLower === 'student' || roleLower === 'parent';
-    const canHaveSubstituteRequests = !isStudentOrParent;
-    const canApproveLeaves = ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe', 'teacher', 'faculty', 'hms', 'hms_admin', 'transport_admin'].includes(roleLower);
+    const canHaveSubstituteRequests = !isStudentOrParent && !isNonTeachingRole;
+    const canApproveLeaves = !isNonTeachingRole && ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe', 'teacher', 'faculty', 'hms', 'hms_admin', 'transport_admin'].includes(roleLower);
 
     if (canHaveSubstituteRequests || canApproveLeaves) {
       const checkSubstituteRequests = async () => {
@@ -418,6 +419,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "student-meals": <UtensilsCrossed size={20} />,
       "visitor_logs": <ClipboardSignature size={20} />,
       "gate-passes": <Ticket size={20} />,
+      "gate-pass-scanner": <QrCode size={20} />,
 
       "announcement-management": <Megaphone size={20} />,
       "hod-announcement-management": <Megaphone size={20} />,
@@ -846,7 +848,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   const branchName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
   const deptName = (user?.department || '').toString().toLowerCase();
-  const isGroupDRole = user?.role === 'group_d' || role === 'group_d';
+  const isGroupDRole = user?.role === 'group_d' || role === 'group_d' || user?.role === 'security' || role === 'security';
   const isNonTeachingBranch = isGroupDRole || branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
 
   const nonTeachingStaffMenuItems = [
@@ -862,9 +864,30 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     { name: "Profile", page: "faculty-profile" },
   ];
 
-  menuItems['group_d'] = nonTeachingStaffMenuItems;
+  const securityMenuItems = [
+    { name: "Dashboard", page: "dashboard" },
+    { name: "Gate Pass Scanner", page: "gate-pass-scanner" },
+    { name: "Apply Leave", page: "apply-leave" },
+    { name: "My Attendance", page: "faculty-attendance" },
+    { name: "Announcements", page: "faculty-announcement-management" },
+    { name: "Calendar", page: "holiday-calendar" },
+    { name: "Schedule Meeting", page: "schedule-meeting" },
+    { name: "My Salary & Payroll", page: "my-payroll" },
+    { name: "Reimbursements & Claims", page: "reimbursements" },
+    { name: "Staff Tasks", page: "staff-tasks" },
+    { name: "Profile", page: "faculty-profile" },
+  ];
 
-  if (role === 'faculty' && isNonTeachingBranch) {
+  menuItems['group_d'] = nonTeachingStaffMenuItems;
+  menuItems['security'] = securityMenuItems;
+
+  if (role === 'security' || user?.role === 'security') {
+    menuItems['faculty'] = securityMenuItems;
+    menuItems['security'] = securityMenuItems;
+  } else if (role === 'group_d' || user?.role === 'group_d') {
+    menuItems['faculty'] = nonTeachingStaffMenuItems;
+    menuItems['group_d'] = nonTeachingStaffMenuItems;
+  } else if (role === 'faculty' && isNonTeachingBranch) {
     menuItems['faculty'] = nonTeachingStaffMenuItems;
   }
 

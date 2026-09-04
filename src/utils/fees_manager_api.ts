@@ -765,6 +765,7 @@ export const STAFF_ROLES = [
 { value: 'dean', label: 'Dean' },
 { value: 'teacher', label: 'Faculty' },
 { value: 'group_d', label: 'Group D' },
+{ value: 'security', label: 'Security' },
 { value: 'coe', label: 'COE' },
 { value: 'fees_manager', label: 'Fees Manager' },
 { value: 'warden', label: 'Warden' },

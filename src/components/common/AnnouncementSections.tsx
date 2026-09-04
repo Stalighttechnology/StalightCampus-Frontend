@@ -201,7 +201,7 @@ const formatRoleName = (role: string) => {
 
 const renderTargetRoles = (targetRoles: string[]) => {
   if (!targetRoles || targetRoles.length === 0) return null;
-  const ALL_POSSIBLE_ROLES = ["student", "hod", "faculty", "group_d", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "counsellor"];
+  const ALL_POSSIBLE_ROLES = ["student", "hod", "faculty", "group_d", "security", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "counsellor"];
 
   if (targetRoles.length >= ALL_POSSIBLE_ROLES.length - 1) {
     return (
@@ -232,7 +232,7 @@ const renderTargetRoles = (targetRoles: string[]) => {
 
 const renderTargetRolesMobile = (targetRoles: string[]) => {
   if (!targetRoles || targetRoles.length === 0) return null;
-  const ALL_POSSIBLE_ROLES = ["student", "hod", "faculty", "group_d", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "counsellor"];
+  const ALL_POSSIBLE_ROLES = ["student", "hod", "faculty", "group_d", "security", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "counsellor"];
 
   if (targetRoles.length >= ALL_POSSIBLE_ROLES.length - 1) {
     return (

@@ -648,8 +648,8 @@ const AdminAnnouncementManagement = () => {
 
   const [submitting, setSubmitting] = useState(false);
 
-  const ALL_ROLES = ["student", "hod", "faculty", "group_d", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "counsellor", "driver", "warden"];
-  const BASIC_ROLES = ["student", "hod", "faculty", "group_d", "principal", "org_admin", "dean", "driver", "warden"];
+  const ALL_ROLES = ["student", "hod", "faculty", "group_d", "security", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager", "counsellor", "driver", "warden"];
+  const BASIC_ROLES = ["student", "hod", "faculty", "group_d", "security", "principal", "org_admin", "dean", "driver", "warden"];
 
   const getTargetRolesForUser = (userRole: string) => {
     switch (userRole) {
