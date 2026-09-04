@@ -34,6 +34,7 @@ const DriverDashboard: React.FC = () => {
 
   const [isStartingTrip, setIsStartingTrip] = useState<"morning" | "evening" | null>(null);
   const [isEndingTrip, setIsEndingTrip] = useState(false);
+  const [isSendingEmergency, setIsSendingEmergency] = useState(false);
 
   const PAGE_SIZE = 10;
   const totalCount = students.length;
@@ -230,9 +231,21 @@ const DriverDashboard: React.FC = () => {
 
   const handleEmergency = async () => {
     if (!activeTrip) return;
-    const res = await triggerEmergency(activeTrip.id, emergencyDesc);
-    if (res.success) { ok('Emergency alert sent!'); setShowEmergency(false); setEmergencyDesc(''); }
-    else err(res.message || 'Failed');
+    setIsSendingEmergency(true);
+    try {
+      const res = await triggerEmergency(activeTrip.id, emergencyDesc);
+      if (res.success) { 
+        ok('Emergency alert sent to transport administration!'); 
+        setShowEmergency(false); 
+        setEmergencyDesc(''); 
+      } else {
+        err(res.message || 'Failed to send emergency alert');
+      }
+    } catch (e) {
+      err('An unexpected error occurred while sending emergency alert.');
+    } finally {
+      setIsSendingEmergency(false);
+    }
   };
 
   return (
@@ -549,12 +562,20 @@ const DriverDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 onClick={handleEmergency} 
+                disabled={isSendingEmergency}
                 className="bg-red-600 hover:bg-red-700 text-white font-bold h-10 w-full sm:w-auto flex justify-center items-center flex-1"
               >
-                Send Emergency Alert
+                {isSendingEmergency ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin mr-2" /> Sending...
+                  </>
+                ) : (
+                  "Send Emergency Alert"
+                )}
               </Button>
               <Button 
                 variant="outline" 
+                disabled={isSendingEmergency}
                 onClick={() => setShowEmergency(false)} 
                 className="border-gray-300 dark:border-border h-10 w-full sm:w-auto flex justify-center items-center flex-1"
               >

@@ -902,7 +902,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   // Programmatically inject External Links right before the Profile item for all roles
   Object.keys(menuItems).forEach((key) => {
-    if (key === 'student' || key === 'outside_student') return;
+    if (key === 'student' || key === 'outside_student' || key === 'parent') return;
     if (menuItems[key] && !menuItems[key].some(item => item.page === 'external-links')) {
       const profileIndex = menuItems[key].findIndex(item => item.page.includes('profile'));
       if (profileIndex !== -1) {
@@ -912,6 +912,10 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       }
     }
   });
+
+  if (menuItems['parent']) {
+    menuItems['parent'] = menuItems['parent'].filter(item => item.page !== 'external-links');
+  }
 
   // Automatically scroll active sidebar item into view
   useEffect(() => {

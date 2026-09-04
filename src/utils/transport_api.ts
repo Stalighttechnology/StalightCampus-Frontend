@@ -123,9 +123,9 @@ export const fetchRouteStops = (routeId: number) =>
   fetchWithTokenRefresh(`${API_BASE}/admin/route-stops/?route_id=${routeId}`, { headers: authHeaders() }).then((r) => r.json());
 
 // Incidents
-export const fetchIncidents = (page = 1, type?: 'emergency' | 'complaint') => {
+export const fetchIncidents = (page = 1, type?: string) => {
   let url = `${API_BASE}/incidents/?page=${page}`;
-  if (type) url += `&type=${type}`;
+  if (type && type !== 'all') url += `&type=${type}`;
   return fetchWithTokenRefresh(url, { headers: authHeaders() }).then((r) => r.json());
 }
 

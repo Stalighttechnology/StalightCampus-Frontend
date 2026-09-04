@@ -6,7 +6,7 @@ export interface RouteT { id: number; route_name: string; start_location: string
 export interface StopT { id: number; stop_name: string; sequence_order: number; arrival_time_morning: string; arrival_time_evening: string; latitude: string; longitude: string; }
 export interface DriverT { id: number; first_name: string; last_name: string; email: string; mobile_number: string; designation: string; }
 export interface AllocationT { id: number; student: number; student_details: any; route: number; route_details: any; stop: number; stop_details: any; status: string; }
-export interface IncidentT { id: number; type: string; title: string; description: string; status: string; created_at: string; reported_by_details: any; action_taken?: string; resolved_at?: string; resolved_by_details?: any; }
+export interface IncidentT { id: number; type: string; title: string; description: string; status: string; created_at: string; reported_by_details: any; bus?: number | null; bus_details?: any; route?: number | null; route_details?: any; action_taken?: string; resolved_at?: string; resolved_by_details?: any; }
 
 export const StatCard = ({ icon, label, value, accent, theme }: any) => (
   <div className={`rounded-2xl p-5 flex items-center gap-4 shadow-sm border transition-all hover:shadow-md ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'}`}>
