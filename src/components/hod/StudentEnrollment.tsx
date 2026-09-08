@@ -309,6 +309,7 @@ const StudentEnrollment = () => {
   }, [branchId, semesterId, sectionsBySemester]);
 
   useEffect(() => {
+    let isCancelled = false;
     const loadSubjects = async () => {
       if (!semesterId || !subjectType || !sectionId) return;
       setElectiveLoading(true);
@@ -327,21 +328,30 @@ const StudentEnrollment = () => {
         });
 
         const data = await response.json();
-        if (data.success && data.data) {
+        if (!isCancelled && data.success && data.data) {
           const newSubjects = (data.data.elective_subjects || []).map((s: any) => ({ ...s, id: String(s.id) }));
           if (electivePage === 1) {
             setElectiveSubjects(newSubjects);
           } else {
-            setElectiveSubjects((prev) => [...prev, ...newSubjects]);
+            setElectiveSubjects((prev) => {
+              const existingIds = new Set(prev.map((s: any) => String(s.id)));
+              const uniqueNew = newSubjects.filter((s: any) => !existingIds.has(String(s.id)));
+              return [...prev, ...uniqueNew];
+            });
           }
           setElectiveTotalPages(data.data.elective_pagination?.num_pages || 1);
         }
       } catch (e) {
 
       }
-      setElectiveLoading(false);
+      if (!isCancelled) {
+        setElectiveLoading(false);
+      }
     };
     loadSubjects();
+    return () => {
+      isCancelled = true;
+    };
   }, [semesterId, subjectType, sectionId, electivePage, subjectVersion]);
 
   // Reset elective subjects when semester or subject type changes
@@ -365,9 +375,18 @@ const StudentEnrollment = () => {
     setServerTotalEnrolled(0);
   }, [sectionId]);
 
-  // Set subjects to the loaded elective subjects
+  // Set subjects to the loaded elective subjects with strict ID deduplication
   useEffect(() => {
-    setSubjects(electiveSubjects);
+    const seen = new Set<string>();
+    const unique: any[] = [];
+    for (const s of electiveSubjects) {
+      const idStr = String(s.id);
+      if (!seen.has(idStr)) {
+        seen.add(idStr);
+        unique.push(s);
+      }
+    }
+    setSubjects(unique);
   }, [electiveSubjects]);
 
   const currentSubjectObj = subjects.find((s: any) => String(s.id) === String(selectedSubjectId));
@@ -732,9 +751,11 @@ const StudentEnrollment = () => {
                           </Button>
                         </div>
                       ) : (
-                        subjects.map((s: any) =>
-                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                        )
+                        subjects.map((s: any) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.name}{s.subject_code ? ` (${s.subject_code})` : ''}{s.branch_name ? ` • ${s.branch_name}` : ''}
+                          </SelectItem>
+                        ))
                       )}
                     </SelectContent>
                   </Select>
