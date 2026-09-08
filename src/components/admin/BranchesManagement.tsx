@@ -110,7 +110,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const pageSize = 10;
+  const pageSize = 25;
 
   
   const fetchHODs = async () => {
@@ -180,9 +180,9 @@ const fetchData = async (page: number = 1, search: string = filter) => {
         setUsers(hodData);
 
         // Set pagination info
-        const count = paginationData.count || dataSource && dataSource.count;
-        if (count !== undefined) {
-          setTotalPages(Math.ceil(count / 10));
+        const count = paginationData.count ?? dataSource?.count;
+        if (count !== undefined && count !== null) {
+          setTotalPages(Math.max(1, Math.ceil(count / pageSize)));
           setTotalCount(count);
         } else {
           setTotalPages(1);
@@ -528,6 +528,53 @@ const fetchData = async (page: number = 1, search: string = filter) => {
   return (
     <>
       <style>{`
+        .branches-table-container,
+        .branches-mobile-container { 
+          scrollbar-width: thin;
+          scrollbar-gutter: stable;
+          -webkit-overflow-scrolling: touch;
+        }
+        .branches-table-container::-webkit-scrollbar,
+        .branches-mobile-container::-webkit-scrollbar { 
+          width: 8px; 
+          height: 8px;
+          display: block !important;
+        }
+        .branches-table-container::-webkit-scrollbar-track,
+        .branches-mobile-container::-webkit-scrollbar-track { 
+          background: rgba(0, 0, 0, 0.04);
+          border-radius: 6px;
+        }
+        .branches-table-container::-webkit-scrollbar-thumb,
+        .branches-mobile-container::-webkit-scrollbar-thumb { 
+          background-color: rgba(140, 150, 170, 0.45);
+          border-radius: 6px;
+          border: 2px solid transparent;
+          background-clip: content-box;
+        }
+        .branches-table-container::-webkit-scrollbar-thumb:hover,
+        .branches-mobile-container::-webkit-scrollbar-thumb:hover { 
+          background-color: rgba(140, 150, 170, 0.75);
+          background-clip: content-box;
+        }
+        .dark .branches-table-container::-webkit-scrollbar-track,
+        .dark .branches-mobile-container::-webkit-scrollbar-track { 
+          background: rgba(255, 255, 255, 0.04);
+          border-radius: 6px;
+        }
+        .dark .branches-table-container::-webkit-scrollbar-thumb,
+        .dark .branches-mobile-container::-webkit-scrollbar-thumb { 
+          background-color: rgba(255, 255, 255, 0.3);
+          border-radius: 6px;
+          border: 2px solid transparent;
+          background-clip: content-box;
+        }
+        .dark .branches-table-container::-webkit-scrollbar-thumb:hover,
+        .dark .branches-mobile-container::-webkit-scrollbar-thumb:hover { 
+          background-color: rgba(255, 255, 255, 0.55);
+          background-clip: content-box;
+        }
+
         @media (max-width: 480px) {
           .branches-card { height: auto !important; min-height: 550px !important; }
           .branches-table-container { 
@@ -584,11 +631,18 @@ const fetchData = async (page: number = 1, search: string = filter) => {
       `}</style>
 
       <div className={`w-full text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-        <Card id="branches-management-card" className={theme === 'dark' ? 'branches-card w-full bg-card border border-border flex flex-col h-[calc(100vh-240px)] min-h-[350px] md:h-[calc(100vh-280px)] md:min-h-[550px]' : 'branches-card w-full bg-white border border-gray-200 flex flex-col h-[calc(100vh-240px)] min-h-[350px] md:h-[calc(100vh-280px)] md:min-h-[550px]'}>
+        <Card id="branches-management-card" className={theme === 'dark' ? 'branches-card w-full bg-card border border-border flex flex-col min-h-[620px] md:min-h-[700px] lg:min-h-[750px] h-[calc(100vh-170px)] shadow-sm rounded-xl overflow-hidden' : 'branches-card w-full bg-white border border-gray-200 flex flex-col min-h-[620px] md:min-h-[700px] lg:min-h-[750px] h-[calc(100vh-170px)] shadow-sm rounded-xl overflow-hidden'}>
           <div id="branches-management-header-section" className="flex flex-col">
-            <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4">
+            <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5">
               <div className="shrink-0">
-                <CardTitle className="text-xl sm:text-2xl font-semibold">{translateTerminology("Branch Management")}</CardTitle>
+                <div className="flex items-center gap-3">
+                  <CardTitle className="text-xl sm:text-2xl font-semibold">{translateTerminology("Branch Management")}</CardTitle>
+                  {totalCount > 0 && (
+                    <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/15 text-primary border border-primary/20' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>
+                      Total: {totalCount}
+                    </span>
+                  )}
+                </div>
                 <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-0.5">
                   {translateTerminology("Manage branches and assign department heads")}
                 </CardDescription>
@@ -639,8 +693,8 @@ const fetchData = async (page: number = 1, search: string = filter) => {
               </div>
             </CardHeader>
 
-            <div className="px-2 sm:px-4 pt-3 pb-3 flex flex-row items-center justify-between gap-3">
-              <div className="relative flex-1 sm:flex-initial sm:w-64">
+            <div className="px-3 sm:px-5 pt-3 pb-3 flex flex-row items-center justify-between gap-3">
+              <div className="relative flex-1 sm:flex-initial sm:w-72">
                 <Input
                   placeholder={translateTerminology("Search by branch name...")}
                   value={filter}
@@ -670,29 +724,29 @@ const fetchData = async (page: number = 1, search: string = filter) => {
             </div>
           </div>
 
-          <CardContent className="flex-1 overflow-hidden flex flex-col px-2 sm:px-4 pt-0">
+          <CardContent className="flex-1 overflow-hidden flex flex-col px-3 sm:px-5 pt-0 pb-3">
 
             {loading ?
-              <SkeletonTable rows={pageSize} cols={5} /> :
+              <SkeletonTable rows={10} cols={5} /> :
 
               <>
                   {/* Desktop View: Table */}
-                  <div className="branches-table-container hidden md:block flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4">
+                  <div className="branches-table-container hidden md:block flex-1 overflow-y-auto overflow-x-auto border rounded-xl mb-2 relative shadow-inner">
                     <table className="branches-table w-full text-base md:text-sm text-left table-auto border-collapse">
-                      <thead className={`sticky top-0 z-10 border-b text-sm md:text-xs uppercase ${theme === 'dark' ? 'bg-slate-900' : 'bg-gray-50'} text-muted-foreground border-border shadow-sm`}>
+                      <thead className={`sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-bold tracking-wider ${theme === 'dark' ? 'bg-slate-900/95 text-slate-300 border-border' : 'bg-slate-50/95 text-slate-700 border-gray-200'} shadow-sm backdrop-blur-md`}>
                         <tr>
-                          <th className="branch-name-col py-3 px-3 text-left font-bold">{translateTerminology("Branch Name")}</th>
-                          <th className="py-3 px-3 hidden sm:table-cell font-bold">{translateTerminology("Branch Code")}</th>
-                          <th className="py-3 px-3 font-bold text-center">{translateTerminology("Semesters")}</th>
-                          <th className="hod-col py-3 px-3 font-bold">{translateTerminology("Assigned HOD")}</th>
-                          <th className="py-3 px-3 hidden sm:table-cell font-bold">{translateTerminology("HOD Contact")}</th>
-                          {!isReadOnly && <th className="actions-col py-3 px-3 text-right w-24 font-bold">Actions</th>}
+                          <th className="branch-name-col py-3.5 px-4 text-left font-bold">{translateTerminology("Branch Name")}</th>
+                          <th className="py-3.5 px-4 hidden sm:table-cell font-bold">{translateTerminology("Branch Code")}</th>
+                          <th className="py-3.5 px-4 font-bold text-center">{translateTerminology("Semesters")}</th>
+                          <th className="hod-col py-3.5 px-4 font-bold">{translateTerminology("Assigned HOD")}</th>
+                          <th className="py-3.5 px-4 hidden sm:table-cell font-bold">{translateTerminology("HOD Contact")}</th>
+                          {!isReadOnly && <th className="actions-col py-3.5 px-4 text-right w-24 font-bold">Actions</th>}
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="divide-y divide-border/60">
                         {filteredBranches.length === 0 ?
                           <tr>
-                            <td colSpan={5} className="py-10 text-center text-muted-foreground">
+                            <td colSpan={6} className="py-12 text-center text-muted-foreground">
                               No branches found.
                             </td>
                           </tr> :
@@ -700,38 +754,40 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                           filteredBranches.map((branch) =>
                             <tr
                               key={branch.id}
-                              className={`border-b transition-colors duration-200 ${theme === 'dark' ?
-                                'border-border hover:bg-accent text-foreground' :
-                                'border-gray-200 hover:bg-gray-50 text-gray-900'}`
+                              className={`transition-colors duration-200 ${theme === 'dark' ?
+                                'hover:bg-accent/70 text-foreground' :
+                                'hover:bg-blue-50/40 text-gray-900'}`
                               }>
 
-                              <td className="py-3 px-3 align-middle font-medium branch-name-cell">
-                                <div className="break-words">{branch.name}</div>
+                              <td className="py-3.5 px-4 align-middle font-medium branch-name-cell">
+                                <div className="break-words font-semibold">{branch.name}</div>
                               </td>
 
-                              <td className="py-3 px-3 hidden sm:table-cell align-middle">
-                                <span className="opacity-70">{branch.branch_code || "--"}</span>
+                              <td className="py-3.5 px-4 hidden sm:table-cell align-middle">
+                                <span className={`inline-block px-2 py-0.5 rounded font-mono text-xs ${
+                                  theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-700 font-medium'
+                                }`}>{branch.branch_code || "--"}</span>
                               </td>
 
-                              <td className="py-3 px-3 align-middle text-center">
-                                <span className="font-semibold">{branch.total_semesters || "--"}</span>
+                              <td className="py-3.5 px-4 align-middle text-center">
+                                <span className="font-semibold text-sm">{branch.total_semesters || "--"}</span>
                               </td>
 
-                              <td className="py-3 px-3 align-middle hod-cell">
-                                <div className="break-words">{branch.hod || "--"}</div>
+                              <td className="py-3.5 px-4 align-middle hod-cell">
+                                <div className="break-words font-medium">{branch.hod || "--"}</div>
                               </td>
 
-                              <td className="py-3 px-3 hidden sm:table-cell align-middle text-sm md:text-xs opacity-70">
+                              <td className="py-3.5 px-4 hidden sm:table-cell align-middle text-sm md:text-xs opacity-75">
                                 {branch.hod_contact || "--"}
                               </td>
 
                               {!isReadOnly && (
-                                <td className="py-3 px-3 text-right space-x-1 whitespace-nowrap align-middle actions-cell">
+                                <td className="py-3.5 px-4 text-right space-x-1 whitespace-nowrap align-middle actions-cell">
                                     <div className="flex items-center justify-end gap-1">
-                                      <Button variant="ghost" size="icon" onClick={() => handleEdit(branch)} className="h-8 w-8">
+                                      <Button variant="ghost" size="icon" onClick={() => handleEdit(branch)} className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
                                         <PencilIcon className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
                                       </Button>
-                                      <Button variant="ghost" size="icon" onClick={() => confirmDelete(branch.id)} className="h-8 w-8">
+                                      <Button variant="ghost" size="icon" onClick={() => confirmDelete(branch.id)} className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive">
                                         <TrashIcon className={theme === 'dark' ? 'w-4 h-4 text-destructive' : 'w-4 h-4 text-red-600'} />
                                       </Button>
                                     </div>
@@ -745,7 +801,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                   </div>
 
                   {/* Mobile View: Stacked Cards */}
-                  <div className="grid grid-cols-1 gap-3 md:hidden mb-4">
+                  <div className="branches-mobile-container flex-1 overflow-y-auto custom-scrollbar grid grid-cols-1 gap-3 md:hidden mb-2 pr-1">
                     {filteredBranches.length === 0 ? (
                       <div className="py-10 text-center text-muted-foreground bg-card/30 rounded-lg border border-dashed border-border">
                         No branches found.
