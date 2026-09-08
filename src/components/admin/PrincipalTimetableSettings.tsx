@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Plus, Trash2, Edit2, GripVertical, Clock, AlertTriangle, Save, ShieldCheck, ChevronRight, CalendarCheck2, Users, Sliders, X, CheckCircle2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
@@ -460,9 +460,10 @@ export default function PrincipalTimetableSettings() {
   const [editingSlot, setEditingSlot] = useState<TimetableSlot | null>(null);
 
   const [approvalChain, setApprovalChain] = useState<string[]>(['hod', 'principal', 'coe']);
-  const [chainLoading, setChainLoading] = useState(true);
+  const [chainLoading, setChainLoading] = useState(false);
   const [chainSaving, setChainSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'timetable' | 'qp-workflow' | 'attendance-workflow' | 'leave-policy'>('timetable');
+  const loadedTabsRef = useRef<Set<string>>(new Set());
 
   // Leave & Short Permission Policy state
   const [leavePolicyLoading, setLeavePolicyLoading] = useState(false);
@@ -600,7 +601,7 @@ export default function PrincipalTimetableSettings() {
   const [staffCategoryMapping, setStaffCategoryMapping] = useState<Record<string, string[]>>(DEFAULT_STAFF_CATEGORY_MAPPING);
   const [selectedCategoryTab, setSelectedCategoryTab] = useState<'teaching' | 'non_teaching' | 'admin_branch'>('teaching');
   const [categoryWorkflows, setCategoryWorkflows] = useState<Record<string, any>>(DEFAULT_CATEGORY_WORKFLOWS);
-  const [attendanceConfigLoading, setAttendanceConfigLoading] = useState(true);
+  const [attendanceConfigLoading, setAttendanceConfigLoading] = useState(false);
   const [attendanceSaving, setAttendanceSaving] = useState(false);
 
   const PRESETS: Record<string, string[]> = {
@@ -1092,11 +1093,20 @@ export default function PrincipalTimetableSettings() {
   };
 
   useEffect(() => {
-    fetchSlots();
-    fetchApprovalChain();
-    fetchLeavePolicy();
-    fetchAttendanceConfig();
-  }, []);
+    if (activeTab === 'timetable' && !loadedTabsRef.current.has('timetable')) {
+      loadedTabsRef.current.add('timetable');
+      fetchSlots();
+    } else if (activeTab === 'qp-workflow' && !loadedTabsRef.current.has('qp-workflow')) {
+      loadedTabsRef.current.add('qp-workflow');
+      fetchApprovalChain();
+    } else if (activeTab === 'leave-policy' && !loadedTabsRef.current.has('leave-policy')) {
+      loadedTabsRef.current.add('leave-policy');
+      fetchLeavePolicy();
+    } else if (activeTab === 'attendance-workflow' && !loadedTabsRef.current.has('attendance-workflow')) {
+      loadedTabsRef.current.add('attendance-workflow');
+      fetchAttendanceConfig();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (slots.length < 2) return;
