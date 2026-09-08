@@ -48,7 +48,7 @@ interface AuthResponse {
   user_id?: string;
   username?: string;
   email?: string;
-  role?: "admin" | "principal" | "hod" | "teacher" | "faculty" | "student" | "fees_manager" | "coe" | "dean" | "hms" | "warden" | "caretaker" | "group_d";
+  role?: "admin" | "principal" | "hod" | "teacher" | "faculty" | "student" | "fees_manager" | "coe" | "dean" | "hms" | "warden" | "caretaker" | "group_d" | "security";
   department?: string | null;
   profile_image?: string | null;
 }

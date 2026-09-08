@@ -614,7 +614,7 @@ const AppContent = () => {
 
           {/* Faculty routes */}
           <Route path="/faculty/*" element={
-            <ProtectedRoute allowedRoles={["teacher", "hod", "group_d"]}>
+            <ProtectedRoute allowedRoles={["teacher", "hod", "group_d", "security"]}>
               <>
                 <FacultyDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}

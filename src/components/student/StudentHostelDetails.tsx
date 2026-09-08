@@ -4,6 +4,8 @@ import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../hooks/use-toast';
 import RaiseIssueModal from '../hms/RaiseIssueModal';
 import RequestGatePassModal from '../hms/RequestGatePassModal';
+import DigitalGatePassModal from '../hms/DigitalGatePassModal';
+import { FaQrcode } from 'react-icons/fa';
 import {
   FaBuilding,
   FaBed,
@@ -281,6 +283,8 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
   const [myIssues, setMyIssues] = useState<any[]>([]);
   const [loadingIssues, setLoadingIssues] = useState(false);
   const [isGatePassModalOpen, setIsGatePassModalOpen] = useState(false);
+  const [selectedDigitalPass, setSelectedDigitalPass] = useState<any | null>(null);
+  const [isDigitalPassOpen, setIsDigitalPassOpen] = useState(false);
   const [myGatePasses, setMyGatePasses] = useState<any[]>([]);
   const [loadingGatePasses, setLoadingGatePasses] = useState(false);
   const [hasLoadedGatePasses, setHasLoadedGatePasses] = useState(false);
@@ -939,11 +943,26 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
                                     </div>
                                   )}
 
-                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-gray-300/30">
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-gray-300/30">
                                     <p className={`text-sm sm:text-xs flex items-center gap-1.5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
                                       <FaCalendarAlt className="w-3.5 h-3.5 flex-shrink-0" />
                                       Requested on {new Date(gp.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                     </p>
+
+                                    {['approved', 'checked_out', 'checked_in'].includes(gp.status) && (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => {
+                                          setSelectedDigitalPass(gp);
+                                          setIsDigitalPassOpen(true);
+                                        }}
+                                        className="h-8 px-3.5 text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 flex items-center gap-1.5 shadow-2xs self-start sm:self-auto"
+                                      >
+                                        <FaQrcode className="w-3.5 h-3.5" />
+                                        View Digital Pass & QR Code
+                                      </Button>
+                                    )}
                                   </div>
                                 </div>
                               );
@@ -1106,6 +1125,13 @@ const StudentHostelDetails: React.FC<{ readOnly?: boolean }> = ({ readOnly = fal
           setGatePassPage(1);
           loadGatePasses(1);
         }}
+      />
+
+      {/* ── Official Digital Gate Pass Modal ─────────────────────────────── */}
+      <DigitalGatePassModal
+        isOpen={isDigitalPassOpen}
+        onClose={() => setIsDigitalPassOpen(false)}
+        gatePass={selectedDigitalPass}
       />
     </div>
   );

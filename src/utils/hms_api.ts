@@ -158,6 +158,12 @@ data?: any)
         previous: result.previous,
         ...(result.stats !== undefined && { stats: result.stats })
       };
+    } else if (result && result.stats !== undefined) {
+      return {
+        success: true,
+        stats: result.stats,
+        data: result
+      };
     } else {
       // Single object response
       return { success: true, data: result };
@@ -690,6 +696,57 @@ export const actionGatePass = async (id: number, action: 'approve' | 'reject', n
   } catch (error) {
     return { success: false, message: "Network error" };
   }
+};
+
+const inFlightGatePassesMap = new Map<string, { promise: Promise<HMSResponse<any>>; timestamp: number }>();
+
+export const getSecurityGatePasses = async (params: {
+  status?: string;
+  search?: string;
+  page?: number;
+  page_size?: number;
+  stats_only?: boolean;
+  hostel_id?: number;
+  date_from?: string;
+  date_to?: string;
+} = {}): Promise<HMSResponse<any>> => {
+  const query = new URLSearchParams();
+  if (params?.stats_only) query.append('stats_only', 'true');
+  if (params?.status && params.status !== 'all') query.append('status', params.status);
+  if (params?.search) query.append('search', params.search);
+  if (params?.page) query.append('page', params.page.toString());
+  if (params?.page_size) query.append('page_size', params.page_size.toString());
+  if (params?.hostel_id) query.append('hostel_id', params.hostel_id.toString());
+  if (params?.date_from) query.append('date_from', params.date_from);
+  if (params?.date_to) query.append('date_to', params.date_to);
+  const qs = query.toString();
+
+  const now = Date.now();
+  const cached = inFlightGatePassesMap.get(qs);
+  if (cached && (now - cached.timestamp < 1000)) {
+    return cached.promise;
+  }
+
+  const promise = hmsApiCall<any>(`gate-passes/${qs ? `?${qs}` : ''}`, "GET").finally(() => {
+    setTimeout(() => {
+      inFlightGatePassesMap.delete(qs);
+    }, 1000);
+  });
+
+  inFlightGatePassesMap.set(qs, { promise, timestamp: now });
+  return promise;
+};
+
+export const verifyGatePass = async (tokenOrId: string): Promise<HMSResponse<any>> => {
+  return hmsApiCall<any>(`gate-passes/verify/${encodeURIComponent(tokenOrId)}/`, "GET");
+};
+
+export const checkOutGatePass = async (id: number, note?: string): Promise<HMSResponse<any>> => {
+  return hmsApiCall<any>(`gate-passes/${id}/checkout/`, "POST", { note });
+};
+
+export const checkInGatePass = async (id: number, note?: string): Promise<HMSResponse<any>> => {
+  return hmsApiCall<any>(`gate-passes/${id}/checkin/`, "POST", { note });
 };
 
 export const manageOutsideStudents = async (

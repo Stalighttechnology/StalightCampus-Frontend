@@ -36,6 +36,7 @@ import { HolidayCalendar } from "../admin/HolidayCalendar";
 import ScheduleMeeting from "../common/ScheduleMeeting";
 import FacultyPayroll from "../faculty/FacultyPayroll";
 import StaffTaskTracker from "../common/StaffTaskTracker";
+import SecurityGatePassScanner from "../security/SecurityGatePassScanner";
 
 interface FacultyDashboardProps {
   user: {
@@ -57,7 +58,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
   const [currentUser, setCurrentUser] = useState(user);
   const branchName = (currentUser?.branch_name || currentUser?.branch || '').toString().toLowerCase();
   const deptName = (currentUser?.department || '').toString().toLowerCase();
-  const isNonTeaching = currentUser?.role === 'group_d' || branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
+  const isNonTeaching = currentUser?.role === 'group_d' || currentUser?.role === 'security' || branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching');
 
   const getActivePageFromPath = (pathname: string): string => {
     const pathParts = pathname.split('/').filter(Boolean);
@@ -92,12 +93,14 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'schedule-meeting': 'schedule-meeting',
       'my-payroll': 'my-payroll',
       'staff-tasks': 'staff-tasks',
+      'gate-pass-scanner': 'gate-pass-scanner',
       'external-links': 'external-links'
     };
 
     // Add direct mappings for additional top-level routes
     pathMap['study-materials'] = 'study-materials';
     pathMap['faculty-announcement-management'] = 'faculty-announcement-management';
+    pathMap['gate-pass-scanner'] = 'gate-pass-scanner';
 
     return pathMap[lastPart] || lastPart || 'dashboard';
   };
@@ -147,6 +150,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'schedule-meeting': '/faculty/schedule-meeting',
       'my-payroll': '/faculty/my-payroll',
       'staff-tasks': '/faculty/staff-tasks',
+      'gate-pass-scanner': '/faculty/gate-pass-scanner',
       'return-to-hod': '/hod/dashboard',
       'external-links': '/faculty/external-links'
     };
@@ -235,6 +239,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
         return <FacultyPayroll user={user} />;
       case "staff-tasks":
         return <StaffTaskTracker />;
+      case "gate-pass-scanner":
+        return <SecurityGatePassScanner currentUser={currentUser} />;
       case "external-links":
         return <ExternalLinksPage userRole={user?.role || "faculty"} />;
       default:
@@ -251,7 +257,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
         activePage={activePage}
         onPageChange={handlePageChange}
         onNotificationClick={handleNotificationClick}
-        pageTitle="Faculty Dashboard">
+        pageTitle={currentUser?.role === 'security' ? 'Security Portal' : currentUser?.role === 'group_d' ? 'Group D Portal' : 'Faculty Dashboard'}>
       
       {error &&
       <div className={`p-3 rounded-lg mb-4 ${theme === 'dark' ? 'bg-destructive/10 border border-destructive/20 text-destructive-foreground' : 'bg-red-100 border border-red-200 text-red-700'}`}>

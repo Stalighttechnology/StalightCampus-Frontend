@@ -2238,6 +2238,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             <SelectItem value="transport_admin">Transport Admin</SelectItem>
                             <SelectItem value="driver">Driver / Fleet Staff</SelectItem>
                             <SelectItem value="group_d">Group D / Support Staff</SelectItem>
+                            <SelectItem value="security">Security Staff</SelectItem>
                             <SelectItem value="counsellor">Counsellor</SelectItem>
                           </>
                         )}
@@ -3251,6 +3252,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                         <SelectItem value="transport_admin">Transport Admin</SelectItem>
                                         <SelectItem value="driver">Driver / Fleet Staff</SelectItem>
                                         <SelectItem value="group_d">Group D / Support Staff</SelectItem>
+                                        <SelectItem value="security">Security Staff</SelectItem>
                                         <SelectItem value="counsellor">Counsellor</SelectItem>
                                       </SelectContent>
                                     </Select>

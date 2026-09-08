@@ -91,6 +91,7 @@ const Index = () => {
           case "teacher":
           case "faculty":
           case "group_d":
+          case "security":
             navigate("/faculty", { replace: true });
             break;
           case "student":
