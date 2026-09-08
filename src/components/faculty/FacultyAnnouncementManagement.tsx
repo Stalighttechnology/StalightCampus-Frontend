@@ -85,9 +85,7 @@ const FacultyAnnouncementManagement = () => {
   const [unreadReceivedCount, setUnreadReceivedCount] = useState(0);
   const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
-  const branchName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
-  const deptName = (user?.department || '').toString().toLowerCase();
-  const isNonTeaching = user?.role === 'group_d' || branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching') || ['warden', 'library_admin', 'transport_admin', 'driver', 'fees_manager', 'admission_manager', 'group_d'].includes(user?.role || '');
+  const isNonTeaching = user?.role === 'group_d' || user?.role === 'security' || user?.role === 'driver' || user?.role === 'caretaker' || branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching') || ['warden', 'library_admin', 'transport_admin', 'driver', 'fees_manager', 'admission_manager', 'group_d', 'security', 'caretaker'].includes(user?.role || '');
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
@@ -112,6 +110,7 @@ const FacultyAnnouncementManagement = () => {
 
   useEffect(() => {
     const fetchAssigned = async () => {
+      if (isNonTeaching) return;
       try {
         const res = await getAssignedSubjectsGrouped();
         if (res.success && res.data) {
@@ -151,7 +150,7 @@ const FacultyAnnouncementManagement = () => {
       }
     };
     fetchAssigned();
-  }, []);
+  }, [isNonTeaching]);
 
   const loadAnnouncements = async () => {
     setLoading(true);

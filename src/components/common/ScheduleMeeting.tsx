@@ -36,6 +36,8 @@ const AVAILABLE_ROLES = [
   { id: 'fees_manager', label: 'Fee Manager' },
   { id: 'hms_admin', label: 'HMS Admin' },
   { id: 'warden', label: 'Warden' },
+  { id: 'security', label: 'Security' },
+  { id: 'group_d', label: 'Group D / Non-Teaching Staff' },
 ];
 
 
@@ -469,7 +471,7 @@ export default function ScheduleMeeting() {
             const bName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
             const dName = (user?.department || '').toString().toLowerCase();
             const isNonTeachingBranch = bName.includes('non-teaching') || bName.includes('non teaching') || dName.includes('non-teaching') || dName.includes('non teaching');
-            const isRestricted = isNonTeachingBranch || ['warden', 'library_admin', 'transport_admin', 'group_d'].includes(userRole || '') || user?.role === 'group_d';
+            const isRestricted = isNonTeachingBranch || ['warden', 'library_admin', 'transport_admin', 'group_d', 'security', 'driver', 'caretaker'].includes(userRole || '') || ['warden', 'library_admin', 'transport_admin', 'group_d', 'security', 'driver', 'caretaker'].includes(user?.role || '');
             
             return !isRestricted && (
               <Dialog open={showDialog} onOpenChange={setShowDialog}>

@@ -547,7 +547,7 @@ export default function PrincipalTimetableSettings() {
         jul_credit: 8,
         min_stretch_days: 2,
         max_stretch_days: 5,
-        eligible_roles: ['hod', 'dean', 'principal', 'coe', 'fees_manager', 'counsellor', 'driver', 'warden', 'librarian', 'lab_assistant', 'office_admin']
+        eligible_roles: ['hod', 'dean', 'principal', 'coe', 'fees_manager', 'counsellor', 'driver', 'warden', 'librarian', 'lab_assistant', 'office_admin', 'group_d', 'security']
       },
       on_duty: {
         is_enabled: true,
@@ -3096,7 +3096,7 @@ export default function PrincipalTimetableSettings() {
                             } else if (count === 1) {
                               newStages = [defaultFallbackApprover];
                             } else if (count === 2) {
-                              if (item.roleKey === 'teacher') {
+                              if (item.roleKey === 'teacher' || item.roleKey === 'group_d' || item.roleKey === 'security') {
                                 newStages = ['hod', 'principal'];
                               } else if (item.roleKey === 'hod') {
                                 newStages = ['dean', 'principal'];
@@ -3114,7 +3114,7 @@ export default function PrincipalTimetableSettings() {
                             } else if (count === 3) {
                               if (item.roleKey === 'hod') {
                                 newStages = ['dean', 'coe', 'principal'];
-                              } else if (item.roleKey === 'teacher') {
+                              } else if (item.roleKey === 'teacher' || item.roleKey === 'group_d' || item.roleKey === 'security') {
                                 newStages = ['hod', 'dean', 'principal'];
                               } else if (item.roleKey === 'principal') {
                                 newStages = ['dean', 'coe', 'fees_manager'];
