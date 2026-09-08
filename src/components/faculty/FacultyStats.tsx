@@ -276,6 +276,13 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
 
   // Security Portal State & Data Fetching
   const [securityPasses, setSecurityPasses] = useState<any[]>([]);
+  const [securityStats, setSecurityStats] = useState({
+    outside: 0,
+    approved: 0,
+    overdue: 0,
+    checked_in: 0,
+    today_movement: 0,
+  });
   const [securityLoading, setSecurityLoading] = useState<boolean>(false);
   const [securityError, setSecurityError] = useState<string | null>(null);
 
@@ -287,16 +294,33 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
       isSecurityFetchingRef.current = true;
       setSecurityLoading(true);
       setSecurityError(null);
-      const res = await getSecurityGatePasses();
-      if (res && res.success && Array.isArray(res.data)) {
-        setSecurityPasses(res.data);
-      } else if (Array.isArray(res)) {
-        setSecurityPasses(res);
-      } else if (res && res.data && Array.isArray(res.data.results)) {
-        setSecurityPasses(res.data.results);
-      } else {
-        setSecurityPasses([]);
+
+      const [statsRes, passesRes] = await Promise.all([
+        getSecurityGatePasses({ stats_only: true }),
+        getSecurityGatePasses({ page_size: 20 }),
+      ]);
+
+      const statsObj = statsRes?.stats || (statsRes as any)?.data?.stats || (statsRes as any)?.data;
+      if (statsObj && typeof statsObj === 'object') {
+        setSecurityStats({
+          outside: Number(statsObj.outside) || 0,
+          approved: Number(statsObj.approved) || 0,
+          overdue: Number(statsObj.overdue) || 0,
+          checked_in: Number(statsObj.checked_in || statsObj.checked_in_today) || 0,
+          today_movement: Number(statsObj.today_movement) || 0,
+        });
       }
+
+      const list = Array.isArray(passesRes?.results)
+        ? passesRes.results
+        : Array.isArray(passesRes?.data)
+        ? passesRes.data
+        : Array.isArray(passesRes?.data?.results)
+        ? passesRes.data.results
+        : Array.isArray(passesRes)
+        ? passesRes
+        : [];
+      setSecurityPasses(list);
     } catch (err: any) {
       console.error("Error fetching security gate passes:", err);
       setSecurityError("Unable to load live gate pass data");
@@ -359,7 +383,12 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
       const outsidePasses = securityPasses.filter(p => p.status === 'checked_out');
       const approvedPasses = securityPasses.filter(p => p.status === 'approved');
       const overduePasses = outsidePasses.filter(isPassOverdue);
-      const checkedInToday = securityPasses.filter(p => p.status === 'checked_in');
+      const checkedInPasses = securityPasses.filter(p => p.status === 'checked_in');
+
+      const outsideCount = securityStats.outside || outsidePasses.length;
+      const approvedCount = securityStats.approved || approvedPasses.length;
+      const overdueCount = securityStats.overdue || overduePasses.length;
+      const checkedInCount = securityStats.checked_in || checkedInPasses.length;
 
       return (
         <div className="w-full max-w-full space-y-6">
@@ -371,7 +400,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Currently Outside</p>
-                    <h3 className="text-3xl font-extrabold mt-1 text-amber-500">{outsidePasses.length}</h3>
+                    <h3 className="text-3xl font-extrabold mt-1 text-amber-500">{outsideCount}</h3>
                     <p className="text-xs text-muted-foreground mt-1">Students out on active pass</p>
                   </div>
                   <div className="p-3.5 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
@@ -387,7 +416,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Approved for Exit</p>
-                    <h3 className="text-3xl font-extrabold mt-1 text-blue-500">{approvedPasses.length}</h3>
+                    <h3 className="text-3xl font-extrabold mt-1 text-blue-500">{approvedCount}</h3>
                     <p className="text-xs text-muted-foreground mt-1">Ready at gate for checkout</p>
                   </div>
                   <div className="p-3.5 rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-500/20">
@@ -403,14 +432,14 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Overdue Returns</p>
-                    <h3 className={`text-3xl font-extrabold mt-1 ${overduePasses.length > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                      {overduePasses.length}
+                    <h3 className={`text-3xl font-extrabold mt-1 ${overdueCount > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                      {overdueCount}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {overduePasses.length > 0 ? 'Late beyond return schedule' : 'All returns on time'}
+                      {overdueCount > 0 ? 'Late beyond return schedule' : 'All returns on time'}
                     </p>
                   </div>
-                  <div className={`p-3.5 rounded-2xl ${overduePasses.length > 0 ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
+                  <div className={`p-3.5 rounded-2xl ${overdueCount > 0 ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
                     <AlertTriangle className="w-6 h-6" />
                   </div>
                 </div>
@@ -423,7 +452,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Returned Safely</p>
-                    <h3 className="text-3xl font-extrabold mt-1 text-emerald-500">{checkedInToday.length}</h3>
+                    <h3 className="text-3xl font-extrabold mt-1 text-emerald-500">{checkedInCount}</h3>
                     <p className="text-xs text-muted-foreground mt-1">Verified check-ins logged</p>
                   </div>
                   <div className="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">

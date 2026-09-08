@@ -56,6 +56,7 @@ export const SecurityGatePassScanner: React.FC<SecurityGatePassScannerProps> = (
     approved: 0,
     overdue: 0,
     today_movement: 0,
+    checked_in: 0,
   });
   const [statsLoading, setStatsLoading] = useState(false);
 
@@ -133,12 +134,14 @@ export const SecurityGatePassScanner: React.FC<SecurityGatePassScannerProps> = (
     try {
       setStatsLoading(true);
       const res = await getSecurityGatePasses({ stats_only: true });
-      if (res?.stats) {
+      const statsObj = res?.stats || (res as any)?.data?.stats || (res as any)?.data;
+      if (statsObj && typeof statsObj === 'object') {
         setStats({
-          outside: res.stats.outside || 0,
-          approved: res.stats.approved || 0,
-          overdue: res.stats.overdue || 0,
-          today_movement: res.stats.today_movement || 0,
+          outside: Number(statsObj.outside) || 0,
+          approved: Number(statsObj.approved) || 0,
+          overdue: Number(statsObj.overdue) || 0,
+          today_movement: Number(statsObj.today_movement) || 0,
+          checked_in: Number(statsObj.checked_in || statsObj.checked_in_today) || 0,
         });
       }
     } catch (err) {
@@ -160,6 +163,7 @@ export const SecurityGatePassScanner: React.FC<SecurityGatePassScannerProps> = (
       setOutsideTotalPages(res.total_pages || 1);
       if (typeof res.count === 'number') {
         setOutsideCount(res.count);
+        setStats((prev) => ({ ...prev, outside: res.count }));
       }
     } catch (err: any) {
       console.error("Error fetching outside passes:", err);
@@ -180,6 +184,7 @@ export const SecurityGatePassScanner: React.FC<SecurityGatePassScannerProps> = (
       setApprovedTotalPages(res.total_pages || 1);
       if (typeof res.count === 'number') {
         setApprovedCount(res.count);
+        setStats((prev) => ({ ...prev, approved: res.count }));
       }
     } catch (err: any) {
       console.error("Error fetching approved passes:", err);
@@ -707,74 +712,7 @@ export const SecurityGatePassScanner: React.FC<SecurityGatePassScannerProps> = (
         </div>
       </Card>
 
-      {/* Metrics Row (KPIs fetched first) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="border shadow-sm">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                Currently Outside
-              </p>
-              <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
-                {stats.outside}
-              </h3>
-            </div>
-            <div className="p-3 bg-blue-100 dark:bg-blue-950 rounded-xl text-blue-600">
-              <LogOut className="h-6 w-6" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border shadow-sm">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                Approved (Waiting)
-              </p>
-              <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
-                {stats.approved}
-              </h3>
-            </div>
-            <div className="p-3 bg-emerald-100 dark:bg-emerald-950 rounded-xl text-emerald-600">
-              <CheckCircle2 className="h-6 w-6" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border shadow-sm">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                Overdue Returns
-              </p>
-              <h3 className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
-                {stats.overdue}
-              </h3>
-            </div>
-            <div className="p-3 bg-amber-100 dark:bg-amber-950 rounded-xl text-amber-600">
-              <AlertTriangle className="h-6 w-6" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border shadow-sm">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                Today's Total Movement
-              </p>
-              <h3 className="text-2xl font-bold text-foreground mt-1">
-                {stats.today_movement}
-              </h3>
-            </div>
-            <div className="p-3 bg-muted rounded-xl text-muted-foreground">
-              <Clock className="h-6 w-6" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Manual Lookup / Token Search (Full-width directly below KPI metric cards) */}
+      {/* Manual Lookup / Token Search */}
       <Card className="border shadow-sm">
         <CardHeader className="pb-2 pt-4 px-4 sm:px-6">
           <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">

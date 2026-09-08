@@ -158,6 +158,12 @@ data?: any)
         previous: result.previous,
         ...(result.stats !== undefined && { stats: result.stats })
       };
+    } else if (result && result.stats !== undefined) {
+      return {
+        success: true,
+        stats: result.stats,
+        data: result
+      };
     } else {
       // Single object response
       return { success: true, data: result };
