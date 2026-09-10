@@ -34,6 +34,7 @@ import StaffTaskTracker from "../common/StaffTaskTracker";
 import AdminQPApprovals from "../admin/AdminQPApprovals";
 import ComplianceReports from "../admin/ComplianceReports";
 import Reports from "../FeesManager/Reports";
+import { InventoryHub } from "../inventory/InventoryHub";
 
 interface DeanUser {
   username: string;
@@ -55,6 +56,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'apply-leave': 'apply-leave',
     'leaves': 'apply-leave',
     'dashboard': 'dashboard',
+    'inventory': 'inventory',
     'holiday-calendar': 'holiday-calendar',
     'profile': 'profile',
     'campus-locations': 'campus-locations',
@@ -161,6 +163,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <StaffTaskTracker />;
       case "compliance-reports":
         return <ComplianceReports />;
+      case "inventory":
+        return <InventoryHub role="dean" />;
       case "external-links":
         return <ExternalLinksPage userRole={user?.role || "dean"} />;
       default:

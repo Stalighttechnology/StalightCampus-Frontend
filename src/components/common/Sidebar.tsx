@@ -47,7 +47,8 @@ import {
   FilePlus, CheckSquare, Award, ScanLine, ShieldCheck, Target, ListChecks,
   CalendarCheck, Megaphone, ListTodo, RefreshCcw, FileQuestion, PieChart,
   Clock, LineChart, List, Activity, MonitorPlay, BookCopy, PenTool, DoorOpen,
-  UtensilsCrossed, ClipboardSignature, Ticket, BusFront, Map, Navigation, History, Library, Repeat, FileCode, CheckCircle2, TrendingUp, ArrowLeftRight, Link, QrCode
+  UtensilsCrossed, ClipboardSignature, Ticket, BusFront, Map, Navigation, History, Library, Repeat, FileCode, CheckCircle2, TrendingUp, ArrowLeftRight, Link, QrCode, Boxes,
+  ShoppingCart, Wrench, Layers, MapPin
 } from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
 import {
@@ -80,7 +81,8 @@ const MODULE_PAGE_MAP: Record<string, string[]> = {
   admissions: ['admission-applications', 'admission-enquiries', 'admission-communication', 'admission-reports', 'admission-courses', 'enrollment'],
   announcements: ['announcements', 'announcement-management', 'hod-announcement-management', 'faculty-announcement-management'],
   attendance: ['attendance', 'take-attendance', 'my-attendance', 'low-attendance', 'attendance-filters', 'attendance-records', 'hod-attendance', 'faculty-attendance'],
-  academics_extra: ['syllabus-monitor', 'syllabus-status', 'study-materials', 'student-study-material', 'assignments', 'faculty-assignments', 'student-assignment', 'co-attainment']
+  academics_extra: ['syllabus-monitor', 'syllabus-status', 'study-materials', 'student-study-material', 'assignments', 'faculty-assignments', 'student-assignment', 'co-attainment'],
+  inventory_management: ['inventory', 'inventory-dashboard', 'inventory-items', 'inventory-procurement', 'inventory-quotations', 'inventory-tickets', 'inventory-categories', 'inventory-locations']
 };
 
 const APPLY_LEAVE_PAGES = ['apply-leave', 'apply-leaves', 'leave'];
@@ -338,6 +340,13 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       'exam-applications': <FileText size={20} />,
       dashboard: <LayoutDashboard size={20} />,
       overview: <LayoutDashboard size={20} />,
+      inventory: <Boxes size={20} />,
+      "inventory-items": <Boxes size={20} />,
+      "inventory-procurement": <ShoppingCart size={20} />,
+      "inventory-quotations": <FileText size={20} />,
+      "inventory-tickets": <Wrench size={20} />,
+      "inventory-categories": <Layers size={20} />,
+      "inventory-locations": <MapPin size={20} />,
       components: <List size={20} />,
       templates: <FileCode size={20} />,
       assignments: <ClipboardList size={20} />,
@@ -529,6 +538,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Alumni Directory", page: "alumni-directory" },
       { name: "Calendar", page: "holiday-calendar" },
+      { name: "Inventory Management", page: "inventory" },
       { name: "Billing & Plans", page: "billing" },
       { name: "My Salary & Payroll", page: "my-payroll" },
       { name: "Profile", page: "profile" },
@@ -555,6 +565,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Alumni Directory", page: "alumni-directory" },
       { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "Inventory Management", page: "inventory" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "My Salary & Payroll", page: "my-payroll" },
       { name: "Profile", page: "profile" },
@@ -580,6 +591,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "My Salary & Payroll", page: "my-payroll" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "Inventory Management", page: "inventory" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
     ],
@@ -607,6 +619,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leaves", page: "apply-leaves" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "Department Inventory", page: "inventory" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Alumni Directory", page: "alumni-directory" },
@@ -637,6 +650,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leave", page: "apply-leave" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "Campus Assets & Support", page: "inventory" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "Reimbursements & Claims", page: "reimbursements" },
       { name: "My Salary & Payroll", page: "my-payroll" },
@@ -716,6 +730,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Alumni Directory", page: "alumni-directory" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "Inventory Management", page: "inventory" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "Leave Requests", page: "admin-leaves" },
       { name: "Calendar", page: "holiday-calendar" },
@@ -878,8 +893,28 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     { name: "Profile", page: "faculty-profile" },
   ];
 
+  const inventoryManagerMenuItems = [
+    { name: "Dashboard", page: "dashboard" },
+    { name: "Asset Directory", page: "inventory-items" },
+    { name: "Procurement Requests", page: "inventory-procurement" },
+    { name: "Vendor Quotations", page: "inventory-quotations" },
+    { name: "Maintenance & Tickets", page: "inventory-tickets" },
+    { name: "Categories", page: "inventory-categories" },
+    { name: "Locations & Blocks", page: "inventory-locations" },
+    { name: "Apply Leave", page: "apply-leave" },
+    { name: "My Attendance", page: "faculty-attendance" },
+    { name: "Announcements", page: "announcements" },
+    { name: "Calendar", page: "holiday-calendar" },
+    { name: "Schedule Meeting", page: "schedule-meeting" },
+    { name: "My Salary & Payroll", page: "my-payroll" },
+    { name: "Reimbursements & Claims", page: "reimbursements" },
+    { name: "Staff Tasks", page: "staff-tasks" },
+    { name: "Profile", page: "profile" },
+  ];
+
   menuItems['group_d'] = nonTeachingStaffMenuItems;
   menuItems['security'] = securityMenuItems;
+  menuItems['inventory_manager'] = inventoryManagerMenuItems;
 
   if (role === 'security' || user?.role === 'security') {
     menuItems['faculty'] = securityMenuItems;
@@ -1136,8 +1171,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
                       <div className="ml-auto flex items-center shrink-0 pl-1 z-10 pointer-events-none">
                         {badgeCount > 0 ? (
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none border shadow-sm ${isItemActive(item.page)
-                              ? "bg-white text-primary border-white/60 font-extrabold"
-                              : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
+                            ? "bg-white text-primary border-white/60 font-extrabold"
+                            : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
                             }`}>
                             {badgeCount}
                           </span>

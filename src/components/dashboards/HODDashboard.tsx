@@ -48,6 +48,7 @@ import { HolidayCalendar } from "../admin/HolidayCalendar";
 import ScheduleMeeting from "../common/ScheduleMeeting";
 import StaffTaskTracker from "../common/StaffTaskTracker";
 import AlumniDirectory from "../common/AlumniDirectory";
+import { InventoryHub } from "../inventory/InventoryHub";
 
 interface HODUser {
   username: string;
@@ -329,6 +330,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <FacultyPayroll />;
       case "staff-tasks":
         return <StaffTaskTracker />;
+      case "inventory":
+        return <InventoryHub role="hod" />;
       case "external-links":
         return <ExternalLinksPage userRole={user?.role || "hod"} />;
       default:

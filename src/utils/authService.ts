@@ -145,6 +145,23 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
     // Note: AuthContext will populate sessionStorage with a refreshed token via its refreshAccessToken method.
     let accessToken = sessionStorage.getItem("access_token") || _inMemoryAccessToken || localStorage.getItem("superadmin_token");
 
+    // Proactively refresh token if missing or expired before firing requests
+    if (!isLoggingOutFlag && (!accessToken || isTokenExpired(accessToken))) {
+      const hasSession = (typeof window !== 'undefined') && (localStorage.getItem('has_session') === 'true' || !!sessionStorage.getItem('access_token'));
+      if (hasSession) {
+        try {
+          const refreshResult = await refreshToken();
+          if (refreshResult.success && refreshResult.access) {
+            accessToken = refreshResult.access;
+            sessionStorage.setItem("access_token", refreshResult.access);
+            _inMemoryAccessToken = refreshResult.access;
+          }
+        } catch {
+          // Proceed to let network request or 401 handler manage it
+        }
+      }
+    }
+
     // Ensure Authorization header is set only when we have a token. Also include session/device identifiers.
     const sessionId = (typeof window !== 'undefined') ? localStorage.getItem('session_id') : undefined;
     const deviceId = getOrCreateDeviceId();

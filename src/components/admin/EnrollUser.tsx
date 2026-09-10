@@ -214,6 +214,7 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
                         <SelectItem value="hms_admin">HMS Admin</SelectItem>
                         <SelectItem value="transport_admin">Transport Admin</SelectItem>
                         <SelectItem value="library_admin">Library Admin</SelectItem>
+                        <SelectItem value="inventory_manager">Inventory Manager</SelectItem>
                         <SelectItem value="admission_manager">Admission Manager</SelectItem>
                         {getInstitutionType() !== 'school' && (
                           <SelectItem value="placement_officer">Placement Officer (Sync Admin)</SelectItem>

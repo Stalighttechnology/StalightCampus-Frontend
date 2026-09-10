@@ -43,6 +43,7 @@ const DriverDashboard = lazy(() => import("./components/dashboards/DriverDashboa
 const LibraryAdminDashboard = lazy(() => import("./components/dashboards/LibraryAdminDashboard"));
 const AdmissionManagerDashboard = lazy(() => import("./components/dashboards/AdmissionManagerDashboard"));
 const CounsellorDashboard = lazy(() => import("./components/dashboards/CounsellorDashboard"));
+const InventoryManagerDashboard = lazy(() => import("./components/dashboards/InventoryManagerDashboard"));
 const AdmissionLanding = lazy(() => import("./components/public/AdmissionLanding"));
 const ApplicationWizard = lazy(() => import("./components/public/ApplicationWizard"));
 const Onboarding = lazy(() => import("./components/common/Onboarding"));
@@ -59,6 +60,7 @@ const Home = lazy(() => import("./components/public/Home"));
 const SyncAccessRestricted = lazy(() => import("./components/common/SyncAccessRestricted"));
 const AccountDeletion = lazy(() => import("./components/legal/AccountDeletion"));
 const NDAConsentPortal = lazy(() => import("./nda_consent/components/NDAConsentPortal").then(module => ({ default: module.NDAConsentPortal })));
+const PublicVendorQuote = lazy(() => import("./components/inventory/procurement/PublicVendorQuote").then(module => ({ default: module.PublicVendorQuote })));
 
 import { WardenProvider } from "./context/WardenContext";
 import { HMSProvider } from "./context/HMSContext";
@@ -160,7 +162,9 @@ const AppContent = () => {
       "/transport-admin",
       "/driver",
       "/library-admin",
-      "/admission-manager"
+      "/admission-manager",
+      "/inventory-admin",
+      "/inventory-manager"
     ];
     return topDashboards.includes(p);
   };
@@ -279,6 +283,9 @@ const AppContent = () => {
 
           {/* Unauthenticated / Public Mobile Drawing Route */}
           <Route path="/mobile-draw" element={<MobileDraw />} />
+
+          {/* Public Vendor Quotation Response Portal */}
+          <Route path="/public/quotation/:token" element={<PublicVendorQuote />} />
 
           {/* Payment routes */}
           <Route path="/payment/success" element={
@@ -713,6 +720,25 @@ const AppContent = () => {
             <ProtectedRoute allowedRoles={["dean"]}>
               <>
                 <DeanDashboard user={userData} setPage={() => { }} />
+                {shouldShowFloatingAssistant() && <FloatingAssistant />}
+              </>
+            </ProtectedRoute>
+          } />
+
+          {/* Inventory Manager routes */}
+          <Route path="/inventory-admin/*" element={
+            <ProtectedRoute allowedRoles={["inventory_manager", "org_admin", "admin", "principal"]}>
+              <>
+                <InventoryManagerDashboard user={userData} setPage={() => { }} />
+                {shouldShowFloatingAssistant() && <FloatingAssistant />}
+              </>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/inventory-manager/*" element={
+            <ProtectedRoute allowedRoles={["inventory_manager", "org_admin", "admin", "principal"]}>
+              <>
+                <InventoryManagerDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
               </>
             </ProtectedRoute>
