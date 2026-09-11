@@ -140,6 +140,16 @@ export interface QuotationResponse {
 export interface InventoryQuotation {
   id: number;
   procurement_request?: number;
+  procurement_request_details?: {
+    id: number;
+    request_no: string;
+    title: string;
+    requested_quantity: number;
+    estimated_cost: number;
+    branch_name?: string;
+    category_name?: string;
+    status: string;
+  };
   category: number;
   category_details?: InventoryCategory;
   product_name: string;
@@ -636,6 +646,26 @@ export const acceptQuotationResponse = (quotationId: number, responseId: number)
       method: "POST",
       headers: authHeaders(),
       body: JSON.stringify({ response_id: responseId }),
+    })
+  );
+
+export const addQuotationManualResponse = (
+  quotationId: number,
+  data: {
+    vendor_name: string;
+    vendor_email?: string;
+    vendor_phone?: string;
+    total_amount: number;
+    description?: string;
+    quote_document_url?: string;
+    auto_accept?: boolean;
+  }
+): Promise<any> =>
+  handleJsonResponse<any>(
+    fetchWithTokenRefresh(`${API_BASE}/quotations/${quotationId}/add_response/`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify(data),
     })
   );
 

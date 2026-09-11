@@ -14,6 +14,7 @@ import {
   fetchInventoryCategories,
   fetchInventoryLocations,
   fetchInventoryPersonnel,
+  fetchBranches,
 } from "../../../utils/inventory_api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../ui/dialog";
 import { Button } from "../../ui/button";
@@ -143,6 +144,8 @@ export const ProcurementRequests: React.FC<Props> = ({
   useEffect(() => {
     if (branches && branches.length > 0) {
       setBranchList(branches);
+    } else {
+      fetchBranches().then((b) => setBranchList(b || [])).catch(console.error);
     }
   }, [branches]);
 
@@ -159,9 +162,7 @@ export const ProcurementRequests: React.FC<Props> = ({
   }, [propLocations]);
 
   useEffect(() => {
-    if (propCategories.length === 0 || propLocations.length === 0) {
-      loadMetadata();
-    }
+    loadMetadata();
   }, []);
 
   useEffect(() => {
@@ -176,6 +177,10 @@ export const ProcurementRequests: React.FC<Props> = ({
     try {
       const cats = propCategories.length > 0 ? propCategories : await fetchInventoryCategories().catch(() => []);
       setCategories(Array.isArray(cats) ? cats : []);
+      if (branches.length === 0) {
+        const bList = await fetchBranches().catch(() => []);
+        setBranchList(Array.isArray(bList) ? bList : []);
+      }
     } catch (err) {
       console.error("Failed to load metadata", err);
     }
@@ -192,7 +197,10 @@ export const ProcurementRequests: React.FC<Props> = ({
       setLoadingPersonnel(true);
       const params: Record<string, any> = {};
       if (roleVal && roleVal !== "all") params.role = roleVal;
-      if (branchVal && branchVal !== "all" && branchVal !== "none") params.branch = branchVal;
+      const isBranchSpecific = ["faculty", "teacher", "hod", "staff"].includes(roleVal);
+      if (isBranchSpecific && branchVal && branchVal !== "all" && branchVal !== "none") {
+        params.branch = branchVal;
+      }
       if (searchVal.trim()) params.search = searchVal.trim();
       const list = await fetchInventoryPersonnel(params);
       setPersonnelList(Array.isArray(list) ? list : []);
@@ -217,6 +225,9 @@ export const ProcurementRequests: React.FC<Props> = ({
       setStockInConfirmedReceipt(false);
       if (locations.length > 0 && !stockInLocationId) {
         setStockInLocationId(String(locations[0].id));
+      }
+      if (branchList.length === 0) {
+        fetchBranches().then((b) => setBranchList(b || [])).catch(console.error);
       }
       loadPersonnel("faculty", branchVal !== "none" ? branchVal : "all", "");
     }

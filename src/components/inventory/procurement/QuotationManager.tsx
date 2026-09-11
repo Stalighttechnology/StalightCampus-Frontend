@@ -5,6 +5,7 @@ import {
   fetchInventoryQuotationsPaginated,
   createInventoryQuotation,
   acceptQuotationResponse,
+  addQuotationManualResponse,
   fetchInventoryCategories,
 } from "../../../utils/inventory_api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../ui/dialog";
@@ -62,8 +63,20 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedQuotation, setSelectedQuotation] = useState<InventoryQuotation | null>(null);
   const [viewDetailsQuote, setViewDetailsQuote] = useState<InventoryQuotation | null>(null);
+  const [recordBidModalQuote, setRecordBidModalQuote] = useState<InventoryQuotation | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Record Manual Bid State
+  const [bidFormData, setBidFormData] = useState({
+    vendor_name: "",
+    vendor_email: "",
+    vendor_phone: "",
+    total_amount: "",
+    quote_document_url: "",
+    description: "",
+    auto_accept: false,
+  });
 
   // Create Form State
   const [formData, setFormData] = useState({
@@ -74,6 +87,55 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
     company_email: "",
     last_reply_date: "",
   });
+
+  const handleOpenRecordBid = (quote: InventoryQuotation) => {
+    setBidFormData({
+      vendor_name: "",
+      vendor_email: quote.company_email || "",
+      vendor_phone: "",
+      total_amount: "",
+      quote_document_url: "",
+      description: "",
+      auto_accept: false,
+    });
+    setRecordBidModalQuote(quote);
+  };
+
+  const handleRecordBidSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recordBidModalQuote || !bidFormData.vendor_name.trim() || !bidFormData.total_amount) {
+      toast.error("Please enter vendor name and total quotation amount");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await addQuotationManualResponse(recordBidModalQuote.id, {
+        vendor_name: bidFormData.vendor_name.trim(),
+        vendor_email: bidFormData.vendor_email.trim() || undefined,
+        vendor_phone: bidFormData.vendor_phone.trim() || undefined,
+        total_amount: Number(bidFormData.total_amount),
+        description: bidFormData.description.trim() || undefined,
+        quote_document_url: bidFormData.quote_document_url.trim() || undefined,
+        auto_accept: bidFormData.auto_accept,
+      });
+
+      toast.success(
+        bidFormData.auto_accept
+          ? `Bid from ${bidFormData.vendor_name} recorded and accepted! Order placed.`
+          : `Bid from ${bidFormData.vendor_name} recorded successfully.`
+      );
+      setRecordBidModalQuote(null);
+      loadQuotations(currentPage);
+      if (selectedQuotation && selectedQuotation.id === recordBidModalQuote.id) {
+        setSelectedQuotation(null);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to record vendor bid");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -329,11 +391,14 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                         >
                           {/* Product Name */}
                           <td className="py-3.5 px-4 align-middle font-medium">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="break-words font-semibold text-foreground">{quote.product_name}</span>
-                              {quote.procurement_request && (
-                                <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 whitespace-nowrap">
-                                  Req #{quote.procurement_request}
+                              {(quote.procurement_request_details || quote.procurement_request) && (
+                                <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 whitespace-nowrap flex items-center gap-1">
+                                  <span>{quote.procurement_request_details?.request_no || `Req #${quote.procurement_request}`}</span>
+                                  {quote.procurement_request_details?.branch_name && (
+                                    <span className="text-[9px] opacity-80">({quote.procurement_request_details.branch_name})</span>
+                                  )}
                                 </span>
                               )}
                             </div>
@@ -382,6 +447,18 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                           {/* Actions */}
                           <td className="py-3.5 px-4 text-right whitespace-nowrap align-middle">
                             <div className="flex items-center justify-end gap-1.5">
+                              {canCUD && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleOpenRecordBid(quote)}
+                                  className="gap-1 text-xs h-8 text-primary border-primary/30 hover:bg-primary/10"
+                                  title="Record Manual Vendor Bid"
+                                >
+                                  <Plus className="w-3.5 h-3.5" /> Bid
+                                </Button>
+                              )}
+
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -445,6 +522,12 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                           </span>
                           <h3 className="font-semibold text-sm text-foreground">{quote.product_name}</h3>
                           <p className="text-xs text-muted-foreground">{quote.company_email}</p>
+                          {(quote.procurement_request_details || quote.procurement_request) && (
+                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 inline-block">
+                              {quote.procurement_request_details?.request_no || `Req #${quote.procurement_request}`}
+                              {quote.procurement_request_details?.branch_name && ` (${quote.procurement_request_details.branch_name})`}
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs font-semibold px-2 py-1 rounded bg-muted">
                           Qty: {quote.quantity}
@@ -455,7 +538,17 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                         Category: <strong className="text-foreground">{quote.category_details?.name || "--"}</strong>
                       </div>
 
-                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50">
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 pt-2 border-t border-border/50">
+                        {canCUD && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenRecordBid(quote)}
+                            className="gap-1 text-xs h-8 text-primary border-primary/30"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Bid
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
@@ -665,6 +758,123 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
         </DialogContent>
       </Dialog>
 
+      {/* Record Manual Vendor Bid Dialog */}
+      <Dialog open={!!recordBidModalQuote} onOpenChange={(open) => !open && setRecordBidModalQuote(null)}>
+        <DialogContent className="max-w-lg p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+              <FileText className="w-5 h-5 text-indigo-600" />
+              Record Vendor Bid / Quote
+            </DialogTitle>
+            <DialogDescription>
+              Record a quotation received from a supplier for{" "}
+              <strong>{recordBidModalQuote?.product_name}</strong> ({recordBidModalQuote?.quantity} unit(s)).
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleRecordBidSubmit} className="space-y-4 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                  Vendor / Supplier Name *
+                </label>
+                <Input
+                  required
+                  placeholder="e.g. Acme Tech Solutions"
+                  value={bidFormData.vendor_name}
+                  onChange={(e) => setBidFormData({ ...bidFormData, vendor_name: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                  Total Quoted Amount (₹) *
+                </label>
+                <Input
+                  type="number"
+                  required
+                  min={0}
+                  step="0.01"
+                  placeholder="e.g. 75000"
+                  value={bidFormData.total_amount}
+                  onChange={(e) => setBidFormData({ ...bidFormData, total_amount: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                  Vendor Email
+                </label>
+                <Input
+                  type="email"
+                  placeholder="sales@acmetech.com"
+                  value={bidFormData.vendor_email}
+                  onChange={(e) => setBidFormData({ ...bidFormData, vendor_email: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                  Vendor Phone
+                </label>
+                <Input
+                  placeholder="+91 9876543210"
+                  value={bidFormData.vendor_phone}
+                  onChange={(e) => setBidFormData({ ...bidFormData, vendor_phone: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                Quote Document / URL (Optional)
+              </label>
+              <Input
+                placeholder="https://drive.google.com/... or uploaded URL"
+                value={bidFormData.quote_document_url}
+                onChange={(e) => setBidFormData({ ...bidFormData, quote_document_url: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                Quotation Remarks / Terms
+              </label>
+              <Textarea
+                rows={2}
+                placeholder="Terms, delivery timeline, warranty included..."
+                value={bidFormData.description}
+                onChange={(e) => setBidFormData({ ...bidFormData, description: e.target.value })}
+              />
+            </div>
+
+            <div className="flex items-center gap-2 p-2.5 rounded-lg border bg-muted/20">
+              <input
+                type="checkbox"
+                id="auto_accept_bid"
+                checked={bidFormData.auto_accept}
+                onChange={(e) => setBidFormData({ ...bidFormData, auto_accept: e.target.checked })}
+                className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+              />
+              <label htmlFor="auto_accept_bid" className="text-xs text-foreground cursor-pointer font-medium">
+                Immediately accept this bid and advance to Order Placed
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setRecordBidModalQuote(null)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save & Record Bid"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* View RFQ Details Dialog */}
       <Dialog open={!!viewDetailsQuote} onOpenChange={() => setViewDetailsQuote(null)}>
         <DialogContent className="max-w-xl p-6 max-h-[90vh] overflow-y-auto">
@@ -699,12 +909,15 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                 <h3 className="text-base font-bold text-foreground">
                   {viewDetailsQuote.product_name}
                 </h3>
-                <div className="text-xs text-muted-foreground flex items-center gap-2">
+                <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
                   <span>Requirement: <strong className="text-foreground">{viewDetailsQuote.quantity} Units</strong></span>
-                  {viewDetailsQuote.procurement_request && (
+                  {(viewDetailsQuote.procurement_request_details || viewDetailsQuote.procurement_request) && (
                     <>
                       <span>•</span>
-                      <span>Procurement Ref #{viewDetailsQuote.procurement_request}</span>
+                      <span className="font-semibold text-indigo-700 dark:text-indigo-300">
+                        {viewDetailsQuote.procurement_request_details?.request_no || `Procurement Ref #${viewDetailsQuote.procurement_request}`}
+                        {viewDetailsQuote.procurement_request_details?.branch_name && ` (${viewDetailsQuote.procurement_request_details.branch_name})`}
+                      </span>
                     </>
                   )}
                 </div>
@@ -724,7 +937,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="p-3 rounded-xl border bg-card space-y-1">
                   <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
-                    <Mail className="w-3.5 h-3.5 text-primary" /> Vendor
+                    <Mail className="w-3.5 h-3.5 text-primary" /> Vendor / Recipient
                   </span>
                   <p className="font-semibold text-foreground break-all">{viewDetailsQuote.company_email}</p>
                 </div>
@@ -749,7 +962,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
                 <div className="p-3 rounded-xl border bg-card space-y-1">
                   <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-primary" /> Vendor Bids
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary" /> Recorded Bids
                   </span>
                   <p className="font-semibold text-foreground">
                     {viewDetailsQuote.responses_count || (viewDetailsQuote.responses ? viewDetailsQuote.responses.length : 0)} Submitted
@@ -800,18 +1013,35 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
               {/* Footer Actions */}
               <div className="flex justify-between items-center pt-3 border-t">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const quote = viewDetailsQuote;
-                    setViewDetailsQuote(null);
-                    setSelectedQuotation(quote);
-                  }}
-                  className="text-xs font-semibold gap-1.5 h-9"
-                >
-                  <Building className="w-3.5 h-3.5 text-primary" /> View Bids ({viewDetailsQuote.responses_count || (viewDetailsQuote.responses ? viewDetailsQuote.responses.length : 0)})
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const quote = viewDetailsQuote;
+                      setViewDetailsQuote(null);
+                      setSelectedQuotation(quote);
+                    }}
+                    className="text-xs font-semibold gap-1.5 h-9"
+                  >
+                    <Building className="w-3.5 h-3.5 text-primary" /> View Bids ({viewDetailsQuote.responses_count || (viewDetailsQuote.responses ? viewDetailsQuote.responses.length : 0)})
+                  </Button>
+
+                  {canCUD && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const quote = viewDetailsQuote;
+                        setViewDetailsQuote(null);
+                        handleOpenRecordBid(quote);
+                      }}
+                      className="text-xs font-semibold gap-1.5 h-9 text-primary border-primary/30"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Record Bid
+                    </Button>
+                  )}
+                </div>
 
                 <Button
                   variant="default"
@@ -830,36 +1060,69 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
       {/* Responses Drawer / Dialog */}
       <Dialog open={!!selectedQuotation} onOpenChange={() => setSelectedQuotation(null)}>
         <DialogContent className="max-w-2xl p-6 max-h-[85vh] overflow-y-auto">
-          <DialogHeader className="border-b pb-3">
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
-              <Building className="w-5 h-5 text-primary" />
-              Vendor Bids for {selectedQuotation?.product_name}
-            </DialogTitle>
-            <DialogDescription>
-              Compare submitted vendor prices and accept the winning quote.
-            </DialogDescription>
+          <DialogHeader className="border-b pb-3 flex flex-row items-center justify-between gap-4">
+            <div>
+              <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+                <Building className="w-5 h-5 text-primary" />
+                Vendor Bids for {selectedQuotation?.product_name}
+              </DialogTitle>
+              <DialogDescription>
+                Compare submitted vendor prices and award the winning quote.
+              </DialogDescription>
+            </div>
+
+            {canCUD && selectedQuotation && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleOpenRecordBid(selectedQuotation)}
+                className="text-xs font-semibold gap-1 shrink-0 text-primary border-primary/30"
+              >
+                <Plus className="w-3.5 h-3.5" /> Record Manual Bid
+              </Button>
+            )}
           </DialogHeader>
 
           <div className="space-y-4 pt-3">
             {selectedQuotation?.responses?.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground text-xs">
-                No vendor responses submitted yet. Share the public RFQ link with your suppliers.
+              <div className="py-8 text-center text-muted-foreground text-xs space-y-3">
+                <p>No vendor responses submitted yet. Share the public RFQ link or manually record bids.</p>
+                {canCUD && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleOpenRecordBid(selectedQuotation)}
+                    className="gap-1.5 text-xs font-semibold"
+                  >
+                    <Plus className="w-4 h-4" /> Record First Vendor Bid
+                  </Button>
+                )}
               </div>
             ) : (
-              selectedQuotation?.responses?.map((resp) => (
+              selectedQuotation?.responses?.map((resp, idx) => (
                 <div
                   key={resp.id}
-                  className="p-4 border rounded-2xl bg-card space-y-3 shadow-sm hover:border-primary/40 transition-colors"
+                  className={`p-4 border rounded-2xl bg-card space-y-3 shadow-sm transition-colors ${
+                    selectedQuotation.status === "accepted" && idx === 0
+                      ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20"
+                      : "hover:border-primary/40"
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h4 className="font-bold text-foreground text-sm">{resp.vendor_name}</h4>
-                      <p className="text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-foreground text-sm">{resp.vendor_name}</h4>
+                        {selectedQuotation.status === "accepted" && idx === 0 && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Awarded Bid
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {resp.vendor_email} {resp.vendor_phone && `• ${resp.vendor_phone}`}
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-base font-black text-emerald-600">
+                      <div className="text-base font-black text-emerald-600 dark:text-emerald-400">
                         ₹{Number(resp.total_amount).toLocaleString("en-IN")}
                       </div>
                       <span className="text-[11px] text-muted-foreground">
@@ -882,10 +1145,10 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                         rel="noreferrer"
                         className="text-xs text-primary hover:underline font-bold flex items-center gap-1"
                       >
-                        <FileText className="w-3.5 h-3.5" /> View Quote PDF
+                        <FileText className="w-3.5 h-3.5" /> View Quote Document
                       </a>
                     ) : (
-                      <span className="text-xs text-muted-foreground">No PDF attached</span>
+                      <span className="text-xs text-muted-foreground">No document attached</span>
                     )}
 
                     {canCUD && selectedQuotation.status !== "accepted" && (
@@ -894,7 +1157,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                         onClick={() => handleAcceptResponse(selectedQuotation.id, resp.id)}
                         className="gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Accept Quote
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Award / Accept Bid
                       </Button>
                     )}
                   </div>
