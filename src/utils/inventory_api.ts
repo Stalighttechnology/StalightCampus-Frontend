@@ -101,6 +101,26 @@ export interface ProcurementRequest {
   principal_sanctioned_by?: number;
   principal_sanctioned_by_name?: string;
   principal_sanction_remarks?: string;
+  selected_vendor?: {
+    vendor_name: string;
+    vendor_email?: string;
+    vendor_phone?: string;
+    total_amount?: string | number;
+    quote_document_url?: string;
+    description?: string;
+    status?: string;
+  } | null;
+  final_price?: string | number | null;
+  quotations_summary?: Array<{
+    id: number;
+    company_email: string;
+    status: string;
+    product_name: string;
+    quantity: number;
+    last_reply_date?: string;
+    created_at: string;
+    responses: QuotationResponse[];
+  }>;
   created_at: string;
   updated_at: string;
 }
@@ -506,12 +526,74 @@ export const sanctionProcurementRequest = (id: number, decision: 'approved' | 'r
     })
   );
 
-export const stockInProcurementRequest = (id: number, data: { location_id: number; room_no?: string; vendor_name?: string; invoice_no?: string }): Promise<any> =>
+export const fetchInventoryPersonnel = (params: Record<string, any> = {}): Promise<Array<{
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  branch_id?: number;
+  branch_name?: string;
+}>> => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") query.append(k, String(v));
+  });
+  return handleJsonResponse(
+    fetchWithTokenRefresh(`${API_BASE}/procurements/personnel/?${query.toString()}`, { headers: authHeaders() }),
+    true
+  );
+};
+
+export const stockInProcurementRequest = (
+  id: number,
+  data: {
+    location_id: number;
+    branch_id?: number | null;
+    room_no?: string;
+    quantity?: number;
+    vendor_name?: string;
+    invoice_no?: string;
+    received_by_id?: number | null;
+    received_by_name?: string;
+    received_by_role?: string;
+  }
+): Promise<any> =>
   handleJsonResponse<any>(
     fetchWithTokenRefresh(`${API_BASE}/procurements/${id}/convert_to_inventory/`, {
       method: "POST",
       headers: authHeaders(),
       body: JSON.stringify(data),
+    })
+  );
+
+export const createQuotationFromProcurement = (
+  id: number,
+  data: {
+    mode: 'rfq' | 'manual';
+    company_email?: string;
+    last_reply_date?: string;
+    description?: string;
+    vendor_name?: string;
+    vendor_email?: string;
+    vendor_phone?: string;
+    total_amount?: number | string;
+    quote_document_url?: string;
+    auto_order?: boolean;
+  }
+): Promise<any> =>
+  handleJsonResponse<any>(
+    fetchWithTokenRefresh(`${API_BASE}/procurements/${id}/create_quotation/`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    })
+  );
+
+export const markProcurementDelivered = (id: number): Promise<any> =>
+  handleJsonResponse<any>(
+    fetchWithTokenRefresh(`${API_BASE}/procurements/${id}/mark_delivered/`, {
+      method: "POST",
+      headers: authHeaders(),
     })
   );
 

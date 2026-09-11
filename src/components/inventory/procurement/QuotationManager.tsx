@@ -198,11 +198,6 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
             <div className="shrink-0">
               <div className="flex items-center gap-3">
                 <CardTitle className="text-xl sm:text-2xl font-semibold">Quotation Management</CardTitle>
-                {totalCount > 0 && (
-                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 dark:bg-primary/15 dark:text-primary dark:border-primary/20">
-                    Total: {totalCount}
-                  </span>
-                )}
               </div>
               <CardDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                 Manage vendor quotation requests (RFQs), copy vendor portal links, and evaluate bids
@@ -334,7 +329,14 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                         >
                           {/* Product Name */}
                           <td className="py-3.5 px-4 align-middle font-medium">
-                            <div className="break-words font-semibold text-foreground">{quote.product_name}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="break-words font-semibold text-foreground">{quote.product_name}</span>
+                              {quote.procurement_request && (
+                                <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 whitespace-nowrap">
+                                  Req #{quote.procurement_request}
+                                </span>
+                              )}
+                            </div>
                             <div className="text-xs text-muted-foreground mt-0.5">{quote.company_email}</div>
                           </td>
 
