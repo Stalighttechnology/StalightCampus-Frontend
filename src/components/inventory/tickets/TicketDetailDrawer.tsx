@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../ui/dialog";
 import { Button } from "../../ui/button";
 import { Textarea } from "../../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
@@ -17,9 +17,9 @@ import {
   Loader2,
   ExternalLink,
   MessageSquare,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatDistanceToNow, parseISO } from "date-fns";
 
 interface Props {
   ticket: InventoryTicket | null;
@@ -83,42 +83,57 @@ export const TicketDetailDrawer: React.FC<Props> = ({
   const getPriorityStyle = (priority: string) => {
     switch (priority) {
       case "urgent":
-        return "bg-rose-500/10 text-rose-600 border-rose-500/20";
+        return "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800";
       case "high":
-        return "bg-orange-500/10 text-orange-600 border-orange-500/20";
+        return "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-800";
       case "medium":
-        return "bg-amber-500/10 text-amber-600 border-amber-500/20";
+        return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800";
       default:
-        return "bg-blue-500/10 text-blue-600 border-blue-500/20";
+        return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800";
     }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const map: Record<string, { label: string; bg: string; text: string }> = {
+      pending: { label: "PENDING", bg: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800" },
+      in_progress: { label: "IN PROGRESS", bg: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800" },
+      procure_in_progress: { label: "PROCUREMENT", bg: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-800" },
+      waiting_for_user: { label: "WAITING INFO", bg: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-400 dark:border-yellow-800" },
+      resolved: { label: "RESOLVED", bg: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800" },
+      closed: { label: "CLOSED", bg: "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700" },
+    };
+    const s = map[status] || { label: (status || "").toUpperCase(), bg: "bg-muted text-muted-foreground border-border" };
+    return (
+      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border inline-block ${s.bg} ${s.text}`}>
+        {s.label}
+      </span>
+    );
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-        <DialogHeader className="border-b pb-4">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-mono text-sm font-black px-2.5 py-0.5 rounded-lg bg-primary/10 text-primary">
-                  {ticket.ticket_number}
-                </span>
-                <span
-                  className={`text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${getPriorityStyle(
-                    ticket.priority
-                  )}`}
-                >
-                  {ticket.priority} Priority
-                </span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-muted font-bold text-muted-foreground uppercase">
-                  {ticket.status.replace(/_/g, " ")}
-                </span>
-              </div>
-              <DialogTitle className="text-xl font-bold text-foreground pt-1">
-                {ticket.issue_category.replace(/_/g, " ").toUpperCase()}
-              </DialogTitle>
-            </div>
+        <DialogHeader className="border-b pb-3 pr-8">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+              <Wrench className="w-5 h-5 text-primary" />
+              Maintenance Ticket Details
+            </DialogTitle>
+            <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded bg-primary/10 text-primary">
+              {ticket.ticket_number}
+            </span>
+            <span
+              className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${getPriorityStyle(
+                ticket.priority
+              )}`}
+            >
+              {ticket.priority.toUpperCase()} PRIORITY
+            </span>
+            {getStatusBadge(ticket.status)}
           </div>
+          <DialogDescription className="text-xs text-muted-foreground mt-1">
+            Category: <strong className="text-foreground">{ticket.issue_category.replace(/_/g, " ").toUpperCase()}</strong>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
@@ -126,7 +141,7 @@ export const TicketDetailDrawer: React.FC<Props> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-muted/20 border rounded-2xl text-xs">
             <div>
               <span className="text-muted-foreground">Reported By:</span>
-              <p className="font-bold text-foreground">{ticket.reported_by_name}</p>
+              <p className="font-bold text-foreground">{ticket.reported_by_name || "Staff"}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Assigned Technician:</span>
@@ -183,7 +198,7 @@ export const TicketDetailDrawer: React.FC<Props> = ({
                   <p className="text-foreground">{u.notes}</p>
                   {u.status_to && u.status_from !== u.status_to && (
                     <span className="inline-block text-[10px] font-bold text-primary">
-                      Status changed: {u.status_from} $\rightarrow$ {u.status_to}
+                      Status changed: {u.status_from} → {u.status_to}
                     </span>
                   )}
                 </div>
@@ -252,8 +267,11 @@ export const TicketDetailDrawer: React.FC<Props> = ({
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-1">
-              <Button type="submit" disabled={submitting} className="gap-1.5 text-xs font-semibold">
+            <div className="flex justify-between items-center gap-2 pt-2 border-t">
+              <Button type="button" variant="outline" size="sm" onClick={onClose} className="h-9 px-4 text-xs font-semibold">
+                Close
+              </Button>
+              <Button type="submit" disabled={submitting} className="gap-1.5 text-xs font-semibold h-9 px-4">
                 {submitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (

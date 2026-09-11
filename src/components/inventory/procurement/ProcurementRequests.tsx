@@ -17,7 +17,7 @@ import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Textarea } from "../../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
-import { Card } from "../../ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/card";
 import {
   ShoppingCart,
   Plus,
@@ -36,6 +36,13 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Eye,
+  Calendar,
+  Building,
+  Package,
+  X,
+  FileText,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -75,6 +82,7 @@ export const ProcurementRequests: React.FC<Props> = ({
 
   // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [viewDetailsReq, setViewDetailsReq] = useState<ProcurementRequest | null>(null);
   const [stockInRequest, setStockInRequest] = useState<ProcurementRequest | null>(null);
   const [stockInLocationId, setStockInLocationId] = useState("");
   const [stockInRoom, setStockInRoom] = useState("");
@@ -125,16 +133,18 @@ export const ProcurementRequests: React.FC<Props> = ({
 
   const loadMetadata = async () => {
     try {
-      const [cats, locs] = await Promise.all([
-        propCategories.length > 0 ? Promise.resolve(propCategories) : fetchInventoryCategories().catch(() => []),
-        propLocations.length > 0 ? Promise.resolve(propLocations) : fetchInventoryLocations().catch(() => []),
-      ]);
+      const cats = propCategories.length > 0 ? propCategories : await fetchInventoryCategories().catch(() => []);
       setCategories(Array.isArray(cats) ? cats : []);
-      setLocations(Array.isArray(locs) ? locs : []);
     } catch (err) {
       console.error("Failed to load metadata", err);
     }
   };
+
+  useEffect(() => {
+    if (stockInRequest && locations.length === 0) {
+      fetchInventoryLocations().then((l) => setLocations(l || [])).catch(console.error);
+    }
+  }, [stockInRequest]);
 
   const loadRequests = async (page: number = currentPage) => {
     try {
@@ -282,10 +292,6 @@ export const ProcurementRequests: React.FC<Props> = ({
   const isHOD = role === "hod";
   const isManager = role === "inventory_manager" || role === "superadmin";
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, selectedStatus, selectedCategory, selectedPriority, selectedBranch]);
-
   const handleResetFilters = () => {
     setSearch("");
     setSelectedStatus("all");
@@ -305,291 +311,521 @@ export const ProcurementRequests: React.FC<Props> = ({
     selectedBranch !== "all";
 
   return (
-    <div className="space-y-4">
-      {/* Filter & Search Bar with Integrated Actions */}
-      <Card className="p-4 rounded-2xl border bg-card/60 backdrop-blur-sm shadow-sm space-y-3">
-        <div className={`grid grid-cols-1 sm:grid-cols-2 ${role === "faculty" ? "md:grid-cols-4" : "md:grid-cols-5"} gap-3`}>
-          {/* Search Input */}
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search request #, title, requester..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 text-xs"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="text-xs">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending_hod">Pending HOD</SelectItem>
-              <SelectItem value="pending_principal">Pending Principal</SelectItem>
-              <SelectItem value="approved">Approved / Sanctioned</SelectItem>
-              <SelectItem value="ordered">Order Placed</SelectItem>
-              <SelectItem value="added_to_inventory">Stocked In</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Category Filter */}
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="text-xs">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((c) => (
-                <SelectItem key={c.id} value={String(c.id)}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Priority Filter */}
-          <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-            <SelectTrigger className="text-xs">
-              <SelectValue placeholder="All Priorities" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Priorities</SelectItem>
-              <SelectItem value="low">Low Priority</SelectItem>
-              <SelectItem value="medium">Medium Priority</SelectItem>
-              <SelectItem value="high">High Priority</SelectItem>
-              <SelectItem value="urgent">Urgent Priority</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Department Filter - Only for cross-department roles */}
-          {role !== "faculty" && (
-            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="text-xs">
-                <SelectValue placeholder="All Departments" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {branchList.map((b) => (
-                  <SelectItem key={b.id} value={String(b.id)}>
-                    {b.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-1 border-t border-border/40 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            {isFiltered && (
-              <Button variant="outline" size="sm" onClick={handleResetFilters} className="h-7 text-xs px-2.5">
-                Clear Filters
-              </Button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 ml-auto">
-            {role !== "faculty" && (
-              <Button
-                size="sm"
-                onClick={() => setShowCreateModal(true)}
-                className="h-8 gap-1.5 text-xs font-semibold shadow-sm"
-              >
-                <Plus className="w-3.5 h-3.5" /> Raise Requisition
-              </Button>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      {/* Requisitions List */}
-      <div className="grid grid-cols-1 gap-4">
-        {loading ? (
-          <div className="py-16 text-center text-muted-foreground">
-            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
-            Loading procurement requisitions...
-          </div>
-        ) : requests.length === 0 ? (
-          <Card className="p-12 text-center text-muted-foreground">
-            <ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="font-semibold text-foreground">No procurement requests found.</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {isFiltered
-                ? "Try adjusting or clearing your filters to see more requisitions."
-                : role !== "faculty"
-                ? 'Click "Raise Requisition" to request new lab equipment or physical assets.'
-                : "No procurement requisitions have been created for your department."}
-            </p>
-            {isFiltered && (
-              <Button variant="outline" size="sm" onClick={handleResetFilters} className="mt-4 text-xs">
-                Clear Filters
-              </Button>
-            )}
-          </Card>
-        ) : (
-          requests.map((req) => (
-            <Card
-              key={req.id}
-              className="p-5 rounded-2xl border bg-card hover:border-primary/40 transition-all shadow-sm space-y-4"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono text-xs font-black px-2 py-0.5 rounded bg-primary/10 text-primary">
-                      {req.request_no}
-                    </span>
-                    {getStatusBadge(req.status)}
-                    <span className="text-[11px] font-semibold text-muted-foreground uppercase">
-                      Priority: {req.priority}
-                    </span>
-                  </div>
-                  <h3 className="text-base font-bold text-foreground pt-0.5">{req.title}</h3>
-                </div>
-
-                <div className="text-right">
-                  <div className="text-sm font-extrabold text-foreground">
-                    ₹{Number(req.estimated_cost || 0).toLocaleString("en-IN")}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Qty: <strong>{req.requested_quantity}</strong> unit(s)
-                  </div>
-                </div>
+    <div className="w-full text-sm sm:text-base">
+      <Card className="w-full bg-white dark:bg-card border border-gray-200 dark:border-border flex flex-col min-h-[620px] md:min-h-[700px] shadow-sm rounded-xl overflow-hidden">
+        {/* Header Section */}
+        <div className="flex flex-col">
+          <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5">
+            <div className="shrink-0">
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-xl sm:text-2xl font-semibold">Procurement Management</CardTitle>
               </div>
-
-              <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
-                {req.description}
-              </p>
-
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs text-muted-foreground border-t border-border/50">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <span>Category: <strong className="text-foreground">{req.category_details?.name}</strong></span>
-                  {req.branch_name && <span>Department: <strong className="text-foreground">{req.branch_name}</strong></span>}
-                  <span>Requested by: <strong className="text-foreground">{req.requested_by_name}</strong></span>
-                </div>
-
-                {/* Role-based action buttons */}
-                <div className="flex items-center gap-2">
-                  {/* HOD Endorse */}
-                  {isHOD && req.status === "pending_hod" && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleEndorse(req)}
-                      disabled={actionLoading}
-                      className="gap-1.5 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5" /> Endorse & Forward
-                    </Button>
-                  )}
-
-                  {/* Principal Sanction */}
-                  {isPrincipalOrAdmin && req.status === "pending_principal" && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleSanction(req, "rejected")}
-                        disabled={actionLoading}
-                        className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50"
-                      >
-                        <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleSanction(req, "approved")}
-                        disabled={actionLoading}
-                        className="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Sanction / Approve
-                      </Button>
-                    </>
-                  )}
-
-                  {/* 1-Click Stock-in to active inventory */}
-                  {isManager && ["approved", "ordered", "delivered"].includes(req.status) && (
-                    <Button
-                      size="sm"
-                      onClick={() => setStockInRequest(req)}
-                      className="text-xs font-semibold gap-1.5 bg-primary text-primary-foreground shadow-sm"
-                    >
-                      <PackagePlus className="w-3.5 h-3.5" /> Stock In to Inventory
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {/* Pagination Bar */}
-      {!loading && requests.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 py-1 text-xs text-muted-foreground">
-          <div>
-            Showing{" "}
-            <span className="font-bold text-foreground">
-              {startIndex + 1}
-            </span>{" "}
-            to{" "}
-            <span className="font-bold text-foreground">
-              {Math.min(startIndex + pageSize, totalCount || requests.length)}
-            </span>{" "}
-            of <span className="font-bold text-foreground">{totalCount || requests.length}</span> requisition(s)
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(1)}
-              disabled={currentPage === 1}
-              className="h-8 w-8 p-0"
-              title="First Page"
-            >
-              <ChevronsLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="h-8 w-8 p-0"
-              title="Previous Page"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-
-            <div className="flex items-center gap-1 px-2 font-medium">
-              Page <span className="font-bold text-foreground">{currentPage}</span> of{" "}
-              <span className="font-bold text-foreground">{totalPages}</span>
+              <CardDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                Manage purchase requisitions, endorsements, sanctions, and asset stock-in
+              </CardDescription>
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8 p-0"
-              title="Next Page"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(totalPages)}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8 p-0"
-              title="Last Page"
-            >
-              <ChevronsRight className="w-4 h-4" />
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {role !== "faculty" && (
+                <Button
+                  size="sm"
+                  onClick={() => setShowCreateModal(true)}
+                  className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4 shrink-0" />
+                  <span>Raise Requisition</span>
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+
+          {/* Search & Filter Bar */}
+          <div className="px-3 sm:px-5 pt-3 pb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
+              <div className="relative flex-1 sm:flex-initial sm:w-72">
+                <Input
+                  placeholder="Search request #, title, requester..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full bg-white dark:bg-card text-foreground py-1 pr-12 text-xs sm:text-sm"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              {/* Status Filter */}
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="h-9 w-[150px] text-xs">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="pending_hod">Pending HOD</SelectItem>
+                  <SelectItem value="pending_principal">Pending Principal</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="ordered">Order Placed</SelectItem>
+                  <SelectItem value="added_to_inventory">Stocked In</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Category Filter */}
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="h-9 w-[150px] text-xs">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Priority Filter */}
+              <Select value={selectedPriority} onValueChange={setSelectedPriority}>
+                <SelectTrigger className="h-9 w-[130px] text-xs">
+                  <SelectValue placeholder="All Priorities" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Priorities</SelectItem>
+                  <SelectItem value="low">Low Priority</SelectItem>
+                  <SelectItem value="medium">Medium Priority</SelectItem>
+                  <SelectItem value="high">High Priority</SelectItem>
+                  <SelectItem value="urgent">Urgent Priority</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Department Filter (if not faculty) */}
+              {role !== "faculty" && (
+                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                  <SelectTrigger className="h-9 w-[150px] text-xs">
+                    <SelectValue placeholder="All Departments" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    {branchList.map((b) => (
+                      <SelectItem key={b.id} value={String(b.id)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {isFiltered && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetFilters}
+                  className="h-9 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-3.5 h-3.5 mr-1" /> Reset
+                </Button>
+              )}
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Table Content */}
+        <CardContent className="flex-1 overflow-hidden flex flex-col px-3 sm:px-5 pt-0 pb-3">
+          {loading ? (
+            <div className="py-20 text-center text-muted-foreground">
+              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
+              Loading procurement requisitions...
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block flex-1 overflow-y-auto overflow-x-auto border rounded-xl mb-2 relative shadow-inner">
+                <table className="w-full text-base md:text-sm text-left table-auto border-collapse">
+                  <thead className="sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-bold tracking-wider bg-slate-50/95 dark:bg-slate-900/95 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-border shadow-sm backdrop-blur-md">
+                    <tr>
+                      <th className="py-3.5 px-4 text-left font-bold">Request ID</th>
+                      <th className="py-3.5 px-4 font-bold">Title</th>
+                      <th className="py-3.5 px-4 font-bold">Requested By</th>
+                      <th className="py-3.5 px-4 font-bold">Category</th>
+                      <th className="py-3.5 px-4 font-bold">Department</th>
+                      <th className="py-3.5 px-4 font-bold text-center">Quantity</th>
+                      <th className="py-3.5 px-4 font-bold text-right">Est. Cost</th>
+                      <th className="py-3.5 px-4 font-bold text-center">Status</th>
+                      <th className="py-3.5 px-4 text-right font-bold w-52">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {requests.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="py-12 text-center text-muted-foreground">
+                          No procurement requests found.
+                        </td>
+                      </tr>
+                    ) : (
+                      requests.map((req) => (
+                        <tr
+                          key={req.id}
+                          className="transition-colors duration-200 hover:bg-blue-50/40 dark:hover:bg-accent/70 text-foreground"
+                        >
+                          {/* Request ID */}
+                          <td className="py-3.5 px-4 align-middle font-medium whitespace-nowrap">
+                            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary">
+                              {req.request_no}
+                            </span>
+                          </td>
+
+                          {/* Title */}
+                          <td className="py-3.5 px-4 align-middle">
+                            <div className="break-words font-semibold text-foreground text-sm max-w-[240px]" title={req.title}>
+                              {req.title}
+                            </div>
+                          </td>
+
+                          {/* Requested By */}
+                          <td className="py-3.5 px-4 align-middle">
+                            <div className="text-xs font-medium text-foreground whitespace-nowrap">
+                              {req.requested_by_name || "Staff"}
+                            </div>
+                          </td>
+
+                          {/* Category Column */}
+                          <td className="py-3.5 px-4 align-middle">
+                            <div className="text-xs font-medium text-foreground">
+                              {req.category_details?.name || "--"}
+                            </div>
+                          </td>
+
+                          {/* Department Column */}
+                          <td className="py-3.5 px-4 align-middle">
+                            <div className="text-xs font-medium text-foreground">
+                              {req.branch_name || "--"}
+                            </div>
+                          </td>
+
+                          {/* Quantity */}
+                          <td className="py-3.5 px-4 align-middle text-center">
+                            <span className="font-semibold text-sm">{req.requested_quantity}</span>
+                          </td>
+
+                          {/* Est Cost */}
+                          <td className="py-3.5 px-4 align-middle text-right">
+                            <span className="font-semibold text-sm">
+                              ₹{Number(req.estimated_cost || 0).toLocaleString("en-IN")}
+                            </span>
+                          </td>
+
+                          {/* Status */}
+                          <td className="py-3.5 px-4 align-middle text-center">
+                            {getStatusBadge(req.status)}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3.5 px-4 text-right whitespace-nowrap align-middle">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {/* HOD Endorse */}
+                              {isHOD && req.status === "pending_hod" && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleEndorse(req)}
+                                  disabled={actionLoading}
+                                  className="h-8 gap-1 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white"
+                                >
+                                  <ShieldCheck className="w-3.5 h-3.5" /> Endorse
+                                </Button>
+                              )}
+
+                              {/* Principal Sanction */}
+                              {isPrincipalOrAdmin && req.status === "pending_principal" && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleSanction(req, "rejected")}
+                                    disabled={actionLoading}
+                                    className="h-8 text-xs text-rose-600 border-rose-200 hover:bg-rose-50"
+                                  >
+                                    <XCircle className="w-3.5 h-3.5" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleSanction(req, "approved")}
+                                    disabled={actionLoading}
+                                    className="h-8 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+                                  </Button>
+                                </>
+                              )}
+
+                              {/* Stock In */}
+                              {isManager && ["approved", "ordered", "delivered"].includes(req.status) && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => setStockInRequest(req)}
+                                  className="h-8 text-xs font-semibold gap-1 bg-primary text-primary-foreground"
+                                >
+                                  <PackagePlus className="w-3.5 h-3.5" /> Stock In
+                                </Button>
+                              )}
+
+                              {/* View Details */}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setViewDetailsReq(req)}
+                                className="h-8 gap-1 text-xs font-semibold"
+                                title="View Details"
+                              >
+                                <Eye className="w-3.5 h-3.5" /> View
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile View */}
+              <div className="flex-1 overflow-y-auto grid grid-cols-1 gap-3 md:hidden mb-2">
+                {requests.length === 0 ? (
+                  <div className="py-10 text-center text-muted-foreground bg-card/30 rounded-lg border border-dashed border-border">
+                    No procurement requests found.
+                  </div>
+                ) : (
+                  requests.map((req) => (
+                    <div
+                      key={req.id}
+                      className="p-4 rounded-xl border bg-white dark:bg-card border-gray-200 dark:border-border text-foreground flex flex-col gap-3 shadow-sm"
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary">
+                              {req.request_no}
+                            </span>
+                            {getStatusBadge(req.status)}
+                          </div>
+                          <h3 className="font-semibold text-sm text-foreground">{req.title}</h3>
+                          <p className="text-xs text-muted-foreground">Requested by: {req.requested_by_name}</p>
+                        </div>
+                        <div className="text-xs font-semibold px-2 py-1 rounded bg-muted">
+                          Qty: {req.requested_quantity}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center text-xs text-muted-foreground">
+                        <span>Category: <strong className="text-foreground">{req.category_details?.name || "--"}</strong></span>
+                        <span className="font-bold text-foreground">₹{Number(req.estimated_cost || 0).toLocaleString("en-IN")}</span>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/50">
+                        {isManager && ["approved", "ordered", "delivered"].includes(req.status) && (
+                          <Button
+                            size="sm"
+                            onClick={() => setStockInRequest(req)}
+                            className="h-8 text-xs font-semibold gap-1 bg-primary text-primary-foreground"
+                          >
+                            <PackagePlus className="w-3.5 h-3.5" /> Stock In
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setViewDetailsReq(req)}
+                          className="h-8 gap-1 text-xs font-semibold"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> View
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </CardContent>
+
+        {/* Pagination Bar - only displayed when data is more than 10 */}
+        {!loading && (totalCount > pageSize || totalPages > 1) && (
+          <div className="px-4 py-3 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground bg-muted/20">
+            <div>
+              Showing <span className="font-bold text-foreground">{startIndex + 1}</span> to{" "}
+              <span className="font-bold text-foreground">
+                {Math.min(startIndex + pageSize, totalCount || requests.length)}
+              </span>{" "}
+              of <span className="font-bold text-foreground">{totalCount || requests.length}</span> Requisition(s)
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+                title="First Page"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+                title="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+
+              <div className="flex items-center gap-1 px-2 font-medium">
+                Page <span className="font-bold text-foreground">{currentPage}</span> of{" "}
+                <span className="font-bold text-foreground">{totalPages}</span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+                title="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+                title="Last Page"
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* View Procurement Details Dialog */}
+      <Dialog open={!!viewDetailsReq} onOpenChange={() => setViewDetailsReq(null)}>
+        <DialogContent className="max-w-xl p-6">
+          <DialogHeader className="border-b pb-3">
+            <div className="flex items-center justify-between gap-2">
+              <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+                <FileText className="w-5 h-5 text-primary" />
+                Procurement Requisition Details
+              </DialogTitle>
+              {viewDetailsReq && getStatusBadge(viewDetailsReq.status)}
+            </div>
+            <DialogDescription>
+              Requisition number, specifications, and administrative approvals.
+            </DialogDescription>
+          </DialogHeader>
+
+          {viewDetailsReq && (
+            <div className="space-y-4 pt-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary">
+                    {viewDetailsReq.request_no}
+                  </span>
+                  <span className="text-xs uppercase font-semibold text-muted-foreground">
+                    Priority: {viewDetailsReq.priority}
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-foreground mt-1">
+                  {viewDetailsReq.title}
+                </h3>
+              </div>
+
+              {/* Justification / Description */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Justification & Specifications
+                </label>
+                <div className="p-3.5 rounded-xl bg-muted/40 border text-xs text-foreground leading-relaxed whitespace-pre-wrap">
+                  {viewDetailsReq.description || "No specifications provided."}
+                </div>
+              </div>
+
+              {/* Key Values Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3 rounded-xl border bg-card space-y-1">
+                  <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
+                    <Building className="w-3.5 h-3.5 text-primary" /> Category & Dept
+                  </span>
+                  <p className="font-semibold text-foreground">
+                    {viewDetailsReq.category_details?.name || "Uncategorized"}
+                    {viewDetailsReq.branch_name && ` • ${viewDetailsReq.branch_name}`}
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl border bg-card space-y-1">
+                  <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
+                    <Package className="w-3.5 h-3.5 text-primary" /> Quantity Requested
+                  </span>
+                  <p className="font-semibold text-foreground">
+                    {viewDetailsReq.requested_quantity} Unit(s)
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl border bg-card space-y-1">
+                  <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
+                    <Clock className="w-3.5 h-3.5 text-primary" /> Estimated Total
+                  </span>
+                  <p className="font-semibold text-foreground">
+                    ₹{Number(viewDetailsReq.estimated_cost || 0).toLocaleString("en-IN")}
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl border bg-card space-y-1">
+                  <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
+                    <User className="w-3.5 h-3.5 text-primary" /> Requested By
+                  </span>
+                  <p className="font-semibold text-foreground">
+                    {viewDetailsReq.requested_by_name || "Staff Member"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Remarks Section */}
+              {(viewDetailsReq.hod_endorsement_remarks || viewDetailsReq.principal_sanction_remarks) && (
+                <div className="p-3 rounded-xl bg-muted/20 border space-y-2 text-xs">
+                  {viewDetailsReq.hod_endorsement_remarks && (
+                    <div>
+                      <span className="font-bold text-purple-700 dark:text-purple-300">HOD Endorsement: </span>
+                      <span className="text-muted-foreground">{viewDetailsReq.hod_endorsement_remarks}</span>
+                    </div>
+                  )}
+                  {viewDetailsReq.principal_sanction_remarks && (
+                    <div>
+                      <span className="font-bold text-emerald-700 dark:text-emerald-300">Principal Sanction: </span>
+                      <span className="text-muted-foreground">{viewDetailsReq.principal_sanction_remarks}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Footer */}
+              <div className="flex justify-end items-center pt-2 border-t gap-2">
+                <Button variant="default" size="sm" onClick={() => setViewDetailsReq(null)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Raise Requisition Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>

@@ -187,7 +187,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-6">
           {/* Header */}
-          <DialogHeader className="border-b pb-4">
+          <DialogHeader className="border-b pb-4 pr-8">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">

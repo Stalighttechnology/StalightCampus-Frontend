@@ -50,9 +50,11 @@ export const InventoryHub: React.FC<Props> = ({
   const [showRaiseTicketModal, setShowRaiseTicketModal] = useState(false);
 
   useEffect(() => {
-    fetchInventoryCategories().then((c) => setCategories(c || [])).catch(console.error);
-    fetchInventoryLocations().then((l) => setLocations(l || [])).catch(console.error);
-  }, []);
+    if (activeTab === "items") {
+      if (categories.length === 0) fetchInventoryCategories().then((c) => setCategories(c || [])).catch(console.error);
+      if (locations.length === 0) fetchInventoryLocations().then((l) => setLocations(l || [])).catch(console.error);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (defaultTab) setActiveTab(defaultTab);

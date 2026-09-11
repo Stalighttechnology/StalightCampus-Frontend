@@ -220,7 +220,7 @@ export const RaiseTicketModal: React.FC<Props> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-xl max-w-[95vw] w-full p-6 max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-2xl">
-        <DialogHeader>
+        <DialogHeader className="pr-8">
           <DialogTitle className="flex items-center gap-2 text-xl font-bold">
             <Wrench className="w-5 h-5 text-amber-500 flex-shrink-0" />
             Report Issue / Maintenance Ticket

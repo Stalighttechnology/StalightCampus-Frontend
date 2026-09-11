@@ -117,7 +117,7 @@ export const AddInventoryModal: React.FC<Props> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-        <DialogHeader>
+        <DialogHeader className="pr-8">
           <DialogTitle className="flex items-center gap-2 text-xl font-bold">
             <PlusCircle className="w-5 h-5 text-primary" />
             Add New Inventory Item

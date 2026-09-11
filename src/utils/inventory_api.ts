@@ -235,15 +235,35 @@ export const fetchBranches = (forceRefresh = false): Promise<Array<{ id: number;
 let locationsCachePromise: Promise<InventoryLocation[]> | null = null;
 export const fetchInventoryLocations = (forceRefresh = false): Promise<InventoryLocation[]> => {
   if (!locationsCachePromise || forceRefresh) {
-    locationsCachePromise = handleJsonResponse<InventoryLocation[]>(
-      fetchWithTokenRefresh(`${API_BASE}/locations/`, { headers: authHeaders() }),
+    locationsCachePromise = handleJsonResponse<any>(
+      fetchWithTokenRefresh(`${API_BASE}/locations/?all=true`, { headers: authHeaders() }),
       true
-    ).catch((err) => {
-      locationsCachePromise = null;
-      throw err;
-    });
+    )
+      .then((res) => (Array.isArray(res) ? res : res?.results || []))
+      .catch((err) => {
+        locationsCachePromise = null;
+        throw err;
+      });
   }
   return locationsCachePromise;
+};
+
+export const fetchInventoryLocationsPaginated = async (
+  params?: Record<string, any>
+): Promise<PaginatedInventoryResponse<InventoryLocation>> => {
+  const query = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== "") {
+        query.append(k, String(v));
+      }
+    });
+  }
+  const url = `${API_BASE}/locations/${query.toString() ? `?${query.toString()}` : ""}`;
+  return handleJsonResponse<PaginatedInventoryResponse<InventoryLocation>>(
+    fetchWithTokenRefresh(url, { headers: authHeaders() }),
+    true
+  );
 };
 
 export const clearLocationsCache = () => {
@@ -286,15 +306,35 @@ export const deleteInventoryLocation = (id: number): Promise<any> => {
 let categoriesCachePromise: Promise<InventoryCategory[]> | null = null;
 export const fetchInventoryCategories = (forceRefresh = false): Promise<InventoryCategory[]> => {
   if (!categoriesCachePromise || forceRefresh) {
-    categoriesCachePromise = handleJsonResponse<InventoryCategory[]>(
-      fetchWithTokenRefresh(`${API_BASE}/categories/`, { headers: authHeaders() }),
+    categoriesCachePromise = handleJsonResponse<any>(
+      fetchWithTokenRefresh(`${API_BASE}/categories/?all=true`, { headers: authHeaders() }),
       true
-    ).catch((err) => {
-      categoriesCachePromise = null;
-      throw err;
-    });
+    )
+      .then((res) => (Array.isArray(res) ? res : res?.results || []))
+      .catch((err) => {
+        categoriesCachePromise = null;
+        throw err;
+      });
   }
   return categoriesCachePromise;
+};
+
+export const fetchInventoryCategoriesPaginated = async (
+  params?: Record<string, any>
+): Promise<PaginatedInventoryResponse<InventoryCategory>> => {
+  const query = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== "") {
+        query.append(k, String(v));
+      }
+    });
+  }
+  const url = `${API_BASE}/categories/${query.toString() ? `?${query.toString()}` : ""}`;
+  return handleJsonResponse<PaginatedInventoryResponse<InventoryCategory>>(
+    fetchWithTokenRefresh(url, { headers: authHeaders() }),
+    true
+  );
 };
 
 export const clearCategoriesCache = () => {
@@ -476,11 +516,28 @@ export const stockInProcurementRequest = (id: number, data: { location_id: numbe
   );
 
 // Quotations
-export const fetchInventoryQuotations = (): Promise<InventoryQuotation[]> =>
-  handleJsonResponse<InventoryQuotation[]>(
-    fetchWithTokenRefresh(`${API_BASE}/quotations/`, { headers: authHeaders() }),
+export const fetchInventoryQuotations = (params: Record<string, any> = {}): Promise<InventoryQuotation[]> => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") query.append(k, String(v));
+  });
+  return handleJsonResponse<InventoryQuotation[]>(
+    fetchWithTokenRefresh(`${API_BASE}/quotations/?${query.toString()}`, { headers: authHeaders() }),
     true
   );
+};
+
+export const fetchInventoryQuotationsPaginated = (
+  params: Record<string, any> = {}
+): Promise<PaginatedInventoryResponse<InventoryQuotation>> => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") query.append(k, String(v));
+  });
+  return handleJsonResponse<PaginatedInventoryResponse<InventoryQuotation>>(
+    fetchWithTokenRefresh(`${API_BASE}/quotations/?${query.toString()}`, { headers: authHeaders() })
+  );
+};
 
 export const createInventoryQuotation = (data: any): Promise<InventoryQuotation> =>
   handleJsonResponse<InventoryQuotation>(

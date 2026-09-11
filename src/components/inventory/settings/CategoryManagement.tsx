@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   InventoryCategory,
-  fetchInventoryCategories,
+  fetchInventoryCategoriesPaginated,
   createInventoryCategory,
   updateInventoryCategory,
   deleteInventoryCategory,
@@ -10,8 +10,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Textarea } from "../../ui/textarea";
-import { Card } from "../../ui/card";
-import { Layers, Plus, Edit2, Trash2, Loader2, RefreshCw, Tag } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/card";
+import {
+  Layers,
+  Plus,
+  Edit2,
+  Trash2,
+  Loader2,
+  RefreshCw,
+  Tag,
+  Search,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -22,6 +36,13 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
   const canCUD = role === "inventory_manager" || role === "superadmin";
   const [categories, setCategories] = useState<InventoryCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Pagination (10 per page)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 10;
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
@@ -32,16 +53,39 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    loadCategories();
-  }, []);
+    setCurrentPage(1);
+    const handler = setTimeout(() => {
+      loadCategories(1);
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
-  const loadCategories = async () => {
+  const loadCategories = async (page: number = currentPage) => {
     try {
       setLoading(true);
-      const data = await fetchInventoryCategories();
-      setCategories(data);
+      const params: Record<string, any> = {
+        page,
+        page_size: pageSize,
+      };
+      if (searchQuery.trim()) params.search = searchQuery.trim();
+
+      const res = await fetchInventoryCategoriesPaginated(params);
+      if (res && Array.isArray(res.results)) {
+        setCategories(res.results);
+        setTotalCount(res.count ?? res.results.length);
+        setTotalPages(res.total_pages ?? (Math.ceil((res.count || res.results.length) / pageSize) || 1));
+      } else if (Array.isArray(res)) {
+        setCategories(res);
+        setTotalCount(res.length);
+        setTotalPages(Math.ceil(res.length / pageSize) || 1);
+      } else {
+        setCategories([]);
+        setTotalCount(0);
+        setTotalPages(1);
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to load categories");
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -87,7 +131,7 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
         toast.success("Category created successfully");
       }
       setShowModal(false);
-      loadCategories();
+      loadCategories(currentPage);
     } catch (err: any) {
       toast.error(err.message || "Failed to save category");
     } finally {
@@ -100,95 +144,305 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
       try {
         await deleteInventoryCategory(cat.id);
         toast.success("Category deleted");
-        loadCategories();
+        loadCategories(currentPage);
       } catch (err: any) {
         toast.error(err.message || "Failed to delete category");
       }
     }
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header Action */}
-      {canCUD && (
-        <div className="flex items-center justify-end gap-4 w-full">
-          <Button
-            size="sm"
-            onClick={() => handleOpenModal()}
-            className="gap-1.5 text-xs font-semibold shadow-sm ml-auto"
-          >
-            <Plus className="w-4 h-4" /> Add Category
-          </Button>
-        </div>
-      )}
+  const startIndex = (currentPage - 1) * pageSize;
 
-      {/* Grid of Categories */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {loading ? (
-          <div className="col-span-full py-16 text-center text-muted-foreground">
-            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
-            Loading categories...
-          </div>
-        ) : categories.length === 0 ? (
-          <Card className="col-span-full p-12 text-center text-muted-foreground">
-            <Layers className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="font-semibold text-foreground">No categories defined yet.</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {canCUD
-                ? "Click 'Add Category' to set up prefixes for laptops, projectors, servers, etc."
-                : "Institutional asset categories will appear here once configured by the Inventory Manager."}
-            </p>
-          </Card>
-        ) : (
-          categories.map((c) => (
-            <Card
-              key={c.id}
-              className="p-5 rounded-2xl border bg-card hover:border-primary/40 transition-all shadow-sm space-y-3 flex flex-col justify-between"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-sm font-black px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20">
-                    {c.prefix}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {c.items_count ?? 0} item(s)
-                  </span>
-                </div>
-                <h3 className="text-base font-bold text-foreground">{c.name}</h3>
-                {c.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-2">{c.description}</p>
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    loadCategories(page);
+  };
+
+  return (
+    <div className="w-full text-sm sm:text-base">
+      <Card className="w-full bg-white dark:bg-card border border-gray-200 dark:border-border flex flex-col min-h-[620px] md:min-h-[700px] shadow-sm rounded-xl overflow-hidden">
+        {/* Header Section */}
+        <div className="flex flex-col">
+          <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5">
+            <div className="shrink-0">
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-xl sm:text-2xl font-semibold">Asset Categories</CardTitle>
+              </div>
+              <CardDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                Manage institutional asset categories, code prefixes, and inventory classifications
+              </CardDescription>
+            </div>
+
+            {canCUD && (
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => handleOpenModal()}
+                  className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4 shrink-0" />
+                  <span>Add Category</span>
+                </Button>
+              </div>
+            )}
+          </CardHeader>
+
+          {/* Search & Filters */}
+          <div className="px-3 sm:px-5 pt-3 pb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
+              <div className="relative flex-1 sm:flex-initial sm:w-72">
+                <Input
+                  placeholder="Search by category name, prefix..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-white dark:bg-card text-foreground py-1 pr-12 text-xs sm:text-sm"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Clear
+                  </button>
                 )}
               </div>
 
-              {canCUD && (
-                <div className="flex justify-end gap-1.5 pt-2 border-t border-border/50">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleOpenModal(c)}
-                    className="h-8 text-xs gap-1"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" /> Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(c)}
-                    className="h-8 text-xs gap-1 text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchQuery("")}
+                  className="h-9 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-3.5 h-3.5 mr-1" /> Reset
+                </Button>
               )}
-            </Card>
-          ))
-        )}
-      </div>
+            </div>
+          </div>
+        </div>
 
-      {/* Modal */}
+        {/* Table Content */}
+        <CardContent className="flex-1 overflow-hidden flex flex-col px-3 sm:px-5 pt-0 pb-3">
+          {loading ? (
+            <div className="py-20 text-center text-muted-foreground">
+              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
+              Loading categories...
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block flex-1 overflow-y-auto overflow-x-auto border rounded-xl mb-2 relative shadow-inner">
+                <table className="w-full text-base md:text-sm text-left table-auto border-collapse">
+                  <thead className="sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-bold tracking-wider bg-slate-50/95 dark:bg-slate-900/95 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-border shadow-sm backdrop-blur-md">
+                    <tr>
+                      <th className="py-3.5 px-4 text-left font-bold">Code Prefix</th>
+                      <th className="py-3.5 px-4 font-bold">Category Name</th>
+                      <th className="py-3.5 px-4 font-bold">Description</th>
+                      <th className="py-3.5 px-4 font-bold text-center">Items Tagged</th>
+                      <th className="py-3.5 px-4 font-bold text-center">Created Date</th>
+                      {canCUD && <th className="py-3.5 px-4 text-right font-bold w-36">Actions</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {categories.length === 0 ? (
+                      <tr>
+                        <td colSpan={canCUD ? 6 : 5} className="py-12 text-center text-muted-foreground">
+                          No asset categories found.
+                        </td>
+                      </tr>
+                    ) : (
+                      categories.map((c) => (
+                        <tr
+                          key={c.id}
+                          className="transition-colors duration-200 hover:bg-blue-50/40 dark:hover:bg-accent/70 text-foreground"
+                        >
+                          {/* Prefix */}
+                          <td className="py-3.5 px-4 align-middle font-medium whitespace-nowrap">
+                            <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-primary/10 text-primary border border-primary/20 inline-block">
+                              {c.prefix}
+                            </span>
+                          </td>
+
+                          {/* Name */}
+                          <td className="py-3.5 px-4 align-middle">
+                            <div className="break-words font-semibold text-foreground text-sm">
+                              {c.name}
+                            </div>
+                          </td>
+
+                          {/* Description */}
+                          <td className="py-3.5 px-4 align-middle max-w-sm">
+                            <p className="text-xs text-muted-foreground truncate" title={c.description}>
+                              {c.description || "--"}
+                            </p>
+                          </td>
+
+                          {/* Items Count */}
+                          <td className="py-3.5 px-4 align-middle text-center whitespace-nowrap">
+                            <span className="font-semibold text-sm text-foreground">
+                              {c.items_count ?? 0}
+                            </span>
+                          </td>
+
+                          {/* Created Date */}
+                          <td className="py-3.5 px-4 align-middle text-center whitespace-nowrap text-xs text-muted-foreground">
+                            {c.created_at ? new Date(c.created_at).toLocaleDateString() : "--"}
+                          </td>
+
+                          {/* Actions */}
+                          {canCUD && (
+                            <td className="py-3.5 px-4 text-right whitespace-nowrap align-middle">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleOpenModal(c)}
+                                  className="gap-1 text-xs font-semibold h-8"
+                                  title="Edit Category"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" /> Edit
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDelete(c)}
+                                  className="h-8 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                                  title="Delete Category"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile View */}
+              <div className="flex-1 overflow-y-auto grid grid-cols-1 gap-3 md:hidden mb-2">
+                {categories.length === 0 ? (
+                  <div className="py-10 text-center text-muted-foreground bg-card/30 rounded-lg border border-dashed border-border">
+                    No asset categories found.
+                  </div>
+                ) : (
+                  categories.map((c) => (
+                    <div
+                      key={c.id}
+                      className="p-4 rounded-xl border bg-white dark:bg-card border-gray-200 dark:border-border text-foreground flex flex-col gap-3 shadow-sm"
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="space-y-1">
+                          <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 inline-block">
+                            {c.prefix}
+                          </span>
+                          <h3 className="font-semibold text-sm text-foreground mt-1">{c.name}</h3>
+                          {c.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-2">{c.description}</p>
+                          )}
+                        </div>
+                        <div className="text-xs font-semibold px-2 py-1 rounded bg-muted whitespace-nowrap">
+                          {c.items_count ?? 0} item(s)
+                        </div>
+                      </div>
+
+                      {canCUD && (
+                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/50">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenModal(c)}
+                            className="gap-1 text-xs font-semibold h-8"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" /> Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(c)}
+                            className="h-8 text-xs text-rose-600 hover:bg-rose-50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Delete
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </CardContent>
+
+        {/* Pagination Bar - only displayed when data is more than 10 */}
+        {!loading && (totalCount > pageSize || totalPages > 1) && (
+          <div className="px-4 py-3 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground bg-muted/20">
+            <div>
+              Showing <span className="font-bold text-foreground">{startIndex + 1}</span> to{" "}
+              <span className="font-bold text-foreground">
+                {Math.min(startIndex + pageSize, totalCount || categories.length)}
+              </span>{" "}
+              of <span className="font-bold text-foreground">{totalCount || categories.length}</span> Category(ies)
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+                title="First Page"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+                title="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+
+              <div className="flex items-center gap-1 px-2 font-medium">
+                Page <span className="font-bold text-foreground">{currentPage}</span> of{" "}
+                <span className="font-bold text-foreground">{totalPages}</span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+                title="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+                title="Last Page"
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Add / Edit Category Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="max-w-md p-6">
-          <DialogHeader>
+          <DialogHeader className="pr-8">
             <DialogTitle className="flex items-center gap-2 text-lg font-bold">
               <Tag className="w-5 h-5 text-primary" />
               {editingCategory ? "Edit Asset Category" : "Add Asset Category"}
@@ -224,7 +478,7 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
                 className="font-mono uppercase font-bold"
               />
               <p className="text-[11px] text-muted-foreground mt-1">
-                Used in serial code: e.g. <code>E-<strong>{prefix || "LAP"}</strong>-0001</code>
+                Used in item codes: e.g. <code>E-<strong>{prefix || "LAP"}</strong>-0001</code>
               </p>
             </div>
 
