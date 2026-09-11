@@ -504,6 +504,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     principal: [
       { name: "Dashboard", page: "dashboard" },
       { name: "Workflow Configuration", page: "timetable-config" },
+      { name: "Timetable", page: "timetable" },
       { name: getTerm("branches"), page: "branches" },
       { name: "Batches", page: "batches" },
       { name: "Faculty Assignments", page: "teacher-assignments" },

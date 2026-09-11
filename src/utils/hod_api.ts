@@ -375,6 +375,7 @@ interface TimetableEntry {
   start_time: string;
   end_time: string;
   room: string;
+  attendance_taken_today?: boolean;
 }
 
 interface ManageTimetableRequest {
