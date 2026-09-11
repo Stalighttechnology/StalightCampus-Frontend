@@ -6,8 +6,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-  CardFooter } from
+  CardTitle } from
 "../ui/card";
 import {
   Dialog,
@@ -33,8 +32,6 @@ import { getSubjectDetail, takeAttendance, getStudentsForRegular, getStudentsFor
 import { useFacultyAssignmentsQuery } from "@/hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonTable } from "@/components/ui/skeleton";
-import { AdminPagination } from "../common/AdminPagination";
-import { usePagination } from "@/hooks/useOptimizations";
 import { Calendar as CalendarComponent } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { format, parseISO } from "date-fns";
@@ -68,10 +65,6 @@ const TakeAttendance = () => {
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSectionOpen, setIsSectionOpen] = useState(false);
 
-  const { page, pageSize, paginationState, updatePagination, goToPage } = usePagination({
-    queryKey: ['takeAttendance'],
-    pageSize: 50
-  });
 
   const [attendance, setAttendance] = useState<{[studentId: number]: boolean;}>({});
   const [loadingStudents, setLoadingStudents] = useState(false);
@@ -100,15 +93,6 @@ const TakeAttendance = () => {
     }
   }, [subjectId, isLabSubject, labBatches, labBatchId]);
 
-  // Simple debounced value hook to avoid rapid-fire API calls when user changes selections
-  const useDebounced = <T,>(value: T, delay = 300) => {
-    const [debounced, setDebounced] = useState<T>(value);
-    useEffect(() => {
-      const id = setTimeout(() => setDebounced(value), delay);
-      return () => clearTimeout(id);
-    }, [value, delay]);
-    return debounced;
-  };
   // Map to hold in-flight requests to deduplicate identical calls
   const inFlightRequests = useRef<Map<string, Promise<any>>>(new Map());
   // Mirror of lastBootstrapParams in a ref for synchronous checks (avoids state update timing races)
@@ -151,11 +135,6 @@ const TakeAttendance = () => {
           setStudents(studentsArr);
         }
         setRecentRecords(response.data.recent_records || []);
-        if (response.data.pagination || response.data.count) {
-          updatePagination(response.data);
-        } else {
-          updatePagination({ pagination: { page: 1, page_size: 50, total_pages: 1, total_students: studentsArr.length } });
-        }
       } else {
         setErrorMsg(response?.message || "Failed to load data");
       }
@@ -174,8 +153,6 @@ const TakeAttendance = () => {
     return p;
   };
 
-  const debouncedPage = useDebounced(page, 300);
-  const debouncedPageSize = useDebounced(pageSize, 300);
 
   // Helper to build query params: omit null/undefined/'undefined' values and stringify
   const makeParams = (obj: Record<string, any>) => {
@@ -213,8 +190,6 @@ const TakeAttendance = () => {
       semester_id: semesterId,
       section_id: sectionId,
       lab_batch_id: isLabSubject ? (labBatchId || undefined) : undefined,
-      page: debouncedPage,
-      page_size: debouncedPageSize,
       date: attendanceDate
     });
 
@@ -239,8 +214,6 @@ const TakeAttendance = () => {
         semester_id: semesterId,
         section_id: sectionId,
         lab_batch_id: isLabSubject ? (labBatchId || undefined) : undefined,
-        page: debouncedPage,
-        page_size: debouncedPageSize,
         date: attendanceDate
       });
       return;
@@ -266,7 +239,7 @@ const TakeAttendance = () => {
 
       // Regular subject fallback or other: call regular loader
       const loader = getStudentsForRegular;
-      runLoader(loader, { subject_id: subjectId, branch_id: branchId, page: debouncedPage, page_size: debouncedPageSize, date: attendanceDate });
+      runLoader(loader, { subject_id: subjectId, branch_id: branchId, date: attendanceDate });
       return;
     }
 
@@ -274,7 +247,7 @@ const TakeAttendance = () => {
     if (subjectId && branchId && semesterId && !sectionId) {
       if (subjectType === 'elective') {
         // Elective requires semester selection; call elective loader
-        runLoader(getStudentsForElective, { subject_id: subjectId, branch_id: branchId, semester_id: semesterId, page: debouncedPage, page_size: debouncedPageSize });
+        runLoader(getStudentsForElective, { subject_id: subjectId, branch_id: branchId, semester_id: semesterId });
         return;
       }
 
@@ -283,7 +256,7 @@ const TakeAttendance = () => {
 
       // Regular subject fallback or other: call regular loader
       const loader = getStudentsForRegular;
-      runLoader(loader, { subject_id: subjectId, branch_id: branchId, semester_id: semesterId, page: debouncedPage, page_size: debouncedPageSize, date: attendanceDate });
+      runLoader(loader, { subject_id: subjectId, branch_id: branchId, semester_id: semesterId, date: attendanceDate });
       return;
     }
 
@@ -296,13 +269,11 @@ const TakeAttendance = () => {
         semester_id: semesterId,
         section_id: sectionId,
         lab_batch_id: isLabSubject ? (labBatchId || undefined) : undefined,
-        page: debouncedPage,
-        page_size: debouncedPageSize,
         date: attendanceDate
       }, subjectType === 'regular');
       return;
     }
-  }, [subjectId, branchId, semesterId, sectionId, labBatchId, isLabSubject, debouncedPage, debouncedPageSize, attendanceDate, subjectType, subjectStudents]);
+  }, [subjectId, branchId, semesterId, sectionId, labBatchId, isLabSubject, attendanceDate, subjectType, subjectStudents]);
 
   // When subject changes, reset branch/semester/section selections and set subject type immediately
   useEffect(() => {
@@ -322,7 +293,6 @@ const TakeAttendance = () => {
       setSubjectType(subjType);
       if (subjType === 'open_elective') {
         setBootstrapParams(null);
-        updatePagination({ pagination: { page: 1, page_size: 50, total_pages: 1, total_students: 0 } });
       }
     } else {
       setSubjectType(null);
@@ -445,36 +415,6 @@ const TakeAttendance = () => {
     setErrorMsg("");
   }, [semesterId]);
 
-  // When page or pageSize changes, re-fetch current bootstrap results if any
-  useEffect(() => {
-    if (!bootstrapParams || !bootstrapParams.subject_id) return;
-    const params = { ...bootstrapParams, page, page_size: pageSize };
-    // Avoid duplicate reloads when the params equal the last bootstrap params
-    try {
-      if (lastBootstrapParamsRef.current && JSON.stringify(params) === JSON.stringify(lastBootstrapParamsRef.current)) {
-
-        return;
-      }
-    } catch (e) {
-
-      // Fallback: if JSON stringify fails for any reason, continue with reload
-    } // Choose loader based on subjectType so we call the correct endpoint
-    const loader = (subjectType === 'elective' || subjectType === 'lab') ?
-    getStudentsForElective :
-    subjectType === 'open_elective' ? getStudentsForOpenElective : getStudentsForRegular;
-
-    // Use runLoader (dedupes in-flight requests). If this is a subject-only bootstrap (no branch_id),
-    // update `subjectStudents` from the response so downstream UI uses registration-derived branches/semesters.
-    runLoader(loader, params, subjectType === 'regular').
-    then((response: any) => {
-      if (response && response.success && response.data) {
-        if (!params.branch_id) {
-          setSubjectStudents(response.data.students || []);
-        }
-      }
-    }).
-    catch(() => {});
-  }, [page, pageSize, bootstrapParams]);
 
 
 
@@ -904,38 +844,7 @@ const TakeAttendance = () => {
               </div>
             }
           </CardContent>
-        {paginationState && paginationState.totalItems > 1 && (
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-            <div>
-              Showing {paginationState.totalItems === 0 ? 0 : (paginationState.page - 1) * paginationState.pageSize + 1} to {Math.min(paginationState.page * paginationState.pageSize, paginationState.totalItems)} of {paginationState.totalItems} records
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => goToPage(Math.max(1, paginationState.page - 1))}
-                disabled={paginationState.page <= 1}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-              >
-                Previous
-              </Button>
-              <div className="flex items-center justify-center min-w-[2rem]">
-                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {paginationState.page}
-                </span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => goToPage(Math.min(paginationState.totalPages, paginationState.page + 1))}
-                disabled={paginationState.page >= paginationState.totalPages}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-              >
-                Next
-              </Button>
-            </div>
-          </CardFooter>
-        )}
+
       </Card>
 
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
