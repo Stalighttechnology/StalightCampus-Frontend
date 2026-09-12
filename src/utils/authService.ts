@@ -149,6 +149,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
     const sessionId = (typeof window !== 'undefined') ? localStorage.getItem('session_id') : undefined;
     const deviceId = getOrCreateDeviceId();
     const selectedStudentId = (typeof window !== 'undefined') ? localStorage.getItem('selectedStudentId') : undefined;
+    const selectedOrgId = (typeof window !== 'undefined') ? localStorage.getItem('selectedOrgId') : undefined;
     
     const safeHeaders = {
       ...(options.headers as Record<string, string | undefined>),
@@ -156,6 +157,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
       ...(sessionId ? { 'X-Session-Id': sessionId } : {}),
       ...(deviceId ? { 'X-Device-Id': deviceId } : {}),
       ...(selectedStudentId && selectedStudentId !== 'null' && selectedStudentId !== 'undefined' ? { 'X-Student-ID': selectedStudentId } : {}),
+      ...(selectedOrgId && selectedOrgId !== 'null' && selectedOrgId !== 'undefined' ? { 'X-Org-Id': selectedOrgId } : {}),
     };
     options.headers = safeHeaders as Record<string, string>;
     options.credentials = 'include'; // Include cookies

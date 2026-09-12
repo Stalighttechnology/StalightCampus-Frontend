@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { FiBell, FiMoon, FiSun, FiMenu, FiBellOff } from "react-icons/fi";
+import { Building2, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { useTheme } from "../../context/ThemeContext";
@@ -10,6 +11,7 @@ import { fetchParentChildrenCached } from "../../utils/student_api";
 import { Popover, PopoverContent, PopoverTrigger, PopoverArrow } from "../ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { translateTerminology } from "../../utils/institutionConfig";
+import { AddCollegeModal } from "../org_admin/AddCollegeModal";
 
 interface User {
   username: string;
@@ -91,17 +93,27 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const desktopSwitcherRef = useRef<HTMLDivElement>(null);
 
+  // Multi-Organization management for Org Admins
+  const [organizationsList, setOrganizationsList] = useState<any[]>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(localStorage.getItem('selectedOrgId'));
+  const [showOrgSwitcher, setShowOrgSwitcher] = useState(false);
+  const [showAddCollegeModal, setShowAddCollegeModal] = useState(false);
+  const orgSwitcherRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (desktopSwitcherRef.current && !desktopSwitcherRef.current.contains(event.target as Node)) {
         setShowDesktopSwitcher(false);
       }
+      if (orgSwitcherRef.current && !orgSwitcherRef.current.contains(event.target as Node)) {
+        setShowOrgSwitcher(false);
+      }
     };
-    if (showDesktopSwitcher) {
+    if (showDesktopSwitcher || showOrgSwitcher) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showDesktopSwitcher]);
+  }, [showDesktopSwitcher, showOrgSwitcher]);
 
   const markNotificationsRead = async () => {
     if (personalNotificationCount === 0) return;
@@ -138,6 +150,33 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
         }
       };
       fetchChildren();
+    }
+  }, [role]);
+
+  const fetchOrganizations = async () => {
+    try {
+      const { fetchWithTokenRefresh } = await import("../../utils/authService");
+      const res = await fetchWithTokenRefresh(`${API_BASE_URL}/api/org-admin/linked-organizations/`);
+      const data = await res.json();
+      if (res.ok && data.success && data.organizations) {
+        setOrganizationsList(data.organizations);
+        const currentSavedOrgId = localStorage.getItem('selectedOrgId');
+        if (data.organizations.length > 0 && (!currentSavedOrgId || currentSavedOrgId === 'null' || currentSavedOrgId === 'undefined')) {
+          const defaultId = data.active_org_id ? data.active_org_id.toString() : data.organizations[0].id.toString();
+          localStorage.setItem('selectedOrgId', defaultId);
+          setSelectedOrgId(defaultId);
+        } else if (currentSavedOrgId) {
+          setSelectedOrgId(currentSavedOrgId);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch linked organizations", error);
+    }
+  };
+
+  useEffect(() => {
+    if (role === 'org_admin') {
+      fetchOrganizations();
     }
   }, [role]);
 
@@ -529,6 +568,79 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           </div>
         )}
 
+        {/* Custom Desktop Switcher for Org Admins */}
+        {role === "org_admin" && (
+          <div className="hidden sm:block relative mr-2" ref={orgSwitcherRef}>
+            <button
+              onClick={() => setShowOrgSwitcher(!showOrgSwitcher)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium transition-colors ${theme === 'dark'
+                  ? 'bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700'
+                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                }`}
+            >
+              <Building2 className="w-3.5 h-3.5 text-primary shrink-0" />
+              <div className="text-xs truncate max-w-[150px] font-semibold">
+                {organizationsList.find((o: any) => o.id.toString() === selectedOrgId)?.name || 'Select College'}
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+
+            {showOrgSwitcher && (
+              <div className={`absolute top-full right-0 mt-2 w-64 rounded-xl shadow-xl py-1 z-50 border ${theme === 'dark' ? 'bg-gray-800 border-gray-700 shadow-black/50' : 'bg-white border-gray-200 shadow-gray-200/50'}`}>
+                <div className={`px-4 py-2 text-[10px] font-semibold uppercase tracking-wider border-b flex items-center justify-between ${theme === 'dark' ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-100'}`}>
+                  <span>Managed Institutions</span>
+                  <span className="text-[9px] lowercase bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">
+                    {organizationsList.length} {organizationsList.length === 1 ? 'org' : 'orgs'}
+                  </span>
+                </div>
+                <div className="max-h-[260px] overflow-y-auto divide-y divide-border/30">
+                  {organizationsList.map((orgItem: any) => (
+                    <button
+                      key={orgItem.id}
+                      onClick={() => {
+                        localStorage.setItem('selectedOrgId', orgItem.id.toString());
+                        setSelectedOrgId(orgItem.id.toString());
+                        setShowOrgSwitcher(false);
+                        window.location.reload();
+                      }}
+                      className={`block w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedOrgId == orgItem.id.toString()
+                          ? (theme === 'dark' ? 'bg-primary/20 text-primary font-semibold' : 'bg-primary/10 text-primary font-semibold')
+                          : (theme === 'dark' ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50')
+                        }`}
+                    >
+                      <div className="flex items-center justify-between gap-1.5">
+                        <div className="truncate font-medium text-xs">{orgItem.name}</div>
+                        {orgItem.is_primary && (
+                          <span className="text-[9px] shrink-0 uppercase px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/20">
+                            Primary
+                          </span>
+                        )}
+                      </div>
+                      <div className={`text-[10px] mt-0.5 capitalize flex items-center gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <span>Plan: {orgItem.plan_type}</span>
+                        {orgItem.institution_type && <span>• {orgItem.institution_type}</span>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className={`p-1.5 border-t ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-100 bg-gray-50/50'}`}>
+                  <button
+                    onClick={() => {
+                      setShowOrgSwitcher(false);
+                      setShowAddCollegeModal(true);
+                    }}
+                    className="w-full flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-semibold rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add College / Institution
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Plan Badge */}
         <motion.div
           initial={{ opacity: 0, x: 10 }}
@@ -762,6 +874,20 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           </div>
         </div>
       </div>
+
+      {/* Add College Modal for Org Admin */}
+      <AddCollegeModal
+        isOpen={showAddCollegeModal}
+        onClose={() => setShowAddCollegeModal(false)}
+        onSuccess={(newOrg) => {
+          fetchOrganizations();
+          if (newOrg?.id) {
+            localStorage.setItem('selectedOrgId', newOrg.id.toString());
+            setSelectedOrgId(newOrg.id.toString());
+            window.location.reload();
+          }
+        }}
+      />
     </motion.div>
   );
 };

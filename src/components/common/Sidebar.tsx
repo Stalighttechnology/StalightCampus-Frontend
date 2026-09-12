@@ -109,6 +109,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   const [childrenList, setChildrenList] = useState<any[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(localStorage.getItem('selectedStudentId'));
 
+  const [organizationsList, setOrganizationsList] = useState<any[]>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(localStorage.getItem('selectedOrgId'));
+
   // Substitute requests notification state (Apply Leave)
   const [pendingSubstituteCount, setPendingSubstituteCount] = useState<number>(0);
 
@@ -250,6 +253,30 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         }
       };
       fetchChildren();
+    }
+
+    if (role === 'org_admin') {
+      const fetchOrgs = async () => {
+        try {
+          const { fetchWithTokenRefresh } = await import("../../utils/authService");
+          const res = await fetchWithTokenRefresh(`${API_BASE_URL}/api/org-admin/linked-organizations/`);
+          const data = await res.json();
+          if (res.ok && data.success && data.organizations) {
+            setOrganizationsList(data.organizations);
+            const currentSavedOrgId = localStorage.getItem('selectedOrgId');
+            if (data.organizations.length > 0 && (!currentSavedOrgId || currentSavedOrgId === 'null' || currentSavedOrgId === 'undefined')) {
+              const defaultId = data.active_org_id ? data.active_org_id.toString() : data.organizations[0].id.toString();
+              localStorage.setItem('selectedOrgId', defaultId);
+              setSelectedOrgId(defaultId);
+            } else if (currentSavedOrgId) {
+              setSelectedOrgId(currentSavedOrgId);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch linked organizations in sidebar", error);
+        }
+      };
+      fetchOrgs();
     }
   }, [role]);
 
@@ -1042,6 +1069,37 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
               {childrenList.map((child: any) => (
                 <SelectItem key={child.id} value={child.id.toString()} className="text-xs">
                   {child.name} ({child.usn || child.enrollment_number})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* College Switcher for Org Admin on Mobile */}
+      {role === "org_admin" && organizationsList.length > 1 && isMobile && (
+        <div className={`px-4 py-3 border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+          <label className={`block text-[10px] font-semibold uppercase tracking-wider mb-2 px-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+            Select Institution
+          </label>
+          <Select
+            value={selectedOrgId || undefined}
+            onValueChange={(val) => {
+              localStorage.setItem('selectedOrgId', val);
+              setSelectedOrgId(val);
+              window.location.reload();
+            }}
+          >
+            <SelectTrigger className={`w-full text-xs h-9 ${theme === 'dark'
+              ? 'bg-zinc-800 border-zinc-700 text-gray-200 focus:ring-1 focus:ring-primary'
+              : 'bg-white border-gray-200 text-gray-700 focus:ring-1 focus:ring-primary'
+              }`}>
+              <SelectValue placeholder="Select Institution" />
+            </SelectTrigger>
+            <SelectContent className={`${theme === 'dark' ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-200'}`}>
+              {organizationsList.map((orgItem: any) => (
+                <SelectItem key={orgItem.id} value={orgItem.id.toString()} className="text-xs">
+                  {orgItem.name} {orgItem.is_primary ? '(Primary)' : ''}
                 </SelectItem>
               ))}
             </SelectContent>
