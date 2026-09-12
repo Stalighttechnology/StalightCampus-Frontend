@@ -1,7 +1,7 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, Fragment } from "react";
 import { useLocation } from "react-router-dom";
-import { Plus, Trash2, Layers, Loader2, FileDown, Image, Eraser, RotateCcw, Check, X, Undo, Redo, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Layers, Loader2, FileDown, Image, Eraser, RotateCcw, Check, X, Undo, Redo, AlertCircle, CalendarIcon, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
@@ -19,6 +24,7 @@ import { createQuestionPaper, updateQuestionPaper, getQuestionPapers, submitQPFo
 import { performR2Upload } from "../../utils/common_api";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
+import { TimeRangePicker } from "@/components/ui/time-range-picker";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { sanitizeHtml } from "../../utils/sanitize";
@@ -55,6 +61,63 @@ interface SubPart {
   max_marks?: number;
   maxMarks?: number;
 }
+
+const formatCO = (co: string | string[] | undefined | null): string => {
+  if (!co) return '';
+  let items: string[] = [];
+  if (Array.isArray(co)) {
+    items = co;
+  } else if (typeof co === 'string') {
+    if (/^CO\d+(?:,\d+)*$/i.test(co.trim())) {
+      return co.trim().toUpperCase();
+    }
+    items = co.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  if (items.length === 0) return '';
+  if (items.length === 1) return items[0];
+  
+  const numbers: number[] = [];
+  let allCO = true;
+  for (const item of items) {
+    const match = item.match(/^(?:CO)?(\d+)$/i);
+    if (match) {
+      numbers.push(parseInt(match[1], 10));
+    } else {
+      allCO = false;
+      break;
+    }
+  }
+  if (allCO && numbers.length > 0) {
+    const sortedUnique = Array.from(new Set(numbers)).sort((a, b) => a - b);
+    return `CO${sortedUnique.join(',')}`;
+  }
+  return items.join(', ');
+};
+
+const parseCOSelection = (co: string | string[] | undefined | null): string[] => {
+  if (!co) return [];
+  if (Array.isArray(co)) return co;
+  const str = co.trim();
+  const coPrefixMatch = str.match(/^CO([\d,]+)$/i);
+  if (coPrefixMatch) {
+    return coPrefixMatch[1].split(',').map(num => `CO${num.trim()}`).filter(Boolean);
+  }
+  return str.split(',').map(s => s.trim()).map(s => s.toUpperCase().startsWith('CO') ? s.toUpperCase() : `CO${s}`).filter(Boolean);
+};
+
+const parseBloomsSelection = (blooms: string | string[] | undefined | null): string[] => {
+  if (!blooms) return [];
+  if (Array.isArray(blooms)) return blooms;
+  return blooms.split(',').map(s => s.trim()).filter(Boolean);
+};
+
+const formatBloomsList = (blooms: string | string[] | undefined | null): string[] => {
+  return parseBloomsSelection(blooms);
+};
+
+const formatBloomsDisplay = (blooms: string | string[] | undefined | null): string => {
+  return parseBloomsSelection(blooms).join(', ');
+};
 
 interface QPMetadata {
   status: string;
@@ -107,7 +170,7 @@ const UploadQP = () => {
     branch: [] as { id: number; name: string; }[],
     semester: [] as { id: number; number: number; }[],
     section: [] as { id: number; name: string; }[],
-    subject: [] as { id: number; name: string; }[],
+    subject: [] as { id: number; name: string; code?: string; subject_code?: string; }[],
     testType: ["IA1", "IA2", "IA3", "IA4", "IA5", "SEE"],
     setNumber: ["Set 1", "Set 2"]
   });
@@ -163,19 +226,34 @@ const UploadQP = () => {
     const questionsArray = qp.questions || qp.questions_data || [];
     questionsArray.forEach((q: QuestionData) => {
       const subpartsArray = q.subparts || q.subparts_data || [];
-      subpartsArray.forEach((s: SubPart) => {
-        const qnum = q.question_number || q.number;
+      const qnum = q.question_number || q.number || '';
+      if (subpartsArray.length > 0) {
+        subpartsArray.forEach((s: SubPart) => {
+          const subLabel = s.subpart_label || '';
+          const fullNum = subLabel && !qnum.endsWith(subLabel) ? `${qnum}${subLabel}` : qnum;
+          rows.push({
+            id: `${fullNum}_${Math.random().toString(36).substr(2, 9)}`,
+            number: fullNum,
+            content: s.content || '',
+            maxMarks: String(s.max_marks ?? s.maxMarks ?? ''),
+            co: q.co || '',
+            bloomsLevel: q.blooms_level || q.bloomsLevel || '',
+            partName: q.part_name || 'PART-A',
+            isOr: Boolean(q.is_or)
+          });
+        });
+      } else {
         rows.push({
-          id: `${qnum}${s.subpart_label}`,
-          number: `${qnum}${s.subpart_label}`,
-          content: s.content || '',
-          maxMarks: String(s.max_marks || s.maxMarks || ''),
+          id: `${qnum}_${Math.random().toString(36).substr(2, 9)}`,
+          number: qnum,
+          content: '',
+          maxMarks: '',
           co: q.co || '',
           bloomsLevel: q.blooms_level || q.bloomsLevel || '',
           partName: q.part_name || 'PART-A',
-          isOr: q.is_or || false
+          isOr: Boolean(q.is_or)
         });
-      });
+      }
     });
     return rows;
   };
@@ -188,7 +266,19 @@ const UploadQP = () => {
 
   useEffect(() => {
     const branches = Array.from(new Map(assignments.map((a) => [a.branch_id, { id: a.branch_id, name: a.branch }])).values());
-    const subjects = Array.from(new Map(assignments.map((a) => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values());
+    const subjects = Array.from(
+      new Map(
+        assignments.map((a) => [
+          a.subject_id,
+          {
+            id: a.subject_id,
+            name: a.subject_name,
+            code: a.subject_code,
+            subject_code: a.subject_code,
+          },
+        ])
+      ).values()
+    );
     setDropdownData((prev) => ({ ...prev, branch: branches, subject: subjects }));
   }, [assignments]);
 
@@ -210,7 +300,7 @@ const UploadQP = () => {
       if (!selected.batch_id || !selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber) return;
       // default template to show when no saved QP exists
       const defaultTemplate: QuestionRow[] = [
-        { id: '1a', number: '1a', content: 'Question 1a', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' },
+        { id: '1a', number: '1a', content: 'Question 1a', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply', partName: 'PART-A', isOr: false },
         { id: '1b', number: '1b', content: 'Question 1b', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply', partName: 'PART-A', isOr: false },
         { id: '1c', number: '1c', content: 'Question 1c', maxMarks: '6', co: 'CO1', bloomsLevel: 'Remember', partName: 'PART-A', isOr: false }];
 
@@ -593,37 +683,20 @@ const UploadQP = () => {
   };
 
   const calculateTotalMarks = () => {
-    const groups: Record<string, { total: number; isOr: boolean }> = {};
-    const groupOrder: string[] = [];
-    
-    questions.forEach(q => {
-      const match = (q.number || '').match(/^(\d+)/);
-      const mainNum = match ? match[1] : q.number;
+    let finalTotal = 0;
+    let prevMarks = 0;
+
+    questions.forEach((q, i) => {
       const marks = Number.parseInt(q.maxMarks || '0', 10) || 0;
-      
-      if (!groups[mainNum]) {
-        groups[mainNum] = { total: 0, isOr: false };
-        groupOrder.push(mainNum);
-      }
-      groups[mainNum].total += marks;
-      if (q.isOr) {
-        groups[mainNum].isOr = true;
+      if (q.isOr && i > 0) {
+        finalTotal = finalTotal - prevMarks + Math.max(prevMarks, marks);
+        prevMarks = Math.max(prevMarks, marks);
+      } else {
+        finalTotal += marks;
+        prevMarks = marks;
       }
     });
 
-    let finalTotal = 0;
-    let prevTotal = 0;
-    
-    for (let i = 0; i < groupOrder.length; i++) {
-      const g = groups[groupOrder[i]];
-      if (g.isOr && i > 0) {
-        finalTotal = finalTotal - prevTotal + Math.max(prevTotal, g.total);
-        prevTotal = Math.max(prevTotal, g.total);
-      } else {
-        finalTotal += g.total;
-        prevTotal = g.total;
-      }
-    }
     return finalTotal;
   };
   const totalMarks = calculateTotalMarks();
@@ -638,37 +711,28 @@ const UploadQP = () => {
   };
 
   const buildPayload = (branch: number | undefined, semester: number | undefined, section: number | undefined) => {
-    interface GroupedQuestion {
-      co: string;
-      blooms_level: string;
-      subparts: Array<{ subpart_label: string; content: string; max_marks: number; }>;
-      part_name: string;
-      is_or: boolean;
-    }
-    const grouped: Record<string, GroupedQuestion> = {};
-    questions.forEach((q) => {
-      const match = q.number.match(/^(\d+)(.*)$/);
-      let main = q.number;
-      let sub = '';
-      if (match) {
-        main = match[1];
-        sub = match[2];
-      }
-      if (!grouped[main]) {
-        grouped[main] = { co: q.co, blooms_level: q.bloomsLevel, subparts: [], part_name: q.partName || 'PART-A', is_or: q.isOr || false };
-      } else {
-        if (q.isOr) grouped[main].is_or = true;
-        if (q.partName && q.partName !== 'PART-A') grouped[main].part_name = q.partName;
-      }
-      grouped[main].subparts.push({ subpart_label: sub, content: q.content, max_marks: Number.parseInt(q.maxMarks || '0', 10) });
-    });
+    const questions_data = questions.map((q) => ({
+      question_number: q.number,
+      part_name: q.partName || 'PART-A',
+      is_or: Boolean(q.isOr),
+      co: q.co,
+      blooms_level: q.bloomsLevel,
+      subparts_data: [
+        {
+          subpart_label: '',
+          content: q.content,
+          max_marks: Number.parseInt(q.maxMarks || '0', 10) || 0
+        }
+      ]
+    }));
+
     return {
       subject: selected.subject_id,
       test_type: selected.testType,
       set_number: selected.setNumber as string,
       exam_date: examDate || undefined,
       exam_time: examTime || undefined,
-      questions_data: Object.keys(grouped).map((k) => ({ question_number: k, co: grouped[k].co, blooms_level: grouped[k].blooms_level, subparts_data: grouped[k].subparts, part_name: grouped[k].part_name, is_or: grouped[k].is_or })),
+      questions_data,
       batch: selected.batch_id,
       branch,
       semester,
@@ -821,6 +885,21 @@ const UploadQP = () => {
   const getBadgeClassName = (): string => `${theme === 'dark' ? 'bg-gray-700 text-gray-100' : 'bg-gray-200 text-gray-900'} border-0`;
 
   const getQuestionCardClassName = (): string => `border rounded-md p-3 ${theme === 'dark' ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`;
+
+  const groupQuestionsByPart = (): { name: string; questions: QuestionRow[] }[] => {
+    const partsMap = new Map<string, QuestionRow[]>();
+    questions.forEach((q) => {
+      const p = q.partName || 'PART-A';
+      if (!partsMap.has(p)) {
+        partsMap.set(p, []);
+      }
+      partsMap.get(p)!.push(q);
+    });
+    return Array.from(partsMap.entries()).map(([name, qs]) => ({
+      name,
+      questions: qs,
+    }));
+  };
 
   const groupQuestionsByMain = (): Record<string, QuestionRow[]> => {
     const grouped: Record<string, QuestionRow[]> = {};
@@ -1084,13 +1163,62 @@ const UploadQP = () => {
                             )}
                             
                             <div className="flex flex-wrap gap-4 mb-4">
-                              <div className="flex flex-col gap-1 w-48">
+                              <div className="flex flex-col gap-1 min-w-[200px] sm:w-56">
                                 <label className="text-sm font-semibold">Exam Date</label>
-                                <Input type="date" value={examDate} disabled={isLocked} onChange={(e) => setExamDate(e.target.value)} className="h-9" />
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      disabled={isLocked}
+                                      className={cn(
+                                        "h-9 w-full justify-between text-left font-normal bg-background px-3 py-1 text-sm shadow-sm transition-colors hover:bg-accent/50",
+                                        !examDate && "text-muted-foreground",
+                                        isLocked && "cursor-not-allowed opacity-50"
+                                      )}
+                                    >
+                                      <div className="flex items-center gap-2 truncate">
+                                        <CalendarIcon className="h-4 w-4 text-primary shrink-0" />
+                                        <span className={cn("truncate font-medium", examDate ? "text-foreground" : "text-muted-foreground")}>
+                                          {examDate ? format(new Date(examDate.includes('T') ? examDate : `${examDate}T00:00:00`), "dd/MM/yyyy") : "Select exam date"}
+                                        </span>
+                                      </div>
+                                      {examDate && !isLocked && (
+                                        <span
+                                          role="button"
+                                          tabIndex={0}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setExamDate('');
+                                          }}
+                                          className="p-0.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0 ml-1"
+                                          title="Clear date"
+                                        >
+                                          <X className="h-3.5 w-3.5" />
+                                        </span>
+                                      )}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0 z-50 border-border bg-card text-card-foreground shadow-xl rounded-xl" align="start">
+                                    <Calendar
+                                      mode="single"
+                                      selected={examDate ? new Date(examDate.includes('T') ? examDate : `${examDate}T00:00:00`) : undefined}
+                                      onSelect={(date) => {
+                                        setExamDate(date ? format(date, "yyyy-MM-dd") : "");
+                                      }}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
                               </div>
-                              <div className="flex flex-col gap-1 w-48">
+                              <div className="flex flex-col gap-1 min-w-[240px] sm:w-64">
                                 <label className="text-sm font-semibold">Exam Time</label>
-                                <Input type="text" placeholder="e.g. 10:00 AM - 01:00 PM" value={examTime} disabled={isLocked} onChange={(e) => setExamTime(e.target.value)} className="h-9" />
+                                <TimeRangePicker
+                                  value={examTime}
+                                  onChange={setExamTime}
+                                  disabled={isLocked}
+                                  placeholder="e.g. 10:00 AM - 01:00 PM"
+                                />
                               </div>
                             </div>
 
@@ -1260,29 +1388,93 @@ const UploadQP = () => {
                                       <TableCell className="p-1 sm:p-2 whitespace-nowrap">
                                         <Input value={q.maxMarks} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'maxMarks', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3" />
                                       </TableCell>
-                                      <TableCell className="p-1 sm:p-2 whitespace-nowrap">
-                                        <Select disabled={isLocked} value={q.co} onValueChange={(val) => updateQuestion(q.id, 'co', val)}>
-                                          <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3">
-                                            <SelectValue placeholder="CO" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            {['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6', 'CO7', 'CO8'].map(co => (
-                                              <SelectItem key={co} value={co}>{co}</SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
+                                      <TableCell className="p-1 sm:p-2 whitespace-nowrap min-w-[90px] max-w-[120px]">
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              disabled={isLocked}
+                                              className="h-8 sm:h-9 text-xs sm:text-sm w-full px-1.5 sm:px-2.5 justify-between font-normal bg-background hover:bg-accent/50 border-input shadow-none"
+                                            >
+                                              <span className="truncate">{formatCO(q.co) || <span className="text-muted-foreground">CO</span>}</span>
+                                              <ChevronDown className="h-3.5 w-3.5 opacity-50 shrink-0 ml-1" />
+                                            </Button>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-40 p-1.5 shadow-md" align="center">
+                                            <div className="space-y-0.5">
+                                              <div className="text-[11px] font-bold px-2 py-1 text-muted-foreground border-b mb-1">
+                                                Select COs
+                                              </div>
+                                              {['CO1', 'CO2', 'CO3', 'CO4', 'CO5', 'CO6', 'CO7', 'CO8'].map((coVal) => {
+                                                const selectedCOs = parseCOSelection(q.co);
+                                                const isChecked = selectedCOs.includes(coVal);
+                                                return (
+                                                  <div
+                                                    key={coVal}
+                                                    onClick={() => {
+                                                      let next: string[];
+                                                      if (isChecked) {
+                                                        next = selectedCOs.filter(c => c !== coVal);
+                                                      } else {
+                                                        next = [...selectedCOs, coVal];
+                                                      }
+                                                      updateQuestion(q.id, 'co', formatCO(next));
+                                                    }}
+                                                    className="flex items-center space-x-2 px-2 py-1.5 rounded-sm hover:bg-accent cursor-pointer text-xs transition-colors"
+                                                  >
+                                                    <Checkbox checked={isChecked} />
+                                                    <span className="font-medium">{coVal}</span>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          </PopoverContent>
+                                        </Popover>
                                       </TableCell>
-                                      <TableCell className="p-1 sm:p-2 whitespace-nowrap">
-                                        <Select disabled={isLocked} value={q.bloomsLevel} onValueChange={(val) => updateQuestion(q.id, 'bloomsLevel', val)}>
-                                          <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3">
-                                            <SelectValue placeholder="Level" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            {['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'].map(lvl => (
-                                              <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
+                                      <TableCell className="p-1 sm:p-2 whitespace-nowrap min-w-[115px] max-w-[155px]">
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              disabled={isLocked}
+                                              className="h-8 sm:h-9 text-xs sm:text-sm w-full px-1.5 sm:px-2.5 justify-between font-normal bg-background hover:bg-accent/50 border-input shadow-none"
+                                            >
+                                              <span className="truncate">{formatBloomsDisplay(q.bloomsLevel) || <span className="text-muted-foreground">Level</span>}</span>
+                                              <ChevronDown className="h-3.5 w-3.5 opacity-50 shrink-0 ml-1" />
+                                            </Button>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-44 p-1.5 shadow-md" align="center">
+                                            <div className="space-y-0.5">
+                                              <div className="text-[11px] font-bold px-2 py-1 text-muted-foreground border-b mb-1">
+                                                Select Blooms Level
+                                              </div>
+                                              {['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'].map((lvlVal) => {
+                                                const selectedLvls = parseBloomsSelection(q.bloomsLevel);
+                                                const isChecked = selectedLvls.includes(lvlVal);
+                                                return (
+                                                  <div
+                                                    key={lvlVal}
+                                                    onClick={() => {
+                                                      let next: string[];
+                                                      if (isChecked) {
+                                                        next = selectedLvls.filter(l => l !== lvlVal);
+                                                      } else {
+                                                        next = [...selectedLvls, lvlVal];
+                                                      }
+                                                      updateQuestion(q.id, 'bloomsLevel', next.join(', '));
+                                                    }}
+                                                    className="flex items-center space-x-2 px-2 py-1.5 rounded-sm hover:bg-accent cursor-pointer text-xs transition-colors"
+                                                  >
+                                                    <Checkbox checked={isChecked} />
+                                                    <span className="font-medium">{lvlVal}</span>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          </PopoverContent>
+                                        </Popover>
                                       </TableCell>
                                       {!isLocked && (
                                         <TableCell className="p-1 sm:p-2 text-right whitespace-nowrap">
@@ -1324,7 +1516,7 @@ const UploadQP = () => {
               </div>
             </TabsContent>
             <TabsContent value="questionPaper" className="w-full max-w-full overflow-hidden mt-0">
-              {!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber ?
+              {!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber ? (
                 <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                   <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                     <Layers className="w-12 h-12 opacity-80" />
@@ -1333,8 +1525,8 @@ const UploadQP = () => {
                   <p className="max-w-xs text-base leading-relaxed">
                     Please select Batch, Subject, Branch, Test Type, and Set Number to preview the question paper.
                   </p>
-                </div> :
-
+                </div>
+              ) : (
                 <div className="mb-4 space-y-4">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
                     <div className="flex items-center justify-between w-full sm:w-auto">
@@ -1351,12 +1543,12 @@ const UploadQP = () => {
                       </Button>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-
                       {/* Desktop Download PDF Button */}
                       <Button
                         onClick={downloadPDF}
                         disabled={downloadingPDF}
-                        className="hidden sm:flex w-full sm:w-auto bg-primary text-white hover:bg-primary/90 transition-all duration-200 items-center justify-center gap-2">
+                        className="hidden sm:flex w-full sm:w-auto bg-primary text-white hover:bg-primary/90 transition-all duration-200 items-center justify-center gap-2"
+                      >
                         {downloadingPDF ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
@@ -1364,24 +1556,24 @@ const UploadQP = () => {
                         )}
                         {downloadingPDF ? "Downloading..." : "Download PDF"}
                       </Button>
-                      {qpId ?
-                        (() => {
-                          const status = currentQPMeta?.status;
-                          const isPendingOrApproved = status && (status.startsWith('pending') || status === 'approved');
-                          const buttonLabel = getSubmitButtonLabel(submitting, status);
-                          return (
-                            <Button
-                              onClick={handleSubmitForApproval}
-                              className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700"
-                              disabled={isPendingOrApproved || submitting || hasExamStarted}>
-                              {buttonLabel}
-                            </Button>);
-                        })() :
-                        null}
+                      {qpId ? (() => {
+                        const status = currentQPMeta?.status;
+                        const isPendingOrApproved = status && (status.startsWith('pending') || status === 'approved');
+                        const buttonLabel = getSubmitButtonLabel(submitting, status);
+                        return (
+                          <Button
+                            onClick={handleSubmitForApproval}
+                            className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700"
+                            disabled={isPendingOrApproved || submitting || hasExamStarted}
+                          >
+                            {buttonLabel}
+                          </Button>
+                        );
+                      })() : null}
                     </div>
                   </div>
 
-                  {currentQPMeta?.status &&
+                  {currentQPMeta?.status && (
                     <div className={`p-3 rounded-lg border ${currentQPMeta.status === 'rejected' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'}`}>
                       <div className={`font-semibold text-sm ${currentQPMeta.status === 'rejected' ? 'text-red-700 dark:text-red-400' : 'text-blue-700 dark:text-blue-400'}`}>
                         Status: {(() => {
@@ -1392,99 +1584,195 @@ const UploadQP = () => {
                           return s;
                         })()}
                       </div>
-                      {currentQPMeta.last_action &&
+                      {currentQPMeta.last_action && (
                         <div className={`text-xs mt-1 ${currentQPMeta.status === 'rejected' ? 'text-red-600 dark:text-red-300' : 'text-blue-600 dark:text-blue-300'}`}>
                           <div>Last: {currentQPMeta.last_action?.action || 'N/A'}{currentQPMeta.last_action?.role !== 'system' && ` by ${currentQPMeta.last_action?.actor || 'N/A'}`} ({currentQPMeta.last_action?.role || 'N/A'})</div>
                           {currentQPMeta.last_action?.comment && <div>Comment: {currentQPMeta.last_action.comment}</div>}
                         </div>
-                      }
+                      )}
                     </div>
-                  }
-                  <div className={`border-0 sm:border rounded-none sm:rounded-lg ${theme === 'dark' ? 'bg-transparent sm:bg-gray-800 border-border' : 'bg-transparent sm:bg-gray-50 border-gray-200'}`}>
-                    <div className="space-y-3 p-0 sm:p-4">
-                      {loading ?
-                        <SkeletonList items={4} /> :
-                        Object.keys(groupQuestionsByMain()).map((mainQ) => {
-                          const grouped = groupQuestionsByMain();
-                          return (
-                            <div key={mainQ} className="space-y-3">
-                              {grouped[mainQ].map((s, sIndex) => {
-                                const key = `${mainQ}-${sIndex}`;
-                                const isExpanded = !!expanded[key];
-                                const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : s.content || '';
-                                return (
-                                  <div key={s.id} className={`${getQuestionCardClassName()} shadow-sm hover:shadow-md transition-all duration-200`}>
-                                    {/* Mobile View Layout */}
-                                    <div className="block sm:hidden space-y-3">
-                                      <div className="flex items-center justify-between border-b pb-2 border-border/50">
-                                        <div className="flex items-center gap-2">
-                                          <div className={`flex-shrink-0 w-8 h-8 rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center font-medium text-xs`}>
-                                            {s.number}
-                                          </div>
-                                        </div>
-                                        <Badge className={`font-semibold text-xs ${getBadgeClassName()}`}>
-                                          {s.maxMarks}m
-                                        </Badge>
-                                      </div>
-                                      <div
-                                        className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} text-left whitespace-pre-line break-words`}
-                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? (s.content || '') : (shortContent || '')) }}
-                                      />
-                                      {(s.content || '').length > 160 && (
-                                        <div className="pt-1 text-left">
-                                          <button
-                                            onClick={() => toggleExpanded(key)}
-                                            className={getButtonClassName()}>
-                                            {isExpanded ? 'Show less' : 'Show more'}
-                                          </button>
-                                        </div>
-                                      )}
-                                      <div className="flex flex-wrap gap-1.5 pt-1">
-                                        <Badge className={getBadgeClassName()}>CO: {s.co}</Badge>
-                                        <Badge className={getBadgeClassName()}>{s.bloomsLevel}</Badge>
-                                      </div>
-                                    </div>
+                  )}
 
-                                    {/* Desktop View Layout */}
-                                    <div className="hidden sm:flex items-start gap-3">
-                                      <div className={`flex-shrink-0 w-10 h-10 rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center font-medium text-sm`}>
-                                        {s.number}
-                                      </div>
-                                      <div className="flex-1 pt-2">
-                                        <div className="flex justify-between items-start gap-4">
+                  {/* Question Paper Preview Sheet */}
+                  <div className="overflow-x-auto p-1 custom-scrollbar">
+                    {loading ? (
+                      <SkeletonList items={4} />
+                    ) : (
+                      <div className={`min-w-[650px] max-w-4xl mx-auto ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-slate-900 border-slate-300'} border rounded-xl shadow-lg p-6 sm:p-8 space-y-4`}>
+                        {/* Header */}
+                        <div className={`text-center space-y-1 pb-2 border-b-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                          <h2 className="text-xl font-bold uppercase tracking-wide">
+                            {localStorage.getItem('org_name') || sessionStorage.getItem('org_name') || 'STALIGHT INSTITUTE'}
+                          </h2>
+                          <div className="text-base font-bold text-primary">
+                            {selected.testType ? selected.testType.replace('_', ' ') : 'Internal Assessment'} {selected.setNumber ? `- ${selected.setNumber}` : ''}
+                          </div>
+                        </div>
+
+                        {/* Master Info Table */}
+                        <div className={`border ${theme === 'dark' ? 'border-border' : 'border-slate-900'} rounded-sm overflow-hidden text-xs sm:text-sm`}>
+                          <div className={`grid grid-cols-12 border-b ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                            <div className={`col-span-3 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Subject :</div>
+                            <div className={`col-span-4 p-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'} border-r font-medium`}>
+                              {dropdownData.subject.find(s => String(s.id) === String(selected.subject_id))?.name || '--'}
+                            </div>
+                            <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Date:</div>
+                            <div className="col-span-3 p-2 font-medium">
+                              {examDate ? format(new Date(examDate.includes('T') ? examDate : `${examDate}T00:00:00`), "MMM. dd, yyyy") : '--'}
+                            </div>
+                          </div>
+
+                          <div className={`grid grid-cols-12 border-b ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                            <div className={`col-span-3 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Subject Code :</div>
+                            <div className={`col-span-4 p-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'} border-r font-medium`}>
+                              {(() => {
+                                const currentSubject = dropdownData.subject.find(s => String(s.id) === String(selected.subject_id));
+                                const currentAssignment = assignments.find(a => String(a.subject_id) === String(selected.subject_id) || (currentSubject && a.subject_name === currentSubject.name));
+                                return currentSubject?.code || currentSubject?.subject_code || currentAssignment?.subject_code || '--';
+                              })()}
+                            </div>
+                            <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Time:</div>
+                            <div className="col-span-3 p-2 font-medium">
+                              {examTime || '--'}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-12">
+                            <div className={`col-span-3 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Prepared by:</div>
+                            <div className={`col-span-4 p-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'} border-r font-medium`}>
+                              {(() => {
+                                try {
+                                  const u = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user') || '{}');
+                                  if (u.first_name || u.last_name) return `${u.first_name || ''} ${u.last_name || ''}`.trim();
+                                  if (u.full_name) return u.full_name;
+                                  if (u.name) return u.name;
+                                  if (u.username) return u.username;
+                                  return 'Faculty';
+                                } catch {
+                                  return 'Faculty';
+                                }
+                              })()}
+                            </div>
+                            <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Semester / Div:</div>
+                            <div className="col-span-3 p-2 font-medium">
+                              {(() => {
+                                const assign = assignments.find(a => String(a.subject_id) === String(selected.subject_id));
+                                const semNum = selected.semester_id || assign?.semester || '--';
+                                const branchName = dropdownData.branch.find(b => String(b.id) === String(selected.branch_id))?.name || assign?.branch || '';
+                                const sec = selected.section_id ? (assign?.section || selected.section_id) : (assign?.section || '--');
+                                return `Semester ${semNum}${branchName ? ` - ${branchName}` : ''} / ${sec}`;
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Instructions & Max Marks */}
+                        <div className={`flex justify-between items-end border ${theme === 'dark' ? 'border-border bg-muted/20' : 'border-slate-900 bg-slate-50/50'} p-2.5 text-xs sm:text-sm`}>
+                          <div>
+                            <span className="font-bold italic">NOTE:</span>
+                            <ol className="list-decimal list-inside text-xs mt-0.5 space-y-0.5 text-muted-foreground">
+                              <li>Answer one FULL question from each part.</li>
+                              <li>Assume missing data suitably.</li>
+                            </ol>
+                          </div>
+                          <div className="text-right font-bold italic text-sm">
+                            Max Marks: <span className="text-primary font-bold text-base not-italic ml-1">{totalMarks}</span>
+                          </div>
+                        </div>
+
+                        {/* Question Parts Table */}
+                        <div className={`border ${theme === 'dark' ? 'border-border' : 'border-slate-900'} rounded-sm overflow-hidden`}>
+                          <table className="w-full text-xs sm:text-sm border-collapse">
+                            <thead>
+                              <tr className={`${theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-slate-100 border-slate-900'} border-b font-bold`}>
+                                <th className={`w-16 p-2 text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>Q No.</th>
+                                <th className={`p-2 text-left border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>Question Content</th>
+                                <th className={`w-16 p-2 text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>Marks</th>
+                                <th className={`w-24 p-2 text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>RBT</th>
+                                <th className="w-20 p-2 text-center">CO</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {groupQuestionsByPart().map((part) => (
+                                <React.Fragment key={part.name}>
+                                  {/* Part Header */}
+                                  <tr className={`${theme === 'dark' ? 'bg-muted/70 border-border' : 'bg-slate-200/80 border-slate-900'} border-b border-t font-bold text-center`}>
+                                    <td colSpan={5} className="py-1.5 uppercase tracking-wider text-xs sm:text-sm">
+                                      {part.name}
+                                    </td>
+                                  </tr>
+
+                                  {part.questions.map((q) => (
+                                    <React.Fragment key={q.id}>
+                                      {/* OR Separator */}
+                                      {q.isOr && (
+                                        <tr className={`border-b ${theme === 'dark' ? 'border-border bg-amber-950/20 text-amber-400' : 'border-slate-900 bg-amber-50/60 text-amber-700'} font-bold text-center`}>
+                                          <td colSpan={5} className="py-1 text-xs tracking-widest uppercase">
+                                            — OR —
+                                          </td>
+                                        </tr>
+                                      )}
+
+                                      {/* Question Row */}
+                                      <tr className={`border-b ${theme === 'dark' ? 'border-border hover:bg-muted/30' : 'border-slate-900 hover:bg-slate-50/50'} transition-colors`}>
+                                        <td className={`p-2.5 text-center font-bold align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                                          Q.{q.number} )
+                                        </td>
+                                        <td className={`p-2.5 text-left align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
                                           <div
-                                            className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}
-                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? (s.content || '') : (shortContent || '')) }}
+                                            className="whitespace-pre-line break-words text-xs sm:text-sm"
+                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content || 'Question content') }}
                                           />
-                                          <div className="ml-2 flex-shrink-0">
-                                            <Badge className={`font-semibold text-sm ${getBadgeClassName()}`}>{s.maxMarks}m</Badge>
-                                          </div>
-                                        </div>
-                                        <div className="flex flex-wrap items-center justify-start gap-2 mt-2 w-full text-left">
-                                          <Badge className={getBadgeClassName()}>CO: {s.co}</Badge>
-                                          <Badge className={getBadgeClassName()}>{s.bloomsLevel}</Badge>
-                                          {(s.content || '').length > 160 &&
-                                            <button
-                                              onClick={() => toggleExpanded(key)}
-                                              className={getButtonClassName()}>
-                                              {isExpanded ? 'Show less' : 'Show more'}
-                                            </button>
-                                          }
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>);
-                        })}
-                      <div className={`font-semibold pt-2 border-t ${theme === 'dark' ? 'border-gray-700 text-foreground' : 'border-gray-200 text-gray-900'}`}>
-                        Total Marks: {totalMarks}
+                                        </td>
+                                        <td className={`p-2.5 text-center font-semibold align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                                          {q.maxMarks}
+                                        </td>
+                                        <td className={`p-2.5 text-center align-middle border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'} text-xs font-medium`}>
+                                          {formatBloomsList(q.bloomsLevel).length > 0 ? (
+                                            <div className="flex flex-col items-center justify-center space-y-1">
+                                              {formatBloomsList(q.bloomsLevel).map((bl, idx) => (
+                                                <div key={idx} className="leading-tight">{bl}</div>
+                                              ))}
+                                            </div>
+                                          ) : (
+                                            '--'
+                                          )}
+                                        </td>
+                                        <td className="p-2.5 text-center align-middle font-medium text-xs">
+                                          {formatCO(q.co) || '--'}
+                                        </td>
+                                      </tr>
+                                    </React.Fragment>
+                                  ))}
+                                </React.Fragment>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* RBT Taxonomy Legend */}
+                        <div className="pt-2 space-y-1">
+                          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                            RBT – Revised Bloom’s Taxonomy
+                          </div>
+                          <div className={`border ${theme === 'dark' ? 'border-border' : 'border-slate-300'} rounded text-[11px] sm:text-xs overflow-hidden`}>
+                            <div className={`grid grid-cols-3 border-b ${theme === 'dark' ? 'border-border bg-muted/40' : 'border-slate-300 bg-slate-50'} p-1.5`}>
+                              <div><span className="font-semibold">L1.</span> Remembering</div>
+                              <div><span className="font-semibold">L2.</span> Understanding</div>
+                              <div><span className="font-semibold">L3.</span> Applying</div>
+                            </div>
+                            <div className={`grid grid-cols-3 p-1.5 ${theme === 'dark' ? 'bg-muted/20' : 'bg-slate-50/50'}`}>
+                              <div><span className="font-semibold">L4.</span> Analyzing</div>
+                              <div><span className="font-semibold">L5.</span> Evaluating</div>
+                              <div><span className="font-semibold">L6.</span> Creating</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
-              }
+              )}
             </TabsContent>
           </CardContent>
         </Tabs>
