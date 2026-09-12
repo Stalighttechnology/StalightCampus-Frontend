@@ -17,6 +17,7 @@ import {
   fetchBranches,
 } from "../../../utils/inventory_api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../ui/dialog";
+import { Popover, PopoverTrigger, PopoverContent } from "../../ui/popover";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Textarea } from "../../ui/textarea";
@@ -40,6 +41,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  ChevronsUpDown,
   Eye,
   Calendar,
   Building,
@@ -51,6 +53,7 @@ import {
   Send,
   Check,
   UserCheck,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -99,11 +102,12 @@ export const ProcurementRequests: React.FC<Props> = ({
   const [stockInBranchId, setStockInBranchId] = useState("");
   const [stockInRoom, setStockInRoom] = useState("");
   const [stockInQuantity, setStockInQuantity] = useState(1);
-  const [stockInRecipientRole, setStockInRecipientRole] = useState("faculty");
-  const [stockInRecipientBranch, setStockInRecipientBranch] = useState("all");
+  const [stockInRecipientRole, setStockInRecipientRole] = useState("");
+  const [stockInRecipientBranch, setStockInRecipientBranch] = useState("");
   const [stockInRecipientId, setStockInRecipientId] = useState("");
   const [stockInRecipientName, setStockInRecipientName] = useState("");
   const [stockInPersonnelSearch, setStockInPersonnelSearch] = useState("");
+  const [recipientPopoverOpen, setRecipientPopoverOpen] = useState(false);
   const [stockInConfirmedReceipt, setStockInConfirmedReceipt] = useState(false);
   const [personnelList, setPersonnelList] = useState<Array<{
     id: number;
@@ -114,6 +118,9 @@ export const ProcurementRequests: React.FC<Props> = ({
     branch_name?: string;
   }>>([]);
   const [loadingPersonnel, setLoadingPersonnel] = useState(false);
+  const [personnelPage, setPersonnelPage] = useState(1);
+  const [personnelTotalPages, setPersonnelTotalPages] = useState(1);
+  const [personnelTotalCount, setPersonnelTotalCount] = useState(0);
 
   // Quotation Modal state
   const [quotationModalReq, setQuotationModalReq] = useState<ProcurementRequest | null>(null);
@@ -192,21 +199,38 @@ export const ProcurementRequests: React.FC<Props> = ({
     }
   }, [stockInRequest]);
 
-  const loadPersonnel = async (roleVal: string, branchVal: string, searchVal: string) => {
+  const loadPersonnel = async (roleVal: string, branchVal: string, searchVal: string, pageVal: number = 1) => {
+    if (!roleVal) {
+      setPersonnelList([]);
+      return;
+    }
+    const isBranchSpecific = ["faculty", "teacher", "hod", "staff"].includes(roleVal);
+    if (isBranchSpecific && (!branchVal || branchVal === "")) {
+      setPersonnelList([]);
+      return;
+    }
+
     try {
       setLoadingPersonnel(true);
-      const params: Record<string, any> = {};
+      const params: Record<string, any> = {
+        page: pageVal,
+        page_size: 10,
+      };
       if (roleVal && roleVal !== "all") params.role = roleVal;
-      const isBranchSpecific = ["faculty", "teacher", "hod", "staff"].includes(roleVal);
       if (isBranchSpecific && branchVal && branchVal !== "all" && branchVal !== "none") {
         params.branch = branchVal;
       }
       if (searchVal.trim()) params.search = searchVal.trim();
-      const list = await fetchInventoryPersonnel(params);
-      setPersonnelList(Array.isArray(list) ? list : []);
+      const res = await fetchInventoryPersonnel(params);
+      setPersonnelList(res.results || []);
+      setPersonnelTotalPages(res.total_pages || 1);
+      setPersonnelTotalCount(res.count || 0);
+      setPersonnelPage(res.current_page || pageVal);
     } catch (err: any) {
       console.error("Failed to load personnel:", err);
       setPersonnelList([]);
+      setPersonnelTotalPages(1);
+      setPersonnelTotalCount(0);
     } finally {
       setLoadingPersonnel(false);
     }
@@ -216,12 +240,14 @@ export const ProcurementRequests: React.FC<Props> = ({
     if (stockInRequest) {
       const branchVal = stockInRequest.branch ? String(stockInRequest.branch) : "none";
       setStockInBranchId(branchVal);
-      setStockInRecipientBranch(branchVal !== "none" ? branchVal : "all");
+      setStockInRecipientBranch("");
       setStockInQuantity(stockInRequest.requested_quantity || 1);
-      setStockInRecipientRole("faculty");
+      setStockInRecipientRole("");
       setStockInRecipientId("");
       setStockInRecipientName("");
       setStockInPersonnelSearch("");
+      setPersonnelPage(1);
+      setPersonnelList([]);
       setStockInConfirmedReceipt(false);
       if (locations.length > 0 && !stockInLocationId) {
         setStockInLocationId(String(locations[0].id));
@@ -229,14 +255,23 @@ export const ProcurementRequests: React.FC<Props> = ({
       if (branchList.length === 0) {
         fetchBranches().then((b) => setBranchList(b || [])).catch(console.error);
       }
-      loadPersonnel("faculty", branchVal !== "none" ? branchVal : "all", "");
     }
   }, [stockInRequest]);
 
   useEffect(() => {
     if (stockInRequest) {
+      if (!stockInRecipientRole) {
+        setPersonnelList([]);
+        return;
+      }
+      const isBranchSpecific = ["faculty", "teacher", "hod", "staff"].includes(stockInRecipientRole);
+      if (isBranchSpecific && !stockInRecipientBranch) {
+        setPersonnelList([]);
+        return;
+      }
+      setPersonnelPage(1);
       const handler = setTimeout(() => {
-        loadPersonnel(stockInRecipientRole, stockInRecipientBranch, stockInPersonnelSearch);
+        loadPersonnel(stockInRecipientRole, stockInRecipientBranch, stockInPersonnelSearch, 1);
       }, 250);
       return () => clearTimeout(handler);
     }
@@ -465,7 +500,7 @@ export const ProcurementRequests: React.FC<Props> = ({
       rejected: { label: "Rejected", bg: "bg-rose-50 dark:bg-rose-950/40", text: "text-rose-700 dark:text-rose-300" },
       rfq_issued: { label: "RFQ Issued", bg: "bg-indigo-50 dark:bg-indigo-950/40", text: "text-indigo-700 dark:text-indigo-300" },
       ordered: { label: "Order Placed", bg: "bg-blue-50 dark:bg-blue-950/40", text: "text-blue-700 dark:text-blue-300" },
-      delivered: { label: "Arrived (Ready for Stock-In)", bg: "bg-emerald-100 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700", text: "text-emerald-800 dark:text-emerald-200" },
+      delivered: { label: "Arrived", bg: "bg-emerald-100 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700", text: "text-emerald-800 dark:text-emerald-200" },
       added_to_inventory: { label: "Stocked In", bg: "bg-purple-50 dark:bg-purple-950/40", text: "text-purple-700 dark:text-purple-300" },
     };
     const s = map[status] || { label: status, bg: "bg-muted", text: "text-muted-foreground" };
@@ -559,7 +594,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                   <SelectItem value="approved">Approved</SelectItem>
                   <SelectItem value="rfq_issued">RFQ Issued</SelectItem>
                   <SelectItem value="ordered">Order Placed</SelectItem>
-                  <SelectItem value="delivered">Arrived Goods</SelectItem>
+                  <SelectItem value="delivered">Arrived</SelectItem>
                   <SelectItem value="added_to_inventory">Stocked In</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
                 </SelectContent>
@@ -1370,6 +1405,8 @@ export const ProcurementRequests: React.FC<Props> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, requested_quantity: parseInt(e.target.value) || 1 })
                   }
+                  onWheel={(e) => (e.target as HTMLElement).blur()}
+                  className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
 
@@ -1385,6 +1422,8 @@ export const ProcurementRequests: React.FC<Props> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, estimated_cost: parseFloat(e.target.value) || 0 })
                   }
+                  onWheel={(e) => (e.target as HTMLElement).blur()}
+                  className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
 
@@ -1543,7 +1582,7 @@ export const ProcurementRequests: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* Section 2: Recipient / Custodian Handover (Leave-Management Stepped Selection) */}
+            {/* Section 2: Recipient / Custodian Handover */}
             <div className="space-y-4 border-t border-border/50 pt-5">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -1569,6 +1608,9 @@ export const ProcurementRequests: React.FC<Props> = ({
                     setStockInRecipientRole(val);
                     setStockInRecipientId("");
                     setStockInRecipientName("");
+                    const isBranchRole = ["faculty", "hod", "staff"].includes(val);
+                    setStockInRecipientBranch(isBranchRole ? "" : "all");
+                    setPersonnelList([]);
                   }}
                 >
                   <SelectTrigger className="w-full h-9">
@@ -1590,16 +1632,14 @@ export const ProcurementRequests: React.FC<Props> = ({
                 </Select>
               </div>
 
-              {/* Step 2: Department / Branch Selection (When Faculty / HOD / Staff is selected) */}
-              {(stockInRecipientRole === "faculty" ||
-                stockInRecipientRole === "hod" ||
-                stockInRecipientRole === "staff") && (
+              {/* Step 2: Department / Branch Selection (ONLY when Faculty / HOD / Staff is selected) */}
+              {["faculty", "hod", "staff"].includes(stockInRecipientRole) && (
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-semibold text-foreground">
                       Step 2: Department / Branch <span className="text-red-500">*</span>
                     </label>
-                    <span className="text-[11px] text-muted-foreground">Select branch first</span>
+                    <span className="text-[11px] text-muted-foreground">Filter by department</span>
                   </div>
                   <Select
                     value={stockInRecipientBranch}
@@ -1607,6 +1647,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                       setStockInRecipientBranch(val);
                       setStockInRecipientId("");
                       setStockInRecipientName("");
+                      setPersonnelList([]);
                     }}
                   >
                     <SelectTrigger className="w-full h-9">
@@ -1624,94 +1665,192 @@ export const ProcurementRequests: React.FC<Props> = ({
                 </div>
               )}
 
-              {/* Step 3: Assign Custodian / Recipient */}
-              <div className="space-y-2">
+              {/* Step 3 (or Step 2): Assign Custodian / Recipient with Search in Dropdown */}
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-foreground">
-                    Step 3: Assign Custodian / Recipient <span className="text-red-500">*</span>
+                    {["faculty", "hod", "staff"].includes(stockInRecipientRole)
+                      ? "Step 3: Assign Custodian / Recipient"
+                      : "Step 2: Assign Custodian / Recipient"}{" "}
+                    <span className="text-red-500">*</span>
                   </label>
-                  <span className="text-[11px] text-muted-foreground">Select faculty / staff colleague</span>
+                  <span className="text-[11px] text-muted-foreground">Select colleague from list</span>
                 </div>
 
-                {/* Filter Search Input */}
-                <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-muted-foreground" />
-                  <Input
-                    placeholder="Type name or email to filter..."
-                    value={stockInPersonnelSearch}
-                    onChange={(e) => setStockInPersonnelSearch(e.target.value)}
-                    className="h-8 pl-8 text-xs"
-                  />
-                </div>
-
-                {/* Colleague Select Dropdown */}
-                <Select
-                  value={stockInRecipientId || undefined}
-                  onValueChange={(val) => {
-                    setStockInRecipientId(val);
-                    const found = personnelList.find((p) => String(p.id) === val);
-                    if (found) {
-                      setStockInRecipientName(found.name);
-                    }
-                  }}
-                  disabled={!stockInRecipientRole || loadingPersonnel}
-                >
-                  <SelectTrigger className="w-full h-9">
-                    <SelectValue
-                      placeholder={
-                        !stockInRecipientRole
-                          ? "Select recipient role first..."
-                          : loadingPersonnel
-                            ? "Loading colleagues..."
-                            : personnelList.length === 0
-                              ? "No faculty/staff found (type name below)"
-                              : "Select faculty / staff colleague..."
+                <Popover open={recipientPopoverOpen} onOpenChange={setRecipientPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={recipientPopoverOpen}
+                      disabled={
+                        !stockInRecipientRole ||
+                        (["faculty", "hod", "staff"].includes(stockInRecipientRole) && !stockInRecipientBranch)
                       }
-                    />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[220px]">
-                    {loadingPersonnel ? (
-                      <SelectItem value="loading" disabled>
-                        Loading colleagues...
-                      </SelectItem>
-                    ) : personnelList.length === 0 ? (
-                      <SelectItem value="none" disabled>
-                        No staff found for current filter
-                      </SelectItem>
-                    ) : (
-                      personnelList.map((p) => (
-                        <SelectItem key={p.id} value={p.id.toString()}>
-                          <div className="flex items-center justify-between gap-3 w-full">
-                            <span className="font-semibold">{p.name}</span>
-                            <span className="text-[11px] text-muted-foreground">({p.email})</span>
-                            {p.branch_name && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded font-medium">
-                                {p.branch_name}
-                              </span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                      className="w-full h-9 justify-between font-normal text-left px-3 hover:bg-background"
+                    >
+                      {stockInRecipientName ? (
+                        <div className="flex items-center gap-2 truncate">
+                          <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" />
+                          <span className="font-semibold text-foreground truncate">{stockInRecipientName}</span>
+                          {stockInRecipientId && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 rounded font-medium shrink-0">
+                              Registered Staff
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">
+                          {!stockInRecipientRole
+                            ? "Select recipient role first..."
+                            : ["faculty", "hod", "staff"].includes(stockInRecipientRole) && !stockInRecipientBranch
+                            ? "Select department / branch first..."
+                            : loadingPersonnel
+                            ? "Loading colleagues..."
+                            : "Search & select colleague or type name..."}
+                        </span>
+                      )}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-[--radix-popover-trigger-width] min-w-[340px] max-w-[420px] p-0 shadow-xl border overflow-hidden flex flex-col h-[450px]"
+                    align="start"
+                  >
+                    {/* Fixed Search Header */}
+                    <div className="p-2 border-b bg-muted/10 shrink-0">
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-muted-foreground" />
+                        <Input
+                          placeholder="Type name or email to filter..."
+                          value={stockInPersonnelSearch}
+                          onChange={(e) => {
+                            setStockInPersonnelSearch(e.target.value);
+                            setPersonnelPage(1);
+                          }}
+                          className="h-8 pl-8 text-xs bg-muted/30 focus-visible:ring-1"
+                          autoFocus
+                        />
+                      </div>
+                    </div>
 
-                {/* Manual Custodian Name confirmation input */}
-                <div className="pt-1 flex items-center gap-2">
-                  <Input
-                    placeholder="Or type manual recipient name..."
-                    value={stockInRecipientName}
-                    onChange={(e) => {
-                      setStockInRecipientName(e.target.value);
-                    }}
-                    className="h-8 text-xs flex-1"
-                  />
-                  {stockInRecipientName && (
-                    <span className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-1 shrink-0">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> Assigned: {stockInRecipientName}
-                    </span>
-                  )}
-                </div>
+                    {/* Fixed Body with Smooth Page Transitions */}
+                    <div className="flex-1 overflow-hidden p-1.5 flex flex-col justify-start relative">
+                      {loadingPersonnel && (
+                        <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] flex items-center justify-center z-10 animate-in fade-in-50 duration-150">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-background border px-3 py-1.5 rounded-full shadow-sm">
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
+                            <span>Loading colleagues...</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {personnelList.length === 0 && !loadingPersonnel ? (
+                        <div className="flex-1 flex flex-col items-center justify-center text-center p-4 text-xs text-muted-foreground">
+                          <Users className="w-8 h-8 text-muted-foreground/40 mb-1.5" />
+                          <p className="font-medium">No registered staff found</p>
+                          <p className="text-[11px] text-muted-foreground/70">Try adjusting your search or department filter.</p>
+                        </div>
+                      ) : (
+                        <div
+                          key={`stockin-page-${personnelPage}`}
+                          className="flex-1 flex flex-col space-y-0.5 animate-in fade-in-50 slide-in-from-bottom-1 duration-200"
+                        >
+                          {personnelList.map((p) => {
+                            const isSelected = String(p.id) === stockInRecipientId || p.name === stockInRecipientName;
+                            return (
+                              <button
+                                type="button"
+                                key={p.id}
+                                onClick={() => {
+                                  setStockInRecipientId(String(p.id));
+                                  setStockInRecipientName(p.name);
+                                  setRecipientPopoverOpen(false);
+                                }}
+                                className={`w-full text-left px-2.5 py-1.5 rounded-md flex items-center justify-between gap-2 transition-all duration-150 h-[34px] ${
+                                  isSelected
+                                    ? "bg-purple-50 dark:bg-purple-950/60 text-purple-900 dark:text-purple-100 font-semibold shadow-xs"
+                                    : "hover:bg-muted/70 text-foreground"
+                                }`}
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-semibold text-xs truncate leading-none">{p.name}</div>
+                                  <div className="text-[10.5px] text-muted-foreground truncate leading-tight mt-0.5">{p.email}</div>
+                                </div>
+                                {p.branch_name && (
+                                  <span className="text-[9.5px] px-1.5 py-0.5 bg-muted rounded font-medium shrink-0 max-w-[110px] truncate">
+                                    {p.branch_name}
+                                  </span>
+                                )}
+                                {isSelected && <Check className="w-3.5 h-3.5 text-purple-600 shrink-0" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Option to use custom typed name */}
+                      {stockInPersonnelSearch.trim() && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStockInRecipientId("");
+                            setStockInRecipientName(stockInPersonnelSearch.trim());
+                            setRecipientPopoverOpen(false);
+                          }}
+                          className="w-full text-left px-2.5 py-1.5 mt-auto rounded-md border border-dashed border-purple-300 dark:border-purple-800 bg-purple-50/60 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50 flex items-center gap-1.5 transition-colors text-xs shrink-0"
+                        >
+                          <Plus className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">
+                            Assign custom recipient: <strong>"{stockInPersonnelSearch.trim()}"</strong>
+                          </span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Fixed Footer Pagination */}
+                    <div className="p-2 border-t bg-muted/20 shrink-0 flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span className="px-1 font-medium">
+                        Page {personnelPage} of {personnelTotalPages} ({personnelTotalCount} total)
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={personnelPage <= 1 || loadingPersonnel}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const prev = personnelPage - 1;
+                            setPersonnelPage(prev);
+                            loadPersonnel(stockInRecipientRole, stockInRecipientBranch, stockInPersonnelSearch, prev);
+                          }}
+                          className="h-6 px-2.5 text-[11px] transition-all"
+                        >
+                          Prev
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={personnelPage >= personnelTotalPages || loadingPersonnel}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const next = personnelPage + 1;
+                            setPersonnelPage(next);
+                            loadPersonnel(stockInRecipientRole, stockInRecipientBranch, stockInPersonnelSearch, next);
+                          }}
+                          className="h-6 px-2.5 text-[11px] transition-all"
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
@@ -1733,7 +1872,8 @@ export const ProcurementRequests: React.FC<Props> = ({
                     max={stockInRequest?.requested_quantity || 9999}
                     value={stockInQuantity}
                     onChange={(e) => setStockInQuantity(Math.max(1, Number(e.target.value) || 1))}
-                    className="h-9 font-bold"
+                    onWheel={(e) => (e.target as HTMLElement).blur()}
+                    className="h-9 font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
                 <div className="text-xs text-muted-foreground pt-3 sm:pt-4">
@@ -1912,6 +2052,8 @@ export const ProcurementRequests: React.FC<Props> = ({
                         placeholder="0.00"
                         value={quoteFormData.total_amount}
                         onChange={(e) => setQuoteFormData({ ...quoteFormData, total_amount: e.target.value })}
+                        onWheel={(e) => (e.target as HTMLElement).blur()}
+                        className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                     </div>
                     <div>

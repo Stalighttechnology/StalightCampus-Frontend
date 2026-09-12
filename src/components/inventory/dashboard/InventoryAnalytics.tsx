@@ -76,15 +76,6 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
             Campus-wide overview of equipment valuation, active status, repair tickets, and requisitions.
           </p>
         </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={loadData}
-          className="gap-1.5 text-xs font-semibold"
-        >
-          <RefreshCw className="w-3.5 h-3.5" /> Refresh Intelligence
-        </Button>
       </div>
 
       {/* KPI Cards Grid */}

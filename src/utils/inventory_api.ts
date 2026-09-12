@@ -458,6 +458,29 @@ export const updateInventoryItem = (id: number, data: any): Promise<InventoryIte
     })
   );
 
+export interface SplitTransferPayload {
+  quantity: number;
+  location_id?: number;
+  branch_id?: number | null;
+  room_no?: string;
+  received_by_id?: number | null;
+  received_by_name?: string;
+  received_by_role?: string;
+  remarks?: string;
+}
+
+export const splitTransferInventoryItem = (
+  id: number,
+  data: SplitTransferPayload
+): Promise<{ message: string; mode: string; source_item: InventoryItem; new_item?: InventoryItem }> =>
+  handleJsonResponse(
+    fetchWithTokenRefresh(`${API_BASE}/items/${id}/split_transfer/`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    })
+  );
+
 export const deleteInventoryItem = (id: number): Promise<any> =>
   handleJsonResponse<any>(
     fetchWithTokenRefresh(`${API_BASE}/items/${id}/`, {
@@ -536,22 +559,51 @@ export const sanctionProcurementRequest = (id: number, decision: 'approved' | 'r
     })
   );
 
-export const fetchInventoryPersonnel = (params: Record<string, any> = {}): Promise<Array<{
+export interface PersonnelItem {
   id: number;
   name: string;
   email: string;
   role: string;
   branch_id?: number;
   branch_name?: string;
-}>> => {
+}
+
+export interface PersonnelResponse {
+  count: number;
+  total_pages: number;
+  current_page: number;
+  page_size: number;
+  results: PersonnelItem[];
+}
+
+export const fetchInventoryPersonnel = async (
+  params: Record<string, any> = {}
+): Promise<PersonnelResponse> => {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== "") query.append(k, String(v));
   });
-  return handleJsonResponse(
-    fetchWithTokenRefresh(`${API_BASE}/procurements/personnel/?${query.toString()}`, { headers: authHeaders() }),
-    true
-  );
+  const res = await fetchWithTokenRefresh(`${API_BASE}/procurements/personnel/?${query.toString()}`, { headers: authHeaders() });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || data.error || "Failed to fetch personnel");
+  }
+  if (Array.isArray(data)) {
+    return {
+      count: data.length,
+      total_pages: 1,
+      current_page: 1,
+      page_size: data.length,
+      results: data,
+    };
+  }
+  return {
+    count: data.count || 0,
+    total_pages: data.total_pages || 1,
+    current_page: data.current_page || 1,
+    page_size: data.page_size || 10,
+    results: Array.isArray(data.results) ? data.results : [],
+  };
 };
 
 export const stockInProcurementRequest = (
