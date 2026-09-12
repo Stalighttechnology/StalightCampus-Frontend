@@ -17,6 +17,7 @@ import LeaveManagement from "../hod/LeaveManagement";
 import ApplyLeave from "../faculty/ApplyLeave";
 import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import AttendanceView from "../hod/AttendanceView";
+import HODAttendanceRecords from "../hod/HODAttendanceRecords";
 import MarksView from "../hod/MarksView";
 import NotificationsManagement from "../hod/NotificationsManagement";
 import ProctorManagement from "../hod/ProctorManagement";
@@ -143,6 +144,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'apply-leaves': 'apply-leaves',
       'reimbursements': 'reimbursements',
       'attendance': 'attendance',
+      'attendance-records': 'attendance-records',
       'faculty-attendance': 'faculty-attendance',
       'my-attendance': 'my-attendance',
       'marks': 'marks',
@@ -205,6 +207,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'apply-leaves': '/hod/apply-leaves',
       'reimbursements': '/hod/reimbursements',
       'attendance': '/hod/attendance',
+      'attendance-records': '/hod/attendance-records',
       'faculty-attendance': '/hod/faculty-attendance',
       'my-attendance': '/hod/my-attendance',
       'marks': '/hod/marks',
@@ -288,6 +291,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <EmployeeReimbursements />;
       case "attendance":
         return <AttendanceView />;
+      case "attendance-records":
+        return <HODAttendanceRecords />;
       case "faculty-attendance":
         return <AdminFacultyAttendanceView />;
       case "my-attendance":

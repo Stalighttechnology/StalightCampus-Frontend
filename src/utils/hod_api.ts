@@ -2881,3 +2881,278 @@ export const manageHodStudentLeave = async (data: {
     return { success: false, message: "Network error" };
   }
 };
+
+export interface HODAttendanceRecord {
+  id: number;
+  date: string;
+  subject: string | null;
+  subject_id: number | null;
+  subject_code: string | null;
+  subject_type: string;
+  section: string | null;
+  section_id: number | null;
+  semester: number | null;
+  semester_id: number | null;
+  branch?: string | null;
+  branch_id?: number | null;
+  batch?: string | null;
+  batch_id?: number | null;
+  faculty_id?: number | null;
+  faculty_name: string;
+  lab_batch_id?: number | null;
+  lab_batch_name?: string | null;
+  file_path: string | null;
+  status: string;
+  summary: {
+    present_count: number;
+    absent_count: number;
+    total_count: number;
+    present_percentage: number;
+  };
+}
+
+export interface GetHODAttendanceRecordsResponse {
+  success: boolean;
+  message?: string;
+  data?: HODAttendanceRecord[];
+  count?: number;
+  total_pages?: number;
+  current_page?: number;
+  meta?: {
+    total_records?: number;
+  };
+}
+
+export interface HODAttendanceRecordDetailsResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    id: number;
+    date: string;
+    subject: string | null;
+    subject_code: string | null;
+    subject_type: string;
+    section: string | null;
+    semester: number | null;
+    branch: string | null;
+    batch_name?: string | null;
+    batch_id?: number | null;
+    faculty_name: string;
+    lab_batch_name?: string | null;
+    present: Array<{
+      id: number;
+      name: string;
+      usn: string;
+      status?: boolean;
+      subject_percentage?: number;
+      subject_present?: number;
+      subject_total?: number;
+      subject_absent?: number;
+    }>;
+    absent: Array<{
+      id: number;
+      name: string;
+      usn: string;
+      status?: boolean;
+      subject_percentage?: number;
+      subject_present?: number;
+      subject_total?: number;
+      subject_absent?: number;
+    }>;
+    present_count: number;
+    absent_count: number;
+    total_count: number;
+    present_percentage: number;
+  };
+}
+
+export interface HODAttendanceFiltersResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    branch: { id: number; name: string };
+    batches?: Array<{ id: number | string; name: string; start_year?: number; end_year?: number }>;
+    semesters: Array<{ id: number | string; number: number }>;
+    sections: Array<{ id: number | string; name: string; semester_id: number | string }>;
+    subjects: Array<{ id: number | string; name: string; subject_code: string; subject_type: string; semester_id: number | string }>;
+    overall?: {
+      total_sessions: number;
+      total_present: number;
+      total_absent: number;
+      avg_attendance: number;
+    };
+    batch_stats?: Array<{
+      batch_id: string;
+      batch_name: string;
+      sessions: number;
+      present: number;
+      absent: number;
+      attendance_percentage: number;
+    }>;
+    semester_stats?: Array<{
+      semester_id: string;
+      semester_number: number;
+      sessions: number;
+      present: number;
+      absent: number;
+      attendance_percentage: number;
+    }>;
+  };
+}
+
+export const getHODAttendanceRecordsWithSummary = async (params?: {
+  page?: number;
+  page_size?: number;
+  batch_id?: string;
+  semester_id?: string;
+  section_id?: string;
+  subject_id?: string;
+  lab_batch_id?: string;
+  date?: string;
+  start_date?: string;
+  end_date?: string;
+  search?: string;
+}): Promise<GetHODAttendanceRecordsResponse> => {
+  try {
+    const query = new URLSearchParams();
+    if (params?.page) query.append("page", String(params.page));
+    if (params?.page_size) query.append("page_size", String(params.page_size));
+    if (params?.batch_id) query.append("batch_id", params.batch_id);
+    if (params?.semester_id) query.append("semester_id", params.semester_id);
+    if (params?.section_id) query.append("section_id", params.section_id);
+    if (params?.subject_id) query.append("subject_id", params.subject_id);
+    if (params?.lab_batch_id) query.append("lab_batch_id", params.lab_batch_id);
+    if (params?.date) query.append("date", params.date);
+    if (params?.start_date) query.append("start_date", params.start_date);
+    if (params?.end_date) query.append("end_date", params.end_date);
+    if (params?.search) query.append("search", params.search);
+
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/attendance-records/${qs}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getHODAttendanceRecordDetails = async (
+  recordId: number | string,
+  startDate?: string,
+  endDate?: string
+): Promise<HODAttendanceRecordDetailsResponse> => {
+  try {
+    const params = new URLSearchParams();
+    if (startDate) params.append("start_date", startDate);
+    if (endDate) params.append("end_date", endDate);
+    const queryString = params.toString() ? `?${params.toString()}` : "";
+
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/attendance-records/${recordId}/details/${queryString}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getHODAttendanceFilters = async (): Promise<HODAttendanceFiltersResponse> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/attendance-records/filters/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export interface FacultyAttendanceInfo {
+  assigned_faculty: string[];
+  assigned_faculty_name: string;
+  marked_by_faculty: string[];
+  marked_by_faculty_name: string;
+  subject_name?: string | null;
+  subject_code?: string | null;
+  subject_type?: string | null;
+}
+
+export interface StudentAttendanceSummaryItem {
+  id: number;
+  name: string;
+  usn: string;
+  batch?: string;
+  section?: string;
+  semester?: number | string;
+  branch?: string;
+  conducted_classes: number;
+  attended_classes: number;
+  absent_classes: number;
+  attendance_percentage: number;
+  status: "Eligible" | "Warning" | "Shortage" | "No Classes";
+}
+
+export interface StudentAttendanceSummaryResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    students: StudentAttendanceSummaryItem[];
+    faculty_info?: FacultyAttendanceInfo;
+    summary: {
+      total_students: number;
+      total_sessions: number;
+      avg_attendance: number;
+      eligible_count: number;
+      shortage_count: number;
+      start_date?: string;
+      end_date?: string;
+    };
+  };
+}
+
+export const getHODStudentAttendanceSummary = async (params: {
+  semester_id: string;
+  section_id: string;
+  batch_id?: string;
+  subject_id?: string;
+  start_date?: string;
+  end_date?: string;
+  search?: string;
+}): Promise<StudentAttendanceSummaryResponse> => {
+  try {
+    const query = new URLSearchParams();
+    query.append("semester_id", params.semester_id);
+    query.append("section_id", params.section_id);
+    if (params.batch_id && params.batch_id !== "all") query.append("batch_id", params.batch_id);
+    if (params.subject_id && params.subject_id !== "all") query.append("subject_id", params.subject_id);
+    if (params.start_date) query.append("start_date", params.start_date);
+    if (params.end_date) query.append("end_date", params.end_date);
+    if (params.search) query.append("search", params.search);
+
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/attendance-records/student-summary/${qs}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+

@@ -794,6 +794,14 @@ export default function HODStats({ setError, setPage, onBootstrapData }: HODStat
         <div id="hod-attendance-trends" className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
           <div className="flex justify-between items-center mb-2">
             <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance Trends</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage("attendance-records")}
+              className="h-7 text-xs px-2.5 font-medium flex items-center gap-1"
+            >
+              View Records
+            </Button>
           </div>
           <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Weekly attendance percentage</p>
           <div className={`min-h-[250px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
