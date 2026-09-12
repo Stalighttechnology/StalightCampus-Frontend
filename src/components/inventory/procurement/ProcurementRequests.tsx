@@ -109,6 +109,7 @@ export const ProcurementRequests: React.FC<Props> = ({
   const [stockInPersonnelSearch, setStockInPersonnelSearch] = useState("");
   const [recipientPopoverOpen, setRecipientPopoverOpen] = useState(false);
   const [stockInConfirmedReceipt, setStockInConfirmedReceipt] = useState(false);
+  const [stockRemainingAsBuffer, setStockRemainingAsBuffer] = useState(true);
   const [personnelList, setPersonnelList] = useState<Array<{
     id: number;
     name: string;
@@ -477,6 +478,7 @@ export const ProcurementRequests: React.FC<Props> = ({
         branch_id: stockInBranchId && stockInBranchId !== "none" ? Number(stockInBranchId) : null,
         room_no: stockInRoom.trim() || undefined,
         quantity: Number(stockInQuantity),
+        stock_remaining_as_buffer: stockRemainingAsBuffer,
         received_by_id: stockInRecipientId ? Number(stockInRecipientId) : null,
         received_by_name: stockInRecipientName.trim() || undefined,
         received_by_role: stockInRecipientRole,
@@ -1883,6 +1885,59 @@ export const ProcurementRequests: React.FC<Props> = ({
                   </strong>
                 </div>
               </div>
+
+              {/* Split Strategy Option when Quantity is Less than Total Requisition */}
+              {stockInRequest && stockInQuantity < (stockInRequest.requested_quantity || 1) && (
+                <div className="p-3.5 rounded-lg border border-purple-200 dark:border-purple-800/60 bg-purple-50/50 dark:bg-purple-950/30 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-purple-900 dark:text-purple-200 flex items-center gap-1.5">
+                      <Package className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      Remaining {stockInRequest.requested_quantity - stockInQuantity} Unit(s) Allocation
+                    </span>
+                    <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
+                      Buffer Bay Auto-Stock
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                      <input
+                        type="radio"
+                        name="buffer_strategy"
+                        checked={stockRemainingAsBuffer}
+                        onChange={() => setStockRemainingAsBuffer(true)}
+                        className="mt-0.5 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                      />
+                      <div>
+                        <strong className="block text-foreground">
+                          Stock remaining {stockInRequest.requested_quantity - stockInQuantity} units into Central Store Buffer Stock (Recommended)
+                        </strong>
+                        <span className="text-muted-foreground text-[11px] leading-tight block mt-0.5">
+                          Assets will be generated in active inventory as available Buffer Stock in Central Warehouse, ready for one-click transfer to any department.
+                        </span>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                      <input
+                        type="radio"
+                        name="buffer_strategy"
+                        checked={!stockRemainingAsBuffer}
+                        onChange={() => setStockRemainingAsBuffer(false)}
+                        className="mt-0.5 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                      />
+                      <div>
+                        <strong className="block text-foreground">
+                          Partial Vendor Delivery (Only {stockInQuantity} units arrived)
+                        </strong>
+                        <span className="text-muted-foreground text-[11px] leading-tight block mt-0.5">
+                          The remaining {stockInRequest.requested_quantity - stockInQuantity} units have not yet arrived on campus and will be stocked in during the next delivery batch.
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              )}
 
               {/* Physical Confirmation Box */}
               <div

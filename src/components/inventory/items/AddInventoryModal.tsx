@@ -214,13 +214,19 @@ export const AddInventoryModal: React.FC<Props> = ({
               </label>
               <Select
                 value={formData.branch_id}
-                onValueChange={(v) => setFormData({ ...formData, branch_id: v })}
+                onValueChange={(v) =>
+                  setFormData({
+                    ...formData,
+                    branch_id: v,
+                    status: v === "unassigned" || !v ? "available" : formData.status,
+                  })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Assign to Department" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="unassigned">General / Unassigned</SelectItem>
+                  <SelectItem value="unassigned">General / Central Buffer Stock</SelectItem>
                   {branchList.map((b) => (
                     <SelectItem key={b.id} value={String(b.id)}>
                       {b.name}
@@ -272,16 +278,23 @@ export const AddInventoryModal: React.FC<Props> = ({
                 Initial Status
               </label>
               <Select
-                value={formData.status}
+                value={formData.branch_id === "unassigned" || !formData.branch_id ? "available" : formData.status}
+                disabled={formData.branch_id === "unassigned" || !formData.branch_id}
                 onValueChange={(v: any) => setFormData({ ...formData, status: v })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="available">Available / In Stock</SelectItem>
-                  <SelectItem value="in-use">In Use / Deployed</SelectItem>
-                  <SelectItem value="in-repair">In Repair</SelectItem>
+                  {formData.branch_id && formData.branch_id !== "unassigned" ? (
+                    <>
+                      <SelectItem value="available">Available / In Stock</SelectItem>
+                      <SelectItem value="in-use">In Use / Deployed</SelectItem>
+                      <SelectItem value="in-repair">In Repair</SelectItem>
+                    </>
+                  ) : (
+                    <SelectItem value="available">Available (Central Buffer Stock)</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>

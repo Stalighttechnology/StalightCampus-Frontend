@@ -540,21 +540,36 @@ export const ItemDetailsModal: React.FC<Props> = ({
                   </p>
                 </div>
 
+                {!item.branch && (
+                  <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs">
+                    <p className="font-semibold">Central Store Buffer Stock</p>
+                    <p className="text-[11px] mt-0.5 opacity-90">
+                      This unit is currently in central buffer stock and has not been allotted to any department. Unallotted items cannot be marked as In Repair, Scrapped, or Discarded. Please use the <strong>Transfer / Allocate</strong> tab to assign this unit to a department first.
+                    </p>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-foreground mb-1">
                       Current Status
                     </label>
-                    <Select value={statusEdit} onValueChange={setStatusEdit}>
+                    <Select value={statusEdit} onValueChange={setStatusEdit} disabled={!item.branch}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="available">Available / In Stock</SelectItem>
-                        <SelectItem value="in-use">In Use / Deployed</SelectItem>
-                        <SelectItem value="in-repair">In Repair</SelectItem>
-                        <SelectItem value="scrapped">Scrapped / Retired</SelectItem>
-                        <SelectItem value="discarded">Discarded</SelectItem>
+                        {item.branch ? (
+                          <>
+                            <SelectItem value="available">Available / In Stock</SelectItem>
+                            <SelectItem value="in-use">In Use / Deployed</SelectItem>
+                            <SelectItem value="in-repair">In Repair</SelectItem>
+                            <SelectItem value="scrapped">Scrapped / Retired</SelectItem>
+                            <SelectItem value="discarded">Discarded</SelectItem>
+                          </>
+                        ) : (
+                          <SelectItem value="available">Available (Central Buffer)</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -564,8 +579,9 @@ export const ItemDetailsModal: React.FC<Props> = ({
                       Reason for Change / Notes
                     </label>
                     <Input
-                      placeholder="e.g. Sent for routine inspection, damaged screen repaired..."
+                      placeholder={!item.branch ? "Unit is in central buffer..." : "e.g. Sent for routine inspection, damaged screen repaired..."}
                       value={statusRemarks}
+                      disabled={!item.branch}
                       onChange={(e) => setStatusRemarks(e.target.value)}
                     />
                   </div>
@@ -574,7 +590,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                 <div className="flex justify-end pt-2">
                   <Button
                     onClick={handleStatusUpdate}
-                    disabled={statusUpdating || (statusEdit === item.status && !statusRemarks.trim())}
+                    disabled={!item.branch || statusUpdating || (statusEdit === item.status && !statusRemarks.trim())}
                     className="gap-1.5 font-semibold"
                   >
                     {statusUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Status Change"}

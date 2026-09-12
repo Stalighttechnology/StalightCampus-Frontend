@@ -425,6 +425,80 @@ export const fetchInventoryItems = (params: Record<string, string | number> = {}
   );
 };
 
+export interface GroupedInventoryDeployment {
+  department: string;
+  branch_id?: number | null;
+  room: string;
+  status: string;
+  count: number;
+  received_by?: string;
+  recipient_role?: string;
+  handed_over_by?: string;
+  allocated_date?: string;
+  unit_codes: string[];
+  code_range?: string;
+}
+
+export interface GroupedInventoryAsset {
+  group_id: string;
+  item_name: string;
+  clean_name: string;
+  specifications: string;
+  category_id: number;
+  category_name: string;
+  category_prefix: string;
+  location_name: string;
+  location_id: number;
+  vendor_name: string;
+  cost_per_unit: number;
+  total_valuation: number;
+  total_units: number;
+  in_stock_buffer: number;
+  in_use_deployed: number;
+  in_repair: number;
+  scrapped: number;
+  deployments: GroupedInventoryDeployment[];
+  unit_codes: string[];
+  code_range: string;
+  sample_item: InventoryItem;
+  items: Array<{
+    id: number;
+    item_code: string;
+    item_name: string;
+    specifications?: string;
+    status: string;
+    branch_id?: number | null;
+    branch_name?: string | null;
+    location_id?: number;
+    location_details?: { id: number; name: string; prefix: string };
+    category_details?: { id: number; name: string; prefix: string };
+    room_no?: string;
+    quantity_available: number;
+    cost_per_unit: number;
+    total_cost: number;
+    vendor_name?: string;
+    remarks?: string;
+    received_by?: string;
+    recipient_role?: string;
+    handed_over_by?: string;
+    allocated_date?: string;
+    created_at?: string;
+  }>;
+}
+
+// Grouped Assets API
+export const fetchInventoryGroupedAssets = (
+  params: Record<string, string | number> = {}
+): Promise<PaginatedInventoryResponse<GroupedInventoryAsset>> => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, val]) => {
+    if (val !== undefined && val !== null && val !== "") query.append(key, String(val));
+  });
+  return handleJsonResponse<PaginatedInventoryResponse<GroupedInventoryAsset>>(
+    fetchWithTokenRefresh(`${API_BASE}/items/grouped/?${query.toString()}`, { headers: authHeaders() })
+  );
+};
+
 export const fetchInventoryItemsPaginated = (params: Record<string, string | number> = {}): Promise<PaginatedInventoryResponse<InventoryItem>> => {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, val]) => {
@@ -468,6 +542,31 @@ export interface SplitTransferPayload {
   received_by_role?: string;
   remarks?: string;
 }
+
+export interface BulkAllocateBufferPayload {
+  item_name?: string;
+  category_id?: number;
+  item_ids?: number[];
+  quantity: number;
+  location_id?: number;
+  branch_id: number;
+  room_no?: string;
+  unit_rooms?: Record<string, string> | string[];
+  received_by_name?: string;
+  received_by_role?: string;
+  remarks?: string;
+}
+
+export const bulkAllocateBuffer = (
+  data: BulkAllocateBufferPayload
+): Promise<{ message: string; allocated_count: number; allocated_codes: string[]; target_department: string }> =>
+  handleJsonResponse(
+    fetchWithTokenRefresh(`${API_BASE}/items/bulk_allocate_buffer/`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    })
+  );
 
 export const splitTransferInventoryItem = (
   id: number,
@@ -613,6 +712,8 @@ export const stockInProcurementRequest = (
     branch_id?: number | null;
     room_no?: string;
     quantity?: number;
+    stock_remaining_as_buffer?: boolean;
+    cost_per_unit?: number;
     vendor_name?: string;
     invoice_no?: string;
     received_by_id?: number | null;

@@ -3,8 +3,10 @@ import {
   InventoryItem,
   InventoryCategory,
   InventoryLocation,
+  GroupedInventoryAsset,
   fetchInventoryItems,
   fetchInventoryItemsPaginated,
+  fetchInventoryGroupedAssets,
   fetchInventoryCategories,
   fetchInventoryLocations,
   fetchBranches,
@@ -12,6 +14,8 @@ import {
 import { InventoryStatusBadge } from "../common/InventoryStatusBadge";
 import { AddInventoryModal } from "./AddInventoryModal";
 import { ItemDetailsModal } from "./ItemDetailsModal";
+import { GroupedAssetDetailsModal } from "./GroupedAssetDetailsModal";
+import { BulkBufferAllocationModal } from "./BulkBufferAllocationModal";
 import { QRScannerModal } from "../common/QRScannerModal";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
@@ -31,6 +35,19 @@ import {
   ChevronsRight,
   X,
   Eye,
+  ArrowRightLeft,
+  Boxes,
+  Building,
+  Layers,
+  ChevronDown,
+  ChevronUp,
+  LayoutGrid,
+  List,
+  CheckCircle2,
+  Tag,
+  ShieldCheck,
+  Wrench,
+  AlertTriangle,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
@@ -50,7 +67,8 @@ export const InventoryList: React.FC<Props> = ({
   categories: propCategories = [],
   locations: propLocations = [],
 }) => {
-  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [groupedAssets, setGroupedAssets] = useState<GroupedInventoryAsset[]>([]);
+
   const [categories, setCategories] = useState<InventoryCategory[]>(propCategories);
   const [locations, setLocations] = useState<InventoryLocation[]>(propLocations);
   const [branchList, setBranchList] = useState<Array<{ id: number; name: string }>>(branches);
@@ -64,6 +82,7 @@ export const InventoryList: React.FC<Props> = ({
 
   // Filters & Search
   const [search, setSearch] = useState("");
+  const [stockFilterTab, setStockFilterTab] = useState<"all" | "buffer" | "in-use">("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
@@ -73,6 +92,8 @@ export const InventoryList: React.FC<Props> = ({
   const [showAddModal, setShowAddModal] = useState(false);
   const [showScannerModal, setShowScannerModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [selectedGroupForDetails, setSelectedGroupForDetails] = useState<GroupedInventoryAsset | null>(null);
+  const [bulkAllocateGroup, setBulkAllocateGroup] = useState<GroupedInventoryAsset | null>(null);
 
   useEffect(() => {
     if (branches && branches.length > 0) {
@@ -104,10 +125,11 @@ export const InventoryList: React.FC<Props> = ({
       loadItems(1);
     }, 250);
     return () => clearTimeout(handler);
-  }, [search, selectedCategory, selectedLocation, selectedDepartment, selectedStatus]);
+  }, [search, stockFilterTab, selectedCategory, selectedLocation, selectedDepartment, selectedStatus]);
 
   const handleResetFilters = () => {
     setSearch("");
+    setStockFilterTab("all");
     setSelectedCategory("all");
     setSelectedLocation("all");
     setSelectedDepartment("all");
@@ -138,34 +160,32 @@ export const InventoryList: React.FC<Props> = ({
         page_size: pageSize,
       };
       const curSearch = overrideFilters?.search !== undefined ? overrideFilters.search : search;
+      const curStockTab = overrideFilters?.stockFilterTab !== undefined ? overrideFilters.stockFilterTab : stockFilterTab;
       const curCategory = overrideFilters?.category !== undefined ? overrideFilters.category : selectedCategory;
       const curLocation = overrideFilters?.location !== undefined ? overrideFilters.location : selectedLocation;
       const curDepartment = overrideFilters?.branch !== undefined ? overrideFilters.branch : selectedDepartment;
       const curStatus = overrideFilters?.status !== undefined ? overrideFilters.status : selectedStatus;
 
       if (curSearch.trim()) params.search = curSearch.trim();
+      if (curStockTab !== "all") params.stock_type = curStockTab;
       if (curCategory !== "all") params.category = curCategory;
       if (curLocation !== "all") params.location = curLocation;
       if (curDepartment !== "all") params.branch = curDepartment;
       if (curStatus !== "all") params.status = curStatus;
 
-      const res = await fetchInventoryItemsPaginated(params);
+      const res = await fetchInventoryGroupedAssets(params);
       if (res && Array.isArray(res.results)) {
-        setItems(res.results);
+        setGroupedAssets(res.results);
         setTotalCount(res.count ?? res.results.length);
         setTotalPages(res.total_pages ?? (Math.ceil((res.count || res.results.length) / pageSize) || 1));
-      } else if (Array.isArray(res)) {
-        setItems(res);
-        setTotalCount(res.length);
-        setTotalPages(Math.ceil(res.length / pageSize) || 1);
       } else {
-        setItems([]);
+        setGroupedAssets([]);
         setTotalCount(0);
         setTotalPages(1);
       }
     } catch (err: any) {
-      toast.error(err.message || "Failed to load inventory items");
-      setItems([]);
+      toast.error(err.message || "Failed to load inventory assets");
+      setGroupedAssets([]);
     } finally {
       setLoading(false);
     }
@@ -270,7 +290,8 @@ export const InventoryList: React.FC<Props> = ({
     selectedCategory !== "all" ||
     selectedLocation !== "all" ||
     selectedDepartment !== "all" ||
-    selectedStatus !== "all";
+    selectedStatus !== "all" ||
+    stockFilterTab !== "all";
 
   return (
     <div className="w-full text-sm sm:text-base">
@@ -402,6 +423,18 @@ export const InventoryList: React.FC<Props> = ({
                 </SelectContent>
               </Select>
 
+              {/* Stock Allocation Filter */}
+              <Select value={stockFilterTab} onValueChange={(val: any) => setStockFilterTab(val)}>
+                <SelectTrigger className="h-9 w-[185px] text-xs">
+                  <SelectValue placeholder="All Stock" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Stock</SelectItem>
+                  <SelectItem value="buffer">Central Store Buffer Stock</SelectItem>
+                  <SelectItem value="in-use">Assigned to Departments</SelectItem>
+                </SelectContent>
+              </Select>
+
               {isFiltered && (
                 <Button
                   variant="ghost"
@@ -416,7 +449,7 @@ export const InventoryList: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Table Content */}
+        {/* Content Section */}
         <CardContent className="flex-1 overflow-hidden flex flex-col px-3 sm:px-5 pt-0 pb-3">
           {loading ? (
             <div className="py-20 text-center text-muted-foreground">
@@ -424,189 +457,269 @@ export const InventoryList: React.FC<Props> = ({
               Loading inventory assets...
             </div>
           ) : (
-            <>
-              {/* Desktop Table */}
-              <div className="hidden md:block flex-1 overflow-y-auto overflow-x-auto border rounded-xl mb-2 relative shadow-inner">
-                <table className="w-full text-base md:text-sm text-left table-auto border-collapse">
-                  <thead className="sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-bold tracking-wider bg-slate-50/95 dark:bg-slate-900/95 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-border shadow-sm backdrop-blur-md">
-                    <tr>
-                      <th className="py-3.5 px-4 text-left font-bold">Item Code</th>
-                      <th className="py-3.5 px-4 font-bold">Asset Name</th>
-                      <th className="py-3.5 px-4 font-bold">Category</th>
-                      <th className="py-3.5 px-4 font-bold">Department</th>
-                      <th className="py-3.5 px-4 font-bold">Location / Room</th>
-                      {!isFaculty && <th className="py-3.5 px-4 font-bold text-right">Qty & Cost</th>}
-                      <th className="py-3.5 px-4 font-bold text-center">Status</th>
-                      <th className="py-3.5 px-4 text-right font-bold w-28">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/60">
-                    {items.length === 0 ? (
-                      <tr>
-                        <td colSpan={isFaculty ? 7 : 8} className="py-12 text-center text-muted-foreground">
-                          No assets found matching your criteria.
-                        </td>
-                      </tr>
-                    ) : (
-                      items.map((item) => (
-                        <tr
-                          key={item.id}
-                          className="transition-colors duration-200 hover:bg-blue-50/40 dark:hover:bg-accent/70 text-foreground cursor-pointer"
-                          onClick={() => setSelectedItem(item)}
-                        >
-                          {/* Item Code */}
-                          <td className="py-3.5 px-4 align-middle font-medium whitespace-nowrap">
-                            <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-primary/10 text-primary border border-primary/20 inline-block">
-                              {item.item_code}
-                            </span>
-                          </td>
-
-                          {/* Asset Name & Specs */}
-                          <td className="py-3.5 px-4 align-middle">
-                            <div className="break-words font-semibold text-foreground text-sm">
-                              {item.item_name}
-                            </div>
-                            {item.specifications && (
-                              <div className="text-xs text-muted-foreground mt-0.5 truncate max-w-xs" title={item.specifications}>
-                                {item.specifications}
-                              </div>
-                            )}
-                          </td>
-
-                          {/* Category */}
-                          <td className="py-3.5 px-4 align-middle">
-                            <div className="text-xs font-medium text-foreground">
-                              {item.category_details?.name || "--"}
-                            </div>
-                          </td>
-
-                          {/* Department */}
-                          <td className="py-3.5 px-4 align-middle">
-                            <div className="text-xs font-medium text-foreground">
-                              {item.branch_name || "Institutional"}
-                            </div>
-                          </td>
-
-                          {/* Location & Room */}
-                          <td className="py-3.5 px-4 align-middle">
-                            <div className="text-xs font-medium text-foreground">
-                              {item.location_details?.name || "--"}
-                            </div>
-                            {item.room_no && (
-                              <div className="text-[11px] text-muted-foreground">Room: {item.room_no}</div>
-                            )}
-                          </td>
-
-                          {/* Qty & Cost */}
-                          {!isFaculty && (
-                            <td className="py-3.5 px-4 align-middle text-right whitespace-nowrap">
-                              <div className="font-semibold text-sm text-foreground">
-                                ₹{Number(item.total_cost || 0).toLocaleString("en-IN")}
-                              </div>
-                              <div className="text-[11px] text-muted-foreground">
-                                {item.quantity_available} unit(s)
-                              </div>
-                            </td>
-                          )}
-
-                          {/* Status */}
-                          <td className="py-3.5 px-4 align-middle text-center whitespace-nowrap">
-                            <InventoryStatusBadge status={item.status} />
-                          </td>
-
-                          {/* Actions */}
-                          <td className="py-3.5 px-4 text-right whitespace-nowrap align-middle" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center justify-end gap-1.5">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedItem(item)}
-                                className="gap-1 text-xs font-semibold h-8"
-                                title="View Details"
-                              >
-                                <Eye className="w-3.5 h-3.5" /> View
-                              </Button>
-                            </div>
-                          </td>
+            /* GROUPED ASSETS CLEAN TABLE & CARDS VIEW */
+            <div className="flex-1 overflow-hidden flex flex-col mb-2">
+              {groupedAssets.length === 0 ? (
+                <div className="py-16 text-center text-muted-foreground border rounded-xl border-dashed">
+                  <Boxes className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+                  <p className="font-medium">No asset models found matching your criteria.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block flex-1 overflow-y-auto overflow-x-auto border rounded-xl shadow-2xs bg-white dark:bg-card">
+                    <table className="w-full text-base md:text-sm text-left table-auto border-collapse">
+                      <thead className="sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-bold tracking-wider bg-slate-50/95 dark:bg-slate-900/95 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-border shadow-2xs backdrop-blur-md">
+                        <tr>
+                          <th className="py-3.5 px-4 text-left font-bold min-w-[240px]">Asset Model & Specifications</th>
+                          <th className="py-3.5 px-4 font-bold min-w-[200px]">Allocated out of Total</th>
+                          <th className="py-3.5 px-4 font-bold">Category</th>
+                          <th className="py-3.5 px-4 font-bold text-right">Unit & Total Cost</th>
+                          <th className="py-3.5 px-4 font-bold text-center">Status</th>
+                          <th className="py-3.5 px-4 text-right font-bold w-36">Actions</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      </thead>
+                      <tbody className="divide-y divide-border/60">
+                        {groupedAssets.map((group) => {
+                          const firstBufferItem =
+                            group.items.find((i) => !i.branch_id && i.status === "available") || group.items[0];
+                          const allocatedPercent =
+                            group.total_units > 0
+                              ? Math.round((group.in_use_deployed / group.total_units) * 100)
+                              : 0;
 
-              {/* Mobile View */}
-              <div className="flex-1 overflow-y-auto grid grid-cols-1 gap-3 md:hidden mb-2">
-                {items.length === 0 ? (
-                  <div className="py-10 text-center text-muted-foreground bg-card/30 rounded-lg border border-dashed border-border">
-                    No assets found matching your criteria.
+                          return (
+                            <tr
+                              key={group.group_id}
+                              onClick={() => setSelectedGroupForDetails(group)}
+                              className="transition-colors duration-150 text-foreground cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/40"
+                            >
+                              {/* Asset Name & Specs */}
+                              <td className="py-3 px-4 align-top">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
+                                      {group.code_range}
+                                    </span>
+                                  </div>
+                                  <div className="font-bold text-foreground text-sm leading-snug">
+                                    {group.clean_name || group.item_name}
+                                  </div>
+                                  {group.specifications && (
+                                    <p
+                                      className="text-xs text-muted-foreground line-clamp-1 max-w-sm"
+                                      title={group.specifications}
+                                    >
+                                      {group.specifications}
+                                    </p>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* Allocated Out of Total Progress */}
+                              <td className="py-3 px-4 align-top">
+                                <div className="space-y-1.5 min-w-[180px]">
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="font-bold text-foreground">
+                                      {group.in_use_deployed} / {group.total_units} Allocated
+                                    </span>
+                                    <span className="font-semibold text-muted-foreground text-[11px]">
+                                      {allocatedPercent}%
+                                    </span>
+                                  </div>
+
+                                  {/* Progress Bar */}
+                                  <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden border border-border/40">
+                                    <div
+                                      className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300"
+                                      style={{ width: `${allocatedPercent}%` }}
+                                    />
+                                  </div>
+
+                                  <div className="flex items-center gap-2 text-[11px]">
+                                    <span className="font-medium text-blue-700 dark:text-blue-300">
+                                      {group.in_use_deployed} deployed
+                                    </span>
+                                    <span className="text-muted-foreground">•</span>
+                                    <span className="font-medium text-purple-700 dark:text-purple-300">
+                                      {group.in_stock_buffer} in buffer
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Category & Location */}
+                              <td className="py-3 px-4 align-top">
+                                <div className="space-y-1 text-xs">
+                                  <span className="font-semibold px-2 py-0.5 rounded bg-muted text-foreground inline-block">
+                                    {group.category_name}
+                                  </span>
+                                  <div className="text-muted-foreground text-[11px] truncate">
+                                    {group.location_name}
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Unit Price & Total Value */}
+                              <td className="py-3 px-4 align-top text-right">
+                                <div className="space-y-0.5">
+                                  <div className="font-bold text-sm text-foreground">
+                                    ₹{Number(group.cost_per_unit || 0).toLocaleString("en-IN")}
+                                  </div>
+                                  <div className="text-[11px] text-muted-foreground">
+                                    ₹{Number(group.total_valuation || 0).toLocaleString("en-IN")} total
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Status Badge */}
+                              <td className="py-3 px-4 align-top text-center">
+                                <div className="inline-flex flex-col items-center gap-1">
+                                  {group.in_stock_buffer > 0 && (
+                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-200 border border-purple-200 dark:border-purple-800/60 flex items-center gap-1">
+                                      <Package className="w-3 h-3" />
+                                      {group.in_stock_buffer} Buffer
+                                    </span>
+                                  )}
+                                  {group.in_use_deployed > 0 && (
+                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800/60 flex items-center gap-1">
+                                      <Building className="w-3 h-3" />
+                                      {group.in_use_deployed} In Use
+                                    </span>
+                                  )}
+                                  {group.in_repair > 0 && (
+                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800/60 flex items-center gap-1">
+                                      <Wrench className="w-3 h-3" />
+                                      {group.in_repair} In Repair
+                                    </span>
+                                  )}
+                                  {group.scrapped > 0 && (
+                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 border border-rose-200 dark:border-rose-800/60 flex items-center gap-1">
+                                      <AlertTriangle className="w-3 h-3" />
+                                      {group.scrapped} Scrapped
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* Actions */}
+                              <td className="py-3 px-4 align-top text-right" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center justify-end gap-1.5">
+                                  {canCUD && group.in_stock_buffer > 0 && (
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      onClick={() => setBulkAllocateGroup(group)}
+                                      className="h-8 px-2.5 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white shadow-2xs"
+                                      title="Allocate buffer units to department in bulk"
+                                    >
+                                      <ArrowRightLeft className="w-3.5 h-3.5 mr-1" /> Allocate
+                                    </Button>
+                                  )}
+
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSelectedGroupForDetails(group)}
+                                    className="h-8 px-2.5 text-xs font-semibold"
+                                  >
+                                    <Eye className="w-3.5 h-3.5 mr-1" /> View
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
-                ) : (
-                  items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-4 rounded-xl border bg-white dark:bg-card border-gray-200 dark:border-border text-foreground flex flex-col gap-3 shadow-sm"
-                      onClick={() => setSelectedItem(item)}
-                    >
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="space-y-1">
-                          <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 inline-block">
-                            {item.item_code}
-                          </span>
-                          <h3 className="font-semibold text-sm text-foreground mt-1">{item.item_name}</h3>
-                          {item.specifications && (
-                            <p className="text-xs text-muted-foreground line-clamp-2">{item.specifications}</p>
-                          )}
-                        </div>
-                        <InventoryStatusBadge status={item.status} />
-                      </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-xs border-t pt-2">
-                        <div>
-                          <span className="text-muted-foreground">Category:</span>{" "}
-                          <strong className="text-foreground">{item.category_details?.name || "--"}</strong>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Department:</span>{" "}
-                          <strong className="text-foreground">{item.branch_name || "Institutional"}</strong>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Location:</span>{" "}
-                          <span className="text-foreground">{item.location_details?.name || "--"}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Quantity:</span>{" "}
-                          <span className="font-semibold text-foreground">{item.quantity_available}</span>
-                        </div>
-                      </div>
+                  {/* Mobile Cards View */}
+                  <div className="md:hidden space-y-3 overflow-y-auto">
+                    {groupedAssets.map((group) => {
+                      const firstBufferItem =
+                        group.items.find((i) => !i.branch_id && i.status === "available") || group.items[0];
+                      const allocatedPercent =
+                        group.total_units > 0
+                          ? Math.round((group.in_use_deployed / group.total_units) * 100)
+                          : 0;
 
-                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/50" onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedItem(item)}
-                          className="gap-1 text-xs font-semibold h-8 w-full"
+                      return (
+                        <div
+                          key={group.group_id}
+                          onClick={() => setSelectedGroupForDetails(group)}
+                          className="p-4 rounded-xl border bg-white dark:bg-card border-border shadow-2xs space-y-3 cursor-pointer hover:border-purple-300"
                         >
-                          <Eye className="w-3.5 h-3.5" /> View Details
-                        </Button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="space-y-1 flex-1">
+                              <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                                {group.code_range}
+                              </span>
+                              <h4 className="font-bold text-sm text-foreground leading-snug">
+                                {group.clean_name || group.item_name}
+                              </h4>
+                            </div>
+                            <span className="text-xs font-bold text-foreground shrink-0">
+                              ₹{Number(group.cost_per_unit || 0).toLocaleString("en-IN")}
+                            </span>
+                          </div>
+
+                          {/* Allocation Metric */}
+                          <div className="space-y-1.5 p-2.5 rounded-lg bg-muted/40 border border-border/50 text-xs">
+                            <div className="flex items-center justify-between font-semibold">
+                              <span>{group.in_use_deployed} / {group.total_units} Allocated</span>
+                              <span className="text-muted-foreground">{allocatedPercent}%</span>
+                            </div>
+                            <div className="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                              <div
+                                className="h-full bg-blue-600 rounded-full"
+                                style={{ width: `${allocatedPercent}%` }}
+                              />
+                            </div>
+                            <div className="flex items-between justify-between text-[11px] text-muted-foreground pt-0.5">
+                              <span>{group.in_use_deployed} Deployed</span>
+                              <span>{group.in_stock_buffer} Central Buffer</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-end gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+                            {canCUD && group.in_stock_buffer > 0 && (
+                              <Button
+                                size="sm"
+                                onClick={() => setBulkAllocateGroup(group)}
+                                className="h-8 px-3 text-xs bg-purple-600 text-white font-semibold"
+                              >
+                                <ArrowRightLeft className="w-3 h-3 mr-1" /> Allocate ({group.in_stock_buffer})
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedGroupForDetails(group)}
+                              className="h-8 px-3 text-xs font-semibold"
+                            >
+                              <Eye className="w-3 h-3 mr-1" /> View Details
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </CardContent>
 
-        {/* Pagination Bar - only displayed when data is more than 10 */}
+        {/* Pagination Bar */}
         {!loading && (totalCount > pageSize || totalPages > 1) && (
           <div className="px-4 py-3 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground bg-muted/20">
             <div>
               Showing <span className="font-bold text-foreground">{startIndex + 1}</span> to{" "}
               <span className="font-bold text-foreground">
-                {Math.min(startIndex + pageSize, totalCount || items.length)}
+                {Math.min(startIndex + pageSize, totalCount || groupedAssets.length)}
               </span>{" "}
-              of <span className="font-bold text-foreground">{totalCount || items.length}</span> Asset(s)
+              of <span className="font-bold text-foreground">{totalCount || groupedAssets.length}</span> Asset Model(s)
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -684,6 +797,38 @@ export const InventoryList: React.FC<Props> = ({
         locations={locations}
         branches={branchList}
         role={role}
+      />
+
+      {/* Grouped Asset Model & Custody Details Modal */}
+      <GroupedAssetDetailsModal
+        group={selectedGroupForDetails}
+        isOpen={!!selectedGroupForDetails}
+        onClose={() => setSelectedGroupForDetails(null)}
+        onRefresh={loadItems}
+        locations={locations}
+        branches={branchList}
+        onAllocateBuffer={(sampleItem) => {
+          setSelectedGroupForDetails(null);
+          setSelectedItem(sampleItem);
+        }}
+        onViewUnit={(item) => {
+          setSelectedGroupForDetails(null);
+          setSelectedItem(item);
+        }}
+        role={role}
+      />
+
+      {/* Bulk Buffer Allocation Modal (Direct from Inventory Table) */}
+      <BulkBufferAllocationModal
+        group={bulkAllocateGroup}
+        isOpen={!!bulkAllocateGroup}
+        onClose={() => setBulkAllocateGroup(null)}
+        onSuccess={() => {
+          setBulkAllocateGroup(null);
+          loadItems();
+        }}
+        locations={locations}
+        branches={branchList}
       />
 
       {/* Camera QR Scanner */}
