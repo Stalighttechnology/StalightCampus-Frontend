@@ -29,7 +29,6 @@ import {
   AlertTriangle,
   Building2,
   Award,
-  MousePointerClick,
   CheckCircle2,
   Users,
   ChevronDown,
@@ -1175,16 +1174,13 @@ const AdminAttendanceRecords: React.FC = () => {
   return (
     <div
       id="admin-attendance-records-container"
-      className={cn(
-        "min-h-screen space-y-6 p-4 sm:p-6 transition-colors duration-200",
-        theme === "dark" ? "bg-background text-foreground" : "bg-gray-50 text-gray-900"
-      )}
+      className="w-full max-w-none mx-auto space-y-4 sm:space-y-6"
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-4 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Attendance Records</h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b pb-4 dark:border-slate-800">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">Attendance Records</h1>
             <Badge
               variant="outline"
               className={cn(
@@ -1197,21 +1193,21 @@ const AdminAttendanceRecords: React.FC = () => {
               Principal &amp; Admin View
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {selectedBranchObj
               ? `Viewing attendance for ${selectedBranchObj.name}. Choose semester, section, subject, and date range to inspect records.`
               : "Select a branch, batch, semester, section, subject, and date range to view college-wide attendance records."}
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             id="export-excel-btn"
             variant="outline"
             size="sm"
             onClick={handleExportExcel}
             disabled={!students.length}
-            className="flex items-center gap-2 h-9 px-3.5 w-full sm:w-auto font-medium text-emerald-700 dark:text-emerald-400 border-emerald-600/30 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 h-9 px-3.5 font-medium text-emerald-700 dark:text-emerald-400 border-emerald-600/30 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs sm:text-sm"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
             <span>Export Excel</span>
@@ -1222,7 +1218,7 @@ const AdminAttendanceRecords: React.FC = () => {
             size="sm"
             onClick={handleExportPDF}
             disabled={!students.length}
-            className="flex items-center gap-2 h-9 px-3.5 w-full sm:w-auto font-medium text-rose-600 dark:text-rose-400 border-rose-500/30 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 h-9 px-3.5 font-medium text-rose-600 dark:text-rose-400 border-rose-500/30 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs sm:text-sm"
           >
             <FileText className="w-4 h-4 text-rose-500" />
             <span>Export PDF</span>
@@ -1238,19 +1234,21 @@ const AdminAttendanceRecords: React.FC = () => {
           theme === "dark" ? "bg-card border-border" : "bg-white border-gray-200"
         )}
       >
-        <CardHeader className="pb-3.5 pt-4 px-4 sm:px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/50 bg-muted/20">
+        <CardHeader className="pb-3.5 pt-4 px-4 sm:px-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3.5 border-b border-border/50 bg-muted/20">
           <div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <div className="p-2.5 rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20 shadow-xs">
-                <BarChart3 className="w-5 h-5" />
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="p-2 rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20 shadow-xs">
+                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <CardTitle className="text-base sm:text-lg font-bold tracking-tight flex items-center gap-2">
-                  <span>Attendance Intelligence &amp; Overview</span>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <CardTitle className="text-base sm:text-lg font-bold tracking-tight">
+                    Attendance Intelligence &amp; Overview
+                  </CardTitle>
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-[11px] font-semibold px-2 py-0.5 rounded-full",
+                      "text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full",
                       trueCollegeAttendance >= 75
                         ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                         : "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30"
@@ -1258,15 +1256,15 @@ const AdminAttendanceRecords: React.FC = () => {
                   >
                     {trueCollegeAttendance >= 75 ? "🟢 College On Track" : "🟡 Turnout Review Required"}
                   </Badge>
-                </CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                </div>
+                <p className="text-xs text-muted-foreground">
                   Actionable college-wide turn-out benchmarks compared against the university 75% threshold.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
+          <div className="flex items-center gap-2 flex-wrap self-start lg:self-auto">
             {/* View Switcher: Cards vs Chart */}
             <div className="inline-flex rounded-xl border bg-muted/40 p-1 shadow-xs">
               <button
@@ -1276,14 +1274,14 @@ const AdminAttendanceRecords: React.FC = () => {
                   setIsAnalyticsExpanded(true);
                 }}
                 className={cn(
-                  "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
+                  "px-2.5 sm:px-3 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
                   analyticsTab === "cards"
                     ? "bg-primary text-primary-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Layers className="w-3.5 h-3.5" />
-                <span>Performance Cards</span>
+                <span>Cards</span>
               </button>
               <button
                 type="button"
@@ -1292,14 +1290,14 @@ const AdminAttendanceRecords: React.FC = () => {
                   setIsAnalyticsExpanded(true);
                 }}
                 className={cn(
-                  "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
+                  "px-2.5 sm:px-3 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
                   analyticsTab === "chart"
                     ? "bg-primary text-primary-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <BarChart3 className="w-3.5 h-3.5" />
-                <span>Benchmark Chart</span>
+                <span>Chart</span>
               </button>
             </div>
 
@@ -1309,7 +1307,7 @@ const AdminAttendanceRecords: React.FC = () => {
                 type="button"
                 onClick={() => setChartView("branch")}
                 className={cn(
-                  "px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
+                  "px-2 sm:px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1",
                   chartView === "branch"
                     ? "bg-background text-foreground shadow-xs font-bold"
                     : "text-muted-foreground hover:text-foreground"
@@ -1322,7 +1320,7 @@ const AdminAttendanceRecords: React.FC = () => {
                 type="button"
                 onClick={() => setChartView("batch")}
                 className={cn(
-                  "px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
+                  "px-2 sm:px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1",
                   chartView === "batch"
                     ? "bg-background text-foreground shadow-xs font-bold"
                     : "text-muted-foreground hover:text-foreground"
@@ -1335,7 +1333,7 @@ const AdminAttendanceRecords: React.FC = () => {
                 type="button"
                 onClick={() => setChartView("semester")}
                 className={cn(
-                  "px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
+                  "px-2 sm:px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1",
                   chartView === "semester"
                     ? "bg-background text-foreground shadow-xs font-bold"
                     : "text-muted-foreground hover:text-foreground"
@@ -1351,7 +1349,7 @@ const AdminAttendanceRecords: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsAnalyticsExpanded(!isAnalyticsExpanded)}
-              className="h-8 px-2.5 text-xs font-medium flex items-center gap-1 rounded-xl border-border/80"
+              className="h-7 sm:h-8 px-2.5 text-xs font-medium flex items-center gap-1 rounded-xl border-border/80"
               title={isAnalyticsExpanded ? "Collapse Analytics Panel" : "Expand Analytics Panel"}
             >
               {isAnalyticsExpanded ? (
@@ -1362,7 +1360,7 @@ const AdminAttendanceRecords: React.FC = () => {
               ) : (
                 <>
                   <ChevronDown className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-primary font-semibold">Show Analytics</span>
+                  <span className="text-primary font-semibold">Show</span>
                 </>
               )}
             </Button>
@@ -1712,55 +1710,6 @@ const AdminAttendanceRecords: React.FC = () => {
                 </div>
               </div>
             )}
-
-            {/* Interactive Quick Filter Chips */}
-            <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-border/50">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold mr-1">
-                <MousePointerClick className="w-3.5 h-3.5 text-primary" />
-                <span>Quick Filter:</span>
-              </div>
-              {chartData.map((item) => {
-                const isSelected =
-                  chartView === "branch"
-                    ? String(selectedBranch) === String(item.id)
-                    : chartView === "batch"
-                    ? String(selectedBatch) === String(item.id)
-                    : String(selectedSemester) === String(item.id);
-
-                return (
-                  <button
-                    key={`pill-${item.id}`}
-                    type="button"
-                    onClick={() => handleChartClick(item)}
-                    className={cn(
-                      "text-xs px-3 py-1.5 rounded-lg border transition-all flex items-center gap-2 font-medium shadow-none",
-                      isSelected
-                        ? "bg-primary text-primary-foreground border-primary shadow-xs font-semibold ring-2 ring-primary/20"
-                        : "bg-muted/40 hover:bg-muted text-foreground border-border/80 hover:border-primary/40"
-                    )}
-                  >
-                    <span className="font-medium">{item.name}</span>
-                    <span
-                      className={cn(
-                        "text-[10px] px-1.5 py-0.5 rounded-md font-bold",
-                        isSelected
-                          ? "bg-white/20 text-white"
-                          : item.percentage >= 75
-                          ? "text-emerald-700 dark:text-emerald-300 bg-emerald-500/15"
-                          : item.percentage >= 60
-                          ? "text-amber-700 dark:text-amber-300 bg-amber-500/15"
-                          : "text-rose-700 dark:text-rose-300 bg-rose-500/15"
-                      )}
-                    >
-                      {item.percentage}%
-                    </span>
-                    <span className={cn("text-[10px]", isSelected ? "text-white/80" : "text-muted-foreground")}>
-                      ({item.sessions} ses)
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
           </CardContent>
         )}
       </Card>
@@ -2323,42 +2272,42 @@ const AdminAttendanceRecords: React.FC = () => {
 
               {/* Summary KPI Strip */}
               {summaryStats && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                  <div className="p-4 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <Users className="w-5 h-5" />
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5">
+                  <div className="p-3 sm:p-4 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <div>
-                      <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Total Students</div>
-                      <div className="text-lg sm:text-xl font-extrabold text-foreground">{summaryStats.total_students}</div>
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                      <BookOpen className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Conducted Sessions</div>
-                      <div className="text-lg sm:text-xl font-extrabold text-foreground">{summaryStats.total_sessions} <span className="text-xs font-normal text-muted-foreground">sessions</span></div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Total Students</div>
+                      <div className="text-base sm:text-xl font-extrabold text-foreground">{summaryStats.total_students}</div>
                     </div>
                   </div>
-                  <div className="p-4 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                      <TrendingUp className="w-5 h-5" />
+                  <div className="p-3 sm:p-4 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                      <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <div>
-                      <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Class Turnout</div>
-                      <div className="text-lg sm:text-xl font-extrabold text-emerald-600 dark:text-emerald-400">{summaryStats.avg_attendance}%</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Sessions</div>
+                      <div className="text-base sm:text-xl font-extrabold text-foreground">{summaryStats.total_sessions} <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">ses</span></div>
                     </div>
                   </div>
-                  <div className="p-4 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
-                      <UserCheck className="w-5 h-5" />
+                  <div className="p-3 sm:p-4 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <div>
-                      <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Eligible (≥75%)</div>
-                      <div className="text-lg sm:text-xl font-extrabold text-foreground">
-                        {summaryStats.eligible_count} <span className="text-xs font-normal text-muted-foreground">/ {summaryStats.total_students}</span>
+                    <div className="min-w-0">
+                      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Turnout</div>
+                      <div className="text-base sm:text-xl font-extrabold text-emerald-600 dark:text-emerald-400">{summaryStats.avg_attendance}%</div>
+                    </div>
+                  </div>
+                  <div className="p-3 sm:p-4 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                      <UserCheck className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Eligible (≥75%)</div>
+                      <div className="text-base sm:text-xl font-extrabold text-foreground">
+                        {summaryStats.eligible_count} <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">/ {summaryStats.total_students}</span>
                       </div>
                     </div>
                   </div>

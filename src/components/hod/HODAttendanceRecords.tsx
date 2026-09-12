@@ -31,7 +31,6 @@ import {
   Award,
   Users,
   CheckCircle2,
-  MousePointerClick,
   ChevronDown,
   ChevronUp,
   Filter
@@ -1602,69 +1601,6 @@ const HODAttendanceRecords = () => {
                 </div>
               </div>
             )}
-
-            {/* Quick Filter Chips Bar */}
-            <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-border/60">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold mr-1">
-                <MousePointerClick className="w-3.5 h-3.5 text-primary" />
-                <span>Quick Filter:</span>
-              </div>
-              {currentChartData.map((item) => {
-                const isSelected =
-                  chartView === "batch"
-                    ? selectedBatch === String(item.id)
-                    : selectedSemester === String(item.id);
-
-                return (
-                  <button
-                    key={`chip-${item.id}`}
-                    type="button"
-                    onClick={() => {
-                      if (chartView === "batch") {
-                        const next = isSelected ? "all" : String(item.id);
-                        handleBatchChange(next);
-                        toast({
-                          title: isSelected ? "Batch Filter Cleared" : "Batch Filter Applied",
-                          description: isSelected ? "Showing all batches" : `Filtering by ${item.name}`
-                        });
-                      } else {
-                        const next = isSelected ? "" : String(item.id);
-                        handleSemesterChange(next);
-                        toast({
-                          title: isSelected ? "Semester Filter Cleared" : "Semester Filter Applied",
-                          description: isSelected ? "Cleared semester selection" : `Selected ${item.name}`
-                        });
-                      }
-                    }}
-                    className={cn(
-                      "text-xs px-3 py-1.5 rounded-lg border transition-all flex items-center gap-2 shadow-none font-medium",
-                      isSelected
-                        ? "bg-primary text-primary-foreground border-primary shadow-xs font-semibold ring-2 ring-primary/20"
-                        : "bg-muted/40 hover:bg-muted text-foreground border-border/80 hover:border-primary/40"
-                    )}
-                  >
-                    <span className="font-medium">{item.name}</span>
-                    <span
-                      className={cn(
-                        "text-[10px] px-1.5 py-0.5 rounded-md font-bold",
-                        isSelected
-                          ? "bg-white/20 text-white"
-                          : item.attendance >= 75
-                          ? "text-emerald-700 dark:text-emerald-300 bg-emerald-500/15"
-                          : item.attendance >= 50
-                          ? "text-amber-700 dark:text-amber-300 bg-amber-500/15"
-                          : "text-rose-700 dark:text-rose-300 bg-rose-500/15"
-                      )}
-                    >
-                      {item.attendance}%
-                    </span>
-                    <span className={cn("text-[10px]", isSelected ? "text-white/80" : "text-muted-foreground")}>
-                      ({item.sessions} ses)
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
           </CardContent>
         )}
       </Card>
@@ -2300,42 +2236,42 @@ const HODAttendanceRecords = () => {
 
               {/* Summary KPI Strip for the Filtered Class & Date Range */}
               {summaryStats && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <Users className="w-5 h-5" />
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5">
+                  <div className="p-3 sm:p-4 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <div>
-                      <div className="text-[11px] text-muted-foreground font-medium">Total Students</div>
-                      <div className="text-lg sm:text-xl font-bold text-foreground">{summaryStats.total_students}</div>
-                    </div>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                      <BookOpen className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-[11px] text-muted-foreground font-medium">Classes Conducted</div>
-                      <div className="text-lg sm:text-xl font-bold text-foreground">{summaryStats.total_sessions} <span className="text-xs font-normal text-muted-foreground">sessions</span></div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Total Students</div>
+                      <div className="text-base sm:text-xl font-extrabold text-foreground">{summaryStats.total_students}</div>
                     </div>
                   </div>
-                  <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                      <TrendingUp className="w-5 h-5" />
+                  <div className="p-3 sm:p-4 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                      <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <div>
-                      <div className="text-[11px] text-muted-foreground font-medium">Class Turnout</div>
-                      <div className="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-400">{summaryStats.avg_attendance}%</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Sessions</div>
+                      <div className="text-base sm:text-xl font-extrabold text-foreground">{summaryStats.total_sessions} <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">ses</span></div>
                     </div>
                   </div>
-                  <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
-                      <UserCheck className="w-5 h-5" />
+                  <div className="p-3 sm:p-4 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <div>
-                      <div className="text-[11px] text-muted-foreground font-medium">Eligible (≥75%)</div>
-                      <div className="text-lg sm:text-xl font-bold text-foreground">
-                        {summaryStats.eligible_count} <span className="text-xs font-normal text-muted-foreground">/ {summaryStats.total_students}</span>
+                    <div className="min-w-0">
+                      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Turnout</div>
+                      <div className="text-base sm:text-xl font-extrabold text-emerald-600 dark:text-emerald-400">{summaryStats.avg_attendance}%</div>
+                    </div>
+                  </div>
+                  <div className="p-3 sm:p-4 rounded-xl bg-card border border-border/70 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                      <UserCheck className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] sm:text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Eligible (≥75%)</div>
+                      <div className="text-base sm:text-xl font-extrabold text-foreground">
+                        {summaryStats.eligible_count} <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">/ {summaryStats.total_students}</span>
                       </div>
                     </div>
                   </div>
