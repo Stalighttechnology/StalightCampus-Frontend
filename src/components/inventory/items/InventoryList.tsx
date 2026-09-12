@@ -178,6 +178,10 @@ export const InventoryList: React.FC<Props> = ({
         setGroupedAssets(res.results);
         setTotalCount(res.count ?? res.results.length);
         setTotalPages(res.total_pages ?? (Math.ceil((res.count || res.results.length) / pageSize) || 1));
+        setSelectedGroupForDetails((prev) => {
+          if (!prev) return null;
+          return res.results.find((g: GroupedInventoryAsset) => g.group_id === prev.group_id) || prev;
+        });
       } else {
         setGroupedAssets([]);
         setTotalCount(0);
@@ -283,6 +287,7 @@ export const InventoryList: React.FC<Props> = ({
   };
 
   const isFaculty = role === "faculty" || role === "staff";
+  const isHOD = role === "hod";
   const canCUD = role === "inventory_manager" || role === "superadmin";
 
   const isFiltered =
@@ -471,76 +476,46 @@ export const InventoryList: React.FC<Props> = ({
                     <table className="w-full text-base md:text-sm text-left table-auto border-collapse">
                       <thead className="sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-bold tracking-wider bg-slate-50/95 dark:bg-slate-900/95 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-border shadow-2xs backdrop-blur-md">
                         <tr>
-                          <th className="py-3.5 px-4 text-left font-bold min-w-[240px]">Asset Model & Specifications</th>
-                          <th className="py-3.5 px-4 font-bold min-w-[200px]">Allocated out of Total</th>
-                          <th className="py-3.5 px-4 font-bold">Category</th>
-                          <th className="py-3.5 px-4 font-bold text-right">Unit & Total Cost</th>
-                          <th className="py-3.5 px-4 font-bold text-center">Status</th>
+                          <th className="py-3.5 px-4 text-left font-bold min-w-[240px]">Asset Model</th>
+                          <th className="py-3.5 px-4 font-bold min-w-[210px]">Stock Allocation</th>
+                          <th className="py-3.5 px-4 font-bold">Category & Placement</th>
+                          <th className="py-3.5 px-4 font-bold text-left min-w-[160px]">Unit & Total Cost</th>
                           <th className="py-3.5 px-4 text-right font-bold w-36">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/60">
                         {groupedAssets.map((group) => {
-                          const firstBufferItem =
-                            group.items.find((i) => !i.branch_id && i.status === "available") || group.items[0];
-                          const allocatedPercent =
-                            group.total_units > 0
-                              ? Math.round((group.in_use_deployed / group.total_units) * 100)
-                              : 0;
-
                           return (
                             <tr
                               key={group.group_id}
                               onClick={() => setSelectedGroupForDetails(group)}
                               className="transition-colors duration-150 text-foreground cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/40"
                             >
-                              {/* Asset Name & Specs */}
+                              {/* Asset Name (Clean - Code range and specs removed from main row) */}
                               <td className="py-3 px-4 align-top">
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
-                                      {group.code_range}
-                                    </span>
-                                  </div>
-                                  <div className="font-bold text-foreground text-sm leading-snug">
-                                    {group.clean_name || group.item_name}
-                                  </div>
-                                  {group.specifications && (
-                                    <p
-                                      className="text-xs text-muted-foreground line-clamp-1 max-w-sm"
-                                      title={group.specifications}
-                                    >
-                                      {group.specifications}
-                                    </p>
-                                  )}
+                                <div className="font-bold text-foreground text-sm leading-snug">
+                                  {group.clean_name || group.item_name}
                                 </div>
                               </td>
 
-                              {/* Allocated Out of Total Progress */}
+                              {/* Allocated Out of Total (Clean - Only counts) */}
                               <td className="py-3 px-4 align-top">
-                                <div className="space-y-1.5 min-w-[180px]">
-                                  <div className="flex items-center justify-between text-xs">
-                                    <span className="font-bold text-foreground">
-                                      {group.in_use_deployed} / {group.total_units} Allocated
-                                    </span>
-                                    <span className="font-semibold text-muted-foreground text-[11px]">
-                                      {allocatedPercent}%
-                                    </span>
-                                  </div>
-
-                                  {/* Progress Bar */}
-                                  <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden border border-border/40">
-                                    <div
-                                      className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300"
-                                      style={{ width: `${allocatedPercent}%` }}
-                                    />
+                                <div className="space-y-1 min-w-[190px]">
+                                  <div className="text-xs font-bold text-foreground">
+                                    {isHOD
+                                      ? `${group.in_use_deployed} Allocated`
+                                      : `${group.in_use_deployed} / ${group.total_units} Allocated`}
                                   </div>
 
                                   <div className="flex items-center gap-2 text-[11px]">
-                                    <span className="font-medium text-blue-700 dark:text-blue-300">
-                                      {group.in_use_deployed} deployed
-                                    </span>
-                                    <span className="text-muted-foreground">•</span>
+                                    {!isHOD && (
+                                      <>
+                                        <span className="font-medium text-blue-700 dark:text-blue-300">
+                                          {group.in_use_deployed} deployed
+                                        </span>
+                                        <span className="text-muted-foreground">•</span>
+                                      </>
+                                    )}
                                     <span className="font-medium text-purple-700 dark:text-purple-300">
                                       {group.in_stock_buffer} in buffer
                                     </span>
@@ -560,8 +535,8 @@ export const InventoryList: React.FC<Props> = ({
                                 </div>
                               </td>
 
-                              {/* Unit Price & Total Value */}
-                              <td className="py-3 px-4 align-top text-right">
+                              {/* Unit Price & Total Value (Left Aligned) */}
+                              <td className="py-3 px-4 align-top text-left">
                                 <div className="space-y-0.5">
                                   <div className="font-bold text-sm text-foreground">
                                     ₹{Number(group.cost_per_unit || 0).toLocaleString("en-IN")}
@@ -569,36 +544,6 @@ export const InventoryList: React.FC<Props> = ({
                                   <div className="text-[11px] text-muted-foreground">
                                     ₹{Number(group.total_valuation || 0).toLocaleString("en-IN")} total
                                   </div>
-                                </div>
-                              </td>
-
-                              {/* Status Badge */}
-                              <td className="py-3 px-4 align-top text-center">
-                                <div className="inline-flex flex-col items-center gap-1">
-                                  {group.in_stock_buffer > 0 && (
-                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-200 border border-purple-200 dark:border-purple-800/60 flex items-center gap-1">
-                                      <Package className="w-3 h-3" />
-                                      {group.in_stock_buffer} Buffer
-                                    </span>
-                                  )}
-                                  {group.in_use_deployed > 0 && (
-                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800/60 flex items-center gap-1">
-                                      <Building className="w-3 h-3" />
-                                      {group.in_use_deployed} In Use
-                                    </span>
-                                  )}
-                                  {group.in_repair > 0 && (
-                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800/60 flex items-center gap-1">
-                                      <Wrench className="w-3 h-3" />
-                                      {group.in_repair} In Repair
-                                    </span>
-                                  )}
-                                  {group.scrapped > 0 && (
-                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 border border-rose-200 dark:border-rose-800/60 flex items-center gap-1">
-                                      <AlertTriangle className="w-3 h-3" />
-                                      {group.scrapped} Scrapped
-                                    </span>
-                                  )}
                                 </div>
                               </td>
 
@@ -637,13 +582,6 @@ export const InventoryList: React.FC<Props> = ({
                   {/* Mobile Cards View */}
                   <div className="md:hidden space-y-3 overflow-y-auto">
                     {groupedAssets.map((group) => {
-                      const firstBufferItem =
-                        group.items.find((i) => !i.branch_id && i.status === "available") || group.items[0];
-                      const allocatedPercent =
-                        group.total_units > 0
-                          ? Math.round((group.in_use_deployed / group.total_units) * 100)
-                          : 0;
-
                       return (
                         <div
                           key={group.group_id}
@@ -652,9 +590,6 @@ export const InventoryList: React.FC<Props> = ({
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="space-y-1 flex-1">
-                              <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-                                {group.code_range}
-                              </span>
                               <h4 className="font-bold text-sm text-foreground leading-snug">
                                 {group.clean_name || group.item_name}
                               </h4>
@@ -665,20 +600,17 @@ export const InventoryList: React.FC<Props> = ({
                           </div>
 
                           {/* Allocation Metric */}
-                          <div className="space-y-1.5 p-2.5 rounded-lg bg-muted/40 border border-border/50 text-xs">
-                            <div className="flex items-center justify-between font-semibold">
-                              <span>{group.in_use_deployed} / {group.total_units} Allocated</span>
-                              <span className="text-muted-foreground">{allocatedPercent}%</span>
+                          <div className="space-y-1 p-2.5 rounded-lg bg-muted/40 border border-border/50 text-xs">
+                            <div className="font-semibold text-foreground">
+                              {isHOD
+                                ? `${group.in_use_deployed} Allocated`
+                                : `${group.in_use_deployed} / ${group.total_units} Allocated`}
                             </div>
-                            <div className="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                              <div
-                                className="h-full bg-blue-600 rounded-full"
-                                style={{ width: `${allocatedPercent}%` }}
-                              />
-                            </div>
-                            <div className="flex items-between justify-between text-[11px] text-muted-foreground pt-0.5">
-                              <span>{group.in_use_deployed} Deployed</span>
-                              <span>{group.in_stock_buffer} Central Buffer</span>
+                            <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
+                              {!isHOD && (
+                                <span className="font-medium text-blue-700 dark:text-blue-300">{group.in_use_deployed} Deployed</span>
+                              )}
+                              <span className="font-medium text-purple-700 dark:text-purple-300">{group.in_stock_buffer} Central Buffer</span>
                             </div>
                           </div>
 

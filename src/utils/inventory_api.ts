@@ -30,11 +30,22 @@ export interface InventoryLocation {
 }
 
 export interface InventoryHistoryLog {
-  id: number;
-  inventory: number;
+  id: number | string;
+  inventory?: number;
+  item_code?: string;
   action_type: string;
-  old_value: any;
-  new_value: any;
+  action_title?: string;
+  count?: number;
+  unit_codes?: string[];
+  code_range?: string;
+  destination_branch?: string;
+  destination_location?: string;
+  rooms?: string[];
+  rooms_display?: string;
+  received_by?: string;
+  recipient_role?: string;
+  old_value?: any;
+  new_value?: any;
   changed_by?: number;
   changed_by_name: string;
   changed_by_email?: string;
@@ -428,7 +439,10 @@ export const fetchInventoryItems = (params: Record<string, string | number> = {}
 export interface GroupedInventoryDeployment {
   department: string;
   branch_id?: number | null;
+  location_name?: string;
   room: string;
+  rooms?: string[];
+  rooms_display?: string;
   status: string;
   count: number;
   received_by?: string;
@@ -443,13 +457,13 @@ export interface GroupedInventoryAsset {
   group_id: string;
   item_name: string;
   clean_name: string;
-  specifications: string;
+  specifications?: string;
   category_id: number;
   category_name: string;
   category_prefix: string;
   location_name: string;
   location_id: number;
-  vendor_name: string;
+  vendor_name?: string;
   cost_per_unit: number;
   total_valuation: number;
   total_units: number;
@@ -457,11 +471,13 @@ export interface GroupedInventoryAsset {
   in_use_deployed: number;
   in_repair: number;
   scrapped: number;
-  deployments: GroupedInventoryDeployment[];
-  unit_codes: string[];
-  code_range: string;
-  sample_item: InventoryItem;
-  items: Array<{
+  sample_item_id?: number;
+  sample_item?: InventoryItem;
+  deployments?: GroupedInventoryDeployment[];
+  history_logs?: InventoryHistoryLog[];
+  unit_codes?: string[];
+  code_range?: string;
+  items?: Array<{
     id: number;
     item_code: string;
     item_name: string;
@@ -496,6 +512,18 @@ export const fetchInventoryGroupedAssets = (
   });
   return handleJsonResponse<PaginatedInventoryResponse<GroupedInventoryAsset>>(
     fetchWithTokenRefresh(`${API_BASE}/items/grouped/?${query.toString()}`, { headers: authHeaders() })
+  );
+};
+
+export const fetchGroupedAssetDetails = (
+  params: { item_name?: string; category_id?: number; sample_item_id?: number }
+): Promise<GroupedInventoryAsset> => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, val]) => {
+    if (val !== undefined && val !== null && val !== "") query.append(key, String(val));
+  });
+  return handleJsonResponse<GroupedInventoryAsset>(
+    fetchWithTokenRefresh(`${API_BASE}/items/grouped_detail/?${query.toString()}`, { headers: authHeaders() })
   );
 };
 

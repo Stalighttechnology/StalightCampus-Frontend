@@ -65,7 +65,7 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
   if (!group) return null;
 
   // Filter buffer items only
-  const bufferItems = group.items.filter((i) => !i.branch_id && i.status === "available");
+  const bufferItems = (group.items || []).filter((i) => !i.branch_id && i.status === "available");
   const maxAvailable = bufferItems.length > 0 ? bufferItems.length : group.in_stock_buffer;
 
   // Local branches & locations with fallback auto-fetch
