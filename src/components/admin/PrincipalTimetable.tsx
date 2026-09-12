@@ -7,6 +7,7 @@ import { DownloadIcon, EditIcon, User, Calendar, Loader2, CalendarDays, LayoutGr
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
 import { useToast } from "../ui/use-toast";
+import { getBranchesWithHODs } from "../../utils/admin_api";
 import { getSemesters, manageSections, manageSubjects, manageFaculties, manageTimetable, manageProfile, manageFacultyAssignments, getBranches, getHODTimetableBootstrap, getHODTimetableSemesterData } from "../../utils/hod_api";
 import { showWarningAlert, showConfirmAlert } from "../../utils/sweetalert";
 import { useTheme } from "../../context/ThemeContext";
@@ -525,7 +526,7 @@ const EditModal: React.FC<EditModalProps> = ({ classDetails, onSave, onCancel, o
 };
 
 // Main Timetable Component
-const Timetable = () => {
+const PrincipalTimetable = () => {
   const { theme } = useTheme();
   const { toast } = useToast();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
@@ -541,6 +542,7 @@ const Timetable = () => {
   const [state, setState] = useState({
     branchId: "" as string,
     branchName: "" as string,
+    branches: [] as Array<{id: string, name: string}>,
     semesterId: "" as string,
     sectionId: "" as string,
     isEditing: false as boolean,
@@ -674,42 +676,50 @@ const Timetable = () => {
 
 
 
-  // Fetch branch ID and initial data via bootstrap
+  // Fetch branches on mount
   useEffect(() => {
-    const fetchProfileAndSemesters = async () => {
+    const fetchBranchesData = async () => {
       updateState({ loading: true });
       try {
-        const boot = await getHODTimetableBootstrap();
-        if (!boot.success || !boot.data?.profile?.branch_id) {
-          throw new Error(boot.message || "Failed to bootstrap timetable");
+        const res = await getBranchesWithHODs({ page_size: 100 });
+        if (res.success && res.branches) {
+          updateState({
+            branches: res.branches.map(b => ({ id: b.id.toString(), name: b.name }))
+          });
         }
-
-        // Manually map the data instead of using strict typing
-        updateState({
-          branchId: boot.data.profile.branch_id,
-          branchName: boot.data.profile.branch,
-          semesters: boot.data.semesters.map((s: any) => ({
-            id: s.id.toString(),
-            number: s.number
-          })) || [],
-          sections: [],
-          subjects: [],
-          facultyAssignments: []
-        });
       } catch (err) {
-        if (isErrorWithMessage(err)) {
-          updateState({ error: err.message || "Network error" });
-          toast({ variant: "destructive", title: "Error", description: err.message });
-        } else {
-          updateState({ error: "Network error" });
-          toast({ variant: "destructive", title: "Error", description: "Network error" });
-        }
+        console.error(err);
       } finally {
         updateState({ loading: false });
       }
     };
-    fetchProfileAndSemesters();
+    fetchBranchesData();
   }, []);
+
+  // Fetch semesters when branch changes
+  useEffect(() => {
+    const fetchSemesters = async () => {
+      if (!state.branchId) {
+        updateState({ semesters: [], semesterId: "", sections: [], sectionId: "", timetable: [] });
+        return;
+      }
+      updateState({ loading: true });
+      try {
+        const res = await getSemesters(state.branchId);
+        if (res.success && res.data) {
+          updateState({
+            semesters: res.data.map((s: any) => ({ id: s.id.toString(), number: s.number })),
+            semesterId: "", sectionId: "", timetable: []
+          });
+        }
+      } catch(err) {
+        console.error(err);
+      } finally {
+        updateState({ loading: false });
+      }
+    };
+    fetchSemesters();
+  }, [state.branchId]);
 
   // Fetch sections only when semester changes. Subjects and assignments are loaded lazily when editing.
   useEffect(() => {
@@ -1226,16 +1236,7 @@ const Timetable = () => {
               
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
                 <div className="flex flex-row items-center gap-2 w-full sm:w-auto justify-between">
-                  {viewMode !== 'daily' && (
-                    <Button
-                      variant="outline"
-                      className="flex-1 sm:flex-none bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-250 ease-in-out transform hover:scale-[1.02] shadow-sm h-9 px-3.5 rounded-lg flex items-center justify-center gap-1.5 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={handleEdit}
-                      disabled={!state.semesterId || !state.sectionId}>
-                      <EditIcon className="w-3.5 h-3.5" />
-                      <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
-                    </Button>
-                  )}
+                  
 
                   {/* Mobile Export PDF Button */}
                   {state.semesterId && state.sectionId && viewMode === 'weekly' && (
@@ -1306,6 +1307,32 @@ const Timetable = () => {
                 <div className="flex flex-col sm:flex-row md:flex-row gap-2 sm:gap-4 w-full md:flex-1 md:items-center md:flex-nowrap">
                   <div className="w-full sm:w-auto md:flex-none">
                     <Select
+                      value={state.branchId}
+                      onValueChange={(value) => {
+                        const branchName = state.branches.find(b => b.id === value)?.name || "";
+                        updateState({ branchId: value, branchName, semesterId: "", sectionId: "", timetable: [] });
+                      }}
+                      disabled={state.loading || state.branches.length === 0}>
+                      <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border" disabled={state.loading || state.branches.length === 0}>
+                        <SelectValue placeholder={state.branches.length === 0 ? "No branches available" : "Select Branch"} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar">
+                        {state.branches.length === 0 ? (
+                          <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                            No branches available
+                          </div>
+                        ) : (
+                          state.branches.map((branch) =>
+                            <SelectItem key={branch.id} value={branch.id} className="text-foreground">
+                              {branch.name}
+                            </SelectItem>
+                          )
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="w-full sm:w-auto md:flex-none">
+                    <Select
                       open={isSemesterOpen}
                       onOpenChange={setIsSemesterOpen}
                       value={state.semesterId}
@@ -1371,13 +1398,7 @@ const Timetable = () => {
                   </div>
                 </div>
                 <div className="text-sm text-muted-foreground mt-2 md:mt-0 md:ml-4 md:whitespace-nowrap md:flex-none">
-                  {state.semesterId && state.sectionId ?
-                    (() => {
-                      const semObj = state.semesters.find((s) => s.id === state.semesterId);
-                      const semName = semObj ? getSemesterName(semObj.number) : '';
-                      return `${semName} - Section ${state.sections.find((s) => s.id === state.sectionId)?.name}`;
-                    })() :
-                    `Select ${translateTerminology("Semester")} and Section`}
+                  {state.branchId && state.semesterId && state.sectionId ? `${state.branchName} - ${getSemesterName(state.semesters.find(s => s.id === state.semesterId)?.number || 0)} - Section ${state.sections.find(s => s.id === state.sectionId)?.name}` : `Select Branch, ${translateTerminology("Semester")} and Section`}
                 </div>
               </div>
             </div>
@@ -1668,4 +1689,4 @@ const Timetable = () => {
 
 };
 
-export default Timetable;
+export default PrincipalTimetable;

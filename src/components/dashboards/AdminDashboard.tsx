@@ -32,6 +32,7 @@ import CampusLocationManager from "../dean/CampusLocationManager";
 import CampusMonitoring from "../admin/CampusMonitoring";
 import AlumniDirectory from "../common/AlumniDirectory";
 import PrincipalTimetableSettings from "../admin/PrincipalTimetableSettings";
+import PrincipalTimetable from "../admin/PrincipalTimetable";
 import DeanFinance from "../dean/DeanFinance";
 import Reports from "../FeesManager/Reports";
 import ComplianceReports from "../admin/ComplianceReports";
@@ -261,6 +262,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <PrincipalTimetableSettings />
+          </div>);
+
+      case "timetable":
+        return (
+          <div>
+            <PrincipalTimetable />
           </div>);
 
       case "schedule-meeting":
