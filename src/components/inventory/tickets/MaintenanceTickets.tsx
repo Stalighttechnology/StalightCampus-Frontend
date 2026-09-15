@@ -71,13 +71,20 @@ export const MaintenanceTickets: React.FC<Props> = ({ role = "admin", branches =
 
       const res = await fetchInventoryTicketsPaginated(params);
       if (res && Array.isArray(res.results)) {
-        setTickets(res.results);
-        setTotalCount(res.count ?? res.results.length);
-        setTotalPages(res.total_pages ?? (Math.ceil((res.count || res.results.length) / pageSize) || 1));
+        // Deduplicate tickets by ID
+        const uniqueTickets = Array.from(
+          new Map(res.results.map((t) => [t.id, t])).values()
+        );
+        setTickets(uniqueTickets);
+        setTotalCount(res.count ?? uniqueTickets.length);
+        setTotalPages(res.total_pages ?? (Math.ceil((res.count || uniqueTickets.length) / pageSize) || 1));
       } else if (Array.isArray(res)) {
-        setTickets(res);
-        setTotalCount(res.length);
-        setTotalPages(Math.ceil(res.length / pageSize) || 1);
+        const uniqueTickets = Array.from(
+          new Map((res as InventoryTicket[]).map((t) => [t.id, t])).values()
+        );
+        setTickets(uniqueTickets);
+        setTotalCount(uniqueTickets.length);
+        setTotalPages(Math.ceil(uniqueTickets.length / pageSize) || 1);
       } else {
         setTickets([]);
         setTotalCount(0);
@@ -288,12 +295,12 @@ export const MaintenanceTickets: React.FC<Props> = ({ role = "admin", branches =
 
                           {/* Asset / Equipment */}
                           <td className="py-3.5 px-4 align-middle">
-                            <div className="break-words font-semibold text-foreground text-sm">
-                              {ticket.item_code || "General Asset"}
+                            <div className="break-words font-semibold text-foreground text-sm max-w-[240px]" title={ticket.item_name || ticket.item_code || "General Asset"}>
+                              {ticket.item_name || ticket.item_code || "General Asset"}
                             </div>
-                            {ticket.inventory_item && (
+                            {ticket.item_code && ticket.item_name && (
                               <div className="text-xs text-muted-foreground mt-0.5 font-mono">
-                                Item #{ticket.inventory_item}
+                                {ticket.item_code}
                               </div>
                             )}
                           </td>
@@ -385,8 +392,13 @@ export const MaintenanceTickets: React.FC<Props> = ({ role = "admin", branches =
                             {getStatusChip(ticket.status)}
                           </div>
                           <h3 className="font-semibold text-sm text-foreground mt-1">
-                            {ticket.item_code || "General Equipment"}
+                            {ticket.item_name || ticket.item_code || "General Equipment"}
                           </h3>
+                          {ticket.item_code && ticket.item_name && (
+                            <div className="text-[11px] text-muted-foreground font-mono">
+                              {ticket.item_code}
+                            </div>
+                          )}
                           <p className="text-xs text-muted-foreground line-clamp-2">
                             {ticket.issue_description}
                           </p>
