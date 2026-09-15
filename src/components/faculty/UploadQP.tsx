@@ -62,6 +62,27 @@ interface SubPart {
   maxMarks?: number;
 }
 
+const getOrgLogoUrl = (): string => {
+  let logo = '';
+  try {
+    const u = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
+    logo = (
+      u.org_logo ||
+      u.organization?.logo_url ||
+      u.organization?.logo ||
+      localStorage.getItem("org_logo") ||
+      sessionStorage.getItem("org_logo") ||
+      ""
+    );
+  } catch {
+    logo = localStorage.getItem("org_logo") || sessionStorage.getItem("org_logo") || "";
+  }
+  if (!logo) {
+    logo = "/logo.jpeg";
+  }
+  return logo;
+};
+
 const formatCO = (co: string | string[] | undefined | null): string => {
   if (!co) return '';
   let items: string[] = [];
@@ -1600,13 +1621,30 @@ const UploadQP = () => {
                     ) : (
                       <div className={`min-w-[650px] max-w-4xl mx-auto ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-slate-900 border-slate-300'} border rounded-xl shadow-lg p-6 sm:p-8 space-y-4`}>
                         {/* Header */}
-                        <div className={`text-center space-y-1 pb-2 border-b-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
-                          <h2 className="text-xl font-bold uppercase tracking-wide">
-                            {localStorage.getItem('org_name') || sessionStorage.getItem('org_name') || 'STALIGHT INSTITUTE'}
-                          </h2>
-                          <div className="text-base font-bold text-primary">
-                            {selected.testType ? selected.testType.replace('_', ' ') : 'Internal Assessment'} {selected.setNumber ? `- ${selected.setNumber}` : ''}
+                        <div className={`flex items-center justify-between pb-3 border-b-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                          <div className="w-20 sm:w-24 flex-shrink-0 flex items-center justify-start">
+                            {getOrgLogoUrl() ? (
+                              <img
+                                src={getOrgLogoUrl()}
+                                alt="Logo"
+                                className="max-h-16 max-w-[80px] sm:max-w-[90px] object-contain rounded"
+                                onError={(e) => {
+                                  if ((e.currentTarget as HTMLImageElement).src !== window.location.origin + '/logo.jpeg') {
+                                    (e.currentTarget as HTMLImageElement).src = '/logo.jpeg';
+                                  }
+                                }}
+                              />
+                            ) : null}
                           </div>
+                          <div className="flex-1 text-center space-y-1">
+                            <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wide">
+                              {localStorage.getItem('org_name') || sessionStorage.getItem('org_name') || 'STALIGHT INSTITUTE'}
+                            </h2>
+                            <div className="text-sm sm:text-base font-bold text-primary">
+                              {selected.testType ? selected.testType.replace('_', ' ') : 'Internal Assessment'} {selected.setNumber ? `- ${selected.setNumber}` : ''}
+                            </div>
+                          </div>
+                          <div className="w-20 sm:w-24 flex-shrink-0" />
                         </div>
 
                         {/* Master Info Table */}
@@ -1715,8 +1753,8 @@ const UploadQP = () => {
 
                                       {/* Question Row */}
                                       <tr className={`border-b ${theme === 'dark' ? 'border-border hover:bg-muted/30' : 'border-slate-900 hover:bg-slate-50/50'} transition-colors`}>
-                                        <td className={`p-2.5 text-center font-bold align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
-                                          Q.{q.number} )
+                                        <td className={`p-2.5 text-center font-bold align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'} whitespace-nowrap`}>
+                                          Q.{q.number}
                                         </td>
                                         <td className={`p-2.5 text-left align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
                                           <div

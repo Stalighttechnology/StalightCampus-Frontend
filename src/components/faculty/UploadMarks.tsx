@@ -1,6 +1,7 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
-import { useState, useEffect, Fragment } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import { Pencil, Plus, Trash2, Layers, Settings2, FileDown, RotateCcw, Save, Check } from "lucide-react";
+import { format } from "date-fns";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { sanitizeHtml } from "../../utils/sanitize";
@@ -61,7 +62,68 @@ interface Question {
   maxMarks: string;
   co: string; // COs box
   bloomsLevel: string; // Blooms Cognitive Level
+  partName?: string;
+  isOr?: boolean;
 }
+
+const formatCO = (co: string | string[] | undefined | null): string => {
+  if (!co) return '';
+  let items: string[] = [];
+  if (Array.isArray(co)) {
+    items = co;
+  } else if (typeof co === 'string') {
+    if (/^CO\d+(?:,\d+)*$/i.test(co.trim())) {
+      return co.trim().toUpperCase();
+    }
+    items = co.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  if (items.length === 0) return '';
+  if (items.length === 1) return items[0];
+  
+  const numbers: number[] = [];
+  let allCO = true;
+  for (const item of items) {
+    const match = item.match(/^(?:CO)?(\d+)$/i);
+    if (match) {
+      numbers.push(parseInt(match[1], 10));
+    } else {
+      allCO = false;
+      break;
+    }
+  }
+  if (allCO && numbers.length > 0) {
+    const sortedUnique = Array.from(new Set(numbers)).sort((a, b) => a - b);
+    return `CO${sortedUnique.join(',')}`;
+  }
+  return items.join(', ');
+};
+
+const formatBloomsList = (blooms: string | string[] | undefined | null): string[] => {
+  if (!blooms) return [];
+  if (Array.isArray(blooms)) return blooms;
+  return blooms.split(',').map(s => s.trim()).filter(Boolean);
+};
+
+const getOrgLogoUrl = (): string => {
+  let logo = '';
+  try {
+    const u = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
+    logo = (
+      u.org_logo ||
+      u.organization?.logo_url ||
+      u.organization?.logo ||
+      localStorage.getItem("org_logo") ||
+      sessionStorage.getItem("org_logo") ||
+      ""
+    );
+  } catch {
+    logo = localStorage.getItem("org_logo") || sessionStorage.getItem("org_logo") || "";
+  }
+  if (!logo) {
+    logo = "/logo.jpeg";
+  }
+  return logo;
+};
 
 const normalizeMarks = (value: string): string => {
   const num = parseInt(value, 10);
@@ -265,8 +327,6 @@ const UploadMarks = () => {
     { id: "4c", number: "4c", content: "Question 4c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" }]
   );
   const [showQuestionForm, setShowQuestionForm] = useState(false);
-  const [totalMarks, setTotalMarks] = useState(0);
-
 
   // New state for QP ID
   const [qpId, setQpId] = useState<number | null>(null);
@@ -283,6 +343,7 @@ const UploadMarks = () => {
   const handleRedirectToUploadQP = () => {
     navigate("/faculty/upload-qp", {
       state: {
+        batch_id: selected.batch_id,
         subject_id: selected.subject_id,
         branch_id: selected.branch_id,
         semester_id: selected.semester_id,
@@ -338,14 +399,6 @@ const UploadMarks = () => {
     setDropdownData((prev) => ({ ...prev, subject: subjects }));
   }, [assignments]);
 
-  // Calculate total marks when questions change
-  useEffect(() => {
-    const total = questions.reduce((sum, q) => {
-      const marks = parseInt(q.maxMarks) || 0;
-      return sum + marks;
-    }, 0);
-    setTotalMarks(total);
-  }, [questions]);
 
   // Load existing QP when all required dropdowns are selected
   useEffect(() => {
@@ -382,25 +435,37 @@ const UploadMarks = () => {
           const full = detailRes.data[0];
           const loadedQuestions: Question[] = [];
           (full.questions || []).forEach((q: any) => {
+            const qnum = q.question_number || q.number || '';
+            const rawPartName = q.part_name || 'PART-A';
+            const isOr = Boolean(q.is_or);
+            const co = q.co || '';
+            const bloomsLevel = q.blooms_level || q.bloomsLevel || '';
+
             if (q.subparts && q.subparts.length > 0) {
               q.subparts.forEach((sub: any) => {
+                const subLabel = sub.subpart_label || sub.subpart || '';
+                const fullNum = subLabel && !qnum.endsWith(subLabel) ? `${qnum}${subLabel}` : qnum;
                 loadedQuestions.push({
-                  id: `${q.question_number}${sub.subpart_label}`,
-                  number: `${q.question_number}${sub.subpart_label}`,
+                  id: `${fullNum}_${Math.random().toString(36).substr(2, 9)}`,
+                  number: fullNum,
                   content: sub.content || '',
-                  maxMarks: String(sub.max_marks || 0),
-                  co: q.co || 'UNMAPPED',
-                  bloomsLevel: q.blooms_level || ''
+                  maxMarks: String(sub.max_marks ?? sub.maxMarks ?? 0),
+                  co: co,
+                  bloomsLevel: bloomsLevel,
+                  partName: rawPartName,
+                  isOr: isOr
                 });
               });
             } else {
               loadedQuestions.push({
-                id: `${q.question_number}`,
-                number: `${q.question_number}`,
+                id: `${qnum}_${Math.random().toString(36).substr(2, 9)}`,
+                number: qnum,
                 content: q.content || '',
-                maxMarks: String(q.max_marks || 0),
-                co: q.co || 'UNMAPPED',
-                bloomsLevel: q.blooms_level || ''
+                maxMarks: String(q.max_marks ?? q.maxMarks ?? 0),
+                co: co,
+                bloomsLevel: bloomsLevel,
+                partName: rawPartName,
+                isOr: isOr
               });
             }
           });
@@ -542,11 +607,10 @@ const UploadMarks = () => {
         section_id: selected.section_id?.toString(),
         subject_id: selected.subject_id?.toString(),
         test_type: selected.testType,
-        detail: true,
-        approved_only: true
+        detail: true
       });
       if (qpResponse.success && qpResponse.data) {
-        const existingQp = qpResponse.data.find((q: any) => {
+        let existingQp = qpResponse.data.find((q: any) => {
           const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
           return branchId === selected.branch_id &&
             q.subject === selected.subject_id &&
@@ -557,28 +621,54 @@ const UploadMarks = () => {
           setQpId(existingQp.id);
           setExistingQpSummary(existingQp);
 
-          if (existingQp.questions) {
+          let qList = existingQp.questions;
+          if (!qList || qList.length === 0) {
+            try {
+              const dRes = await getQuestionPaperDetail(existingQp.id);
+              if (dRes && dRes.success && dRes.data && Array.isArray(dRes.data) && dRes.data.length > 0) {
+                existingQp = { ...existingQp, ...dRes.data[0] };
+                setExistingQpSummary(existingQp);
+                qList = dRes.data[0].questions;
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          }
+
+          if (qList && qList.length > 0) {
             const loadedQuestions: Question[] = [];
-            (existingQp.questions || []).forEach((q: any) => {
+            qList.forEach((q: any) => {
+              const qnum = q.question_number || q.number || '';
+              const rawPartName = q.part_name || 'PART-A';
+              const isOr = Boolean(q.is_or);
+              const co = q.co || '';
+              const bloomsLevel = q.blooms_level || q.bloomsLevel || '';
+
               if (q.subparts && q.subparts.length > 0) {
                 q.subparts.forEach((sub: any) => {
+                  const subLabel = sub.subpart_label || sub.subpart || '';
+                  const fullNum = subLabel && !qnum.endsWith(subLabel) ? `${qnum}${subLabel}` : qnum;
                   loadedQuestions.push({
-                    id: `${q.question_number}${sub.subpart_label || sub.subpart}`,
-                    number: `${q.question_number}${sub.subpart_label || sub.subpart}`,
+                    id: `${fullNum}_${Math.random().toString(36).substr(2, 9)}`,
+                    number: fullNum,
                     content: sub.content || '',
-                    maxMarks: String(sub.max_marks || 0),
-                    co: q.co || 'UNMAPPED',
-                    bloomsLevel: q.blooms_level || ''
+                    maxMarks: String(sub.max_marks ?? sub.maxMarks ?? 0),
+                    co: co,
+                    bloomsLevel: bloomsLevel,
+                    partName: rawPartName,
+                    isOr: isOr
                   });
                 });
               } else {
                 loadedQuestions.push({
-                  id: `${q.question_number}`,
-                  number: `${q.question_number}`,
+                  id: `${qnum}_${Math.random().toString(36).substr(2, 9)}`,
+                  number: qnum,
                   content: q.content || '',
-                  maxMarks: String(q.max_marks || 0),
-                  co: q.co || 'UNMAPPED',
-                  bloomsLevel: q.blooms_level || ''
+                  maxMarks: String(q.max_marks ?? q.maxMarks ?? 0),
+                  co: co,
+                  bloomsLevel: bloomsLevel,
+                  partName: rawPartName,
+                  isOr: isOr
                 });
               }
             });
@@ -594,7 +684,7 @@ const UploadMarks = () => {
         }
       }
     } catch (error) {
-
+      console.error(error);
     }
   };
 
@@ -874,6 +964,40 @@ const UploadMarks = () => {
     });
     return grouped;
   };
+
+  const groupQuestionsByPart = (): { name: string; questions: Question[] }[] => {
+    const partsMap = new Map<string, Question[]>();
+    questions.forEach((q) => {
+      const p = q.partName || 'PART-A';
+      if (!partsMap.has(p)) {
+        partsMap.set(p, []);
+      }
+      partsMap.get(p)!.push(q);
+    });
+    return Array.from(partsMap.entries()).map(([name, qs]) => ({
+      name,
+      questions: qs,
+    }));
+  };
+
+  const calculateTotalMarks = () => {
+    let finalTotal = 0;
+    let prevMarks = 0;
+
+    questions.forEach((q, i) => {
+      const marks = Number.parseInt(q.maxMarks || '0', 10) || 0;
+      if (q.isOr && i > 0) {
+        finalTotal = finalTotal - prevMarks + Math.max(prevMarks, marks);
+        prevMarks = Math.max(prevMarks, marks);
+      } else {
+        finalTotal += marks;
+        prevMarks = marks;
+      }
+    });
+
+    return finalTotal;
+  };
+  const totalMarks = calculateTotalMarks();
   const handleSelectChange = async (field: string, value: string | number) => {
 
     setErrorMessage("");
@@ -1510,35 +1634,31 @@ const UploadMarks = () => {
             }
           </TabsContent>
 
-          {/* Question Format tab content removed */}
-
           {/* Question Paper Tab - For viewing the saved format */}
-          <TabsContent value="questionPaper">
-            {qpReady && areAllDropdownsSelected() ?
-              <div>
-                <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white border border-gray-300'}`}>
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <div className="flex items-center justify-between w-full sm:w-auto">
-                      <h3 className="text-lg font-semibold">Question Paper Format</h3>
-                      {/* Mobile Download PDF Icon Button */}
-                      <Button
-                        onClick={downloadQuestionPaperPDF}
-                        disabled={downloadingPDF}
-                        size="icon"
-                        variant="outline"
-                        className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
-                      >
-                        {downloadingPDF ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <FileDown className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
+          <TabsContent value="questionPaper" className="w-full max-w-full overflow-hidden mt-0">
+            {qpReady && areAllDropdownsSelected() ? (
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
+                  <div className="flex items-center justify-between w-full sm:w-auto">
+                    <h3 className="font-semibold text-lg">Question Paper Preview</h3>
+                    {/* Mobile Download PDF Icon Button */}
                     <Button
                       onClick={downloadQuestionPaperPDF}
                       disabled={downloadingPDF}
-                      className="hidden sm:flex w-full sm:w-auto bg-primary text-white hover:bg-primary/90 items-center justify-center gap-2">
+                      size="icon"
+                      variant="outline"
+                      className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                    >
+                      {downloadingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    {/* Desktop Download PDF Button */}
+                    <Button
+                      onClick={downloadQuestionPaperPDF}
+                      disabled={downloadingPDF}
+                      className="hidden sm:flex w-full sm:w-auto bg-primary text-white hover:bg-primary/90 transition-all duration-200 items-center justify-center gap-2"
+                    >
                       {downloadingPDF ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
@@ -1547,167 +1667,274 @@ const UploadMarks = () => {
                       {downloadingPDF ? "Downloading..." : "Download PDF"}
                     </Button>
                   </div>
+                </div>
 
-                  {/* Status panel showing approval status and history */}
-                  {existingQpSummary &&
-                    <div className={`mb-6 p-4 rounded-md border ${existingQpSummary.status === 'approved' ?
-                      theme === 'dark' ?
-                        'bg-green-500/10 text-green-300 border-green-500/30' :
-                        'bg-green-50 text-green-800 border-green-200' :
-                      theme === 'dark' ?
-                        'bg-yellow-500/10 text-yellow-300 border-yellow-500/30' :
-                        'bg-yellow-50 text-yellow-800 border-yellow-200'}`
-                    }>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold">Status:</span>
-                          <span className="capitalize font-medium">
-                            {existingQpSummary.status || 'Pending'}
-                          </span>
-                        </div>
-                        {existingQpSummary.last_action &&
-                          <>
+                {/* Status panel showing approval status and history */}
+                {existingQpSummary && (
+                  <div className={`p-4 rounded-lg border ${existingQpSummary.status === 'approved' ?
+                    theme === 'dark' ?
+                      'bg-green-500/10 text-green-300 border-green-500/30' :
+                      'bg-green-50 text-green-800 border-green-200' :
+                    theme === 'dark' ?
+                      'bg-yellow-500/10 text-yellow-300 border-yellow-500/30' :
+                      'bg-yellow-50 text-yellow-800 border-yellow-200'}`
+                  }>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold">Status:</span>
+                        <span className="capitalize font-medium">
+                          {existingQpSummary.status || 'Pending'}
+                        </span>
+                      </div>
+                      {existingQpSummary.last_action && (
+                        <>
+                          <div className="flex items-center justify-between text-sm">
+                            <span>Last Action:</span>
+                            <span className="capitalize">
+                              {existingQpSummary.last_action.action}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span>By:</span>
+                            <span>
+                              {existingQpSummary.last_action.actor} ({existingQpSummary.last_action.role})
+                            </span>
+                          </div>
+                          {existingQpSummary.last_action.timestamp && (
                             <div className="flex items-center justify-between text-sm">
-                              <span>Last Action:</span>
-                              <span className="capitalize">
-                                {existingQpSummary.last_action.action}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                              <span>By:</span>
+                              <span>Date:</span>
                               <span>
-                                {existingQpSummary.last_action.actor} ({existingQpSummary.last_action.role})
+                                {new Date(existingQpSummary.last_action.timestamp).toLocaleString()}
                               </span>
                             </div>
-                            {existingQpSummary.last_action.timestamp &&
-                              <div className="flex items-center justify-between text-sm">
-                                <span>Date:</span>
-                                <span>
-                                  {new Date(existingQpSummary.last_action.timestamp).toLocaleString()}
-                                </span>
-                              </div>
-                            }
-                            {existingQpSummary.last_action.comment &&
-                              <div className="text-sm pt-2 border-t border-current border-opacity-30">
-                                <span className="block font-medium mb-1">Comment:</span>
-                                <span className="block italic">{existingQpSummary.last_action.comment}</span>
-                              </div>
-                            }
-                          </>
-                        }
-                        {existingQpSummary.status !== 'approved' &&
-                          <div className="pt-2 border-t border-current border-opacity-30 text-sm">
-                            Once approved, you can submit marks.
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  }
-
-                  <div className={`border-0 sm:border rounded-none sm:rounded-lg ${theme === 'dark' ? 'bg-transparent sm:bg-gray-800 border-border' : 'bg-transparent sm:bg-gray-50 border-gray-200'}`}>
-                    <div className="space-y-3 p-0 sm:p-4">
-                      {Object.keys(groupQuestionsByMain()).map((mainQ) => {
-                        const grouped = groupQuestionsByMain();
-                        return (
-                          <div key={mainQ} className="space-y-3">
-                            {grouped[mainQ].map((s, sIndex) => {
-                              const key = `${mainQ}-${sIndex}`;
-                              const isExpanded = !!expanded[key];
-                              const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : s.content || '';
-                              return (
-                                <div key={s.id} className={`${getQuestionCardClassName()} shadow-sm hover:shadow-md transition-all duration-200`}>
-                                  {/* Mobile View Layout */}
-                                  <div className="block sm:hidden space-y-3">
-                                    <div className="flex items-center justify-between border-b pb-2 border-border/50">
-                                      <div className="flex items-center gap-2">
-                                        <div className={`flex-shrink-0 w-8 h-8 rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center font-medium text-xs`}>
-                                          {s.number}
-                                        </div>
-                                      </div>
-                                      <Badge className={`font-semibold text-xs ${getBadgeClassName()}`}>
-                                        {s.maxMarks}m
-                                      </Badge>
-                                    </div>
-                                    <div
-                                      className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} text-left whitespace-pre-line break-words`}
-                                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? (s.content || '') : (shortContent || '')) }}
-                                    />
-                                    {(s.content || '').length > 160 && (
-                                      <div className="pt-1 text-left">
-                                        <button
-                                          onClick={() => toggleExpanded(key)}
-                                          className={getButtonClassName()}>
-                                          {isExpanded ? 'Show less' : 'Show more'}
-                                        </button>
-                                      </div>
-                                    )}
-                                    <div className="flex flex-wrap gap-1.5 pt-1">
-                                      <Badge className={getBadgeClassName()}>CO: {s.co}</Badge>
-                                      <Badge className={getBadgeClassName()}>{s.bloomsLevel}</Badge>
-                                    </div>
-                                  </div>
-
-                                  {/* Desktop View Layout */}
-                                  <div className="hidden sm:flex items-start gap-3">
-                                    <div className={`flex-shrink-0 w-10 h-10 rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center font-medium text-sm`}>
-                                      {s.number}
-                                    </div>
-                                    <div className="flex-1 pt-2">
-                                      <div className="flex justify-between items-start gap-4">
-                                        <div
-                                          className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}
-                                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? (s.content || '') : (shortContent || '')) }}
-                                        />
-                                        <div className="ml-2 flex-shrink-0">
-                                          <Badge className={`font-semibold text-sm ${getBadgeClassName()}`}>{s.maxMarks}m</Badge>
-                                        </div>
-                                      </div>
-                                      <div className="flex flex-wrap items-center justify-start gap-2 mt-2 w-full text-left">
-                                        <Badge className={getBadgeClassName()}>CO: {s.co}</Badge>
-                                        <Badge className={getBadgeClassName()}>{s.bloomsLevel}</Badge>
-                                        {(s.content || '').length > 160 &&
-                                          <button
-                                            onClick={() => toggleExpanded(key)}
-                                            className={getButtonClassName()}>
-                                            {isExpanded ? 'Show less' : 'Show more'}
-                                          </button>
-                                        }
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        );
-                      })}
-                      <div className={`font-semibold pt-2 border-t ${theme === 'dark' ? 'border-gray-700 text-foreground' : 'border-gray-200 text-gray-900'}`}>
-                        Total Marks: {totalMarks}
-                      </div>
+                          )}
+                          {existingQpSummary.last_action.comment && (
+                            <div className="text-sm pt-2 border-t border-current border-opacity-30">
+                              <span className="block font-medium mb-1">Comment:</span>
+                              <span className="block italic">{existingQpSummary.last_action.comment}</span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {existingQpSummary.status !== 'approved' && (
+                        <div className="pt-2 border-t border-current border-opacity-30 text-sm">
+                          Once approved by COE, you can proceed to submit marks.
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="flex justify-end gap-2 mt-6">
-                    {/* Edit removed — QP editing happens on the Upload QP page */}
-                    <Button
-                      onClick={() => setTabValue("manual")}
-                      disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
-                      className={`${existingQpSummary?.status === 'approved' ? 'bg-primary text-white hover:bg-primary/90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
-                      title={existingQpSummary?.status !== 'approved' ? 'Question paper must be approved by COE before proceeding to marks entry' : ''}>
+                )}
 
-                      Proceed to Marks Entry
-                    </Button>
+                {/* Question Paper Preview Sheet */}
+                <div className="overflow-x-auto p-1 custom-scrollbar">
+                  <div className={`min-w-[650px] max-w-4xl mx-auto ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-slate-900 border-slate-300'} border rounded-xl shadow-lg p-6 sm:p-8 space-y-4`}>
+                    {/* Header */}
+                    <div className={`flex items-center justify-between pb-3 border-b-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                      <div className="w-20 sm:w-24 flex-shrink-0 flex items-center justify-start">
+                        {getOrgLogoUrl() ? (
+                          <img
+                            src={getOrgLogoUrl()}
+                            alt="Logo"
+                            className="max-h-16 max-w-[80px] sm:max-w-[90px] object-contain rounded"
+                            onError={(e) => {
+                              if ((e.currentTarget as HTMLImageElement).src !== window.location.origin + '/logo.jpeg') {
+                                (e.currentTarget as HTMLImageElement).src = '/logo.jpeg';
+                              }
+                            }}
+                          />
+                        ) : null}
+                      </div>
+                      <div className="flex-1 text-center space-y-1">
+                        <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wide">
+                          {localStorage.getItem('org_name') || sessionStorage.getItem('org_name') || 'STALIGHT INSTITUTE'}
+                        </h2>
+                        <div className="text-sm sm:text-base font-bold text-primary">
+                          {selected.testType ? selected.testType.replace('_', ' ') : 'Internal Assessment'} {existingQpSummary?.set_number ? `- ${existingQpSummary.set_number}` : ''}
+                        </div>
+                      </div>
+                      <div className="w-20 sm:w-24 flex-shrink-0" />
+                    </div>
+
+                    {/* Master Info Table */}
+                    <div className={`border ${theme === 'dark' ? 'border-border' : 'border-slate-900'} rounded-sm overflow-hidden text-xs sm:text-sm`}>
+                      <div className={`grid grid-cols-12 border-b ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                        <div className={`col-span-3 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Subject :</div>
+                        <div className={`col-span-4 p-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'} border-r font-medium`}>
+                          {dropdownData.subject.find(s => String(s.id) === String(selected.subject_id))?.name || selected.subject || '--'}
+                        </div>
+                        <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Date:</div>
+                        <div className="col-span-3 p-2 font-medium">
+                          {existingQpSummary?.exam_date || existingQpSummary?.date ? format(new Date((existingQpSummary.exam_date || existingQpSummary.date).includes('T') ? (existingQpSummary.exam_date || existingQpSummary.date) : `${existingQpSummary.exam_date || existingQpSummary.date}T00:00:00`), "MMM. dd, yyyy") : '--'}
+                        </div>
+                      </div>
+
+                      <div className={`grid grid-cols-12 border-b ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                        <div className={`col-span-3 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Subject Code :</div>
+                        <div className={`col-span-4 p-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'} border-r font-medium`}>
+                          {(() => {
+                            const currentSubject = dropdownData.subject.find(s => String(s.id) === String(selected.subject_id));
+                            const currentAssignment = assignments.find(a => String(a.subject_id) === String(selected.subject_id) || (currentSubject && a.subject_name === currentSubject.name));
+                            return currentSubject?.code || currentSubject?.subject_code || currentAssignment?.subject_code || '--';
+                          })()}
+                        </div>
+                        <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Time:</div>
+                        <div className="col-span-3 p-2 font-medium">
+                          {existingQpSummary?.exam_time || existingQpSummary?.duration || '--'}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-12">
+                        <div className={`col-span-3 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Prepared by:</div>
+                        <div className={`col-span-4 p-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'} border-r font-medium`}>
+                          {(() => {
+                            try {
+                              const u = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user') || '{}');
+                              if (u.first_name || u.last_name) return `${u.first_name || ''} ${u.last_name || ''}`.trim();
+                              if (u.full_name) return u.full_name;
+                              if (u.name) return u.name;
+                              if (u.username) return u.username;
+                              return 'Faculty';
+                            } catch {
+                              return 'Faculty';
+                            }
+                          })()}
+                        </div>
+                        <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Semester / Div:</div>
+                        <div className="col-span-3 p-2 font-medium">
+                          {(() => {
+                            const assign = assignments.find(a => String(a.subject_id) === String(selected.subject_id));
+                            const semNum = selected.semester || selected.semester_id || assign?.semester || '--';
+                            const branchName = dropdownData.branch.find(b => String(b.id) === String(selected.branch_id))?.name || selected.branch || assign?.branch || '';
+                            const sec = selected.section || (selected.section_id ? (assign?.section || selected.section_id) : (assign?.section || '--'));
+                            return `Semester ${semNum}${branchName ? ` - ${branchName}` : ''} / ${sec}`;
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Instructions & Max Marks */}
+                    <div className={`flex justify-between items-end border ${theme === 'dark' ? 'border-border bg-muted/20' : 'border-slate-900 bg-slate-50/50'} p-2.5 text-xs sm:text-sm`}>
+                      <div>
+                        <span className="font-bold italic">NOTE:</span>
+                        <ol className="list-decimal list-inside text-xs mt-0.5 space-y-0.5 text-muted-foreground">
+                          <li>Answer one FULL question from each part.</li>
+                          <li>Assume missing data suitably.</li>
+                        </ol>
+                      </div>
+                      <div className="text-right font-bold italic text-sm">
+                        Max Marks: <span className="text-primary font-bold text-base not-italic ml-1">{totalMarks}</span>
+                      </div>
+                    </div>
+
+                    {/* Question Parts Table */}
+                    <div className={`border ${theme === 'dark' ? 'border-border' : 'border-slate-900'} rounded-sm overflow-hidden`}>
+                      <table className="w-full text-xs sm:text-sm border-collapse">
+                        <thead>
+                          <tr className={`${theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-slate-100 border-slate-900'} border-b font-bold`}>
+                            <th className={`w-16 p-2 text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>Q No.</th>
+                            <th className={`p-2 text-left border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>Question Content</th>
+                            <th className={`w-16 p-2 text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>Marks</th>
+                            <th className={`w-24 p-2 text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>RBT</th>
+                            <th className="w-20 p-2 text-center">CO</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {groupQuestionsByPart().map((part) => (
+                            <React.Fragment key={part.name}>
+                              {/* Part Header */}
+                              <tr className={`${theme === 'dark' ? 'bg-muted/70 border-border' : 'bg-slate-200/80 border-slate-900'} border-b border-t font-bold text-center`}>
+                                <td colSpan={5} className="py-1.5 uppercase tracking-wider text-xs sm:text-sm">
+                                  {part.name}
+                                </td>
+                              </tr>
+
+                              {part.questions.map((q) => (
+                                <React.Fragment key={q.id}>
+                                  {/* OR Separator */}
+                                  {q.isOr && (
+                                    <tr className={`border-b ${theme === 'dark' ? 'border-border bg-amber-950/20 text-amber-400' : 'border-slate-900 bg-amber-50/60 text-amber-700'} font-bold text-center`}>
+                                      <td colSpan={5} className="py-1 text-xs tracking-widest uppercase">
+                                        — OR —
+                                      </td>
+                                    </tr>
+                                  )}
+
+                                  {/* Question Row */}
+                                  <tr className={`border-b ${theme === 'dark' ? 'border-border hover:bg-muted/30' : 'border-slate-900 hover:bg-slate-50/50'} transition-colors`}>
+                                    <td className={`p-2.5 text-center font-bold align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'} whitespace-nowrap`}>
+                                      Q.{q.number}
+                                    </td>
+                                    <td className={`p-2.5 text-left align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                                      <div
+                                        className="whitespace-pre-line break-words text-xs sm:text-sm"
+                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content || 'Question content') }}
+                                      />
+                                    </td>
+                                    <td className={`p-2.5 text-center font-semibold align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                                      {q.maxMarks}
+                                    </td>
+                                    <td className={`p-2.5 text-center align-middle border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'} text-xs font-medium`}>
+                                      {formatBloomsList(q.bloomsLevel).length > 0 ? (
+                                        <div className="flex flex-col items-center justify-center space-y-1">
+                                          {formatBloomsList(q.bloomsLevel).map((bl, idx) => (
+                                            <div key={idx} className="leading-tight">{bl}</div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        '--'
+                                      )}
+                                    </td>
+                                    <td className="p-2.5 text-center align-middle font-medium text-xs">
+                                      {formatCO(q.co) || '--'}
+                                    </td>
+                                  </tr>
+                                </React.Fragment>
+                              ))}
+                            </React.Fragment>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Revised Bloom's Taxonomy Footer Table */}
+                    <div className="space-y-1.5 pt-2">
+                      <div className="font-bold text-xs">RBT – Revised Bloom’s Taxonomy</div>
+                      <table className={`w-full max-w-md text-xs border ${theme === 'dark' ? 'border-border text-muted-foreground' : 'border-slate-300 text-slate-700'}`}>
+                        <tbody>
+                          <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-slate-300'}`}>
+                            <td className={`p-1.5 border-r ${theme === 'dark' ? 'border-border' : 'border-slate-300'}`}>L1. Remembering</td>
+                            <td className={`p-1.5 border-r ${theme === 'dark' ? 'border-border' : 'border-slate-300'}`}>L2. Understanding</td>
+                            <td className="p-1.5">L3. Applying</td>
+                          </tr>
+                          <tr>
+                            <td className={`p-1.5 border-r ${theme === 'dark' ? 'border-border' : 'border-slate-300'}`}>L4. Analyzing</td>
+                            <td className={`p-1.5 border-r ${theme === 'dark' ? 'border-border' : 'border-slate-300'}`}>L5. Evaluating</td>
+                            <td className="p-1.5">L6. Creating</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-              </div> :
 
-              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
-              }>
+                <div className="flex justify-end gap-2 mt-6">
+                  <Button
+                    onClick={() => setTabValue("manual")}
+                    disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
+                    className={`${existingQpSummary?.status === 'approved' ? 'bg-primary text-white hover:bg-primary/90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                    title={existingQpSummary?.status !== 'approved' ? 'Question paper must be approved by COE before proceeding to marks entry' : ''}>
+                    Proceed to Marks Entry
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                 <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                  {areAllDropdownsSelected() ?
-                    <Settings2 className="w-12 h-12 opacity-80" /> :
-
+                  {areAllDropdownsSelected() ? (
+                    <Settings2 className="w-12 h-12 opacity-80" />
+                  ) : (
                     <Layers className="w-12 h-12 opacity-80" />
-                  }
+                  )}
                 </div>
                 <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   {areAllDropdownsSelected() ? "Configuration Needed" : "Selection Required"}
@@ -1717,21 +1944,20 @@ const UploadMarks = () => {
                     "Please configure the question paper format first to view the final document." :
                     "Please select all the dropdown options first to view the question paper."}
                 </p>
-                {areAllDropdownsSelected() &&
+                {areAllDropdownsSelected() && (
                   <Button
                     onClick={handleRedirectToUploadQP}
                     className="bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20">
-
                     View Question Paper
                   </Button>
-                }
+                )}
               </div>
-            }
+            )}
           </TabsContent>
         </CardContent>
       </Tabs>
-    </Card>);
-
+    </Card>
+  );
 };
 
 export default UploadMarks;
