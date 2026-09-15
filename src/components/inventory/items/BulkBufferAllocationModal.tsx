@@ -62,11 +62,9 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
   branches = [],
   initialQuantity,
 }) => {
-  if (!group) return null;
-
   // Filter buffer items only
-  const bufferItems = (group.items || []).filter((i) => !i.branch_id && i.status === "available");
-  const maxAvailable = bufferItems.length > 0 ? bufferItems.length : group.in_stock_buffer;
+  const bufferItems = (group?.items || []).filter((i) => !i.branch_id && i.status === "available");
+  const maxAvailable = bufferItems.length > 0 ? bufferItems.length : (group?.in_stock_buffer || 0);
 
   // Local branches & locations with fallback auto-fetch
   const [branchList, setBranchList] = useState<Array<{ id: number; name: string }>>(branches);
@@ -113,7 +111,7 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
   const isQuantityValid = !isNaNQuantity && parsedQuantity >= 1 && parsedQuantity <= maxAvailable;
 
   const [selectedLocationId, setSelectedLocationId] = useState<string>(
-    group.location_id ? String(group.location_id) : locationList[0] ? String(locationList[0].id) : ""
+    group?.location_id ? String(group.location_id) : locationList[0] ? String(locationList[0].id) : ""
   );
   
   // Room / Lab assignment states (same vs one-by-one per unit)
@@ -270,6 +268,8 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
       setSubmitting(false);
     }
   };
+
+  if (!isOpen || !group) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && !submitting && onClose()}>

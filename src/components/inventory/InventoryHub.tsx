@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
-import { Card } from "../ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/card";
 import { InventoryAnalytics } from "./dashboard/InventoryAnalytics";
 import { InventoryList } from "./items/InventoryList";
 import { ProcurementRequests } from "./procurement/ProcurementRequests";
@@ -24,7 +23,6 @@ import {
   Wrench,
   Layers,
   MapPin,
-  Boxes,
 } from "lucide-react";
 
 interface Props {
@@ -73,117 +71,101 @@ export const InventoryHub: React.FC<Props> = ({
 
   const isStaff = ["faculty", "staff"].includes(role);
   const isHOD = role === "hod";
-  const isPrincipal = role === "principal";
-  const isAdmin = ["admin", "org_admin", "dean", "superadmin"].includes(role);
+  const isAdmin = ["admin", "org_admin", "dean", "superadmin", "principal"].includes(role);
+
+  const tabs = [
+    ...(!isStaff ? [{ id: "analytics", label: "Overview", icon: <TrendingUp className="w-4 h-4" /> }] : []),
+    { id: "items", label: isHOD ? "Department Assets" : "Assets Directory", icon: <Package className="w-4 h-4" /> },
+    { id: "procurement", label: "Requisitions", icon: <ShoppingCart className="w-4 h-4" /> },
+    ...(isAdmin ? [{ id: "quotations", label: "Vendor RFQs", icon: <FileText className="w-4 h-4" /> }] : []),
+    { id: "tickets", label: "Maintenance & Tickets", icon: <Wrench className="w-4 h-4" /> },
+    ...(isAdmin
+      ? [
+          { id: "categories", label: "Categories", icon: <Layers className="w-4 h-4" /> },
+          { id: "locations", label: "Locations", icon: <MapPin className="w-4 h-4" /> },
+        ]
+      : []),
+  ];
 
   return (
     <div className="w-full space-y-6">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-4">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-foreground">
-            Institutional Inventory & Asset Hub
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Multi-tenant asset tracking, QR audit verification, procurement sanctions, and maintenance lifecycle.
-          </p>
-        </div>
-      </div>
+      <Card className="w-full bg-white dark:bg-card border border-gray-200 dark:border-border flex flex-col shadow-sm rounded-xl overflow-hidden">
+        <CardHeader className="border-b border-border/50 p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-xl sm:text-2xl font-semibold mb-1">
+                Institutional Inventory & Asset Hub
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-muted-foreground">
+                Multi-tenant asset tracking, QR audit verification, procurement sanctions, and maintenance lifecycle.
+              </CardDescription>
+            </div>
+          </div>
 
-      {/* Main Tabs Navigation */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <div className="overflow-x-auto pb-1">
-          <TabsList className="inline-flex h-11 items-center justify-start rounded-2xl bg-muted/50 p-1 text-muted-foreground border">
-            {!isStaff && (
-              <TabsTrigger value="analytics" className="rounded-xl px-4 py-2 text-xs font-bold gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5" /> Overview
-              </TabsTrigger>
-            )}
+          {/* Underline Tabs Header */}
+          <div className="flex border-b gap-6 overflow-x-auto dark:border-slate-800 pt-4 -mb-5">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-3 text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all border-b-2 ${
+                  activeTab === tab.id
+                    ? "border-primary text-primary"
+                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                {tab.icon} {tab.label}
+              </button>
+            ))}
+          </div>
+        </CardHeader>
 
-            <TabsTrigger value="items" className="rounded-xl px-4 py-2 text-xs font-bold gap-1.5">
-              <Package className="w-3.5 h-3.5" /> {isHOD ? "Department Assets" : "Assets Directory"}
-            </TabsTrigger>
-
-            <TabsTrigger value="procurement" className="rounded-xl px-4 py-2 text-xs font-bold gap-1.5">
-              <ShoppingCart className="w-3.5 h-3.5" /> Requisitions
-            </TabsTrigger>
-
-            {isAdmin && (
-              <TabsTrigger value="quotations" className="rounded-xl px-4 py-2 text-xs font-bold gap-1.5">
-                <FileText className="w-3.5 h-3.5" /> Vendor RFQs
-              </TabsTrigger>
-            )}
-
-            <TabsTrigger value="tickets" className="rounded-xl px-4 py-2 text-xs font-bold gap-1.5">
-              <Wrench className="w-3.5 h-3.5" /> Maintenance & Tickets
-            </TabsTrigger>
-
-            {isAdmin && (
-              <>
-                <TabsTrigger value="categories" className="rounded-xl px-4 py-2 text-xs font-bold gap-1.5">
-                  <Layers className="w-3.5 h-3.5" /> Categories
-                </TabsTrigger>
-                <TabsTrigger value="locations" className="rounded-xl px-4 py-2 text-xs font-bold gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" /> Locations
-                </TabsTrigger>
-              </>
-            )}
-          </TabsList>
-        </div>
-
-        {/* Tab Contents */}
-        {!isStaff && (
-          <TabsContent value="analytics" className="space-y-6 focus:outline-none">
+        <CardContent className="p-4 sm:p-6 space-y-6">
+          {activeTab === "analytics" && !isStaff && (
             <InventoryAnalytics onNavigateTab={(tab) => setActiveTab(tab)} />
-          </TabsContent>
-        )}
+          )}
 
-        <TabsContent value="items" className="space-y-6 focus:outline-none">
-          <InventoryList
-            role={role}
-            onRaiseTicket={handleRaiseTicket}
-            branches={branchList}
-            categories={categories}
-            locations={locations}
-          />
-        </TabsContent>
+          {activeTab === "items" && (
+            <InventoryList
+              role={role}
+              onRaiseTicket={handleRaiseTicket}
+              branches={branchList}
+              categories={categories}
+              locations={locations}
+            />
+          )}
 
-        <TabsContent value="procurement" className="space-y-6 focus:outline-none">
-          <ProcurementRequests
-            role={role}
-            branches={branchList}
-            categories={categories}
-            locations={locations}
-            onStockInSuccess={() => setActiveTab("items")}
-          />
-        </TabsContent>
+          {activeTab === "procurement" && (
+            <ProcurementRequests
+              role={role}
+              branches={branchList}
+              categories={categories}
+              locations={locations}
+              onStockInSuccess={() => setActiveTab("items")}
+            />
+          )}
 
-        {isAdmin && (
-          <TabsContent value="quotations" className="space-y-6 focus:outline-none">
+          {activeTab === "quotations" && isAdmin && (
             <QuotationManager role={role} />
-          </TabsContent>
-        )}
+          )}
 
-        <TabsContent value="tickets" className="space-y-6 focus:outline-none">
-          <MaintenanceTickets
-            role={role}
-            branches={branchList}
-            users={users}
-          />
-        </TabsContent>
+          {activeTab === "tickets" && (
+            <MaintenanceTickets
+              role={role}
+              branches={branchList}
+              users={users}
+            />
+          )}
 
-        {isAdmin && (
-          <>
-            <TabsContent value="categories" className="space-y-6 focus:outline-none">
-              <CategoryManagement role={role} />
-            </TabsContent>
+          {activeTab === "categories" && isAdmin && (
+            <CategoryManagement role={role} />
+          )}
 
-            <TabsContent value="locations" className="space-y-6 focus:outline-none">
-              <LocationManagement role={role} />
-            </TabsContent>
-          </>
-        )}
-      </Tabs>
+          {activeTab === "locations" && isAdmin && (
+            <LocationManagement role={role} />
+          )}
+        </CardContent>
+      </Card>
 
       {/* Standalone Raise Ticket Modal from Action Buttons */}
       <RaiseTicketModal

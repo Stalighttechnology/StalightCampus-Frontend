@@ -709,17 +709,9 @@ export const ProcurementRequests: React.FC<Props> = ({
 
                           {/* Title */}
                           <td className="py-3.5 px-4 align-middle">
-                            <div className="break-words font-semibold text-foreground text-sm max-w-[240px]" title={req.title}>
+                            <div className="break-words font-semibold text-foreground text-sm max-w-[280px]" title={req.title}>
                               {req.title}
                             </div>
-                            {req.selected_vendor && (
-                              <div className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center gap-1">
-                                <Building className="w-3 h-3 shrink-0" />
-                                <span className="truncate max-w-[180px]">
-                                  {req.selected_vendor.vendor_name}
-                                </span>
-                              </div>
-                            )}
                           </td>
 
                           {/* Requested By */}
@@ -748,22 +740,11 @@ export const ProcurementRequests: React.FC<Props> = ({
                             <span className="font-semibold text-sm">{req.requested_quantity}</span>
                           </td>
 
-                          {/* Cost */}
+                          {/* Est. Cost */}
                           <td className="py-3.5 px-4 align-middle text-right">
-                            {req.final_price ? (
-                              <div className="flex flex-col items-end">
-                                <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
-                                  ₹{Number(req.final_price).toLocaleString("en-IN")}
-                                </span>
-                                <span className="text-[10px] text-muted-foreground line-through">
-                                  Est: ₹{Number(req.estimated_cost || 0).toLocaleString("en-IN")}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="font-semibold text-sm">
-                                ₹{Number(req.estimated_cost || 0).toLocaleString("en-IN")}
-                              </span>
-                            )}
+                            <span className="font-semibold text-sm">
+                              ₹{Number(req.estimated_cost || 0).toLocaleString("en-IN")}
+                            </span>
                           </td>
 
                           {/* Status */}
@@ -887,12 +868,6 @@ export const ProcurementRequests: React.FC<Props> = ({
                             {getStatusBadge(req.status)}
                           </div>
                           <h3 className="font-semibold text-sm text-foreground">{req.title}</h3>
-                          {req.selected_vendor && (
-                            <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                              <Building className="w-3.5 h-3.5 shrink-0" />
-                              <span>{req.selected_vendor.vendor_name}</span>
-                            </div>
-                          )}
                           <p className="text-xs text-muted-foreground">Requested by: {req.requested_by_name}</p>
                         </div>
                         <div className="text-xs font-semibold px-2 py-1 rounded bg-muted">
@@ -903,15 +878,9 @@ export const ProcurementRequests: React.FC<Props> = ({
                       <div className="flex justify-between items-center text-xs text-muted-foreground">
                         <span>Category: <strong className="text-foreground">{req.category_details?.name || "--"}</strong></span>
                         <div>
-                          {req.final_price ? (
-                            <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                              ₹{Number(req.final_price).toLocaleString("en-IN")}
-                            </span>
-                          ) : (
-                            <span className="font-bold text-foreground">
-                              ₹{Number(req.estimated_cost || 0).toLocaleString("en-IN")}
-                            </span>
-                          )}
+                          <span className="font-bold text-foreground">
+                            ₹{Number(req.estimated_cost || 0).toLocaleString("en-IN")}
+                          </span>
                         </div>
                       </div>
 
@@ -1190,6 +1159,49 @@ export const ProcurementRequests: React.FC<Props> = ({
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Quotations & RFQ Bids (if RFQ issued or multiple responses exist) */}
+              {!viewDetailsReq.selected_vendor && viewDetailsReq.quotations_summary && viewDetailsReq.quotations_summary.length > 0 && (
+                <div className="p-3.5 rounded-xl border bg-indigo-50/40 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800/60 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5">
+                      <FileText className="w-4 h-4 text-indigo-600" /> Digital RFQ & Vendor Bids
+                    </span>
+                  </div>
+                  {viewDetailsReq.quotations_summary.map((q) => (
+                    <div key={q.id} className="space-y-1.5">
+                      <div className="flex justify-between text-muted-foreground text-[11px]">
+                        <span>Issued To: <strong>{q.company_email || "Vendor Pool"}</strong></span>
+                        <span>Deadline: {q.last_reply_date || "N/A"}</span>
+                      </div>
+                      {q.responses && q.responses.length > 0 ? (
+                        <div className="space-y-1.5 pt-1">
+                          {q.responses.map((resp: any) => (
+                            <div key={resp.id} className="p-2 rounded-lg bg-background border flex justify-between items-center text-xs">
+                              <div>
+                                <span className="font-semibold text-foreground">{resp.vendor_name}</span>
+                                {resp.vendor_email && <span className="text-muted-foreground text-[11px] block">{resp.vendor_email}</span>}
+                              </div>
+                              <div className="text-right">
+                                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                  ₹{Number(resp.total_amount || 0).toLocaleString("en-IN")}
+                                </span>
+                                {resp.quote_document_url && (
+                                  <a href={resp.quote_document_url} target="_blank" rel="noreferrer" className="block text-[10px] text-primary underline">
+                                    Quote PDF ↗
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-[11px] italic">Awaiting vendor quotation responses...</p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
 

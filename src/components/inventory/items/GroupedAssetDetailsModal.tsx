@@ -62,59 +62,116 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
   const [activeTab, setActiveTab] = useState<"ledger" | "transfers" | "units" | "specs">("ledger");
   const [unitSearch, setUnitSearch] = useState("");
   const [unitDeptFilter, setUnitDeptFilter] = useState<string>("all");
+  const [unitsPage, setUnitsPage] = useState(1);
+  const unitsPageSize = 10;
   const [qrModalItem, setQrModalItem] = useState<InventoryItem | null>(null);
   const [bulkAllocateOpen, setBulkAllocateOpen] = useState(false);
   const [bulkAllocateInitialQty, setBulkAllocateInitialQty] = useState<number | undefined>(undefined);
 
-  const [detailData, setDetailData] = useState<GroupedInventoryAsset | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
+  // Tab Data States
+  const [summaryData, setSummaryData] = useState<GroupedInventoryAsset | null>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
 
+  const [transfersData, setTransfersData] = useState<any[] | null>(null);
+  const [loadingTransfers, setLoadingTransfers] = useState(false);
+
+  const [unitsData, setUnitsData] = useState<any[] | null>(null);
+  const [loadingUnits, setLoadingUnits] = useState(false);
+
+  // Initial Load: summary metrics and allocation ledger
   useEffect(() => {
     if (!isOpen || !group) {
-      setDetailData(null);
+      setSummaryData(null);
+      setTransfersData(null);
+      setUnitsData(null);
+      setActiveTab("ledger");
       return;
     }
 
-    let isMounted = true;
-    setLoadingDetail(true);
+    setLoadingSummary(true);
+    setTransfersData(null);
+    setUnitsData(null);
+    setActiveTab("ledger");
 
     fetchGroupedAssetDetails({
       item_name: group.item_name,
       category_id: group.category_id,
       sample_item_id: group.sample_item_id || group.sample_item?.id,
+      tab: "ledger",
     })
       .then((res) => {
-        if (isMounted && res) {
-          setDetailData(res);
+        if (res) {
+          setSummaryData(res);
         }
       })
       .catch((err) => {
         console.error("Failed to fetch detailed asset breakdown", err);
       })
       .finally(() => {
-        if (isMounted) {
-          setLoadingDetail(false);
-        }
+        setLoadingSummary(false);
       });
-
-    return () => {
-      isMounted = false;
-    };
   }, [isOpen, group?.group_id, group?.item_name, group?.category_id]);
 
-  if (!group) return null;
+  const handleTabChange = (tab: "ledger" | "transfers" | "units" | "specs") => {
+    setActiveTab(tab);
+    if (!group) return;
 
-  const activeGroup = detailData || group;
+    if (tab === "transfers" && transfersData === null && !loadingTransfers) {
+      setLoadingTransfers(true);
+      fetchGroupedAssetDetails({
+        item_name: group.item_name,
+        category_id: group.category_id,
+        sample_item_id: group.sample_item_id || group.sample_item?.id,
+        tab: "transfers",
+      })
+        .then((res) => {
+          if (res) {
+            setTransfersData(res.history_logs || []);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load transfer history:", err);
+        })
+        .finally(() => {
+          setLoadingTransfers(false);
+        });
+    }
+
+    if (tab === "units" && unitsData === null && !loadingUnits) {
+      setLoadingUnits(true);
+      fetchGroupedAssetDetails({
+        item_name: group.item_name,
+        category_id: group.category_id,
+        sample_item_id: group.sample_item_id || group.sample_item?.id,
+        tab: "units",
+      })
+        .then((res) => {
+          if (res) {
+            setUnitsData(res.items || []);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load unit details:", err);
+        })
+        .finally(() => {
+          setLoadingUnits(false);
+        });
+    }
+  };
+
+  if (!isOpen || !group) return null;
+
+  const activeGroup = summaryData || group;
   const canCUD = role === "inventory_manager" || role === "superadmin";
 
-  const groupItems = activeGroup.items || [];
+  const groupItems = unitsData || activeGroup.items || [];
   const groupDeployments = activeGroup.deployments || [];
-  const groupHistoryLogs = activeGroup.history_logs || [];
+  const groupHistoryLogs = transfersData || activeGroup.history_logs || [];
 
-  const filteredUnits = groupItems.filter((it) => {
+  const filteredUnits = groupItems.filter((it: any) => {
     const matchesSearch =
       unitSearch.trim() === "" ||
-      it.item_code.toLowerCase().includes(unitSearch.toLowerCase()) ||
+      (it.item_code && it.item_code.toLowerCase().includes(unitSearch.toLowerCase())) ||
       (it.received_by && it.received_by.toLowerCase().includes(unitSearch.toLowerCase())) ||
       (it.branch_name && it.branch_name.toLowerCase().includes(unitSearch.toLowerCase())) ||
       (it.room_no && it.room_no.toLowerCase().includes(unitSearch.toLowerCase()));
@@ -241,7 +298,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
           <div className="px-5 pt-3 border-b bg-background shrink-0">
             <Tabs
               value={activeTab}
-              onValueChange={(val) => setActiveTab(val as any)}
+              onValueChange={(val) => handleTabChange(val as any)}
               className="w-full"
             >
               <TabsList className="grid w-full grid-cols-4 max-w-2xl h-9 p-0.5">
@@ -251,11 +308,18 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                 </TabsTrigger>
                 <TabsTrigger value="transfers" className="text-xs font-semibold gap-1.5">
                   <ArrowRightLeft className="w-3.5 h-3.5 text-purple-600" />
-                  <span>Transfer History ({groupHistoryLogs.length})</span>
+                  <span>
+                    Transfer History{" "}
+                    {transfersData !== null
+                      ? `(${transfersData.length})`
+                      : activeGroup.transfers_count !== undefined && activeGroup.transfers_count > 0
+                      ? `(${activeGroup.transfers_count})`
+                      : ""}
+                  </span>
                 </TabsTrigger>
                 <TabsTrigger value="units" className="text-xs font-semibold gap-1.5">
                   <Boxes className="w-3.5 h-3.5" />
-                  <span>All Units ({groupItems.length || activeGroup.total_units})</span>
+                  <span>All Units ({unitsData ? unitsData.length : activeGroup.total_units || 0})</span>
                 </TabsTrigger>
                 <TabsTrigger value="specs" className="text-xs font-semibold gap-1.5">
                   <Info className="w-3.5 h-3.5" />
@@ -267,17 +331,17 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
 
           {/* Tab Contents */}
           <div className="flex-1 overflow-y-auto p-5">
-            {loadingDetail && !detailData ? (
-              <div className="py-16 text-center space-y-3 flex flex-col items-center justify-center">
-                <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                <p className="text-xs text-muted-foreground font-medium">
-                  Loading detailed allocation ledger and transfer audit logs...
-                </p>
-              </div>
-            ) : (
-              <>
-                {activeTab === "ledger" && (
-                  <div className="space-y-4">
+            {activeTab === "ledger" && (
+              <div className="space-y-4">
+                {loadingSummary && !summaryData ? (
+                  <div className="py-16 text-center space-y-3 flex flex-col items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                    <p className="text-xs text-muted-foreground font-medium">
+                      Loading custody & allocation ledger...
+                    </p>
+                  </div>
+                ) : (
+                  <>
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="text-sm font-bold text-foreground">
@@ -398,7 +462,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                                     <span>{dep.received_by || (isBufferBay ? "Central Store Staff" : "Department Custodian")}</span>
                                   </div>
                                   {dep.recipient_role && (
-                                    <span className="text-[10.5px] text-muted-foreground block mt-0.5">
+                                    <span className="text-[11px] text-muted-foreground block mt-0.5">
                                       Role: {dep.recipient_role}
                                     </span>
                                   )}
@@ -408,20 +472,21 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                                   <span className="text-[10.5px] text-muted-foreground block font-medium">
                                     Handed Over By:
                                   </span>
-                                  <div className="font-bold text-foreground mt-0.5">
-                                    {dep.handed_over_by || "Inventory Manager"}
+                                  <div className="font-bold text-foreground mt-0.5 flex items-center gap-1.5">
+                                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>{dep.handed_over_by || "Inventory Admin"}</span>
                                   </div>
-                                  <span className="text-[10.5px] text-muted-foreground block mt-0.5">
+                                  <span className="text-[10.5px] text-emerald-600 dark:text-emerald-400 block mt-0.5 font-medium">
                                     Allocation Verified & Logged
                                   </span>
                                 </div>
 
                                 <div className="p-2 rounded-lg bg-background/80 border border-border/60">
                                   <span className="text-[10.5px] text-muted-foreground block font-medium">
-                                    Assigned Serial Codes ({dep.unit_codes.length}):
+                                    Assigned Serial Codes ({dep.count}):
                                   </span>
-                                  <div className="font-mono font-bold text-primary mt-0.5 truncate" title={dep.code_range}>
-                                    {dep.code_range || dep.unit_codes.slice(0, 3).join(", ") + "..."}
+                                  <div className="font-mono text-[11px] font-bold text-primary mt-0.5 truncate" title={dep.code_range}>
+                                    {dep.code_range || "--"}
                                   </div>
                                   <span className="text-[10.5px] text-muted-foreground block mt-0.5">
                                     {dep.count} physical asset unit(s)
@@ -433,11 +498,22 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                         })
                       )}
                     </div>
-                  </div>
+                  </>
                 )}
+              </div>
+            )}
 
-                {activeTab === "transfers" && (
-                  <div className="space-y-4">
+            {activeTab === "transfers" && (
+              <div className="space-y-4">
+                {loadingTransfers ? (
+                  <div className="py-16 text-center space-y-3 flex flex-col items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+                    <p className="text-xs text-muted-foreground font-medium">
+                      Loading transfer history & asset movement audit logs...
+                    </p>
+                  </div>
+                ) : (
+                  <>
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="text-sm font-bold text-foreground">
@@ -455,8 +531,10 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                     <div className="bg-background rounded-xl p-4 border border-border/80 shadow-2xs">
                       <ItemHistoryTimeline history={groupHistoryLogs} />
                     </div>
-                  </div>
+                  </>
                 )}
+              </div>
+            )}
 
                 {activeTab === "units" && (
                   <div className="space-y-3">
@@ -467,7 +545,10 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                         <Input
                           placeholder="Search serial code, custodian, room..."
                           value={unitSearch}
-                          onChange={(e) => setUnitSearch(e.target.value)}
+                          onChange={(e) => {
+                            setUnitSearch(e.target.value);
+                            setUnitsPage(1);
+                          }}
                           className="pl-8 text-xs h-8"
                         />
                       </div>
@@ -475,7 +556,10 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                       <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto">
                         <button
                           type="button"
-                          onClick={() => setUnitDeptFilter("all")}
+                          onClick={() => {
+                            setUnitDeptFilter("all");
+                            setUnitsPage(1);
+                          }}
                           className={`px-2.5 py-1 rounded text-xs font-semibold transition-all shrink-0 ${
                             unitDeptFilter === "all"
                               ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
@@ -486,7 +570,10 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                         </button>
                         <button
                           type="button"
-                          onClick={() => setUnitDeptFilter("buffer")}
+                          onClick={() => {
+                            setUnitDeptFilter("buffer");
+                            setUnitsPage(1);
+                          }}
                           className={`px-2.5 py-1 rounded text-xs font-semibold transition-all shrink-0 ${
                             unitDeptFilter === "buffer"
                               ? "bg-purple-600 text-white"
@@ -497,7 +584,10 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                         </button>
                         <button
                           type="button"
-                          onClick={() => setUnitDeptFilter("deployed")}
+                          onClick={() => {
+                            setUnitDeptFilter("deployed");
+                            setUnitsPage(1);
+                          }}
                           className={`px-2.5 py-1 rounded text-xs font-semibold transition-all shrink-0 ${
                             unitDeptFilter === "deployed"
                               ? "bg-blue-600 text-white"
@@ -530,95 +620,129 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                               </td>
                             </tr>
                           ) : (
-                            filteredUnits.map((it) => {
-                              const isBuffer = !it.branch_id && it.status === "available";
-                              const fullItem: InventoryItem = {
-                                ...activeGroup.sample_item,
-                                ...it,
-                                category_details: activeGroup.sample_item?.category_details,
-                                location_details: activeGroup.sample_item?.location_details,
-                              } as InventoryItem;
+                            filteredUnits
+                              .slice((unitsPage - 1) * unitsPageSize, unitsPage * unitsPageSize)
+                              .map((it: any) => {
+                                const isBuffer = !it.branch_id && it.status === "available";
+                                const fullItem: InventoryItem = {
+                                  ...activeGroup.sample_item,
+                                  ...it,
+                                  category_details: activeGroup.sample_item?.category_details,
+                                  location_details: activeGroup.sample_item?.location_details,
+                                } as InventoryItem;
 
-                              return (
-                                <tr
-                                  key={it.id}
-                                  className="hover:bg-muted/40 transition-colors"
-                                >
-                                  <td className="py-2 px-3 font-mono font-bold text-primary">
-                                    {it.item_code}
-                                  </td>
-                                  <td className="py-2 px-3 font-medium">
-                                    {it.branch_name ? (
-                                      <span className="text-foreground font-semibold flex items-center gap-1">
-                                        <Building className="w-3 h-3 text-blue-600" />
-                                        {it.branch_name}
-                                      </span>
-                                    ) : (
-                                      <span className="text-purple-700 dark:text-purple-300 font-semibold flex items-center gap-1">
-                                        <Package className="w-3 h-3" /> Central Buffer
-                                      </span>
-                                    )}
-                                  </td>
-                                  <td className="py-2 px-3 text-muted-foreground">
-                                    {it.room_no || (isBuffer ? "Buffer Bay" : "--")}
-                                  </td>
-                                  <td className="py-2 px-3">
-                                    <span className="font-medium text-foreground">
-                                      {it.received_by || (isBuffer ? "Central Store" : "--")}
-                                    </span>
-                                    {it.recipient_role && (
-                                      <span className="text-[10px] text-muted-foreground block">
-                                        {it.recipient_role}
-                                      </span>
-                                    )}
-                                  </td>
-                                  <td className="py-2 px-3 text-center">
-                                    <InventoryStatusBadge status={it.status} />
-                                  </td>
-                                  <td className="py-2 px-3 text-right">
-                                    <div className="flex items-center justify-end gap-1.5">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setQrModalItem(fullItem)}
-                                        className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-                                        title="View QR Code"
-                                      >
-                                        <QrCode className="w-3.5 h-3.5" />
-                                      </Button>
-                                      {canCUD && isBuffer ? (
-                                        <Button
-                                          variant="default"
-                                          size="sm"
-                                          onClick={() => {
-                                            setBulkAllocateInitialQty(1);
-                                            setBulkAllocateOpen(true);
-                                          }}
-                                          className="h-7 px-2 text-[11px] font-semibold bg-purple-600 hover:bg-purple-700 text-white"
-                                        >
-                                          <ArrowRightLeft className="w-3 h-3 mr-1" /> Allocate
-                                        </Button>
+                                return (
+                                  <tr
+                                    key={it.id}
+                                    className="hover:bg-muted/40 transition-colors"
+                                  >
+                                    <td className="py-2 px-3 font-mono font-bold text-primary">
+                                      {it.item_code}
+                                    </td>
+                                    <td className="py-2 px-3 font-medium">
+                                      {it.branch_name ? (
+                                        <span className="text-foreground font-semibold flex items-center gap-1">
+                                          <Building className="w-3 h-3 text-blue-600" />
+                                          {it.branch_name}
+                                        </span>
                                       ) : (
-                                        onViewUnit && (
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => onViewUnit(fullItem)}
-                                            className="h-7 px-2 text-[11px]"
-                                          >
-                                            <Eye className="w-3 h-3 mr-1" /> Details
-                                          </Button>
-                                        )
+                                        <span className="text-purple-700 dark:text-purple-300 font-semibold flex items-center gap-1">
+                                          <Package className="w-3 h-3" /> Central Buffer
+                                        </span>
                                       )}
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })
+                                    </td>
+                                    <td className="py-2 px-3 text-muted-foreground">
+                                      {it.room_no || (isBuffer ? "Buffer Bay" : "--")}
+                                    </td>
+                                    <td className="py-2 px-3">
+                                      <span className="font-medium text-foreground">
+                                        {it.received_by || (isBuffer ? "Central Store" : "--")}
+                                      </span>
+                                      {it.recipient_role && (
+                                        <span className="text-[10px] text-muted-foreground block">
+                                          {it.recipient_role}
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td className="py-2 px-3 text-center">
+                                      <InventoryStatusBadge status={it.status} />
+                                    </td>
+                                    <td className="py-2 px-3 text-right">
+                                      <div className="flex items-center justify-end gap-1.5">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => setQrModalItem(fullItem)}
+                                          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                                          title="View QR Code"
+                                        >
+                                          <QrCode className="w-3.5 h-3.5" />
+                                        </Button>
+                                        {canCUD && isBuffer ? (
+                                          <Button
+                                            variant="default"
+                                            size="sm"
+                                            onClick={() => {
+                                              setBulkAllocateInitialQty(1);
+                                              setBulkAllocateOpen(true);
+                                            }}
+                                            className="h-7 px-2 text-[11px] font-semibold bg-purple-600 hover:bg-purple-700 text-white"
+                                          >
+                                            <ArrowRightLeft className="w-3 h-3 mr-1" /> Allocate
+                                          </Button>
+                                        ) : (
+                                          onViewUnit && (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => onViewUnit(fullItem)}
+                                              className="h-7 px-2 text-[11px]"
+                                            >
+                                              <Eye className="w-3 h-3 mr-1" /> Details
+                                            </Button>
+                                          )
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })
                           )}
                         </tbody>
                       </table>
                     </div>
+
+                    {/* Pagination Bar */}
+                    {filteredUnits.length > unitsPageSize && (
+                      <div className="flex items-center justify-between pt-2 px-1 text-xs text-muted-foreground">
+                        <span>
+                          Showing {((unitsPage - 1) * unitsPageSize) + 1}–{Math.min(unitsPage * unitsPageSize, filteredUnits.length)} of {filteredUnits.length} units
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={unitsPage <= 1}
+                            onClick={() => setUnitsPage((p) => Math.max(1, p - 1))}
+                            className="h-7 px-2.5 text-xs font-medium"
+                          >
+                            Previous
+                          </Button>
+                          <span className="px-2 font-semibold text-foreground">
+                            Page {unitsPage} of {Math.ceil(filteredUnits.length / unitsPageSize)}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={unitsPage >= Math.ceil(filteredUnits.length / unitsPageSize)}
+                            onClick={() => setUnitsPage((p) => Math.min(Math.ceil(filteredUnits.length / unitsPageSize), p + 1))}
+                            className="h-7 px-2.5 text-xs font-medium"
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -668,8 +792,6 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                     </div>
                   </div>
                 )}
-              </>
-            )}
           </div>
         </DialogContent>
       </Dialog>

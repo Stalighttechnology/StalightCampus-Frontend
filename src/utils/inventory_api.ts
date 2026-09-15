@@ -477,6 +477,7 @@ export interface GroupedInventoryAsset {
   history_logs?: InventoryHistoryLog[];
   unit_codes?: string[];
   code_range?: string;
+  transfers_count?: number;
   items?: Array<{
     id: number;
     item_code: string;
@@ -516,13 +517,18 @@ export const fetchInventoryGroupedAssets = (
 };
 
 export const fetchGroupedAssetDetails = (
-  params: { item_name?: string; category_id?: number; sample_item_id?: number }
-): Promise<GroupedInventoryAsset> => {
+  params: {
+    item_name?: string;
+    category_id?: number;
+    sample_item_id?: number;
+    tab?: "summary" | "ledger" | "transfers" | "units" | "specs" | "all" | string;
+  }
+): Promise<GroupedInventoryAsset & { history_logs?: any[]; items?: any[]; total_transfers?: number }> => {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, val]) => {
     if (val !== undefined && val !== null && val !== "") query.append(key, String(val));
   });
-  return handleJsonResponse<GroupedInventoryAsset>(
+  return handleJsonResponse<GroupedInventoryAsset & { history_logs?: any[]; items?: any[]; total_transfers?: number }>(
     fetchWithTokenRefresh(`${API_BASE}/items/grouped_detail/?${query.toString()}`, { headers: authHeaders() })
   );
 };
