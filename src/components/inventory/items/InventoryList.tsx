@@ -397,21 +397,23 @@ export const InventoryList: React.FC<Props> = ({
                 </SelectContent>
               </Select>
 
-              {/* Department / Branch Filter */}
-              <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger className="h-9 w-[150px] text-xs">
-                  <SelectValue placeholder="All Departments" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  <SelectItem value="general">Institutional / General</SelectItem>
-                  {branchList.map((b) => (
-                    <SelectItem key={b.id} value={String(b.id)}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Department / Branch Filter (hidden for HOD / department-scoped staff) */}
+              {!["hod", "faculty", "staff", "teacher"].includes(role) && (
+                <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                  <SelectTrigger className="h-9 w-[150px] text-xs">
+                    <SelectValue placeholder="All Departments" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    <SelectItem value="general">Institutional / General</SelectItem>
+                    {branchList.map((b) => (
+                      <SelectItem key={b.id} value={String(b.id)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
 
               {/* Status Filter */}
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -503,22 +505,26 @@ export const InventoryList: React.FC<Props> = ({
                                 <div className="space-y-1 min-w-[190px]">
                                   <div className="text-xs font-bold text-foreground">
                                     {isHOD
-                                      ? `${group.in_use_deployed} Allocated`
-                                      : `${group.in_use_deployed} / ${group.total_units} Allocated`}
+                                      ? `${(group.in_use_deployed || 0) + (group.in_repair || 0)} Allocated`
+                                      : `${(group.in_use_deployed || 0) + (group.in_repair || 0)} / ${group.total_units} Allocated`}
                                   </div>
 
-                                  <div className="flex items-center gap-2 text-[11px]">
-                                    {!isHOD && (
-                                      <>
-                                        <span className="font-medium text-blue-700 dark:text-blue-300">
-                                          {group.in_use_deployed} deployed
-                                        </span>
-                                        <span className="text-muted-foreground">•</span>
-                                      </>
+                                  <div className="flex items-center gap-2 text-[11px] flex-wrap">
+                                    {group.in_repair > 0 && (
+                                      <span className="font-medium text-amber-600 dark:text-amber-400">
+                                        {group.in_repair} in repair
+                                      </span>
                                     )}
-                                    <span className="font-medium text-purple-700 dark:text-purple-300">
-                                      {group.in_stock_buffer} in buffer
-                                    </span>
+                                    {group.in_stock_buffer > 0 && (
+                                      <span className="font-medium text-purple-700 dark:text-purple-300">
+                                        {group.in_stock_buffer} in buffer
+                                      </span>
+                                    )}
+                                    {!isHOD && group.in_use_deployed > 0 && (
+                                      <span className="font-medium text-blue-700 dark:text-blue-300">
+                                        {group.in_use_deployed} deployed
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                               </td>
@@ -603,14 +609,19 @@ export const InventoryList: React.FC<Props> = ({
                           <div className="space-y-1 p-2.5 rounded-lg bg-muted/40 border border-border/50 text-xs">
                             <div className="font-semibold text-foreground">
                               {isHOD
-                                ? `${group.in_use_deployed} Allocated`
-                                : `${group.in_use_deployed} / ${group.total_units} Allocated`}
+                                ? `${(group.in_use_deployed || 0) + (group.in_repair || 0)} Allocated`
+                                : `${(group.in_use_deployed || 0) + (group.in_repair || 0)} / ${group.total_units} Allocated`}
                             </div>
-                            <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
-                              {!isHOD && (
+                            <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5 flex-wrap gap-1">
+                              {group.in_repair > 0 && (
+                                <span className="font-medium text-amber-600 dark:text-amber-400">{group.in_repair} In Repair</span>
+                              )}
+                              {!isHOD && group.in_use_deployed > 0 && (
                                 <span className="font-medium text-blue-700 dark:text-blue-300">{group.in_use_deployed} Deployed</span>
                               )}
-                              <span className="font-medium text-purple-700 dark:text-purple-300">{group.in_stock_buffer} Central Buffer</span>
+                              {group.in_stock_buffer > 0 && (
+                                <span className="font-medium text-purple-700 dark:text-purple-300">{group.in_stock_buffer} Central Buffer</span>
+                              )}
                             </div>
                           </div>
 

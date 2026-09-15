@@ -632,7 +632,7 @@ export const ProcurementRequests: React.FC<Props> = ({
               </Select>
 
               {/* Department Filter (if not faculty) */}
-              {role !== "faculty" && (
+              {!["faculty", "staff", "teacher", "hod"].includes(role) && (
                 <Select value={selectedBranch} onValueChange={setSelectedBranch}>
                   <SelectTrigger className="h-9 w-[150px] text-xs">
                     <SelectValue placeholder="All Departments" />
