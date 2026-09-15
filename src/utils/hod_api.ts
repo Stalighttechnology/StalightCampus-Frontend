@@ -379,9 +379,10 @@ interface TimetableEntry {
 }
 
 interface ManageTimetableRequest {
-  action: "create" | "update" | "delete" | "bulk_create" | "GET";
+  action: "create" | "update" | "delete" | "bulk_create" | "create_group" | "delete_group" | "GET";
   timetable_id?: string;
   assignment_id?: string;
+  subject_type?: string;
   day?: string;
   start_time?: string;
   end_time?: string;
@@ -391,17 +392,20 @@ interface ManageTimetableRequest {
   section_id: string;
   branch_id: string;
   file?: File;
+  force?: boolean;
 }
 
 interface ManageTimetableResponse {
   success: boolean;
   message?: string;
+  conflict_warning?: boolean;
+  conflicts?: string[];
   count?: number;
   total_pages?: number;
   current_page?: number;
   next?: string | null;
   previous?: string | null;
-  data?: {timetable_id?: string;created_count?: number;errors?: string[];} | TimetableEntry[];
+  data?: {timetable_id?: string;timetable_ids?: string[];created_count?: number;errors?: string[];} | TimetableEntry[];
 }
 
 interface Leave {
