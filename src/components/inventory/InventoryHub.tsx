@@ -88,12 +88,12 @@ export const InventoryHub: React.FC<Props> = ({
   ];
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4 sm:space-y-6">
       <Card className="w-full bg-white dark:bg-card border border-gray-200 dark:border-border flex flex-col shadow-sm rounded-xl overflow-hidden">
-        <CardHeader className="border-b border-border/50 p-4 sm:p-5">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+        <CardHeader className="border-b border-border/50 p-3.5 sm:p-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 w-full">
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-xl sm:text-2xl font-semibold mb-1">
+              <CardTitle className="text-lg sm:text-2xl font-semibold mb-1">
                 Institutional Inventory & Asset Hub
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm text-muted-foreground">
@@ -103,12 +103,12 @@ export const InventoryHub: React.FC<Props> = ({
           </div>
 
           {/* Underline Tabs Header */}
-          <div className="flex border-b gap-6 overflow-x-auto dark:border-slate-800 pt-4 -mb-5">
+          <div className="flex border-b gap-4 sm:gap-6 overflow-x-auto dark:border-slate-800 pt-3 sm:pt-4 -mb-3.5 sm:-mb-5 scrollbar-none">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`pb-3 text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all border-b-2 ${
+                className={`pb-2.5 sm:pb-3 text-xs sm:text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all border-b-2 shrink-0 ${
                   activeTab === tab.id
                     ? "border-primary text-primary"
                     : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
@@ -120,7 +120,7 @@ export const InventoryHub: React.FC<Props> = ({
           </div>
         </CardHeader>
 
-        <CardContent className="p-4 sm:p-6 space-y-6">
+        <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
           {activeTab === "analytics" && !isStaff && (
             <InventoryAnalytics onNavigateTab={(tab) => setActiveTab(tab)} />
           )}

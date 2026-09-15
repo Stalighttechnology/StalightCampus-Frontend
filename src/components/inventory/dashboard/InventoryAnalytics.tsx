@@ -79,22 +79,22 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Asset Valuation */}
         <Card
           onClick={() => onNavigateTab && onNavigateTab("items")}
-          className="p-5 rounded-2xl border bg-gradient-to-br from-emerald-500/10 via-card to-card hover:border-emerald-500/40 transition-all cursor-pointer shadow-sm space-y-3"
+          className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-gradient-to-br from-emerald-500/10 via-card to-card hover:border-emerald-500/40 transition-all cursor-pointer shadow-sm space-y-2.5 sm:space-y-3"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Total Asset Valuation
             </span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-              <IndianRupee className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+              <IndianRupee className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div>
-            <h3 className="text-2xl font-black text-foreground">
+            <h3 className="text-xl sm:text-2xl font-black text-foreground">
               ₹{Number(kpis.total_valuation).toLocaleString("en-IN")}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -106,18 +106,18 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
         {/* In-Repair Count */}
         <Card
           onClick={() => onNavigateTab && onNavigateTab("tickets")}
-          className="p-5 rounded-2xl border bg-gradient-to-br from-amber-500/10 via-card to-card hover:border-amber-500/40 transition-all cursor-pointer shadow-sm space-y-3"
+          className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-gradient-to-br from-amber-500/10 via-card to-card hover:border-amber-500/40 transition-all cursor-pointer shadow-sm space-y-2.5 sm:space-y-3"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Assets In Repair
             </span>
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
-              <Wrench className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+              <Wrench className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div>
-            <h3 className="text-2xl font-black text-amber-600">
+            <h3 className="text-xl sm:text-2xl font-black text-amber-600">
               {kpis.in_repair_count}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -129,18 +129,18 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
         {/* Open Maintenance Tickets */}
         <Card
           onClick={() => onNavigateTab && onNavigateTab("tickets")}
-          className="p-5 rounded-2xl border bg-gradient-to-br from-blue-500/10 via-card to-card hover:border-blue-500/40 transition-all cursor-pointer shadow-sm space-y-3"
+          className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-gradient-to-br from-blue-500/10 via-card to-card hover:border-blue-500/40 transition-all cursor-pointer shadow-sm space-y-2.5 sm:space-y-3"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Open Support Tickets
             </span>
-            <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
-              <Clock className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div>
-            <h3 className="text-2xl font-black text-blue-600">
+            <h3 className="text-xl sm:text-2xl font-black text-blue-600">
               {kpis.active_tickets}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -152,18 +152,18 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
         {/* Pending Procurements */}
         <Card
           onClick={() => onNavigateTab && onNavigateTab("procurement")}
-          className="p-5 rounded-2xl border bg-gradient-to-br from-purple-500/10 via-card to-card hover:border-purple-500/40 transition-all cursor-pointer shadow-sm space-y-3"
+          className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-gradient-to-br from-purple-500/10 via-card to-card hover:border-purple-500/40 transition-all cursor-pointer shadow-sm space-y-2.5 sm:space-y-3"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Pending Requisitions
             </span>
-            <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center">
-              <ShoppingCart className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
+              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div>
-            <h3 className="text-2xl font-black text-purple-600">
+            <h3 className="text-xl sm:text-2xl font-black text-purple-600">
               {kpis.pending_procurements}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -174,9 +174,9 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
       </div>
 
       {/* Middle Grid: Category Breakdown & Locations */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Category Breakdown */}
-        <Card className="p-5 rounded-2xl border bg-card shadow-sm space-y-4">
+        <Card className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-card shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b pb-3">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Layers className="w-4 h-4 text-primary" /> Top Categories by Valuation
@@ -190,11 +190,11 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
             ) : (
               data?.by_category?.map((cat) => (
                 <div key={cat.category__id} className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-foreground">
+                  <div className="flex justify-between text-xs font-semibold gap-2 items-start">
+                    <span className="text-foreground break-words flex-1 min-w-0" title={`${cat.category__name} (${cat.category__prefix})`}>
                       {cat.category__name} ({cat.category__prefix})
                     </span>
-                    <span className="text-emerald-600 font-extrabold">
+                    <span className="text-emerald-600 font-extrabold shrink-0 text-right">
                       ₹{Number(cat.total_value || 0).toLocaleString("en-IN")}
                     </span>
                   </div>
@@ -216,7 +216,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
         </Card>
 
         {/* Location Breakdown */}
-        <Card className="p-5 rounded-2xl border bg-card shadow-sm space-y-4">
+        <Card className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-card shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b pb-3">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary" /> Asset Distribution by Block
@@ -230,11 +230,11 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
             ) : (
               data?.by_location?.map((loc) => (
                 <div key={loc.location__id} className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-foreground">
+                  <div className="flex justify-between text-xs font-semibold gap-2 items-start">
+                    <span className="text-foreground break-words flex-1 min-w-0" title={`${loc.location__name} (${loc.location__prefix})`}>
                       {loc.location__name} ({loc.location__prefix})
                     </span>
-                    <span className="font-extrabold text-foreground">{loc.count} item(s)</span>
+                    <span className="font-extrabold text-foreground shrink-0 text-right">{loc.count} item(s)</span>
                   </div>
                   <div className="w-full bg-muted/50 rounded-full h-2 overflow-hidden">
                     <div
@@ -255,7 +255,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
       </div>
 
       {/* Recent Activity Audit Trail */}
-      <Card className="p-5 rounded-2xl border bg-card shadow-sm space-y-3">
+      <Card className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-card shadow-sm space-y-3">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-2 border-b pb-3">
           <Clock className="w-4 h-4 text-primary" /> Recent Asset Mutations & Audit Trail
         </h3>
@@ -275,17 +275,17 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
               return (
                 <div
                   key={log.id}
-                  className="flex items-center justify-between gap-3 p-3 bg-muted/20 border rounded-xl text-xs hover:bg-muted/40 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 p-3 bg-muted/20 border rounded-xl text-xs hover:bg-muted/40 transition-colors"
                 >
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary">
+                  <div className="flex items-start sm:items-center gap-2 flex-wrap min-w-0 flex-1">
+                    <span className="font-mono text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary shrink-0">
                       {log.action_type.replace(/_/g, " ").toUpperCase()}
                     </span>
-                    <span className="text-foreground font-medium">
+                    <span className="text-foreground font-medium text-xs break-words">
                       {log.change_reason || "Asset updated"}
                     </span>
                   </div>
-                  <div className="text-[11px] text-muted-foreground whitespace-nowrap">
+                  <div className="text-[11px] text-muted-foreground shrink-0 self-start sm:self-auto">
                     by <strong>{log.changed_by_name}</strong> • {dateStr}
                   </div>
                 </div>

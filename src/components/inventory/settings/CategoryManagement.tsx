@@ -164,7 +164,7 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
         {/* Header Section */}
         <div className="flex flex-col">
           <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5">
-            <div className="shrink-0">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3">
                 <CardTitle className="text-xl sm:text-2xl font-semibold">Asset Categories</CardTitle>
               </div>
@@ -174,7 +174,7 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
             </div>
 
             {canCUD && (
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
                 <Button
                   size="sm"
                   onClick={() => handleOpenModal()}
