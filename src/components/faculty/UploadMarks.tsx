@@ -104,25 +104,73 @@ const formatBloomsList = (blooms: string | string[] | undefined | null): string[
   return blooms.split(',').map(s => s.trim()).filter(Boolean);
 };
 
-const getOrgLogoUrl = (): string => {
+const getOrgLogoUrl = (extraLogo?: string | null): string => {
   let logo = '';
   try {
-    const u = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
-    logo = (
-      u.org_logo ||
-      u.organization?.logo_url ||
-      u.organization?.logo ||
-      localStorage.getItem("org_logo") ||
-      sessionStorage.getItem("org_logo") ||
-      ""
-    );
+    if (extraLogo && typeof extraLogo === 'string' && extraLogo.trim()) {
+      logo = extraLogo.trim();
+    }
+    if (!logo) {
+      const rawUser = sessionStorage.getItem("user") || localStorage.getItem("user");
+      if (rawUser) {
+        try {
+          const u = JSON.parse(rawUser);
+          logo = (
+            u.org_logo ||
+            u.organization?.logo_url ||
+            u.organization?.logo ||
+            u.org?.logo_url ||
+            u.org?.logo ||
+            ""
+          );
+        } catch {
+          // ignore
+        }
+      }
+    }
+    if (!logo) {
+      logo = localStorage.getItem("org_logo") || sessionStorage.getItem("org_logo") || "";
+    }
   } catch {
     logo = localStorage.getItem("org_logo") || sessionStorage.getItem("org_logo") || "";
   }
-  if (!logo) {
-    logo = "/logo.jpeg";
+  if (!logo || logo === 'null' || logo === 'undefined') {
+    return "/logo.jpeg";
   }
-  return logo;
+  if (logo.startsWith('http://') || logo.startsWith('https://') || logo.startsWith('data:')) {
+    return logo;
+  }
+  const base = (typeof API_ENDPOINT !== 'undefined' ? API_ENDPOINT.replace(/\/api\/?$/, '') : '') ||
+               (window as any).API_BASE_URL ||
+               (import.meta as any).env?.VITE_API_URL || '';
+  const cleanBase = base ? base.replace(/\/$/, '') : '';
+  if (logo.startsWith('/')) {
+    return cleanBase ? `${cleanBase}${logo}` : logo;
+  }
+  return cleanBase ? `${cleanBase}/${logo}` : `/${logo}`;
+};
+
+const getOrgName = (extraName?: string | null): string => {
+  try {
+    if (extraName && typeof extraName === 'string' && extraName.trim() && extraName !== 'null' && extraName !== 'undefined') {
+      return extraName.trim();
+    }
+    const rawUser = sessionStorage.getItem("user") || localStorage.getItem("user");
+    if (rawUser) {
+      try {
+        const u = JSON.parse(rawUser);
+        const name = u.organization?.name || u.org?.name || u.org_name || u.organization_name;
+        if (name && typeof name === 'string' && name.trim()) return name.trim();
+      } catch {
+        // ignore
+      }
+    }
+    const stored = localStorage.getItem('org_name') || sessionStorage.getItem('org_name');
+    if (stored && stored.trim() && stored !== 'null' && stored !== 'undefined') return stored.trim();
+  } catch {
+    // ignore
+  }
+  return 'STALIGHT INSTITUTE';
 };
 
 const normalizeMarks = (value: string): string => {
@@ -254,6 +302,12 @@ const UploadMarks = () => {
             } catch (e) {
               console.error("Failed to parse local draft marks", e);
             }
+          }
+
+          // If not manually edited, compute total
+          if (!isEdited && (!totalValue || totalValue === "")) {
+            const qpMax = calculateQPMaxMarks(questions);
+            totalValue = calculateStudentTotalFromMarks(loadedMarks, questions, qpMax);
           }
 
           return {
@@ -433,6 +487,7 @@ const UploadMarks = () => {
         if (!mounted) return;
         if (detailRes && detailRes.success && detailRes.data && Array.isArray(detailRes.data) && detailRes.data.length > 0) {
           const full = detailRes.data[0];
+          setExistingQpSummary((prev: any) => ({ ...prev, ...full }));
           const loadedQuestions: Question[] = [];
           (full.questions || []).forEach((q: any) => {
             const qnum = q.question_number || q.number || '';
@@ -835,6 +890,25 @@ const UploadMarks = () => {
       return;
     }
 
+    if (totalMarks > 0) {
+      const studentsExceedingTotal = students.filter((s) => {
+        const studentTotalNum = parseFloat(String(s.total) || '0');
+        return studentTotalNum > totalMarks;
+      });
+
+      if (studentsExceedingTotal.length > 0) {
+        const usnList = studentsExceedingTotal.map(s => `${s.usn} (${s.total} > ${totalMarks})`).join(", ");
+        MySwal.fire({
+          title: "Total Marks Exceeded",
+          text: `Total marks cannot exceed the maximum QP marks (${totalMarks}). Please correct marks for: ${usnList}`,
+          icon: "error",
+          confirmButtonText: "OK"
+        });
+        setSavingMarks(false);
+        return;
+      }
+    }
+
     const confirmSubmit = await MySwal.fire({
       title: "Are you sure?",
       text: "Do you want to upload and submit these marks to the database?",
@@ -980,24 +1054,146 @@ const UploadMarks = () => {
     }));
   };
 
-  const calculateTotalMarks = () => {
-    let finalTotal = 0;
-    let prevMarks = 0;
+  const calculateQPMaxMarks = (questionsList: any[]): number => {
+    if (!questionsList || questionsList.length === 0) return 0;
 
-    questions.forEach((q, i) => {
-      const marks = Number.parseInt(q.maxMarks || '0', 10) || 0;
-      if (q.isOr && i > 0) {
-        finalTotal = finalTotal - prevMarks + Math.max(prevMarks, marks);
-        prevMarks = Math.max(prevMarks, marks);
+    const mainQuestions: Array<{ partName: string; mainNum: string; maxMarks: number; isOr: boolean }> = [];
+    const seenMap = new Map<string, { partName: string; mainNum: string; maxMarks: number; isOr: boolean }>();
+
+    questionsList.forEach((q, idx) => {
+      if (Array.isArray(q.subparts) && q.subparts.length > 0) {
+        const partName = q.part_name || q.partName || 'PART-A';
+        const isOr = Boolean(q.is_or || q.isOr);
+        const rawNum = String(q.question_number || q.questionNumber || q.number || (idx + 1));
+        const cleanNum = rawNum.replace(/^[Qq]\.?\s*/, '').trim();
+        const match = cleanNum.match(/^(\d+)/);
+        const mainNum = match ? match[1] : (cleanNum || String(idx + 1));
+        const subpartsSum = q.subparts.reduce((sum: number, s: any) => {
+          const m = parseFloat(String(s.max_marks ?? s.maxMarks ?? 0));
+          return sum + (isNaN(m) ? 0 : m);
+        }, 0);
+        const key = `${partName}_${mainNum}`;
+        if (!seenMap.has(key)) {
+          const obj = { partName, mainNum, maxMarks: subpartsSum, isOr };
+          seenMap.set(key, obj);
+          mainQuestions.push(obj);
+        } else {
+          seenMap.get(key)!.maxMarks += subpartsSum;
+          if (isOr) seenMap.get(key)!.isOr = true;
+        }
+        return;
+      }
+
+      const partName = q.part_name || q.partName || 'PART-A';
+      const isOr = Boolean(q.is_or || q.isOr);
+      const rawNum = String(q.question_number || q.questionNumber || q.number || (idx + 1));
+      const cleanNum = rawNum.replace(/^[Qq]\.?\s*/, '').trim();
+      const match = cleanNum.match(/^(\d+)/);
+      const mainNum = match ? match[1] : (cleanNum || String(idx + 1));
+      const marks = parseFloat(String(q.max_marks ?? q.maxMarks ?? 0)) || 0;
+
+      const key = `${partName}_${mainNum}`;
+      if (!seenMap.has(key)) {
+        const obj = { partName, mainNum, maxMarks: marks, isOr };
+        seenMap.set(key, obj);
+        mainQuestions.push(obj);
       } else {
-        finalTotal += marks;
-        prevMarks = marks;
+        const existing = seenMap.get(key)!;
+        existing.maxMarks += marks;
+        if (isOr) existing.isOr = true;
       }
     });
 
-    return finalTotal;
+    let calculatedTotal = 0;
+    let prevMarks = 0;
+
+    mainQuestions.forEach((mq, i) => {
+      if (mq.isOr && i > 0) {
+        calculatedTotal = calculatedTotal - prevMarks + Math.max(prevMarks, mq.maxMarks);
+        prevMarks = Math.max(prevMarks, mq.maxMarks);
+      } else {
+        calculatedTotal += mq.maxMarks;
+        prevMarks = mq.maxMarks;
+      }
+    });
+
+    return calculatedTotal;
   };
-  const totalMarks = calculateTotalMarks();
+
+  const calculateStudentTotalFromMarks = (
+    marksRecord: Record<string, string | number>,
+    questionsList: any[],
+    qpMaxMarks: number
+  ): string => {
+    if (!marksRecord || Object.keys(marksRecord).length === 0) return "";
+
+    const hasAnyMark = Object.values(marksRecord).some(v => v !== undefined && v !== "" && v !== null);
+    if (!hasAnyMark) return "";
+
+    const mainQuestions: Array<{
+      partName: string;
+      mainNum: string;
+      isOr: boolean;
+      subpartNumbers: string[];
+    }> = [];
+    const seenMap = new Map<string, { partName: string; mainNum: string; isOr: boolean; subpartNumbers: string[] }>();
+
+    questionsList.forEach((q, idx) => {
+      const partName = q.part_name || q.partName || 'PART-A';
+      const isOr = Boolean(q.is_or || q.isOr);
+      const rawNum = String(q.question_number || q.questionNumber || q.number || (idx + 1));
+      const cleanNum = rawNum.replace(/^[Qq]\.?\s*/, '').trim();
+      const match = cleanNum.match(/^(\d+)/);
+      const mainNum = match ? match[1] : (cleanNum || String(idx + 1));
+      const qNumKey = q.number || rawNum;
+
+      const key = `${partName}_${mainNum}`;
+      if (!seenMap.has(key)) {
+        const obj = { partName, mainNum, isOr, subpartNumbers: [qNumKey] };
+        seenMap.set(key, obj);
+        mainQuestions.push(obj);
+      } else {
+        const existing = seenMap.get(key)!;
+        if (!existing.subpartNumbers.includes(qNumKey)) {
+          existing.subpartNumbers.push(qNumKey);
+        }
+        if (isOr) existing.isOr = true;
+      }
+    });
+
+    const mainScores = mainQuestions.map((mq) => {
+      let sum = 0;
+      let attempted = false;
+      mq.subpartNumbers.forEach((num) => {
+        const val = marksRecord[num];
+        if (val !== undefined && val !== "" && val !== null) {
+          attempted = true;
+          const parsed = parseFloat(String(val));
+          if (!isNaN(parsed)) sum += parsed;
+        }
+      });
+      return { ...mq, score: sum, attempted };
+    });
+
+    let totalObtained = 0;
+    let prevScore = 0;
+
+    mainScores.forEach((mq, i) => {
+      if (mq.isOr && i > 0) {
+        const best = Math.max(prevScore, mq.score);
+        totalObtained = totalObtained - prevScore + best;
+        prevScore = best;
+      } else {
+        totalObtained += mq.score;
+        prevScore = mq.score;
+      }
+    });
+
+    const finalTotal = qpMaxMarks > 0 ? Math.min(totalObtained, qpMaxMarks) : totalObtained;
+    return Number.isInteger(finalTotal) ? String(finalTotal) : String(parseFloat(finalTotal.toFixed(2)));
+  };
+
+  const totalMarks = calculateQPMaxMarks(questions);
   const handleSelectChange = async (field: string, value: string | number) => {
 
     setErrorMessage("");
@@ -1420,12 +1616,26 @@ const UploadMarks = () => {
                                               return;
                                             }
 
+                                            const nextStudentMarks = {
+                                              ...(studentMarks[student.id] || {}),
+                                              [question.number]: value
+                                            };
+
                                             setStudentMarks((prev) => {
                                               const updated = { ...prev };
-                                              if (!updated[student.id]) updated[student.id] = {};
-                                              updated[student.id][question.number] = value;
+                                              updated[student.id] = nextStudentMarks;
                                               return updated;
                                             });
+
+                                            // Auto-update student total if not manually edited or if total was empty
+                                            setStudents((prev) => prev.map((s) => {
+                                              if (s.id !== student.id) return s;
+                                              if (!s.totalEdited) {
+                                                const newTotal = calculateStudentTotalFromMarks(nextStudentMarks, questions, totalMarks);
+                                                return { ...s, total: newTotal };
+                                              }
+                                              return s;
+                                            }));
                                           }} />
 
                                       </td>
@@ -1467,25 +1677,33 @@ const UploadMarks = () => {
                                         <div className="flex items-center justify-center gap-2">
                                           <Input
                                             type="text"
-                                            className="w-20 text-center mx-auto"
+                                            className="w-20 text-center mx-auto font-semibold"
                                             placeholder="Total"
                                             value={displayTotal}
                                             onChange={(e) => {
                                               const v = e.target.value;
+                                              if (v === "") {
+                                                setStudents((prev) => prev.map((s) => s.id === student.id ? { ...s, total: "", totalEdited: true } : s));
+                                                return;
+                                              }
                                               if (!/^\d*\.?\d*$/.test(v)) return;
+
+                                              const numV = parseFloat(v);
+                                              if (isNaN(numV) || numV < 0) return;
+
+                                              if (totalMarks > 0 && numV > totalMarks) {
+                                                MySwal.fire({
+                                                  title: "Limit Exceeded",
+                                                  text: `Total marks cannot exceed the maximum QP marks (${totalMarks}).`,
+                                                  icon: "warning",
+                                                  confirmButtonText: "OK"
+                                                });
+                                                return;
+                                              }
 
                                               const studentQuestions = studentMarks[student.id] || {};
                                               const hasAnyQuestionMark = Object.values(studentQuestions).some(val => val !== undefined && val !== "");
                                               
-                                              if (v !== "") {
-                                                const sumOfEnteredMarks = Object.values(studentQuestions).reduce((sum, val) => {
-                                                  const parsed = parseFloat(val as string);
-                                                  return sum + (isNaN(parsed) ? 0 : parsed);
-                                                }, 0);
-                                                
-                                                // Cap total to the sum of individually entered marks
-                                                if (parseFloat(v) > sumOfEnteredMarks) return;
-                                              }
                                               if (!hasAnyQuestionMark) {
                                                 MySwal.fire({
                                                   title: "Action Not Allowed",
@@ -1731,9 +1949,9 @@ const UploadMarks = () => {
                     {/* Header */}
                     <div className={`flex items-center justify-between pb-3 border-b-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
                       <div className="w-20 sm:w-24 flex-shrink-0 flex items-center justify-start">
-                        {getOrgLogoUrl() ? (
+                        {getOrgLogoUrl(existingQpSummary?.org_logo) ? (
                           <img
-                            src={getOrgLogoUrl()}
+                            src={getOrgLogoUrl(existingQpSummary?.org_logo)}
                             alt="Logo"
                             className="max-h-16 max-w-[80px] sm:max-w-[90px] object-contain rounded"
                             onError={(e) => {
@@ -1746,7 +1964,7 @@ const UploadMarks = () => {
                       </div>
                       <div className="flex-1 text-center space-y-1">
                         <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wide">
-                          {localStorage.getItem('org_name') || sessionStorage.getItem('org_name') || 'STALIGHT INSTITUTE'}
+                          {getOrgName(existingQpSummary?.org_name)}
                         </h2>
                         <div className="text-sm sm:text-base font-bold text-primary">
                           {selected.testType ? selected.testType.replace('_', ' ') : 'Internal Assessment'} {existingQpSummary?.set_number ? `- ${existingQpSummary.set_number}` : ''}

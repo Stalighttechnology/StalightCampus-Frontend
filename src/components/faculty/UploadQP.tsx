@@ -62,25 +62,73 @@ interface SubPart {
   maxMarks?: number;
 }
 
-const getOrgLogoUrl = (): string => {
+const getOrgLogoUrl = (extraLogo?: string | null): string => {
   let logo = '';
   try {
-    const u = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
-    logo = (
-      u.org_logo ||
-      u.organization?.logo_url ||
-      u.organization?.logo ||
-      localStorage.getItem("org_logo") ||
-      sessionStorage.getItem("org_logo") ||
-      ""
-    );
+    if (extraLogo && typeof extraLogo === 'string' && extraLogo.trim()) {
+      logo = extraLogo.trim();
+    }
+    if (!logo) {
+      const rawUser = sessionStorage.getItem("user") || localStorage.getItem("user");
+      if (rawUser) {
+        try {
+          const u = JSON.parse(rawUser);
+          logo = (
+            u.org_logo ||
+            u.organization?.logo_url ||
+            u.organization?.logo ||
+            u.org?.logo_url ||
+            u.org?.logo ||
+            ""
+          );
+        } catch {
+          // ignore
+        }
+      }
+    }
+    if (!logo) {
+      logo = localStorage.getItem("org_logo") || sessionStorage.getItem("org_logo") || "";
+    }
   } catch {
     logo = localStorage.getItem("org_logo") || sessionStorage.getItem("org_logo") || "";
   }
-  if (!logo) {
-    logo = "/logo.jpeg";
+  if (!logo || logo === 'null' || logo === 'undefined') {
+    return "/logo.jpeg";
   }
-  return logo;
+  if (logo.startsWith('http://') || logo.startsWith('https://') || logo.startsWith('data:')) {
+    return logo;
+  }
+  const base = (typeof API_ENDPOINT !== 'undefined' ? API_ENDPOINT.replace(/\/api\/?$/, '') : '') ||
+               (window as any).API_BASE_URL ||
+               (import.meta as any).env?.VITE_API_URL || '';
+  const cleanBase = base ? base.replace(/\/$/, '') : '';
+  if (logo.startsWith('/')) {
+    return cleanBase ? `${cleanBase}${logo}` : logo;
+  }
+  return cleanBase ? `${cleanBase}/${logo}` : `/${logo}`;
+};
+
+const getOrgName = (extraName?: string | null): string => {
+  try {
+    if (extraName && typeof extraName === 'string' && extraName.trim() && extraName !== 'null' && extraName !== 'undefined') {
+      return extraName.trim();
+    }
+    const rawUser = sessionStorage.getItem("user") || localStorage.getItem("user");
+    if (rawUser) {
+      try {
+        const u = JSON.parse(rawUser);
+        const name = u.organization?.name || u.org?.name || u.org_name || u.organization_name;
+        if (name && typeof name === 'string' && name.trim()) return name.trim();
+      } catch {
+        // ignore
+      }
+    }
+    const stored = localStorage.getItem('org_name') || sessionStorage.getItem('org_name');
+    if (stored && stored.trim() && stored !== 'null' && stored !== 'undefined') return stored.trim();
+  } catch {
+    // ignore
+  }
+  return 'STALIGHT INSTITUTE';
 };
 
 const formatCO = (co: string | string[] | undefined | null): string => {
@@ -142,6 +190,8 @@ const formatBloomsDisplay = (blooms: string | string[] | undefined | null): stri
 
 interface QPMetadata {
   status: string;
+  org_logo?: string | null;
+  org_name?: string | null;
   last_action?: { actor?: string; role: string; action: string; comment: string; };
 }
 
@@ -157,6 +207,8 @@ interface QuestionPaper {
   batch?: { id: number; name: string; } | number;
   semester?: number;
   section?: number;
+  org_logo?: string | null;
+  org_name?: string | null;
   last_action?: { actor?: string; role: string; action: string; comment: string; };
   questions?: QuestionData[];
   questions_data?: QuestionData[];
@@ -346,7 +398,7 @@ const UploadQP = () => {
             if (rows.length) {
               setQuestions(rows);
               setQpId(qp.id);
-              setCurrentQPMeta({ status: qp.status, last_action: qp.last_action });
+              setCurrentQPMeta({ status: qp.status, org_logo: qp.org_logo, org_name: qp.org_name, last_action: qp.last_action });
               setExamDate(qp.exam_date || '');
               setExamTime(qp.exam_time || '');
             } else {
@@ -703,24 +755,72 @@ const UploadQP = () => {
     setQuestions((prev) => prev.map((q) => q.id === id ? { ...q, [field]: value } : q));
   };
 
-  const calculateTotalMarks = () => {
-    let finalTotal = 0;
-    let prevMarks = 0;
+  const calculateQPMaxMarks = (questionsList: any[]): number => {
+    if (!questionsList || questionsList.length === 0) return 0;
 
-    questions.forEach((q, i) => {
-      const marks = Number.parseInt(q.maxMarks || '0', 10) || 0;
-      if (q.isOr && i > 0) {
-        finalTotal = finalTotal - prevMarks + Math.max(prevMarks, marks);
-        prevMarks = Math.max(prevMarks, marks);
+    const mainQuestions: Array<{ partName: string; mainNum: string; maxMarks: number; isOr: boolean }> = [];
+    const seenMap = new Map<string, { partName: string; mainNum: string; maxMarks: number; isOr: boolean }>();
+
+    questionsList.forEach((q, idx) => {
+      if (Array.isArray(q.subparts) && q.subparts.length > 0) {
+        const partName = q.part_name || q.partName || 'PART-A';
+        const isOr = Boolean(q.is_or || q.isOr);
+        const rawNum = String(q.question_number || q.questionNumber || q.number || (idx + 1));
+        const cleanNum = rawNum.replace(/^[Qq]\.?\s*/, '').trim();
+        const match = cleanNum.match(/^(\d+)/);
+        const mainNum = match ? match[1] : (cleanNum || String(idx + 1));
+        const subpartsSum = q.subparts.reduce((sum: number, s: any) => {
+          const m = parseFloat(String(s.max_marks ?? s.maxMarks ?? 0));
+          return sum + (isNaN(m) ? 0 : m);
+        }, 0);
+        const key = `${partName}_${mainNum}`;
+        if (!seenMap.has(key)) {
+          const obj = { partName, mainNum, maxMarks: subpartsSum, isOr };
+          seenMap.set(key, obj);
+          mainQuestions.push(obj);
+        } else {
+          seenMap.get(key)!.maxMarks += subpartsSum;
+          if (isOr) seenMap.get(key)!.isOr = true;
+        }
+        return;
+      }
+
+      const partName = q.part_name || q.partName || 'PART-A';
+      const isOr = Boolean(q.is_or || q.isOr);
+      const rawNum = String(q.question_number || q.questionNumber || q.number || (idx + 1));
+      const cleanNum = rawNum.replace(/^[Qq]\.?\s*/, '').trim();
+      const match = cleanNum.match(/^(\d+)/);
+      const mainNum = match ? match[1] : (cleanNum || String(idx + 1));
+      const marks = parseFloat(String(q.max_marks ?? q.maxMarks ?? 0)) || 0;
+
+      const key = `${partName}_${mainNum}`;
+      if (!seenMap.has(key)) {
+        const obj = { partName, mainNum, maxMarks: marks, isOr };
+        seenMap.set(key, obj);
+        mainQuestions.push(obj);
       } else {
-        finalTotal += marks;
-        prevMarks = marks;
+        const existing = seenMap.get(key)!;
+        existing.maxMarks += marks;
+        if (isOr) existing.isOr = true;
       }
     });
 
-    return finalTotal;
+    let calculatedTotal = 0;
+    let prevMarks = 0;
+
+    mainQuestions.forEach((mq, i) => {
+      if (mq.isOr && i > 0) {
+        calculatedTotal = calculatedTotal - prevMarks + Math.max(prevMarks, mq.maxMarks);
+        prevMarks = Math.max(prevMarks, mq.maxMarks);
+      } else {
+        calculatedTotal += mq.maxMarks;
+        prevMarks = mq.maxMarks;
+      }
+    });
+
+    return calculatedTotal;
   };
-  const totalMarks = calculateTotalMarks();
+  const totalMarks = calculateQPMaxMarks(questions);
 
   const validateSelection = () => {
     if (!selected.batch_id || !selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber) {
@@ -846,7 +946,7 @@ const UploadQP = () => {
         // Update local ID and metadata after save
         if (res.data?.id) setQpId(res.data.id);
         if (res.data?.status) {
-          setCurrentQPMeta({ status: res.data.status, last_action: res.data.last_action });
+          setCurrentQPMeta({ status: res.data.status, org_logo: res.data.org_logo, org_name: res.data.org_name, last_action: res.data.last_action });
         }
 
         setTabValue('questionPaper');
@@ -960,7 +1060,7 @@ const UploadQP = () => {
           const detail = await getQuestionPaperDetail(qpId);
           if (detail?.success && Array.isArray(detail?.data) && detail.data.length > 0) {
             const qp = detail.data[0];
-            setCurrentQPMeta({ status: qp.status, last_action: qp.last_action });
+            setCurrentQPMeta({ status: qp.status, org_logo: qp.org_logo, org_name: qp.org_name, last_action: qp.last_action });
           }
         } catch (err) {
 
@@ -1623,9 +1723,9 @@ const UploadQP = () => {
                         {/* Header */}
                         <div className={`flex items-center justify-between pb-3 border-b-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
                           <div className="w-20 sm:w-24 flex-shrink-0 flex items-center justify-start">
-                            {getOrgLogoUrl() ? (
+                            {getOrgLogoUrl(currentQPMeta?.org_logo) ? (
                               <img
-                                src={getOrgLogoUrl()}
+                                src={getOrgLogoUrl(currentQPMeta?.org_logo)}
                                 alt="Logo"
                                 className="max-h-16 max-w-[80px] sm:max-w-[90px] object-contain rounded"
                                 onError={(e) => {
@@ -1638,7 +1738,7 @@ const UploadQP = () => {
                           </div>
                           <div className="flex-1 text-center space-y-1">
                             <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wide">
-                              {localStorage.getItem('org_name') || sessionStorage.getItem('org_name') || 'STALIGHT INSTITUTE'}
+                              {getOrgName(currentQPMeta?.org_name)}
                             </h2>
                             <div className="text-sm sm:text-base font-bold text-primary">
                               {selected.testType ? selected.testType.replace('_', ' ') : 'Internal Assessment'} {selected.setNumber ? `- ${selected.setNumber}` : ''}
