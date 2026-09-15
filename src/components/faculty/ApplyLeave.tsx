@@ -461,7 +461,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           if (faculty_branch) {
             setUserBranch(faculty_branch);
             setSelectedBranch(faculty_branch.id.toString());
-          } else if (branches && branches.length > 0 && !selectedBranch) {
+          } else if (branches && branches.length > 0 && !selectedBranch && (userRole === 'teacher' || userRole === 'hod' || userRole === 'faculty')) {
             setSelectedBranch(branches[0].id.toString());
           }
         }
@@ -1022,7 +1022,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     const startTimeStr = leaveType === 'short_permission' ? formatTime24h(startTimeParts.hour, startTimeParts.minute, startTimeParts.period) : undefined;
     const endTimeStr = leaveType === 'short_permission' ? formatTime24h(endTimeParts.hour, endTimeParts.minute, endTimeParts.period) : undefined;
 
-    const branchIdToSubmit = selectedBranch ? parseInt(selectedBranch) : (userBranch ? userBranch.id : undefined);
+    const isTeachingRole = userRole === 'teacher' || userRole === 'hod' || userRole === 'faculty';
+    const branchIdToSubmit = (isTeachingRole && selectedBranch) ? parseInt(selectedBranch) : (userBranch ? userBranch.id : undefined);
 
     const requestData: any = {
       title: title.trim(),
@@ -1534,7 +1535,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                 <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                                   {req.applicant_role?.replace('_', ' ')}
                                 </span>
-                                {req.department && req.department !== 'General' && req.department !== 'Unknown' && (
+                                {req.department && req.department !== 'General' && req.department !== 'Unknown' && req.department !== 'Inventory Management' && req.applicant_role !== 'inventory_manager' && (
                                   <span className="text-xs text-muted-foreground font-medium">{req.department}</span>
                                 )}
                               </div>
@@ -1673,7 +1674,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   <span className="text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                                     {req.applicant_role?.replace('_', ' ')}
                                   </span>
-                                  {req.department && req.department !== 'General' && req.department !== 'Unknown' && (
+                                  {req.department && req.department !== 'General' && req.department !== 'Unknown' && req.department !== 'Inventory Management' && req.applicant_role !== 'inventory_manager' && (
                                     <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{req.department}</span>
                                   )}
                                 </div>

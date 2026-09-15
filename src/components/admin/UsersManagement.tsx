@@ -90,6 +90,7 @@ const displayRoleMap: Record<string, string> = {
   "placement_officer": "Placement Officer",
   "transport_admin": "Transport Admin",
   "library_admin": "Library Admin",
+  "inventory_manager": "Inventory Manager",
   "admission_manager": "Admission Manager",
   "counsellor": "Admission Counsellor",
   "driver": "Driver"

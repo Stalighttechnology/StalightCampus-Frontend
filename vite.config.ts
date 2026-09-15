@@ -59,8 +59,7 @@ export default defineConfig(({ mode }) => ({
     dedupe: ['react', 'react-dom', 'react/jsx-runtime', '@radix-ui/react-toast', 'next-themes', 'sonner'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-joyride'],
-    exclude: ['@zxing/library', '@zxing/browser']
+    include: ['react', 'react-dom', 'react-joyride', '@zxing/library', '@zxing/browser'],
   },
   // Build optimizations for production chunking
   // - `chunkSizeWarningLimit` raised to avoid noisy warnings for larger legitimate chunks
@@ -68,6 +67,15 @@ export default defineConfig(({ mode }) => ({
   build: {
     chunkSizeWarningLimit: 2000, // KB - increased to reduce warnings for large legitimate chunks
     rollupOptions: {
+      onwarn(warning, defaultHandler) {
+        if (
+          warning.code === 'SOURCEMAP_ERROR' ||
+          warning.message?.includes('points to a source file outside its package')
+        ) {
+          return;
+        }
+        defaultHandler(warning);
+      },
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {

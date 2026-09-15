@@ -28,7 +28,7 @@ interface User {
 }
 
 interface DashboardLayoutProps {
-  role: "admin" | "principal" | "org_admin" | "hod" | "faculty" | "student" | "fees_manager" | "coe" | "dean" | "hms" | "warden" | "transport_admin" | "driver" | "library_admin" | "parent";
+  role: "admin" | "principal" | "org_admin" | "hod" | "faculty" | "student" | "fees_manager" | "coe" | "dean" | "hms" | "warden" | "transport_admin" | "driver" | "library_admin" | "parent" | "inventory_manager" | string;
   user: User;
   activePage: string;
   onPageChange: (page: string) => void;

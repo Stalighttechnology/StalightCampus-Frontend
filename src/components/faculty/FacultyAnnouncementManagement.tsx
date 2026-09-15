@@ -85,7 +85,30 @@ const FacultyAnnouncementManagement = () => {
   const [unreadReceivedCount, setUnreadReceivedCount] = useState(0);
   const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
-  const isNonTeaching = user?.role === 'group_d' || user?.role === 'security' || user?.role === 'driver' || user?.role === 'caretaker' || branchName.includes('non-teaching') || branchName.includes('non teaching') || deptName.includes('non-teaching') || deptName.includes('non teaching') || ['warden', 'library_admin', 'transport_admin', 'driver', 'fees_manager', 'admission_manager', 'group_d', 'security', 'caretaker'].includes(user?.role || '');
+  const branchName = String(user?.branch_name || user?.branch || "").toLowerCase();
+  const deptName = String(user?.department_name || user?.department || "").toLowerCase();
+  const isNonTeaching =
+    user?.role === "group_d" ||
+    user?.role === "security" ||
+    user?.role === "driver" ||
+    user?.role === "caretaker" ||
+    user?.role === "inventory_manager" ||
+    branchName.includes("non-teaching") ||
+    branchName.includes("non teaching") ||
+    deptName.includes("non-teaching") ||
+    deptName.includes("non teaching") ||
+    [
+      "warden",
+      "library_admin",
+      "transport_admin",
+      "driver",
+      "fees_manager",
+      "admission_manager",
+      "group_d",
+      "security",
+      "caretaker",
+      "inventory_manager",
+    ].includes(user?.role || "");
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);

@@ -126,7 +126,7 @@ const DEFAULT_CATEGORY_WORKFLOWS: Record<string, any> = {
 
 const DEFAULT_STAFF_CATEGORY_MAPPING: Record<string, string[]> = {
   teaching: ['teacher', 'hod', 'dean'],
-  non_teaching: ['caretaker', 'driver', 'warden', 'library_admin', 'transport_admin', 'hms_admin', 'group_d', 'security'],
+  non_teaching: ['caretaker', 'driver', 'warden', 'library_admin', 'transport_admin', 'hms_admin', 'group_d', 'security', 'inventory_manager'],
   admin_branch: ['principal', 'org_admin', 'admission_manager', 'fees_manager', 'coe', 'placement_officer', 'counsellor'],
 };
 
@@ -588,7 +588,8 @@ export default function PrincipalTimetableSettings() {
       fees_manager: { num_stages: 1, stages: ['principal'] },
       counsellor: { num_stages: 2, stages: ['admission_manager', 'principal'] },
       driver: { num_stages: 2, stages: ['transport_admin', 'principal'] },
-      warden: { num_stages: 2, stages: ['hms_admin', 'principal'] }
+      warden: { num_stages: 2, stages: ['hms_admin', 'principal'] },
+      inventory_manager: { num_stages: 1, stages: ['principal'] }
     } as Record<string, any>
   });
 
@@ -630,6 +631,7 @@ export default function PrincipalTimetableSettings() {
     { value: 'warden', label: 'Warden' },
     { value: 'library_admin', label: 'Library Admin' },
     { value: 'transport_admin', label: 'Transport Admin' },
+    { value: 'inventory_manager', label: 'Inventory Manager' },
   ];
 
   const [startTimeParts, setStartTimeParts] = useState({ hour: "09", minute: "00", period: "AM" });
@@ -1356,7 +1358,8 @@ export default function PrincipalTimetableSettings() {
       { value: 'hms_admin', label: 'HMS Admin' },
       { value: 'transport_admin', label: 'Transport Admin' },
       { value: 'group_d', label: 'Group D' },
-      { value: 'security', label: 'Security' }
+      { value: 'security', label: 'Security' },
+      { value: 'inventory_manager', label: 'Inventory Manager' }
     ];
 
     const colorConfig = {
@@ -3038,7 +3041,8 @@ export default function PrincipalTimetableSettings() {
                           { roleKey: 'driver', label: 'Driver Leaves', defaultStages: ['transport_admin', 'principal'] },
                           { roleKey: 'library_admin', label: 'Library Admin Leaves', defaultStages: ['principal'] },
                           { roleKey: 'placement_officer', label: 'Placement Officer Leaves', defaultStages: ['principal'] },
-                          { roleKey: 'admission_manager', label: 'Admission Manager Leaves', defaultStages: ['principal'] }
+                          { roleKey: 'admission_manager', label: 'Admission Manager Leaves', defaultStages: ['principal'] },
+                          { roleKey: 'inventory_manager', label: 'Inventory Manager Leaves', defaultStages: ['principal'] }
                         ].map((item) => {
                           const ALL_APPROVER_OPTIONS = [
                             { value: 'hod', label: 'Head of Department (HOD)' },

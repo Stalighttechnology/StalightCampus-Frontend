@@ -39,6 +39,7 @@ import Reports from "../FeesManager/Reports";
 import ComplianceReports from "../admin/ComplianceReports";
 import ExternalLinksPage from "../admin/ExternalLinksPage";
 import HODSemesterMonitor from "../hod/HODSemesterMonitor";
+import { InventoryHub } from "../inventory/InventoryHub";
 
 import {
   Users,
@@ -288,6 +289,8 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return <StaffTaskTracker />;
       case "compliance-reports":
         return <ComplianceReports />;
+      case "inventory":
+        return <InventoryHub role={user?.role || "principal"} />;
       case "external-links":
         return <ExternalLinksPage userRole={user?.role || "principal"} />;
       default:
