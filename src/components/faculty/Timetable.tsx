@@ -416,38 +416,40 @@ const Timetable = ({ role }: TimetableProps) => {
                           return (
                             <td key={day} className="px-3 py-3 vertical-top min-w-[140px] max-w-[180px]">
                               {entries && entries.length > 0 ? (
-                                entries.map((entry, eIdx) => {
-                                  const colors = getSubjectColor(entry.subject);
-                                  const ongoing = isSessionOngoing(entry.start_time, entry.end_time, entry.day);
+                                <div className="flex flex-col gap-1.5">
+                                  {entries.map((entry, eIdx) => {
+                                    const colors = getSubjectColor(entry.subject);
+                                    const ongoing = isSessionOngoing(entry.start_time, entry.end_time, entry.day);
 
-                                  return (
-                                    <div
-                                      key={eIdx}
-                                      className={`p-2.5 rounded-lg border flex flex-col justify-between h-full transition-all duration-300 ${colors.border} ${colors.bg} ${ongoing
-                                        ? 'border-primary ring-2 ring-primary/40 dark:ring-primary/60 scale-[1.03] bg-primary/15 dark:bg-primary/25'
-                                        : 'opacity-80 hover:opacity-100 hover:scale-[1.01]'
-                                        }`}
-                                    >
-                                      <div className="relative">
-                                        {ongoing && (
-                                          <span className="absolute right-0 top-0.5 flex h-1.5 w-1.5">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                                          </span>
-                                        )}
-                                        <div className={`font-semibold text-[11px] leading-tight ${colors.text} truncate pr-3.5`}>
-                                          {entry.subject}
+                                    return (
+                                      <div
+                                        key={eIdx}
+                                        className={`p-2.5 rounded-lg border flex flex-col justify-between transition-all duration-300 ${colors.border} ${colors.bg} ${ongoing
+                                          ? 'border-primary ring-2 ring-primary/40 dark:ring-primary/60 scale-[1.03] bg-primary/15 dark:bg-primary/25'
+                                          : 'opacity-80 hover:opacity-100 hover:scale-[1.01]'
+                                          }`}
+                                      >
+                                        <div className="relative">
+                                          {ongoing && (
+                                            <span className="absolute right-0 top-0.5 flex h-1.5 w-1.5">
+                                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                                            </span>
+                                          )}
+                                          <div className={`font-semibold text-[11px] leading-tight ${colors.text} truncate pr-3.5`}>
+                                            {entry.subject}
+                                          </div>
+
                                         </div>
 
+                                        <div className="flex justify-between items-center text-[9px] font-semibold text-slate-600 dark:text-slate-300 mt-2 pt-1.5 border-t border-slate-200/40 dark:border-slate-850/40">
+                                          <span className="truncate max-w-[75px]">Sem {entry.semester}, Sec {entry.section}</span>
+                                          <span className="text-primary whitespace-nowrap">{entry.room && (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`)}</span>
+                                        </div>
                                       </div>
-
-                                      <div className="flex justify-between items-center text-[9px] font-semibold text-slate-600 dark:text-slate-300 mt-2 pt-1.5 border-t border-slate-200/40 dark:border-slate-850/40">
-                                        <span className="truncate max-w-[70px]">Sem {entry.semester}, Sec {entry.section}</span>
-                                        <span className="text-primary whitespace-nowrap">{entry.room && (entry.room.toLowerCase().startsWith('room') ? entry.room : `Room ${entry.room}`)}</span>
-                                      </div>
-                                    </div>
-                                  );
-                                })
+                                    );
+                                  })}
+                                </div>
                               ) : (
                                 <div className="h-full min-h-[48px] flex items-center justify-center text-slate-200 dark:text-slate-800/80 font-semibold select-none">
                                   •

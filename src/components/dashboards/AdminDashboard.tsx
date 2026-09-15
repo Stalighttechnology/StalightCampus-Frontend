@@ -21,6 +21,7 @@ import AdminCOAttainment from "../common/AdminCOAttainment";
 import { useToast } from "../../hooks/use-toast";
 import AdminAttendance from "../admin/AdminAttendance";
 import AdminFacultyAttendanceView from "../admin/AdminFacultyAttendanceView";
+import AdminAttendanceRecords from "../admin/AdminAttendanceRecords";
 import ApplyLeaveAdmin from "../faculty/ApplyLeave";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
@@ -182,6 +183,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <AdminHODAttendance setError={setError} />
+          </div>);
+
+      case "attendance-records":
+        return (
+          <div>
+            <AdminAttendanceRecords />
           </div>);
 
       case "faculty-attendance":

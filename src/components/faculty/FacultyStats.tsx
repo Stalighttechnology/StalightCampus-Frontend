@@ -110,8 +110,8 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
   const [performanceTrends, setPerformanceTrends] = useState<{ avg_attendance_percent_30d?: number; avg_ia_mark?: number; }>({});
   const [subjectPerformanceTrends, setSubjectPerformanceTrends] = useState<SubjectPerformanceTrend[]>([]);
   const [todayClasses, setTodayClasses] = useState<TodayClass[]>([]);
-  const [ongoingClass, setOngoingClass] = useState<TodayClass | null>(null);
-  const [nextClass, setNextClass] = useState<TodayClass | null>(null);
+  const [ongoingClasses, setOngoingClasses] = useState<TodayClass[]>([]);
+  const [nextClasses, setNextClasses] = useState<TodayClass[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string>("");
@@ -156,40 +156,57 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
     iaMarks: trend.avg_ia_mark
   }));
 
-  // Helper function to determine ongoing and next classes
+  // Helper function to determine ongoing and next classes (supports split-view / multiple classes per slot)
   const determineClassStatus = (classes: TodayClass[]) => {
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes(); // minutes since midnight
 
-    let ongoing: TodayClass | null = null;
-    let next: TodayClass | null = null;
-    let earliestFuture: TodayClass | null = null;
+    const ongoingList: TodayClass[] = [];
+    let earliestFutureMinutes: number | null = null;
 
     for (const cls of classes) {
+      if (!cls.start_time || !cls.end_time) continue;
       const [startHour, startMin] = cls.start_time.split(':').map(Number);
       const [endHour, endMin] = cls.end_time.split(':').map(Number);
       const startMinutes = startHour * 60 + startMin;
       const endMinutes = endHour * 60 + endMin;
 
       if (currentTime >= startMinutes && currentTime <= endMinutes) {
-        ongoing = cls;
+        ongoingList.push(cls);
       } else if (currentTime < startMinutes) {
-        if (!earliestFuture || startMinutes < earliestFuture.start_time.split(':').map(Number)[0] * 60 + earliestFuture.start_time.split(':').map(Number)[1]) {
-          earliestFuture = cls;
+        if (earliestFutureMinutes === null || startMinutes < earliestFutureMinutes) {
+          earliestFutureMinutes = startMinutes;
         }
       }
     }
 
-    setOngoingClass(ongoing);
-    setNextClass(earliestFuture);
+    const nextList: TodayClass[] = [];
+    if (earliestFutureMinutes !== null) {
+      for (const cls of classes) {
+        if (!cls.start_time) continue;
+        const [startHour, startMin] = cls.start_time.split(':').map(Number);
+        const startMinutes = startHour * 60 + startMin;
+        if (startMinutes === earliestFutureMinutes) {
+          nextList.push(cls);
+        }
+      }
+    }
+
+    setOngoingClasses(ongoingList);
+    setNextClasses(nextList);
   };
 
   // Live time for header (for display like student dashboard)
   const [nowDate, setNowDate] = useState<Date>(new Date());
   useEffect(() => {
-    const t = setInterval(() => setNowDate(new Date()), 30_000);
+    const t = setInterval(() => {
+      setNowDate(new Date());
+      if (todayClasses.length > 0) {
+        determineClassStatus(todayClasses);
+      }
+    }, 30_000);
     return () => clearInterval(t);
-  }, []);
+  }, [todayClasses]);
 
   // Helper to get status/color/message for a class (used for Next class display)
   const getClassStatus = (cls?: TodayClass | null) => {
@@ -951,90 +968,231 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
             </CardHeader>
 
             <CardContent className="w-full flex-1 flex flex-col gap-3 md:gap-4 p-3 md:p-4">
-              {ongoingClass ?
-                <>
-                  <div className={`border-2 border-blue-500 rounded-md p-3 md:p-4 w-full shadow-md flex flex-col items-center sm:items-start gap-2 ${theme === 'dark' ? 'bg-blue-900/20' : 'bg-blue-50'}`
-                  }>
-                    <h4 className={`font-semibold text-base sm:text-lg mb-2 line-clamp-2 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                      {ongoingClass.subject}
-                    </h4>
-                    <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                      Section: {ongoingClass.section ?? ''}
-                    </p>
-                    <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                      Room: {ongoingClass.room}
-                    </p>
-                    <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      {ongoingClass.start_time} - {ongoingClass.end_time}
-                    </p>
-                    <p className={`text-sm sm:text-base mt-1 font-medium ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>Currently Running</p>
-                  </div>
-                  {nextClass &&
-                    <div className={`border rounded-md p-3 w-full shadow-md ${getClassStatus(nextClass).status === 'starting-soon' ?
-                      theme === 'dark' ? 'border-orange-500 bg-orange-900/20' : 'border-orange-500 bg-orange-50' :
-                      getClassStatus(nextClass).status === 'upcoming' ?
-                        theme === 'dark' ? 'border-yellow-500 bg-yellow-900/20' : 'border-yellow-500 bg-yellow-50' :
-                        theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-gray-50'}`
-                    }>
-                      <h4 className={`font-semibold text-base sm:text-lg mb-2 line-clamp-2 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                        {nextClass.subject}
-                      </h4>
-                      <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        Section: {nextClass.section ?? ''}
-                      </p>
-                      <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        Room: {nextClass.room}
-                      </p>
-                      <p className={`text-xs sm:text-sm mt-1 font-medium line-clamp-2 ${getClassStatus(nextClass).color || (theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500')}`}>
-                        {getClassStatus(nextClass).message || `Starts at ${nextClass.start_time}`}
-                      </p>
+              {ongoingClasses.length > 0 ? (
+                <div className="flex flex-col gap-3.5 w-full">
+                  {/* Ongoing Session Container */}
+                  <div className={`border-2 border-blue-500/80 rounded-xl p-3.5 md:p-4 w-full shadow-sm flex flex-col gap-3 ${
+                    theme === 'dark' ? 'bg-blue-950/20' : 'bg-blue-50/70'
+                  }`}>
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className={`text-xs sm:text-sm font-bold tracking-wide uppercase ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
+                          Currently Running ({ongoingClasses[0].start_time} - {ongoingClasses[0].end_time})
+                        </span>
+                      </div>
+                      {ongoingClasses.length > 1 && (
+                        <Badge variant="secondary" className="text-[10.5px] font-semibold px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25">
+                          {ongoingClasses.length} Concurrent Classes / Sections
+                        </Badge>
+                      )}
                     </div>
-                  }
-                </> :
 
-                <div className="w-full">
-                  <div className={`flex flex-col items-center justify-center py-7 px-3 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
-                  }>
-                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-accent/20 text-primary/80' : 'bg-primary/10 text-primary/80'}`}>
-                      <Activity className="w-8 h-8 opacity-60" />
+                    {/* Split-wise grid */}
+                    <div className={`grid gap-3 w-full ${ongoingClasses.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                      {ongoingClasses.map((cls, idx) => (
+                        <div
+                          key={idx}
+                          className={`p-3.5 sm:p-4 rounded-xl border flex flex-col justify-between transition-all ${
+                            theme === 'dark' ? 'bg-card/90 border-blue-500/30' : 'bg-white border-blue-200 shadow-xs'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {cls.branch && (
+                                  <Badge variant="outline" className="text-[10px] font-semibold text-primary border-primary/30 bg-primary/5">
+                                    {cls.branch}
+                                  </Badge>
+                                )}
+                                <Badge variant="secondary" className="text-[10.5px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                                  {cls.semester ? `Sem ${cls.semester}` : 'Sem 1'} • Sec {cls.section || 'N/A'}
+                                </Badge>
+                              </div>
+
+                              <div className="flex items-center gap-1 text-xs font-semibold text-primary">
+                                <MapPin className="w-3.5 h-3.5 shrink-0 text-primary/80" />
+                                <span>{cls.room ? (cls.room.toLowerCase().startsWith('room') ? cls.room : `Room ${cls.room}`) : 'Room N/A'}</span>
+                              </div>
+                            </div>
+
+                            <h4 className={`font-semibold text-base sm:text-lg leading-snug line-clamp-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              {cls.subject}
+                            </h4>
+                          </div>
+
+                          <div className="flex items-center justify-between flex-wrap gap-2 text-xs font-medium text-muted-foreground mt-3 pt-2.5 border-t border-border/60">
+                            <div className="flex items-center gap-1.5 font-medium text-foreground/85">
+                              <Users className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                              <span>Sem {cls.semester ?? '1'}, Section {cls.section ?? 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center gap-1 font-semibold text-foreground">
+                              <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                              <span>{cls.start_time} - {cls.end_time}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <h4 className={`text-lg sm:text-xl font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  </div>
+
+                  {/* Next Session Container */}
+                  {nextClasses.length > 0 && (
+                    <div className={`border rounded-xl p-3.5 md:p-4 w-full shadow-sm flex flex-col gap-3 ${
+                      getClassStatus(nextClasses[0]).status === 'starting-soon'
+                        ? (theme === 'dark' ? 'border-orange-500/40 bg-orange-950/20' : 'border-orange-300 bg-orange-50/60')
+                        : (theme === 'dark' ? 'border-border bg-card/60' : 'border-gray-200 bg-gray-50/60')
+                    }`}>
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-muted-foreground" />
+                          <span className={`text-xs sm:text-sm font-semibold tracking-wide ${getClassStatus(nextClasses[0]).color}`}>
+                            {getClassStatus(nextClasses[0]).message || `Starts at ${nextClasses[0].start_time}`}
+                          </span>
+                        </div>
+                        {nextClasses.length > 1 && (
+                          <Badge variant="secondary" className="text-[10.5px] font-semibold px-2 py-0.5">
+                            {nextClasses.length} Upcoming Classes
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Split-wise grid for next classes */}
+                      <div className={`grid gap-3 w-full ${nextClasses.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                        {nextClasses.map((cls, idx) => (
+                          <div
+                            key={idx}
+                            className={`p-3.5 sm:p-4 rounded-xl border flex flex-col justify-between transition-all ${
+                              theme === 'dark' ? 'bg-card/90 border-border/80' : 'bg-white border-gray-200 shadow-xs'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  {cls.branch && (
+                                    <Badge variant="outline" className="text-[10px] font-semibold text-muted-foreground border-border">
+                                      {cls.branch}
+                                    </Badge>
+                                  )}
+                                  <Badge variant="secondary" className="text-[10.5px] font-semibold">
+                                    {cls.semester ? `Sem ${cls.semester}` : 'Sem 1'} • Sec {cls.section || 'N/A'}
+                                  </Badge>
+                                </div>
+
+                                <div className="flex items-center gap-1 text-xs font-semibold text-primary">
+                                  <MapPin className="w-3.5 h-3.5 shrink-0 text-primary/80" />
+                                  <span>{cls.room ? (cls.room.toLowerCase().startsWith('room') ? cls.room : `Room ${cls.room}`) : 'Room N/A'}</span>
+                                </div>
+                              </div>
+
+                              <h4 className={`font-semibold text-base sm:text-lg leading-snug line-clamp-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {cls.subject}
+                              </h4>
+                            </div>
+
+                            <div className="flex items-center justify-between flex-wrap gap-2 text-xs font-medium text-muted-foreground mt-3 pt-2.5 border-t border-border/60">
+                              <div className="flex items-center gap-1.5 font-medium text-foreground/85">
+                                <Users className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <span>Sem {cls.semester ?? '1'}, Section {cls.section ?? 'N/A'}</span>
+                              </div>
+                              <div className="flex items-center gap-1 font-semibold text-foreground">
+                                <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <span>{cls.start_time} - {cls.end_time}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* No Ongoing Class */
+                <div className="w-full flex flex-col gap-3.5">
+                  <div className={`flex flex-col items-center justify-center py-7 px-3 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${
+                    theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+                  }`}>
+                    <div className={`p-4 rounded-full mb-3 ${theme === 'dark' ? 'bg-accent/20 text-primary/80' : 'bg-primary/10 text-primary/80'}`}>
+                      <Activity className="w-7 h-7 opacity-60" />
+                    </div>
+                    <h4 className={`text-base sm:text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                       No class is currently running
                     </h4>
-                    <p className="text-sm sm:text-base max-w-[200px] sm:max-w-md mx-auto leading-relaxed opacity-70">
+                    <p className="text-xs sm:text-sm max-w-[240px] sm:max-w-md mx-auto leading-relaxed opacity-70">
                       Take a break or prepare for your next scheduled session.
                     </p>
                   </div>
 
-                  {nextClass &&
-                    <div className={`border rounded-md p-3 mt-4 shadow-md text-center ${getClassStatus(nextClass).status === 'starting-soon' ?
-                      theme === 'dark' ? 'border-orange-500 bg-orange-900/20' : 'border-orange-500 bg-orange-50' :
-                      getClassStatus(nextClass).status === 'upcoming' ?
-                        theme === 'dark' ? 'border-yellow-500 bg-yellow-900/20' : 'border-yellow-500 bg-yellow-50' :
-                        theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-gray-50'}`
-                    }>
-                      <h4 className={`font-semibold text-base sm:text-lg mb-2 line-clamp-2 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                        Next: {nextClass.subject}
-                      </h4>
-                      <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        Section: {nextClass.section ?? ''}
-                      </p>
-                      <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        Room: {nextClass.room}
-                      </p>
-                      <p className={`text-xs sm:text-sm mt-1 font-medium line-clamp-2 ${getClassStatus(nextClass).color || (theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500')}`}>
-                        {getClassStatus(nextClass).message || `Starts at ${nextClass.start_time}`}
-                      </p>
-                      {getClassStatus(nextClass).status === 'starting-soon' &&
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
-                          <span className={`text-sm sm:text-base font-medium ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`}>Get ready!</span>
+                  {nextClasses.length > 0 && (
+                    <div className={`border rounded-xl p-3.5 md:p-4 w-full shadow-sm flex flex-col gap-3 ${
+                      getClassStatus(nextClasses[0]).status === 'starting-soon'
+                        ? (theme === 'dark' ? 'border-orange-500/40 bg-orange-950/20' : 'border-orange-300 bg-orange-50/60')
+                        : (theme === 'dark' ? 'border-border bg-card/60' : 'border-gray-200 bg-gray-50/60')
+                    }`}>
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-muted-foreground" />
+                          <span className={`text-xs sm:text-sm font-semibold tracking-wide ${getClassStatus(nextClasses[0]).color}`}>
+                            Next: {getClassStatus(nextClasses[0]).message || `Starts at ${nextClasses[0].start_time}`}
+                          </span>
                         </div>
-                      }
+                        {nextClasses.length > 1 && (
+                          <Badge variant="secondary" className="text-[10.5px] font-semibold px-2 py-0.5">
+                            {nextClasses.length} Upcoming Classes
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Split-wise grid for next classes */}
+                      <div className={`grid gap-3 w-full ${nextClasses.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                        {nextClasses.map((cls, idx) => (
+                          <div
+                            key={idx}
+                            className={`p-3.5 sm:p-4 rounded-xl border flex flex-col justify-between transition-all ${
+                              theme === 'dark' ? 'bg-card/90 border-border/80' : 'bg-white border-gray-200 shadow-xs'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  {cls.branch && (
+                                    <Badge variant="outline" className="text-[10px] font-semibold text-muted-foreground border-border">
+                                      {cls.branch}
+                                    </Badge>
+                                  )}
+                                  <Badge variant="secondary" className="text-[10.5px] font-semibold">
+                                    {cls.semester ? `Sem ${cls.semester}` : 'Sem 1'} • Sec {cls.section || 'N/A'}
+                                  </Badge>
+                                </div>
+
+                                <div className="flex items-center gap-1 text-xs font-semibold text-primary">
+                                  <MapPin className="w-3.5 h-3.5 shrink-0 text-primary/80" />
+                                  <span>{cls.room ? (cls.room.toLowerCase().startsWith('room') ? cls.room : `Room ${cls.room}`) : 'Room N/A'}</span>
+                                </div>
+                              </div>
+
+                              <h4 className={`font-semibold text-base sm:text-lg leading-snug line-clamp-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {cls.subject}
+                              </h4>
+                            </div>
+
+                            <div className="flex items-center justify-between flex-wrap gap-2 text-xs font-medium text-muted-foreground mt-3 pt-2.5 border-t border-border/60">
+                              <div className="flex items-center gap-1.5 font-medium text-foreground/85">
+                                <Users className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <span>Sem {cls.semester ?? '1'}, Section {cls.section ?? 'N/A'}</span>
+                              </div>
+                              <div className="flex items-center gap-1 font-semibold text-foreground">
+                                <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <span>{cls.start_time} - {cls.end_time}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  }
+                  )}
                 </div>
-              }
+              )}
             </CardContent>
           </Card>
         </section>

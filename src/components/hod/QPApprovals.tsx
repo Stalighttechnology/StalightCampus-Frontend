@@ -1,5 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,14 +15,215 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { sanitizeHtml } from "../../utils/sanitize";
 import QPWorkflowStepper from "../common/QPWorkflowStepper";
+
+const getOrgLogoUrl = (extraLogo?: string | null): string => {
+  let logo = '';
+  try {
+    if (extraLogo && typeof extraLogo === 'string' && extraLogo.trim() && extraLogo !== 'null' && extraLogo !== 'undefined') {
+      logo = extraLogo.trim();
+    }
+    if (!logo) {
+      const rawUser = sessionStorage.getItem("user") || localStorage.getItem("user");
+      if (rawUser) {
+        try {
+          const u = JSON.parse(rawUser);
+          logo = (
+            u.org_logo ||
+            u.organization?.logo_url ||
+            u.organization?.logo ||
+            u.org?.logo_url ||
+            u.org?.logo ||
+            ""
+          );
+        } catch {
+          // ignore
+        }
+      }
+    }
+    if (!logo) {
+      logo = localStorage.getItem("org_logo") || sessionStorage.getItem("org_logo") || "";
+    }
+  } catch {
+    logo = localStorage.getItem("org_logo") || sessionStorage.getItem("org_logo") || "";
+  }
+  if (!logo || logo === 'null' || logo === 'undefined') {
+    return "/logo.jpeg";
+  }
+  if (logo.startsWith('http://') || logo.startsWith('https://') || logo.startsWith('data:')) {
+    return logo;
+  }
+  const base = (typeof API_ENDPOINT !== 'undefined' ? API_ENDPOINT.replace(/\/api\/?$/, '') : '') ||
+               (window as any).API_BASE_URL ||
+               (import.meta as any).env?.VITE_API_URL || '';
+  const cleanBase = base ? base.replace(/\/$/, '') : '';
+  if (logo.startsWith('/')) {
+    return cleanBase ? `${cleanBase}${logo}` : logo;
+  }
+  return cleanBase ? `${cleanBase}/${logo}` : `/${logo}`;
+};
+
+const getOrgName = (extraName?: string | null): string => {
+  try {
+    if (extraName && typeof extraName === 'string' && extraName.trim() && extraName !== 'null' && extraName !== 'undefined') {
+      return extraName.trim();
+    }
+    const rawUser = sessionStorage.getItem("user") || localStorage.getItem("user");
+    if (rawUser) {
+      try {
+        const u = JSON.parse(rawUser);
+        const name = u.organization?.name || u.org?.name || u.org_name || u.organization_name;
+        if (name && typeof name === 'string' && name.trim()) return name.trim();
+      } catch {
+        // ignore
+      }
+    }
+    const stored = localStorage.getItem('org_name') || sessionStorage.getItem('org_name');
+    if (stored && stored.trim() && stored !== 'null' && stored !== 'undefined') return stored.trim();
+  } catch {
+    // ignore
+  }
+  return 'STALIGHT INSTITUTE';
+};
+
+const formatCO = (co: any) => {
+  if (!co) return '--';
+  const str = String(co).trim();
+  if (!str) return '--';
+  const items = str.split(',').map(s => s.trim()).filter(Boolean);
+  return items.map(item => item.toUpperCase().startsWith('CO') ? item.toUpperCase() : `CO${item}`).join(', ');
+};
+
+const formatBloomsList = (bloomsLevel: any): string[] => {
+  if (!bloomsLevel) return [];
+  if (Array.isArray(bloomsLevel)) return bloomsLevel.map(s => String(s).trim()).filter(Boolean);
+  return String(bloomsLevel).split(',').map(s => s.trim()).filter(Boolean);
+};
+
+interface FlatQuestion {
+  id: string | number;
+  number: string;
+  content: string;
+  maxMarks: number | string;
+  bloomsLevel: string | string[];
+  co: string;
+  isOr: boolean;
+  partName: string;
+}
+
+const getFlattenedQuestions = (qp: any): FlatQuestion[] => {
+  if (!qp || !qp.questions) return [];
+  const list: FlatQuestion[] = [];
+
+  qp.questions.forEach((q: any, qIdx: number) => {
+    const partName = q.part_name || q.partName || 'PART-A';
+    const isOr = Boolean(q.is_or || q.isOr);
+    const co = q.co || '';
+    const bloomsLevel = q.blooms_level || q.bloomsLevel || '';
+    const qNum = String(q.question_number || q.questionNumber || (qIdx + 1));
+
+    if (Array.isArray(q.subparts) && q.subparts.length > 0) {
+      q.subparts.forEach((s: any, sIdx: number) => {
+        const rawLabel = (s.subpart_label || s.label || '').replace(/[()]/g, '').trim();
+        const displayNum = `${qNum}${rawLabel}`;
+        list.push({
+          id: `${qIdx}-${sIdx}`,
+          number: displayNum,
+          content: s.content || '',
+          maxMarks: s.max_marks || s.maxMarks || 0,
+          bloomsLevel,
+          co,
+          isOr: isOr && sIdx === 0,
+          partName,
+        });
+      });
+    } else {
+      list.push({
+        id: `${qIdx}`,
+        number: qNum,
+        content: q.content || '',
+        maxMarks: q.max_marks || q.maxMarks || 0,
+        bloomsLevel,
+        co,
+        isOr,
+        partName,
+      });
+    }
+  });
+
+  return list;
+};
+
+const groupFlatQuestionsByPart = (flatQuestions: FlatQuestion[]) => {
+  const partsMap = new Map<string, FlatQuestion[]>();
+  flatQuestions.forEach((q) => {
+    const p = q.partName || 'PART-A';
+    if (!partsMap.has(p)) {
+      partsMap.set(p, []);
+    }
+    partsMap.get(p)!.push(q);
+  });
+  return Array.from(partsMap.entries()).map(([name, qs]) => ({
+    name,
+    questions: qs,
+  }));
+};
+
+const calculateFlatTotalMarks = (flatQuestions: FlatQuestion[]) => {
+  if (!flatQuestions || flatQuestions.length === 0) return 0;
+
+  const mainQuestions: Array<{ partName: string; mainNum: string; maxMarks: number; isOr: boolean }> = [];
+  const seenMap = new Map<string, { partName: string; mainNum: string; maxMarks: number; isOr: boolean }>();
+
+  flatQuestions.forEach((q, idx) => {
+    const partName = q.partName || 'PART-A';
+    const isOr = Boolean(q.isOr);
+    const rawNum = String(q.number || (idx + 1));
+    const cleanNum = rawNum.replace(/^[Qq]\.?\s*/, '').trim();
+    const match = cleanNum.match(/^(\d+)/);
+    const mainNum = match ? match[1] : (cleanNum || String(idx + 1));
+    const marks = parseFloat(String(q.maxMarks) || '0') || 0;
+
+    const key = `${partName}_${mainNum}`;
+    if (!seenMap.has(key)) {
+      const obj = { partName, mainNum, maxMarks: marks, isOr };
+      seenMap.set(key, obj);
+      mainQuestions.push(obj);
+    } else {
+      const existing = seenMap.get(key)!;
+      existing.maxMarks += marks;
+      if (isOr) existing.isOr = true;
+    }
+  });
+
+  let calculatedTotal = 0;
+  let prevMarks = 0;
+
+  mainQuestions.forEach((mq, i) => {
+    if (mq.isOr && i > 0) {
+      calculatedTotal = calculatedTotal - prevMarks + Math.max(prevMarks, mq.maxMarks);
+      prevMarks = Math.max(prevMarks, mq.maxMarks);
+    } else {
+      calculatedTotal += mq.maxMarks;
+      prevMarks = mq.maxMarks;
+    }
+  });
+
+  return calculatedTotal;
+};
+
 interface QPPending {
   id: number;
   subject: string;
+  subject_code?: string;
   test_type: string;
   set_number?: string;
   faculty: string;
   submitted_at: string;
-  branch?: { id: number | null; name: string | null; };
+  exam_date?: string;
+  exam_time?: string;
+  branch?: any;
+  semester?: any;
+  section?: any;
   status?: string;
   current_holder?: string | null;
   last_action?: { actor?: string; role?: string; action?: string; comment?: string; timestamp?: string; } | null;
@@ -30,19 +232,16 @@ interface QPPending {
 interface QPDetail {
   id: number;
   subject: string;
+  subject_code?: string;
   test_type: string;
   set_number?: string;
   faculty: string;
-  questions: Array<{
-    question_number: string;
-    co: string;
-    blooms_level: string;
-    subparts: Array<{
-      subpart_label: string;
-      content: string;
-      max_marks: number;
-    }>;
-  }>;
+  exam_date?: string;
+  exam_time?: string;
+  branch?: any;
+  semester?: any;
+  section?: any;
+  questions: Array<any>;
 }
 
 import {
@@ -220,9 +419,15 @@ const QPApprovals = () => {
         const transformedQP: QPDetail = {
           id: qp.id,
           subject: qp.subject,
+          subject_code: qp.subject_code,
           test_type: qp.test_type,
           set_number: qp.set_number,
           faculty: qp.faculty,
+          exam_date: qp.exam_date,
+          exam_time: qp.exam_time,
+          branch: qp.branch,
+          semester: qp.semester,
+          section: qp.section,
           questions: qp.questions || []
         };
         setQpDetail(transformedQP);
@@ -714,7 +919,7 @@ const QPApprovals = () => {
               setQpDetail(null);
               setComment("");
             }}
-            className={`qp-dialog-content ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[760px] w-[92%] rounded-lg flex flex-col max-h-[85vh]`}>
+            className={`qp-dialog-content ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-4xl sm:max-w-5xl w-[95%] rounded-xl flex flex-col max-h-[90vh]`}>
             <DialogHeader className="pb-2 border-b border-border/40">
               <DialogTitle className={`text-left pr-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number ? `Set ${selectedQP?.set_number}` : ''}
@@ -728,71 +933,172 @@ const QPApprovals = () => {
               {detailLoading ?
                 <div className="text-center py-4">Loading QP details...</div> :
                 qpDetail ?
-                  <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/60">
-                    <h4 className="font-semibold mb-4">Question Paper Preview</h4>
-                    <div className="space-y-4">
-                      {qpDetail.questions.map((q, qIndex) =>
-                        <div key={qIndex} className="space-y-3">
-                          {q.subparts.map((s, sIndex) => {
-                            const key = `${qIndex}-${sIndex}`;
-                            const isExpanded = !!expanded[key];
-                            const content = s.content || '';
-                            const textOnly = content.replace(/<[^>]*>/g, '').trim();
-                            const hasMedia = content.includes('<img') || content.includes('<table') || content.includes('<svg');
-                            const isLong = textOnly.length > 130 || hasMedia;
-
-                            let displayContent = content;
-                            if (!isExpanded && isLong) {
-                              if (hasMedia) {
-                                displayContent = textOnly.slice(0, 130) + '… (diagram/attachment attached)';
-                              } else {
-                                displayContent = content.length > 130 ? content.slice(0, 130) + '…' : content;
-                              }
-                            }
-
-                            return (
-                              <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900 shadow-sm overflow-hidden w-full">
-                                <div className="flex items-start gap-2.5 sm:gap-3 w-full min-w-0">
-                                  <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs sm:text-sm">
-                                    {q.question_number}{s.subpart_label}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex justify-between items-start gap-2">
-                                      <div
-                                        className="text-sm sm:text-[15px] text-gray-900 dark:text-gray-100 flex-1 min-w-0 break-words [overflow-wrap:anywhere] leading-relaxed qp-content"
-                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(isExpanded ? content : displayContent) }}
-                                      />
-                                      <div className="flex-shrink-0 ml-1.5">
-                                        <Badge className="text-gray-900 dark:text-gray-100 font-semibold text-xs sm:text-sm bg-transparent border border-border shrink-0 whitespace-nowrap">{s.max_marks}m</Badge>
-                                      </div>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2">
-                                      <Badge variant="outline" className="text-xs text-gray-600 dark:text-gray-400 bg-transparent">CO: {q.co}</Badge>
-                                      <Badge variant="outline" className="text-xs text-gray-600 dark:text-gray-400 bg-transparent">{q.blooms_level}</Badge>
-                                      {isLong && (
-                                        <button
-                                          type="button"
-                                          onClick={() => toggleExpanded(key)}
-                                          className="text-xs text-primary font-medium hover:underline p-0 bg-transparent border-0 inline-flex items-center cursor-pointer ml-1 focus:outline-none"
-                                        >
-                                          {isExpanded ? 'Show less' : 'Show more'}
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
+                  <div className="overflow-x-auto p-1 custom-scrollbar">
+                    <div className={`min-w-[650px] max-w-4xl mx-auto ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-slate-900 border-slate-300'} border rounded-xl shadow-lg p-6 sm:p-8 space-y-4`}>
+                      {/* Header */}
+                      <div className={`flex items-center justify-between pb-3 border-b-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                        <div className="w-20 sm:w-24 flex-shrink-0 flex items-center justify-start">
+                          {getOrgLogoUrl(qpDetail?.org_logo || selectedQP?.org_logo) ? (
+                            <img
+                              src={getOrgLogoUrl(qpDetail?.org_logo || selectedQP?.org_logo)}
+                              alt="Logo"
+                              className="max-h-16 max-w-[80px] sm:max-w-[90px] object-contain rounded"
+                              onError={(e) => {
+                                if ((e.currentTarget as HTMLImageElement).src !== window.location.origin + '/logo.jpeg') {
+                                  (e.currentTarget as HTMLImageElement).src = '/logo.jpeg';
+                                }
+                              }}
+                            />
+                          ) : null}
                         </div>
-                      )}
-                      <div className="font-semibold pt-2 border-t flex items-center justify-between">
-                        <span>Total Marks:</span>
-                        <span className="text-lg font-bold text-primary">
-                          {qpDetail.questions.reduce((total, q) =>
-                            total + q.subparts.reduce((subTotal, s) => subTotal + (s.max_marks || 0), 0), 0
-                          )}
-                        </span>
+                        <div className="flex-1 text-center space-y-1">
+                          <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wide">
+                            {getOrgName(qpDetail?.org_name || selectedQP?.org_name)}
+                          </h2>
+                          <div className="text-sm sm:text-base font-bold text-primary">
+                            {qpDetail.test_type ? qpDetail.test_type.replace('_', ' ') : (selectedQP?.test_type ? selectedQP.test_type.replace('_', ' ') : 'Internal Assessment')} {qpDetail.set_number ? `- Set ${qpDetail.set_number}` : (selectedQP?.set_number ? `- Set ${selectedQP.set_number}` : '')}
+                          </div>
+                        </div>
+                        <div className="w-20 sm:w-24 flex-shrink-0" />
+                      </div>
+
+                      {/* Master Info Table */}
+                      <div className={`border ${theme === 'dark' ? 'border-border' : 'border-slate-900'} rounded-sm overflow-hidden text-xs sm:text-sm`}>
+                        <div className={`grid grid-cols-12 border-b ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                          <div className={`col-span-3 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Subject :</div>
+                          <div className={`col-span-4 p-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'} border-r font-medium`}>
+                            {qpDetail.subject || selectedQP?.subject || '--'}
+                          </div>
+                          <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Date:</div>
+                          <div className="col-span-3 p-2 font-medium">
+                            {qpDetail.exam_date ? format(new Date(qpDetail.exam_date.includes('T') ? qpDetail.exam_date : `${qpDetail.exam_date}T00:00:00`), "MMM. dd, yyyy") : (selectedQP?.exam_date ? format(new Date(selectedQP.exam_date.includes('T') ? selectedQP.exam_date : `${selectedQP.exam_date}T00:00:00`), "MMM. dd, yyyy") : '--')}
+                          </div>
+                        </div>
+
+                        <div className={`grid grid-cols-12 border-b ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                          <div className={`col-span-3 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Subject Code :</div>
+                          <div className={`col-span-4 p-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'} border-r font-medium`}>
+                            {qpDetail.subject_code || selectedQP?.subject_code || '--'}
+                          </div>
+                          <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Time:</div>
+                          <div className="col-span-3 p-2 font-medium">
+                            {qpDetail.exam_time || selectedQP?.exam_time || '--'}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-12">
+                          <div className={`col-span-3 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Prepared by:</div>
+                          <div className={`col-span-4 p-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'} border-r font-medium`}>
+                            {qpDetail.faculty || selectedQP?.faculty || 'Faculty'}
+                          </div>
+                          <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Semester / Div:</div>
+                          <div className="col-span-3 p-2 font-medium">
+                            {`Semester ${qpDetail.semester || selectedQP?.semester || '--'}${qpDetail.branch || (typeof selectedQP?.branch === 'object' ? selectedQP?.branch?.name : selectedQP?.branch) ? ` - ${qpDetail.branch || (typeof selectedQP?.branch === 'object' ? selectedQP?.branch?.name : selectedQP?.branch)}` : ''} / ${qpDetail.section || selectedQP?.section || '--'}`}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Instructions & Max Marks */}
+                      <div className={`flex justify-between items-end border ${theme === 'dark' ? 'border-border bg-muted/20' : 'border-slate-900 bg-slate-50/50'} p-2.5 text-xs sm:text-sm`}>
+                        <div>
+                          <span className="font-bold italic">NOTE:</span>
+                          <ol className="list-decimal list-inside text-xs mt-0.5 space-y-0.5 text-muted-foreground">
+                            <li>Answer one FULL question from each part.</li>
+                            <li>Assume missing data suitably.</li>
+                          </ol>
+                        </div>
+                        <div className="text-right font-bold italic text-sm">
+                          Max Marks: <span className="text-primary font-bold text-base not-italic ml-1">{calculateFlatTotalMarks(getFlattenedQuestions(qpDetail))}</span>
+                        </div>
+                      </div>
+
+                      {/* Question Parts Table */}
+                      <div className={`border ${theme === 'dark' ? 'border-border' : 'border-slate-900'} rounded-sm overflow-hidden`}>
+                        <table className="w-full text-xs sm:text-sm border-collapse">
+                          <thead>
+                            <tr className={`${theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-slate-100 border-slate-900'} border-b font-bold`}>
+                              <th className={`w-16 p-2 text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>Q No.</th>
+                              <th className={`p-2 text-left border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>Question Content</th>
+                              <th className={`w-16 p-2 text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>Marks</th>
+                              <th className={`w-24 p-2 text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>RBT</th>
+                              <th className="w-20 p-2 text-center">CO</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {groupFlatQuestionsByPart(getFlattenedQuestions(qpDetail)).map((part) => (
+                              <React.Fragment key={part.name}>
+                                {/* Part Header */}
+                                <tr className={`${theme === 'dark' ? 'bg-muted/70 border-border' : 'bg-slate-200/80 border-slate-900'} border-b border-t font-bold text-center`}>
+                                  <td colSpan={5} className="py-1.5 uppercase tracking-wider text-xs sm:text-sm">
+                                    {part.name}
+                                  </td>
+                                </tr>
+
+                                {part.questions.map((q) => (
+                                  <React.Fragment key={q.id}>
+                                    {/* OR Separator */}
+                                    {q.isOr && (
+                                      <tr className={`border-b ${theme === 'dark' ? 'border-border bg-amber-950/20 text-amber-400' : 'border-slate-900 bg-amber-50/60 text-amber-700'} font-bold text-center`}>
+                                        <td colSpan={5} className="py-1 text-xs tracking-widest uppercase">
+                                          — OR —
+                                        </td>
+                                      </tr>
+                                    )}
+
+                                    {/* Question Row */}
+                                    <tr className={`border-b ${theme === 'dark' ? 'border-border hover:bg-muted/30' : 'border-slate-900 hover:bg-slate-50/50'} transition-colors`}>
+                                      <td className={`p-2.5 text-center font-bold align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'} whitespace-nowrap`}>
+                                        Q.{q.number}
+                                      </td>
+                                      <td className={`p-2.5 text-left align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                                        <div
+                                          className="whitespace-pre-line break-words text-xs sm:text-sm"
+                                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content || 'Question content') }}
+                                        />
+                                      </td>
+                                      <td className={`p-2.5 text-center font-semibold align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
+                                        {q.maxMarks}
+                                      </td>
+                                      <td className={`p-2.5 text-center align-middle border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'} text-xs font-medium`}>
+                                        {formatBloomsList(q.bloomsLevel).length > 0 ? (
+                                          <div className="flex flex-col items-center justify-center space-y-1">
+                                            {formatBloomsList(q.bloomsLevel).map((bl, idx) => (
+                                              <div key={idx} className="leading-tight">{bl}</div>
+                                            ))}
+                                          </div>
+                                        ) : (
+                                          '--'
+                                        )}
+                                      </td>
+                                      <td className="p-2.5 text-center align-middle font-medium text-xs">
+                                        {formatCO(q.co) || '--'}
+                                      </td>
+                                    </tr>
+                                  </React.Fragment>
+                                ))}
+                              </React.Fragment>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Revised Bloom's Taxonomy Footer Table */}
+                      <div className="space-y-1.5 pt-2">
+                        <div className="font-bold text-xs">RBT – Revised Bloom’s Taxonomy</div>
+                        <table className={`w-full max-w-md text-xs border ${theme === 'dark' ? 'border-border text-muted-foreground' : 'border-slate-300 text-slate-700'}`}>
+                          <tbody>
+                            <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-slate-300'}`}>
+                              <td className={`p-1.5 border-r ${theme === 'dark' ? 'border-border' : 'border-slate-300'}`}>L1. Remembering</td>
+                              <td className={`p-1.5 border-r ${theme === 'dark' ? 'border-border' : 'border-slate-300'}`}>L2. Understanding</td>
+                              <td className="p-1.5">L3. Applying</td>
+                            </tr>
+                            <tr>
+                              <td className={`p-1.5 border-r ${theme === 'dark' ? 'border-border' : 'border-slate-300'}`}>L4. Analyzing</td>
+                              <td className={`p-1.5 border-r ${theme === 'dark' ? 'border-border' : 'border-slate-300'}`}>L5. Evaluating</td>
+                              <td className="p-1.5">L6. Creating</td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   </div> :

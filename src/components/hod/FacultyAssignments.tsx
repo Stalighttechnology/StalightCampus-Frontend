@@ -872,7 +872,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                   </SelectTrigger>
                   <SelectContent 
                     className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[320px] overflow-hidden flex flex-col z-[9999]' : 'bg-white text-gray-900 border-gray-300 max-h-[320px] overflow-hidden flex flex-col z-[9999]'}
-                    onInteractOutside={() => {
+                    onPointerDownOutside={() => {
                       if (document.activeElement?.tagName.toLowerCase() === 'input') {
                         (document.activeElement as HTMLElement).blur();
                       }

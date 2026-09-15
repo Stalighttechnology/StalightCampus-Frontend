@@ -744,7 +744,7 @@ const ProctorStudents = () => {
                     </SelectTrigger>
                     <SelectContent
                       className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}
-                      onInteractOutside={() => {
+                      onPointerDownOutside={() => {
                         if (document.activeElement?.tagName.toLowerCase() === 'input') {
                           (document.activeElement as HTMLElement).blur();
                         }
@@ -995,7 +995,7 @@ const ProctorStudents = () => {
                       </SelectTrigger>
                       <SelectContent
                         className={`max-h-[320px] overflow-hidden flex flex-col z-[9999] ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}
-                        onInteractOutside={() => {
+                        onPointerDownOutside={() => {
                           if (document.activeElement?.tagName.toLowerCase() === 'input') {
                             (document.activeElement as HTMLElement).blur();
                           }

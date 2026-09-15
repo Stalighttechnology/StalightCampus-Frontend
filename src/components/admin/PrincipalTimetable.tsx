@@ -2,14 +2,15 @@ import { translateTerminology, getTerm, getInstitutionType } from "@/utils/insti
 import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import { Skeleton, SkeletonTable } from "../ui/skeleton";
-import { DownloadIcon, EditIcon, User, Calendar, Loader2, CalendarDays, LayoutGrid, Clock, MapPin, CheckCircle2 } from "lucide-react";
+import { DownloadIcon, EditIcon, User, Calendar, Loader2, CalendarDays, LayoutGrid, Clock, MapPin, CheckCircle2, AlertTriangle, AlertCircle, Info, ArrowRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
 import { useToast } from "../ui/use-toast";
 import { getBranchesWithHODs } from "../../utils/admin_api";
 import { getSemesters, manageSections, manageSubjects, manageFaculties, manageTimetable, manageProfile, manageFacultyAssignments, getBranches, getHODTimetableBootstrap, getHODTimetableSemesterData } from "../../utils/hod_api";
-import { showWarningAlert, showConfirmAlert } from "../../utils/sweetalert";
+import { showWarningAlert, showConfirmAlert, MySwal } from "../../utils/sweetalert";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -84,6 +85,7 @@ interface ManageTimetableRequest {
   section_id: string;
   branch_id: string;
   subject_type?: string;
+  force?: boolean;
 }
 
 interface ManageFacultyAssignmentsRequest {
@@ -530,8 +532,11 @@ const PrincipalTimetable = () => {
   const { theme } = useTheme();
   const { toast } = useToast();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSectionOpen, setIsSectionOpen] = useState(false);
+  const shouldAutoOpenSemesterRef = useRef(false);
+  const shouldAutoOpenSectionRef = useRef(false);
 
   const [viewMode, setViewMode] = useState<'weekly' | 'daily'>('weekly');
   const [selectedDay, setSelectedDay] = useState<'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT'>('MON');
@@ -584,6 +589,16 @@ const PrincipalTimetable = () => {
   const updateState = (newState: Partial<typeof state>) => {
     setState((prev) => ({ ...prev, ...newState }));
   };
+
+  const [conflictModal, setConflictModal] = useState<{
+    isOpen: boolean;
+    conflicts: string[];
+    pendingClassDetails: ClassDetails | null;
+  }>({
+    isOpen: false,
+    conflicts: [],
+    pendingClassDetails: null
+  });
 
   // Fetch dynamic slots
   useEffect(() => {
@@ -707,10 +722,15 @@ const PrincipalTimetable = () => {
       try {
         const res = await getSemesters(state.branchId);
         if (res.success && res.data) {
+          const loadedSemesters = res.data.map((s: any) => ({ id: s.id.toString(), number: s.number }));
           updateState({
-            semesters: res.data.map((s: any) => ({ id: s.id.toString(), number: s.number })),
+            semesters: loadedSemesters,
             semesterId: "", sectionId: "", timetable: []
           });
+          if (shouldAutoOpenSemesterRef.current && loadedSemesters.length > 0) {
+            shouldAutoOpenSemesterRef.current = false;
+            setTimeout(() => setIsSemesterOpen(true), 150);
+          }
         }
       } catch(err) {
         console.error(err);
@@ -734,7 +754,12 @@ const PrincipalTimetable = () => {
 
       const hasCachedSections = !!state.sectionsCache[state.semesterId];
       if (hasCachedSections) {
-        updateState({ sections: state.sectionsCache[state.semesterId], sectionId: "" });
+        const cached = state.sectionsCache[state.semesterId];
+        updateState({ sections: cached, sectionId: "" });
+        if (shouldAutoOpenSectionRef.current && cached.length > 0) {
+          shouldAutoOpenSectionRef.current = false;
+          setTimeout(() => setIsSectionOpen(true), 150);
+        }
         return;
       }
 
@@ -746,6 +771,10 @@ const PrincipalTimetable = () => {
           const sections = res.data as SectionData[];
           const newSectionsCache = { ...state.sectionsCache, [state.semesterId]: sections };
           updateState({ sections, sectionsCache: newSectionsCache, sectionId: "", loading: false });
+          if (shouldAutoOpenSectionRef.current && sections.length > 0) {
+            shouldAutoOpenSectionRef.current = false;
+            setTimeout(() => setIsSectionOpen(true), 150);
+          }
         } else {
           updateState({ sections: [], sectionId: "", loading: false });
         }
@@ -928,7 +957,7 @@ const PrincipalTimetable = () => {
     }
   };
 
-  const handleSaveClass = async (newClassDetails: ClassDetails) => {
+  const handleSaveClass = async (newClassDetails: ClassDetails, force: boolean = false) => {
     try {
       if (!state.semesterId || !state.sectionId) {
         throw new Error("Semester and section must be selected");
@@ -966,7 +995,8 @@ const PrincipalTimetable = () => {
         room: newClassDetails.room,
         branch_id: state.branchId,
         semester_id: state.semesterId,
-        section_id: state.sectionId
+        section_id: state.sectionId,
+        force: force
       };
 
       const response = await manageTimetable(timetableRequest);
@@ -975,22 +1005,20 @@ const PrincipalTimetable = () => {
         const day = state.selectedClass?.day || timetableRequest.day;
         const room = timetableRequest.room || "";
 
-        // Build faculty_assignment details from local cache
-        const assignment = state.facultyAssignments.find((a) => a.id === timetableRequest.assignment_id);
-        const subjectObj = assignment ? state.subjects.find(s => s.id === assignment.subject_id) : undefined;
-        const facultyAssignment = assignment
-          ? {
-              id: assignment.id,
-              faculty: assignment.faculty_name || assignment.faculty || "",
-              subject: subjectObj?.name || assignment.subject || newClassDetails.subject || "",
-              semester: assignment.semester,
-              section: assignment.section,
-              subject_type: subjectObj?.subject_type || assignment.subject_type || ""
-            }
-          : { id: timetableRequest.assignment_id || "", faculty: newClassDetails.professor || "", subject: newClassDetails.subject || "", semester: 0, section: "", subject_type: "" };
-
-        const slotId = timetableRequest.slot_id || state.selectedClass?.slot_id;
+        const slotId = timetableRequest.slot_id || state.selectedClass?.slot_id || newClassDetails.slot_id;
         const slot = slots.find(s => String(s.id) === String(slotId));
+
+        // Build faculty_assignment details from local cache
+        const assignment = state.facultyAssignments.find((a) => String(a.id) === String(timetableRequest.assignment_id));
+        const subjectObj = assignment ? state.subjects.find(s => String(s.id) === String(assignment.subject_id)) : state.subjects.find(s => s.name === newClassDetails.subject);
+        const facultyAssignment = {
+          id: assignment?.id || timetableRequest.assignment_id || "",
+          faculty: assignment?.faculty_name || assignment?.faculty || newClassDetails.professor || "",
+          subject: subjectObj?.name || assignment?.subject || newClassDetails.subject || "",
+          semester: assignment?.semester || 0,
+          section: assignment?.section || "",
+          subject_type: subjectObj?.subject_type || assignment?.subject_type || newClassDetails.subject_type || ""
+        };
 
         if (timetableRequest.action === 'create_group') {
           // If bulk group creation, we will have multiple IDs
@@ -1001,7 +1029,7 @@ const PrincipalTimetable = () => {
           );
           
           const newEntries = groupAssignments.map((a, idx) => {
-            const sub = state.subjects.find(s => s.id === a.subject_id);
+            const sub = state.subjects.find(s => String(s.id) === String(a.subject_id));
             return {
               id: createdIds[idx] || `temp-${Date.now()}-${idx}`,
               faculty_assignment: {
@@ -1017,13 +1045,13 @@ const PrincipalTimetable = () => {
               start_time: slot?.start_time?.substring(0, 5) || "",
               end_time: slot?.end_time?.substring(0, 5) || "",
               room,
-            attendance_taken_today: false
+              attendance_taken_today: false
             };
           });
 
           // Delete any existing entries for this elective group type in this slot
           const filtered = state.timetable.filter(
-            (e) => !(e.day === day.toUpperCase() && String(e.slot_id) === String(slotId) && e.faculty_assignment.subject_type === timetableRequest.subject_type)
+            (e) => !(e.day === day.toUpperCase() && String(e.slot_id) === String(slotId) && e.faculty_assignment?.subject_type === timetableRequest.subject_type)
           );
 
           updateState({ timetable: [...filtered, ...newEntries], selectedClass: null });
@@ -1033,23 +1061,22 @@ const PrincipalTimetable = () => {
             faculty_assignment: facultyAssignment,
             day: day.toUpperCase(),
             slot_id: slotId,
-            start_time: slot?.start_time?.substring(0, 5) || "",
-            end_time: slot?.end_time?.substring(0, 5) || "",
+            start_time: slot?.start_time?.substring(0, 5) || newClassDetails.start_time || "",
+            end_time: slot?.end_time?.substring(0, 5) || newClassDetails.end_time || "",
             room,
             attendance_taken_today: false
           };
 
-          const isElective = facultyAssignment.subject_type === 'elective' || facultyAssignment.subject_type === 'open_elective';
+          const isElective = facultyAssignment.subject_type === 'elective' || facultyAssignment.subject_type === 'open_elective' || facultyAssignment.subject_type === 'lab';
           const updatedTimetable = state.timetable.filter(
             (e) => {
               if (isElective) {
-                // If it is an elective, keep other scheduled electives in the same slot.
-                // Replace only if the exact same assignment or ID matches, or if a regular class was there.
-                const isExistingElective = e.faculty_assignment.subject_type === 'elective' || e.faculty_assignment.subject_type === 'open_elective';
+                // If it is an elective/lab, keep other scheduled electives in the same slot.
+                const isExistingElective = e.faculty_assignment?.subject_type === 'elective' || e.faculty_assignment?.subject_type === 'open_elective' || e.faculty_assignment?.subject_type === 'lab';
                 if (!isExistingElective && e.day === day.toUpperCase() && String(e.slot_id) === String(slotId)) {
                   return false; // Remove regular class if replacing it
                 }
-                return !(e.id === timetableId || e.faculty_assignment.id === facultyAssignment.id);
+                return !(String(e.id) === String(timetableId) || String(e.faculty_assignment?.id) === String(facultyAssignment.id));
               } else {
                 // For regular subjects, remove everything in that day/slot
                 return !(e.day === day.toUpperCase() && String(e.slot_id) === String(slotId));
@@ -1059,20 +1086,33 @@ const PrincipalTimetable = () => {
           updateState({ timetable: [...updatedTimetable, newEntry], selectedClass: null });
         } else {
           // update
-          if (timetableId || state.selectedClass?.timetable_id) {
-            const targetId = timetableId || state.selectedClass?.timetable_id;
-            const updated = state.timetable.map((e) => e.id === targetId ?
-              { ...e, faculty_assignment: facultyAssignment, day: day.toUpperCase(),
+          const targetId = timetableId || state.selectedClass?.timetable_id || newClassDetails.timetable_id;
+          if (targetId) {
+            const updated = state.timetable.map((e) => String(e.id) === String(targetId) ?
+              { ...e, 
+                faculty_assignment: facultyAssignment, 
+                day: day.toUpperCase(),
                 slot_id: slotId,
-                start_time: slot?.start_time?.substring(0, 5) || e.start_time,
-                end_time: slot?.end_time?.substring(0, 5) || e.end_time,
-                room } :
+                start_time: slot?.start_time?.substring(0, 5) || e.start_time || newClassDetails.start_time,
+                end_time: slot?.end_time?.substring(0, 5) || e.end_time || newClassDetails.end_time,
+                room 
+              } :
               e
             );
             updateState({ timetable: updated, selectedClass: null });
           }
         }
         toast({ title: "Success", description: "Timetable saved successfully" });
+      } else if (response.conflict_warning || (response.message && response.message.toLowerCase().includes("conflict"))) {
+        const conflictItems = response.conflicts && response.conflicts.length > 0
+          ? response.conflicts
+          : [response.message || "A scheduling conflict was detected during this slot."];
+
+        setConflictModal({
+          isOpen: true,
+          conflicts: conflictItems,
+          pendingClassDetails: newClassDetails
+        });
       } else {
         throw new Error(response.message || "Failed to save timetable");
       }
@@ -1307,9 +1347,12 @@ const PrincipalTimetable = () => {
                 <div className="flex flex-col sm:flex-row md:flex-row gap-2 sm:gap-4 w-full md:flex-1 md:items-center md:flex-nowrap">
                   <div className="w-full sm:w-auto md:flex-none">
                     <Select
+                      open={isBranchOpen}
+                      onOpenChange={setIsBranchOpen}
                       value={state.branchId}
                       onValueChange={(value) => {
                         const branchName = state.branches.find(b => b.id === value)?.name || "";
+                        shouldAutoOpenSemesterRef.current = true;
                         updateState({ branchId: value, branchName, semesterId: "", sectionId: "", timetable: [] });
                       }}
                       disabled={state.loading || state.branches.length === 0}>
@@ -1337,8 +1380,8 @@ const PrincipalTimetable = () => {
                       onOpenChange={setIsSemesterOpen}
                       value={state.semesterId}
                       onValueChange={(value) => {
+                        shouldAutoOpenSectionRef.current = true;
                         updateState({ semesterId: value, sectionId: "", timetable: [] });
-                        setTimeout(() => setIsSectionOpen(true), 150);
                       }}
                       disabled={state.loading || state.semesters.length === 0}>
 
@@ -1683,8 +1726,109 @@ const PrincipalTimetable = () => {
           sectionId={state.sectionId}
           branchId={state.branchId} 
           slots={slots} />
-
       }
+
+      {/* SHADCN PROFESSIONAL CONFLICT WARNING MODAL */}
+      <AlertDialog
+        open={conflictModal.isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setConflictModal({ isOpen: false, conflicts: [], pendingClassDetails: null });
+          }
+        }}
+      >
+        <AlertDialogContent className="w-[94vw] max-w-lg p-5 sm:p-6 rounded-2xl border bg-card text-foreground shadow-2xl z-[10002] transition-all">
+          <AlertDialogHeader className="space-y-3 text-left">
+            <div className="flex items-start gap-3.5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25 shadow-sm">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10.5px] px-2 py-0 border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 font-semibold tracking-wide">
+                    Conflict Warning
+                  </Badge>
+                </div>
+                <AlertDialogTitle className="text-base sm:text-lg font-bold text-foreground tracking-tight leading-snug">
+                  Schedule Conflict Detected
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed">
+                  The system detected overlapping assignments for this slot. Review the details below.
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+
+          {/* Detected Conflicts Section */}
+          <div className="space-y-3 my-1">
+            <div className="rounded-xl border border-rose-500/25 bg-rose-500/10 dark:bg-rose-950/20 p-3.5 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+                <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
+                  Detected Conflict{conflictModal.conflicts.length > 1 ? "s" : ""}
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                {conflictModal.conflicts.map((conflict, idx) => (
+                  <div key={idx} className="flex items-start gap-2 text-xs font-medium text-foreground/90 leading-snug">
+                    <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                    <span>{conflict}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Explanatory Behavior Guide */}
+            <div className="rounded-xl border border-border/80 bg-muted/40 p-3.5 space-y-2.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                <Info className="w-3.5 h-3.5 text-primary shrink-0" />
+                <span>Behavior if you choose to Continue & Save:</span>
+              </div>
+              <div className="grid grid-cols-1 gap-2 text-xs">
+                <div className="flex items-start gap-2.5 rounded-lg bg-card/90 p-2.5 border border-border/60">
+                  <Badge variant="secondary" className="text-[10px] shrink-0 font-semibold px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25">
+                    Regular
+                  </Badge>
+                  <span className="text-[11.5px] text-muted-foreground leading-snug">
+                    <strong className="text-foreground">Replaces / overwrites</strong> the existing class in this section's slot.
+                  </span>
+                </div>
+                <div className="flex items-start gap-2.5 rounded-lg bg-card/90 p-2.5 border border-border/60">
+                  <Badge variant="secondary" className="text-[10px] shrink-0 font-semibold px-2 py-0.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/25">
+                    Elective / Lab
+                  </Badge>
+                  <span className="text-[11.5px] text-muted-foreground leading-snug">
+                    <strong className="text-foreground">Stacks in parallel</strong> alongside other batch/elective options.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 sm:justify-end pt-2 border-t border-border">
+            <AlertDialogCancel
+              onClick={() => setConflictModal({ isOpen: false, conflicts: [], pendingClassDetails: null })}
+              className="w-full sm:w-auto h-10 px-5 rounded-xl border-border hover:bg-muted text-xs font-semibold cursor-pointer"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async (e) => {
+                e.preventDefault();
+                const details = conflictModal.pendingClassDetails;
+                setConflictModal({ isOpen: false, conflicts: [], pendingClassDetails: null });
+                if (details) {
+                  await handleSaveClass(details, true);
+                }
+              }}
+              className="w-full sm:w-auto h-10 px-5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              Continue & Save
+              <ArrowRight className="w-3.5 h-3.5" />
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>);
 
 };
