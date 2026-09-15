@@ -117,10 +117,10 @@ export const MaintenanceTickets: React.FC<Props> = ({ role = "admin", branches =
 
   const getPriorityChip = (priority: string, due?: string) => {
     const map: Record<string, { label: string; bg: string }> = {
-      urgent: { label: "URGENT (12H)", bg: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800" },
-      high: { label: "HIGH (24H)", bg: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-800" },
-      medium: { label: "MEDIUM (48H)", bg: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800" },
-      low: { label: "LOW (72H)", bg: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800" },
+      urgent: { label: "URGENT", bg: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800" },
+      high: { label: "HIGH", bg: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-800" },
+      medium: { label: "MEDIUM", bg: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800" },
+      low: { label: "LOW", bg: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800" },
     };
     const p = map[priority] || { label: (priority || "MEDIUM").toUpperCase(), bg: "bg-muted text-muted-foreground border-border" };
     return (
@@ -215,10 +215,10 @@ export const MaintenanceTickets: React.FC<Props> = ({ role = "admin", branches =
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Priorities</SelectItem>
-                  <SelectItem value="low">Low (72h SLA)</SelectItem>
-                  <SelectItem value="medium">Medium (48h SLA)</SelectItem>
-                  <SelectItem value="high">High (24h SLA)</SelectItem>
-                  <SelectItem value="urgent">Urgent (12h SLA)</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
                 </SelectContent>
               </Select>
 

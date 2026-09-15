@@ -287,7 +287,7 @@ export const InventoryList: React.FC<Props> = ({
   };
 
   const isFaculty = role === "faculty" || role === "staff";
-  const isHOD = role === "hod";
+  const isDeptStaff = ["hod", "faculty", "staff", "teacher"].includes(role);
   const canCUD = role === "inventory_manager" || role === "superadmin";
 
   const isFiltered =
@@ -504,7 +504,7 @@ export const InventoryList: React.FC<Props> = ({
                               <td className="py-3 px-4 align-top">
                                 <div className="space-y-1 min-w-[190px]">
                                   <div className="text-xs font-bold text-foreground">
-                                    {isHOD
+                                    {isDeptStaff
                                       ? `${(group.in_use_deployed || 0) + (group.in_repair || 0)} Allocated`
                                       : `${(group.in_use_deployed || 0) + (group.in_repair || 0)} / ${group.total_units} Allocated`}
                                   </div>
@@ -520,7 +520,7 @@ export const InventoryList: React.FC<Props> = ({
                                         {group.in_stock_buffer} in buffer
                                       </span>
                                     )}
-                                    {!isHOD && group.in_use_deployed > 0 && (
+                                    {!isDeptStaff && group.in_use_deployed > 0 && (
                                       <span className="font-medium text-blue-700 dark:text-blue-300">
                                         {group.in_use_deployed} deployed
                                       </span>
@@ -608,7 +608,7 @@ export const InventoryList: React.FC<Props> = ({
                           {/* Allocation Metric */}
                           <div className="space-y-1 p-2.5 rounded-lg bg-muted/40 border border-border/50 text-xs">
                             <div className="font-semibold text-foreground">
-                              {isHOD
+                              {isDeptStaff
                                 ? `${(group.in_use_deployed || 0) + (group.in_repair || 0)} Allocated`
                                 : `${(group.in_use_deployed || 0) + (group.in_repair || 0)} / ${group.total_units} Allocated`}
                             </div>
@@ -616,7 +616,7 @@ export const InventoryList: React.FC<Props> = ({
                               {group.in_repair > 0 && (
                                 <span className="font-medium text-amber-600 dark:text-amber-400">{group.in_repair} In Repair</span>
                               )}
-                              {!isHOD && group.in_use_deployed > 0 && (
+                              {!isDeptStaff && group.in_use_deployed > 0 && (
                                 <span className="font-medium text-blue-700 dark:text-blue-300">{group.in_use_deployed} Deployed</span>
                               )}
                               {group.in_stock_buffer > 0 && (

@@ -239,18 +239,43 @@ export const ItemDetailsModal: React.FC<Props> = ({
   };
 
   const handleTransferSubmit = async () => {
+    const qty = transferMode === "full" ? item.quantity_available : Number(transferQuantity);
+    if (qty <= 0) {
+      toast.error("Transfer quantity must be at least 1");
+      return;
+    }
+    if (qty > item.quantity_available) {
+      toast.error(`Cannot transfer more than available quantity (${item.quantity_available})`);
+      return;
+    }
+
+    if (!locationEdit) {
+      toast.error("Please select a destination location / campus block.");
+      return;
+    }
+
+    if (!departmentEdit || departmentEdit === "unassigned") {
+      toast.error("Please select an assigned department / branch.");
+      return;
+    }
+
+    if (!roomEdit.trim()) {
+      toast.error("Please enter a destination room / lab / desk no.");
+      return;
+    }
+
+    if (!recipientRole) {
+      toast.error("Please select a recipient / custodian role.");
+      return;
+    }
+
+    if (!recipientName.trim()) {
+      toast.error("Please select or assign a recipient / custodian.");
+      return;
+    }
+
     try {
       setTransferUpdating(true);
-      const qty = transferMode === "full" ? item.quantity_available : Number(transferQuantity);
-      if (qty <= 0) {
-        toast.error("Transfer quantity must be at least 1");
-        return;
-      }
-      if (qty > item.quantity_available) {
-        toast.error(`Cannot transfer more than available quantity (${item.quantity_available})`);
-        return;
-      }
-
       const payload: any = {
         quantity: qty,
         location_id: locationEdit ? Number(locationEdit) : undefined,
