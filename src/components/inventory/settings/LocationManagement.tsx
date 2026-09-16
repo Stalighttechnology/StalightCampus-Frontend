@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/card";
+import { Skeleton, SkeletonTable, SkeletonList } from "@/components/ui/skeleton";
 import {
   MapPin,
   Plus,
@@ -223,9 +224,13 @@ export const LocationManagement: React.FC<Props> = ({ role = "admin" }) => {
         {/* Table Content */}
         <CardContent className="flex-1 overflow-hidden flex flex-col px-3 sm:px-5 pt-0 pb-3">
           {loading ? (
-            <div className="py-20 text-center text-muted-foreground">
-              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
-              Loading locations...
+            <div className="space-y-4 py-2">
+              <div className="hidden md:block">
+                <SkeletonTable rows={6} cols={5} />
+              </div>
+              <div className="block md:hidden">
+                <SkeletonList items={4} />
+              </div>
             </div>
           ) : (
             <>

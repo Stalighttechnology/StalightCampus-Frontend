@@ -5,6 +5,7 @@ import {
 } from "../../../utils/inventory_api";
 import { Card } from "../../ui/card";
 import { Button } from "../../ui/button";
+import { Skeleton } from "../../ui/skeleton";
 import {
   Package,
   IndianRupee,
@@ -47,9 +48,65 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
 
   if (loading) {
     return (
-      <div className="py-20 text-center text-muted-foreground">
-        <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-3 text-primary" />
-        <p className="text-sm font-medium">Aggregating campus asset intelligence...</p>
+      <div className="space-y-6">
+        {/* Top Header Skeleton */}
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-64 rounded-md" />
+          <Skeleton className="h-4 w-96 rounded-md" />
+        </div>
+
+        {/* KPI Cards Skeleton Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="p-4 sm:p-5 rounded-xl border bg-card shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3.5 w-28 rounded" />
+                <Skeleton className="h-8 w-8 rounded-xl" />
+              </div>
+              <Skeleton className="h-7 w-32 rounded-md" />
+              <Skeleton className="h-3 w-40 rounded" />
+            </div>
+          ))}
+        </div>
+
+        {/* Breakdown Section Skeletons */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <div className="rounded-xl border bg-card p-5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-44 rounded" />
+              <Skeleton className="h-4 w-20 rounded" />
+            </div>
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-3 rounded-lg border bg-background/50">
+                  <div className="space-y-1.5 flex-1">
+                    <Skeleton className="h-4 w-36 rounded" />
+                    <Skeleton className="h-3 w-24 rounded" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border bg-card p-5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-44 rounded" />
+              <Skeleton className="h-4 w-20 rounded" />
+            </div>
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-3 rounded-lg border bg-background/50">
+                  <div className="space-y-1.5 flex-1">
+                    <Skeleton className="h-4 w-36 rounded" />
+                    <Skeleton className="h-3 w-24 rounded" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

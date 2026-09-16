@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../ui/dialo
 import { Tabs, TabsList, TabsTrigger } from "../../ui/tabs";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
+import { Skeleton, SkeletonTable, SkeletonList } from "@/components/ui/skeleton";
 import {
   GroupedInventoryAsset,
   GroupedInventoryDeployment,
@@ -334,11 +335,8 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
             {activeTab === "ledger" && (
               <div className="space-y-4">
                 {loadingSummary && !summaryData ? (
-                  <div className="py-16 text-center space-y-3 flex flex-col items-center justify-center">
-                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                    <p className="text-xs text-muted-foreground font-medium">
-                      Loading custody & allocation ledger...
-                    </p>
+                  <div className="py-4">
+                    <SkeletonList items={4} />
                   </div>
                 ) : (
                   <>
@@ -506,11 +504,8 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
             {activeTab === "transfers" && (
               <div className="space-y-4">
                 {loadingTransfers ? (
-                  <div className="py-16 text-center space-y-3 flex flex-col items-center justify-center">
-                    <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
-                    <p className="text-xs text-muted-foreground font-medium">
-                      Loading transfer history & asset movement audit logs...
-                    </p>
+                  <div className="py-4">
+                    <SkeletonList items={4} />
                   </div>
                 ) : (
                   <>

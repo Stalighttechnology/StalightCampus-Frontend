@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { InventoryAnalytics } from "./dashboard/InventoryAnalytics";
 import { InventoryList } from "./items/InventoryList";
 import { ProcurementRequests } from "./procurement/ProcurementRequests";
@@ -102,8 +109,38 @@ export const InventoryHub: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Underline Tabs Header */}
-          <div className="flex border-b gap-4 sm:gap-6 overflow-x-auto dark:border-slate-800 pt-3 sm:pt-4 -mb-3.5 sm:-mb-5 scrollbar-none">
+          {/* Mobile View: Select Dropdown (visible only on mobile) */}
+          <div className="block sm:hidden pt-3 w-full">
+            <Select value={activeTab} onValueChange={(val) => setActiveTab(val)}>
+              <SelectTrigger className="w-full h-11 px-3.5 font-medium text-sm rounded-xl border border-input bg-background shadow-sm">
+                <SelectValue placeholder="Select Section">
+                  {(() => {
+                    const currentTab = tabs.find((t) => t.id === activeTab);
+                    if (!currentTab) return "Select Section";
+                    return (
+                      <span className="flex items-center gap-2">
+                        {currentTab.icon}
+                        <span>{currentTab.label}</span>
+                      </span>
+                    );
+                  })()}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px] z-[110]">
+                {tabs.map((tab) => (
+                  <SelectItem key={tab.id} value={tab.id} className="py-2.5 font-medium cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      {tab.icon}
+                      <span>{tab.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Desktop View: Underline Tabs Header (visible on sm and larger screens) */}
+          <div className="hidden sm:flex border-b gap-4 sm:gap-6 overflow-x-auto dark:border-slate-800 pt-3 sm:pt-4 -mb-3.5 sm:-mb-5 scrollbar-none">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
