@@ -267,12 +267,12 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
               </CardDescription>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
               {canCUD && (
                 <Button
                   size="sm"
                   onClick={() => setShowCreateModal(true)}
-                  className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium whitespace-nowrap"
+                  className="w-full sm:w-auto flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium whitespace-nowrap"
                 >
                   <Plus className="w-4 h-4 shrink-0" />
                   <span>Issue New RFQ</span>
@@ -282,14 +282,15 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
           </CardHeader>
 
           {/* Search & Filters */}
-          <div className="px-3 sm:px-5 pt-3 pb-3 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
-              <div className="relative flex-1 sm:flex-initial sm:w-72">
+          <div className="px-3 sm:px-5 pt-2 sm:pt-3 pb-2.5 sm:pb-3 flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-2.5 sm:gap-3">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 flex-1 min-w-0 w-full">
+              {/* Search Bar */}
+              <div className="relative w-full sm:w-72">
                 <Input
                   placeholder="Search by product, requirement, vendor..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white dark:bg-card text-foreground py-1 pr-12 text-xs sm:text-sm"
+                  className="w-full bg-white dark:bg-card text-foreground py-1 pr-12 text-xs sm:text-sm h-9"
                 />
                 {searchQuery && (
                   <button
@@ -301,56 +302,59 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                 )}
               </div>
 
-              {/* Category Filter */}
-              <Select
-                value={selectedCategory}
-                onValueChange={(val) => setSelectedCategory(val)}
-              >
-                <SelectTrigger className="h-9 w-[150px] text-xs">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Status Filter */}
-              <Select
-                value={selectedStatus}
-                onValueChange={(val) => setSelectedStatus(val)}
-              >
-                <SelectTrigger className="h-9 w-[140px] text-xs">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="sent">Sent (Pending)</SelectItem>
-                  <SelectItem value="responded">Responded</SelectItem>
-                  <SelectItem value="accepted">Accepted</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {(searchQuery || selectedCategory !== "all" || selectedStatus !== "all") && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSelectedCategory("all");
-                    setSelectedStatus("all");
-                  }}
-                  className="h-9 text-xs text-muted-foreground hover:text-foreground"
+              {/* Dropdowns (2 per row on mobile, flex on desktop) */}
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-2.5 w-full sm:w-auto">
+                {/* Category Filter */}
+                <Select
+                  value={selectedCategory}
+                  onValueChange={(val) => setSelectedCategory(val)}
                 >
-                  <X className="w-3.5 h-3.5 mr-1" /> Reset
-                </Button>
-              )}
+                  <SelectTrigger className="h-9 w-full sm:w-[150px] text-xs">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Status Filter */}
+                <Select
+                  value={selectedStatus}
+                  onValueChange={(val) => setSelectedStatus(val)}
+                >
+                  <SelectTrigger className="h-9 w-full sm:w-[140px] text-xs">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="sent">Sent (Pending)</SelectItem>
+                    <SelectItem value="responded">Responded</SelectItem>
+                    <SelectItem value="accepted">Accepted</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="expired">Expired</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {(searchQuery || selectedCategory !== "all" || selectedStatus !== "all") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCategory("all");
+                      setSelectedStatus("all");
+                    }}
+                    className="h-9 text-xs text-muted-foreground hover:text-foreground col-span-2 sm:col-span-1 justify-center sm:justify-start"
+                  >
+                    <X className="w-3.5 h-3.5 mr-1" /> Reset
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>

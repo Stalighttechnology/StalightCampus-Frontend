@@ -304,7 +304,7 @@ export const InventoryList: React.FC<Props> = ({
       <Card className="w-full bg-white dark:bg-card border border-gray-200 dark:border-border flex flex-col min-h-[620px] md:min-h-[700px] shadow-sm rounded-xl overflow-hidden">
         {/* Header Section */}
         <div className="flex flex-col">
-          <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5">
+          <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-3 sm:p-5">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3">
                 <CardTitle className="text-xl sm:text-2xl font-semibold">Asset Directory</CardTitle>
@@ -314,25 +314,25 @@ export const InventoryList: React.FC<Props> = ({
               </CardDescription>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <div className={`${canCUD ? 'flex' : 'hidden sm:flex'} flex-wrap items-center gap-2 shrink-0`}>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowScannerModal(true)}
-                className="gap-1.5 text-xs sm:text-sm font-medium"
+                className="hidden sm:inline-flex gap-1.5 text-xs sm:text-sm font-medium"
               >
                 <Camera className="w-4 h-4 text-primary" />
-                <span className="hidden sm:inline">Scan QR</span>
+                <span>Scan QR</span>
               </Button>
 
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleExportExcel}
-                className="gap-1.5 text-xs sm:text-sm font-medium"
+                className="hidden sm:inline-flex gap-1.5 text-xs sm:text-sm font-medium"
               >
                 <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-                <span className="hidden sm:inline">Export Excel</span>
+                <span>Export Excel</span>
               </Button>
 
               {canCUD && (
@@ -349,110 +349,139 @@ export const InventoryList: React.FC<Props> = ({
           </CardHeader>
 
           {/* Search & Filters */}
-          <div className="px-3 sm:px-5 pt-3 pb-3 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
-              <div className="relative flex-1 sm:flex-initial sm:w-72">
-                <Input
-                  placeholder="Search code, item, vendor, room..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-white dark:bg-card text-foreground py-1 pr-12 text-xs sm:text-sm"
-                />
-                {search && (
-                  <button
-                    onClick={() => setSearch("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+          <div className="px-3 sm:px-5 pt-2 sm:pt-3 pb-2.5 sm:pb-3 flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-2 sm:gap-3">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 flex-1 min-w-0 w-full">
+              {/* Search Bar + Mobile Action Buttons (same line) */}
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-72">
+                  <Input
+                    placeholder="Search code, item, vendor, room..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full bg-white dark:bg-card text-foreground py-1 pr-12 text-xs sm:text-sm h-9"
+                  />
+                  {search && (
+                    <button
+                      onClick={() => setSearch("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                {/* Mobile View: Camera & Export Buttons in same line as Search bar */}
+                <div className="flex sm:hidden items-center gap-1.5 shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowScannerModal(true)}
+                    className="h-9 w-9 p-0 flex items-center justify-center shrink-0 border-border"
+                    title="Scan QR"
                   >
-                    Clear
-                  </button>
-                )}
+                    <Camera className="w-4 h-4 text-primary" />
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportExcel}
+                    className="h-9 w-9 p-0 flex items-center justify-center shrink-0 border-border"
+                    title="Export Excel"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                  </Button>
+                </div>
               </div>
 
-              {/* Category Filter */}
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="h-9 w-[140px] text-xs">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.name} ({c.prefix})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Location Filter */}
-              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                <SelectTrigger className="h-9 w-[140px] text-xs">
-                  <SelectValue placeholder="All Locations" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Locations</SelectItem>
-                  {locations.map((l) => (
-                    <SelectItem key={l.id} value={String(l.id)}>
-                      {l.name} ({l.prefix})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Department / Branch Filter (hidden for HOD / department-scoped staff) */}
-              {!["hod", "faculty", "staff", "teacher"].includes(role) && (
-                <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                  <SelectTrigger className="h-9 w-[150px] text-xs">
-                    <SelectValue placeholder="All Departments" />
+              {/* Dropdowns (2 per row on mobile, flex-wrap on desktop) */}
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-2.5 w-full sm:w-auto">
+                {/* Category Filter */}
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="h-9 w-full sm:w-[140px] text-xs">
+                    <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Departments</SelectItem>
-                    <SelectItem value="general">Institutional / General</SelectItem>
-                    {branchList.map((b) => (
-                      <SelectItem key={b.id} value={String(b.id)}>
-                        {b.name}
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>
+                        {c.name} ({c.prefix})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              )}
 
-              {/* Status Filter */}
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="h-9 w-[140px] text-xs">
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="in-use">In Use</SelectItem>
-                  <SelectItem value="available">Available / In Stock</SelectItem>
-                  <SelectItem value="in-repair">In Repair</SelectItem>
-                  <SelectItem value="scrapped">Scrapped</SelectItem>
-                  <SelectItem value="discarded">Discarded</SelectItem>
-                </SelectContent>
-              </Select>
+                {/* Location Filter */}
+                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                  <SelectTrigger className="h-9 w-full sm:w-[140px] text-xs">
+                    <SelectValue placeholder="All Locations" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Locations</SelectItem>
+                    {locations.map((l) => (
+                      <SelectItem key={l.id} value={String(l.id)}>
+                        {l.name} ({l.prefix})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              {/* Stock Allocation Filter */}
-              <Select value={stockFilterTab} onValueChange={(val: any) => setStockFilterTab(val)}>
-                <SelectTrigger className="h-9 w-[185px] text-xs">
-                  <SelectValue placeholder="All Stock" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Stock</SelectItem>
-                  <SelectItem value="buffer">Central Store Buffer Stock</SelectItem>
-                  <SelectItem value="in-use">Assigned to Departments</SelectItem>
-                </SelectContent>
-              </Select>
+                {/* Department / Branch Filter (hidden for HOD / department-scoped staff) */}
+                {!["hod", "faculty", "staff", "teacher"].includes(role) && (
+                  <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                    <SelectTrigger className="h-9 w-full sm:w-[150px] text-xs">
+                      <SelectValue placeholder="All Departments" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Departments</SelectItem>
+                      <SelectItem value="general">Institutional / General</SelectItem>
+                      {branchList.map((b) => (
+                        <SelectItem key={b.id} value={String(b.id)}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
 
-              {isFiltered && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleResetFilters}
-                  className="h-9 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  <X className="w-3.5 h-3.5 mr-1" /> Reset
-                </Button>
-              )}
+                {/* Status Filter */}
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="h-9 w-full sm:w-[140px] text-xs">
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="in-use">In Use</SelectItem>
+                    <SelectItem value="available">Available / In Stock</SelectItem>
+                    <SelectItem value="in-repair">In Repair</SelectItem>
+                    <SelectItem value="scrapped">Scrapped</SelectItem>
+                    <SelectItem value="discarded">Discarded</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Stock Allocation Filter */}
+                <Select value={stockFilterTab} onValueChange={(val: any) => setStockFilterTab(val)}>
+                  <SelectTrigger className="h-9 w-full sm:w-[185px] text-xs">
+                    <SelectValue placeholder="All Stock" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Stock</SelectItem>
+                    <SelectItem value="buffer">Central Store Buffer Stock</SelectItem>
+                    <SelectItem value="in-use">Assigned to Departments</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {isFiltered && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleResetFilters}
+                    className="h-9 text-xs text-muted-foreground hover:text-foreground col-span-2 sm:col-span-1 justify-center sm:justify-start"
+                  >
+                    <X className="w-3.5 h-3.5 mr-1" /> Reset
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>

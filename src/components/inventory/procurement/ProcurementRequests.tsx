@@ -551,12 +551,12 @@ export const ProcurementRequests: React.FC<Props> = ({
               </CardDescription>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
               {role !== "faculty" && (
                 <Button
                   size="sm"
                   onClick={() => setShowCreateModal(true)}
-                  className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium whitespace-nowrap"
+                  className="w-full sm:w-auto flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium whitespace-nowrap"
                 >
                   <Plus className="w-4 h-4 shrink-0" />
                   <span>Raise Requisition</span>
@@ -566,14 +566,15 @@ export const ProcurementRequests: React.FC<Props> = ({
           </CardHeader>
 
           {/* Search & Filter Bar */}
-          <div className="px-3 sm:px-5 pt-3 pb-3 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
-              <div className="relative flex-1 sm:flex-initial sm:w-72">
+          <div className="px-3 sm:px-5 pt-2 sm:pt-3 pb-2.5 sm:pb-3 flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-2.5 sm:gap-3">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 flex-1 min-w-0 w-full">
+              {/* Search Bar */}
+              <div className="relative w-full sm:w-72">
                 <Input
                   placeholder="Search request #, title, requester..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-white dark:bg-card text-foreground py-1 pr-12 text-xs sm:text-sm"
+                  className="w-full bg-white dark:bg-card text-foreground py-1 pr-12 text-xs sm:text-sm h-9"
                 />
                 {search && (
                   <button
@@ -585,80 +586,83 @@ export const ProcurementRequests: React.FC<Props> = ({
                 )}
               </div>
 
-              {/* Status Filter */}
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="h-9 w-[170px] text-xs">
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="pending_hod">Pending HOD</SelectItem>
-                  <SelectItem value="pending_principal">Pending Principal</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rfq_issued">RFQ Issued</SelectItem>
-                  <SelectItem value="ordered">Order Placed</SelectItem>
-                  <SelectItem value="delivered">Arrived</SelectItem>
-                  <SelectItem value="added_to_inventory">Stocked In</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Category Filter */}
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="h-9 w-[150px] text-xs">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Priority Filter */}
-              <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-                <SelectTrigger className="h-9 w-[130px] text-xs">
-                  <SelectValue placeholder="All Priorities" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priorities</SelectItem>
-                  <SelectItem value="low">Low Priority</SelectItem>
-                  <SelectItem value="medium">Medium Priority</SelectItem>
-                  <SelectItem value="high">High Priority</SelectItem>
-                  <SelectItem value="urgent">Urgent Priority</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Department Filter (if not faculty) */}
-              {!["faculty", "staff", "teacher", "hod"].includes(role) && (
-                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                  <SelectTrigger className="h-9 w-[150px] text-xs">
-                    <SelectValue placeholder="All Departments" />
+              {/* Dropdowns (2 per row on mobile, flex on desktop) */}
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-2.5 w-full sm:w-auto">
+                {/* Status Filter */}
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="h-9 w-full sm:w-[170px] text-xs">
+                    <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Departments</SelectItem>
-                    {branchList.map((b) => (
-                      <SelectItem key={b.id} value={String(b.id)}>
-                        {b.name}
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="pending_hod">Pending HOD</SelectItem>
+                    <SelectItem value="pending_principal">Pending Principal</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rfq_issued">RFQ Issued</SelectItem>
+                    <SelectItem value="ordered">Order Placed</SelectItem>
+                    <SelectItem value="delivered">Arrived</SelectItem>
+                    <SelectItem value="added_to_inventory">Stocked In</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Category Filter */}
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="h-9 w-full sm:w-[150px] text-xs">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>
+                        {c.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              )}
 
-              {isFiltered && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleResetFilters}
-                  className="h-9 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  <X className="w-3.5 h-3.5 mr-1" /> Reset
-                </Button>
-              )}
+                {/* Priority Filter */}
+                <Select value={selectedPriority} onValueChange={setSelectedPriority}>
+                  <SelectTrigger className="h-9 w-full sm:w-[130px] text-xs">
+                    <SelectValue placeholder="All Priorities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priorities</SelectItem>
+                    <SelectItem value="low">Low Priority</SelectItem>
+                    <SelectItem value="medium">Medium Priority</SelectItem>
+                    <SelectItem value="high">High Priority</SelectItem>
+                    <SelectItem value="urgent">Urgent Priority</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Department Filter (if not faculty) */}
+                {!["faculty", "staff", "teacher", "hod"].includes(role) && (
+                  <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                    <SelectTrigger className="h-9 w-full sm:w-[150px] text-xs">
+                      <SelectValue placeholder="All Departments" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Departments</SelectItem>
+                      {branchList.map((b) => (
+                        <SelectItem key={b.id} value={String(b.id)}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {isFiltered && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleResetFilters}
+                    className="h-9 text-xs text-muted-foreground hover:text-foreground col-span-2 sm:col-span-1 justify-center sm:justify-start"
+                  >
+                    <X className="w-3.5 h-3.5 mr-1" /> Reset
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
