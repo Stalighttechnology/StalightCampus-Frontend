@@ -104,7 +104,7 @@ export const TicketDetailDrawer: React.FC<Props> = ({
     };
     const s = map[status] || { label: (status || "").toUpperCase(), bg: "bg-muted text-muted-foreground border-border" };
     return (
-      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border inline-block ${s.bg} ${s.text}`}>
+      <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border inline-block ${s.bg} ${s.text}`}>
         {s.label}
       </span>
     );
@@ -112,18 +112,18 @@ export const TicketDetailDrawer: React.FC<Props> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+      <DialogContent className="w-[90%] sm:w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
         <DialogHeader className="border-b pb-3 pr-8">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
               <Wrench className="w-5 h-5 text-primary" />
               Maintenance Ticket Details
             </DialogTitle>
-            <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded bg-primary/10 text-primary">
+            <span className="font-mono text-xs font-semibold px-2.5 py-0.5 rounded bg-primary/10 text-primary">
               {ticket.ticket_number}
             </span>
             <span
-              className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${getPriorityStyle(
+              className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${getPriorityStyle(
                 ticket.priority
               )}`}
             >
@@ -141,19 +141,19 @@ export const TicketDetailDrawer: React.FC<Props> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-muted/20 border rounded-2xl text-xs">
             <div>
               <span className="text-muted-foreground">Reported By:</span>
-              <p className="font-bold text-foreground">{ticket.reported_by_name || "Staff"}</p>
+              <p className="font-semibold text-foreground">{ticket.reported_by_name || "Staff"}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Assigned Technician:</span>
-              <p className="font-bold text-foreground">{ticket.assigned_to_name || "Unassigned"}</p>
+              <p className="font-semibold text-foreground">{ticket.assigned_to_name || "Unassigned"}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Item / Asset:</span>
-              <p className="font-bold text-primary font-mono">{ticket.item_code || "General Item"}</p>
+              <p className="font-semibold text-primary font-mono">{ticket.item_code || "General Item"}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Location & Room:</span>
-              <p className="font-bold text-foreground">
+              <p className="font-semibold text-foreground">
                 {ticket.department_name || "General"} {ticket.room_no && `• ${ticket.room_no}`}
               </p>
             </div>
@@ -161,7 +161,7 @@ export const TicketDetailDrawer: React.FC<Props> = ({
 
           {/* Description */}
           <div className="p-4 border rounded-2xl bg-card space-y-1.5">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Issue Details
             </h4>
             <p className="text-xs text-foreground whitespace-pre-line leading-relaxed">
@@ -174,7 +174,7 @@ export const TicketDetailDrawer: React.FC<Props> = ({
                   href={ticket.attachment_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                 >
                   <ExternalLink className="w-3.5 h-3.5" /> View Attached Photo / Document
                 </a>
@@ -184,7 +184,7 @@ export const TicketDetailDrawer: React.FC<Props> = ({
 
           {/* Updates Timeline */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <MessageSquare className="w-3.5 h-3.5 text-primary" /> Activity & Resolution Log
             </h4>
 
@@ -192,12 +192,12 @@ export const TicketDetailDrawer: React.FC<Props> = ({
               {ticket.updates?.map((u) => (
                 <div key={u.id} className="p-3 bg-muted/30 border rounded-xl text-xs space-y-1">
                   <div className="flex items-center justify-between gap-2 text-muted-foreground text-[11px]">
-                    <span className="font-bold text-foreground">{u.updated_by_name}</span>
+                    <span className="font-semibold text-foreground">{u.updated_by_name}</span>
                     <span>{new Date(u.created_at).toLocaleString()}</span>
                   </div>
                   <p className="text-foreground">{u.notes}</p>
                   {u.status_to && u.status_from !== u.status_to && (
-                    <span className="inline-block text-[10px] font-bold text-primary">
+                    <span className="inline-block text-[10px] font-semibold text-primary">
                       Status changed: {u.status_from} → {u.status_to}
                     </span>
                   )}
@@ -208,7 +208,7 @@ export const TicketDetailDrawer: React.FC<Props> = ({
 
           {/* Action Form */}
           <form onSubmit={handleUpdate} className="p-4 border rounded-2xl bg-card space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">
               {canManage ? "Update Status & Add Resolution Note" : "Post Ticket Update / Comment"}
             </h4>
 

@@ -508,7 +508,7 @@ export const ProcurementRequests: React.FC<Props> = ({
     };
     const s = map[status] || { label: status, bg: "bg-muted", text: "text-muted-foreground" };
     return (
-      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-border/50 ${s.bg} ${s.text}`}>
+      <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-border/50 ${s.bg} ${s.text}`}>
         {s.label}
       </span>
     );
@@ -683,17 +683,17 @@ export const ProcurementRequests: React.FC<Props> = ({
               {/* Desktop Table */}
               <div className="hidden md:block flex-1 overflow-y-auto overflow-x-auto border rounded-xl mb-2 relative shadow-inner">
                 <table className="w-full text-base md:text-sm text-left table-auto border-collapse">
-                  <thead className="sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-bold tracking-wider bg-slate-50/95 dark:bg-slate-900/95 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-border shadow-sm backdrop-blur-md">
+                  <thead className="sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-semibold tracking-wider bg-slate-50/95 dark:bg-slate-900/95 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-border shadow-sm backdrop-blur-md">
                     <tr>
-                      <th className="py-3.5 px-4 text-left font-bold">Request ID</th>
-                      <th className="py-3.5 px-4 font-bold">Title</th>
-                      <th className="py-3.5 px-4 font-bold">Requested By</th>
-                      <th className="py-3.5 px-4 font-bold">Category</th>
-                      <th className="py-3.5 px-4 font-bold">Department</th>
-                      <th className="py-3.5 px-4 font-bold text-center">Quantity</th>
-                      <th className="py-3.5 px-4 font-bold text-right">Est. Cost</th>
-                      <th className="py-3.5 px-4 font-bold text-center">Status</th>
-                      <th className="py-3.5 px-4 text-right font-bold w-52">Actions</th>
+                      <th className="py-3.5 px-4 text-left font-semibold">Request ID</th>
+                      <th className="py-3.5 px-4 font-semibold">Title</th>
+                      <th className="py-3.5 px-4 font-semibold">Requested By</th>
+                      <th className="py-3.5 px-4 font-semibold">Category</th>
+                      <th className="py-3.5 px-4 font-semibold">Department</th>
+                      <th className="py-3.5 px-4 font-semibold text-center">Quantity</th>
+                      <th className="py-3.5 px-4 font-semibold text-right">Est. Cost</th>
+                      <th className="py-3.5 px-4 font-semibold text-center">Status</th>
+                      <th className="py-3.5 px-4 text-right font-semibold w-52">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
@@ -711,7 +711,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                         >
                           {/* Request ID */}
                           <td className="py-3.5 px-4 align-middle font-medium whitespace-nowrap">
-                            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary">
+                            <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary">
                               {req.request_no}
                             </span>
                           </td>
@@ -871,7 +871,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                       <div className="flex justify-between items-start gap-2">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary">
+                            <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary">
                               {req.request_no}
                             </span>
                             {getStatusBadge(req.status)}
@@ -887,7 +887,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                       <div className="flex justify-between items-center text-xs text-muted-foreground">
                         <span>Category: <strong className="text-foreground">{req.category_details?.name || "--"}</strong></span>
                         <div>
-                          <span className="font-bold text-foreground">
+                          <span className="font-semibold text-foreground">
                             ₹{Number(req.estimated_cost || 0).toLocaleString("en-IN")}
                           </span>
                         </div>
@@ -985,11 +985,11 @@ export const ProcurementRequests: React.FC<Props> = ({
         {!loading && (totalCount > pageSize || totalPages > 1) && (
           <div className="px-4 py-3 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground bg-muted/20">
             <div>
-              Showing <span className="font-bold text-foreground">{startIndex + 1}</span> to{" "}
-              <span className="font-bold text-foreground">
+              Showing <span className="font-semibold text-foreground">{startIndex + 1}</span> to{" "}
+              <span className="font-semibold text-foreground">
                 {Math.min(startIndex + pageSize, totalCount || requests.length)}
               </span>{" "}
-              of <span className="font-bold text-foreground">{totalCount || requests.length}</span> Requisition(s)
+              of <span className="font-semibold text-foreground">{totalCount || requests.length}</span> Requisition(s)
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -1015,8 +1015,8 @@ export const ProcurementRequests: React.FC<Props> = ({
               </Button>
 
               <div className="flex items-center gap-1 px-2 font-medium">
-                Page <span className="font-bold text-foreground">{currentPage}</span> of{" "}
-                <span className="font-bold text-foreground">{totalPages}</span>
+                Page <span className="font-semibold text-foreground">{currentPage}</span> of{" "}
+                <span className="font-semibold text-foreground">{totalPages}</span>
               </div>
 
               <Button
@@ -1046,10 +1046,10 @@ export const ProcurementRequests: React.FC<Props> = ({
 
       {/* View Procurement Details Dialog */}
       <Dialog open={!!viewDetailsReq} onOpenChange={() => setViewDetailsReq(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] sm:max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-2xl">
+        <DialogContent className="w-[90%] sm:w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-xl sm:rounded-2xl">
           <DialogHeader className="p-5 border-b shrink-0 bg-white dark:bg-card">
             <div className="flex items-center justify-between gap-2">
-              <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+              <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
                 <FileText className="w-5 h-5 text-primary" />
                 Procurement Requisition Details
               </DialogTitle>
@@ -1064,21 +1064,21 @@ export const ProcurementRequests: React.FC<Props> = ({
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary">
+                  <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary">
                     {viewDetailsReq.request_no}
                   </span>
                   <span className="text-xs uppercase font-semibold text-muted-foreground">
                     Priority: {viewDetailsReq.priority}
                   </span>
                 </div>
-                <h3 className="text-base font-bold text-foreground mt-1">
+                <h3 className="text-base font-semibold text-foreground mt-1">
                   {viewDetailsReq.title}
                 </h3>
               </div>
 
               {/* Justification / Description */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Justification & Specifications
                 </label>
                 <div className="p-3.5 rounded-xl bg-muted/40 border text-xs text-foreground leading-relaxed whitespace-pre-wrap">
@@ -1130,10 +1130,10 @@ export const ProcurementRequests: React.FC<Props> = ({
               {viewDetailsReq.selected_vendor && (
                 <div className="p-3.5 rounded-xl border bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/60 space-y-2 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                    <span className="font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
                       <Building className="w-4 h-4 text-emerald-600" /> Selected Vendor & Awarded Quotation
                     </span>
-                    <span className="font-mono text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded">
+                    <span className="font-mono text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded">
                       Final: ₹{Number(viewDetailsReq.final_price || viewDetailsReq.selected_vendor.total_amount || 0).toLocaleString("en-IN")}
                     </span>
                   </div>
@@ -1175,7 +1175,7 @@ export const ProcurementRequests: React.FC<Props> = ({
               {!viewDetailsReq.selected_vendor && viewDetailsReq.quotations_summary && viewDetailsReq.quotations_summary.length > 0 && (
                 <div className="p-3.5 rounded-xl border bg-indigo-50/40 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800/60 space-y-2 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5">
+                    <span className="font-semibold text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5">
                       <FileText className="w-4 h-4 text-indigo-600" /> Digital RFQ & Vendor Bids
                     </span>
                   </div>
@@ -1194,7 +1194,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                                 {resp.vendor_email && <span className="text-muted-foreground text-[11px] block">{resp.vendor_email}</span>}
                               </div>
                               <div className="text-right">
-                                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                                   ₹{Number(resp.total_amount || 0).toLocaleString("en-IN")}
                                 </span>
                                 {resp.quote_document_url && (
@@ -1216,13 +1216,13 @@ export const ProcurementRequests: React.FC<Props> = ({
 
               {/* Requirement History & Lifecycle Timeline */}
               <div className="space-y-2 pt-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-primary" /> Requirement History & Progress
                 </label>
                 <div className="p-3.5 rounded-xl bg-muted/20 border space-y-3 text-xs">
                   {/* Step 1: Raised */}
                   <div className="flex items-start gap-2.5">
-                    <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5">
+                    <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 flex items-center justify-center font-semibold text-[11px] shrink-0 mt-0.5">
                       1
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1240,7 +1240,7 @@ export const ProcurementRequests: React.FC<Props> = ({
 
                   {/* Step 2: HOD Endorsement */}
                   <div className="flex items-start gap-2.5">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5 ${
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center font-semibold text-[11px] shrink-0 mt-0.5 ${
                       viewDetailsReq.hod_endorsed_by_name ? 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300' : 'bg-muted text-muted-foreground'
                     }`}>
                       2
@@ -1257,7 +1257,7 @@ export const ProcurementRequests: React.FC<Props> = ({
 
                   {/* Step 3: Principal / Admin Sanction */}
                   <div className="flex items-start gap-2.5">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5 ${
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center font-semibold text-[11px] shrink-0 mt-0.5 ${
                       viewDetailsReq.principal_sanctioned_by_name ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-muted text-muted-foreground'
                     }`}>
                       3
@@ -1274,7 +1274,7 @@ export const ProcurementRequests: React.FC<Props> = ({
 
                   {/* Step 4: Quotation & Vendor Selection */}
                   <div className="flex items-start gap-2.5">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5 ${
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center font-semibold text-[11px] shrink-0 mt-0.5 ${
                       viewDetailsReq.selected_vendor ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300' : 'bg-muted text-muted-foreground'
                     }`}>
                       4
@@ -1291,7 +1291,7 @@ export const ProcurementRequests: React.FC<Props> = ({
 
                   {/* Step 5: Order & Delivery */}
                   <div className="flex items-start gap-2.5">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5 ${
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center font-semibold text-[11px] shrink-0 mt-0.5 ${
                       ['delivered', 'added_to_inventory'].includes(viewDetailsReq.status)
                         ? 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300'
                         : viewDetailsReq.status === 'ordered'
@@ -1321,13 +1321,13 @@ export const ProcurementRequests: React.FC<Props> = ({
                 <div className="p-3 rounded-xl bg-muted/20 border space-y-2 text-xs">
                   {viewDetailsReq.hod_endorsement_remarks && (
                     <div>
-                      <span className="font-bold text-purple-700 dark:text-purple-300">HOD Endorsement: </span>
+                      <span className="font-semibold text-purple-700 dark:text-purple-300">HOD Endorsement: </span>
                       <span className="text-muted-foreground">{viewDetailsReq.hod_endorsement_remarks}</span>
                     </div>
                   )}
                   {viewDetailsReq.principal_sanction_remarks && (
                     <div>
-                      <span className="font-bold text-emerald-700 dark:text-emerald-300">Principal Sanction: </span>
+                      <span className="font-semibold text-emerald-700 dark:text-emerald-300">Principal Sanction: </span>
                       <span className="text-muted-foreground">{viewDetailsReq.principal_sanction_remarks}</span>
                     </div>
                   )}
@@ -1347,10 +1347,9 @@ export const ProcurementRequests: React.FC<Props> = ({
 
       {/* Raise Requisition Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="max-w-lg p-6">
+        <DialogContent className="w-[90%] sm:w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
-              <Plus className="w-5 h-5 text-primary" />
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
               Submit Procurement Requisition
             </DialogTitle>
             <DialogDescription>
@@ -1360,7 +1359,7 @@ export const ProcurementRequests: React.FC<Props> = ({
 
           <form onSubmit={handleCreateSubmit} className="space-y-4 pt-2">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                 Item Title / Requirement *
               </label>
               <Input
@@ -1373,7 +1372,7 @@ export const ProcurementRequests: React.FC<Props> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Asset Category *
                 </label>
                 <Select
@@ -1394,7 +1393,7 @@ export const ProcurementRequests: React.FC<Props> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Department / Branch
                 </label>
                 <Select
@@ -1418,7 +1417,7 @@ export const ProcurementRequests: React.FC<Props> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Quantity
                 </label>
                 <Input
@@ -1434,7 +1433,7 @@ export const ProcurementRequests: React.FC<Props> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Estimated Total (₹)
                 </label>
                 <Input
@@ -1451,7 +1450,7 @@ export const ProcurementRequests: React.FC<Props> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Priority
                 </label>
                 <Select
@@ -1472,7 +1471,7 @@ export const ProcurementRequests: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                 Justification & Technical Specifications
               </label>
               <Textarea
@@ -1497,14 +1496,14 @@ export const ProcurementRequests: React.FC<Props> = ({
 
       {/* Comprehensive Stock-In & Handover Modal */}
       <Dialog open={!!stockInRequest} onOpenChange={() => setStockInRequest(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+        <DialogContent className="w-[90%] sm:w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-xl sm:rounded-2xl">
           <DialogHeader className="p-5 pb-4 border-b border-border/60 bg-muted/20">
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
                 <PackagePlus className="w-5 h-5" />
               </div>
               <div>
-                <DialogTitle className="text-lg font-bold text-foreground">
+                <DialogTitle className="text-lg font-semibold text-foreground">
                   Stock In & Handover Assets
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground mt-0.5">
@@ -1517,7 +1516,7 @@ export const ProcurementRequests: React.FC<Props> = ({
             {stockInRequest && (
               <div className="mt-3 flex flex-wrap items-center gap-2 text-xs bg-card border border-border/60 p-2.5 rounded-lg">
                 <span className="font-semibold text-foreground">Requested:</span>
-                <span className="px-2 py-0.5 rounded bg-primary/10 text-primary font-bold">
+                <span className="px-2 py-0.5 rounded bg-primary/10 text-primary font-semibold">
                   {stockInRequest.requested_quantity} unit(s)
                 </span>
                 {stockInRequest.category_name && (
@@ -1543,7 +1542,7 @@ export const ProcurementRequests: React.FC<Props> = ({
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
             {/* Section 1: Location & Placement */}
             <div className="space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Building className="w-3.5 h-3.5 text-primary" />
                 1. Campus Location & Department Placement
               </h4>
@@ -1608,7 +1607,7 @@ export const ProcurementRequests: React.FC<Props> = ({
             {/* Section 2: Recipient / Custodian Handover */}
             <div className="space-y-4 border-t border-border/50 pt-5">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                   2. Recipient / Custodian Handover
                 </h4>
@@ -1879,7 +1878,7 @@ export const ProcurementRequests: React.FC<Props> = ({
 
             {/* Section 3: Quantity & Physical Receipt Confirmation */}
             <div className="space-y-3 border-t border-border/50 pt-5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Package className="w-3.5 h-3.5 text-primary" />
                 3. Quantity Stocked In & Handover Verification
               </h4>
@@ -1896,7 +1895,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                     value={stockInQuantity}
                     onChange={(e) => setStockInQuantity(Math.max(1, Number(e.target.value) || 1))}
                     onWheel={(e) => (e.target as HTMLElement).blur()}
-                    className="h-9 font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="h-9 font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
                 <div className="text-xs text-muted-foreground pt-3 sm:pt-4">
@@ -1911,7 +1910,7 @@ export const ProcurementRequests: React.FC<Props> = ({
               {stockInRequest && stockInQuantity < (stockInRequest.requested_quantity || 1) && (
                 <div className="p-3.5 rounded-lg border border-purple-200 dark:border-purple-800/60 bg-purple-50/50 dark:bg-purple-950/30 space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-purple-900 dark:text-purple-200 flex items-center gap-1.5">
+                    <span className="text-xs font-semibold text-purple-900 dark:text-purple-200 flex items-center gap-1.5">
                       <Package className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                       Remaining {stockInRequest.requested_quantity - stockInQuantity} Unit(s) Allocation
                     </span>
@@ -1977,10 +1976,10 @@ export const ProcurementRequests: React.FC<Props> = ({
                   onClick={(e) => e.stopPropagation()}
                 />
                 <div className="text-xs leading-relaxed">
-                  <span className="font-bold block">
+                  <span className="font-semibold block">
                     Confirm Physical Receipt & Asset Custody
                   </span>
-                  I confirm that <strong className="font-bold underline">{stockInQuantity} unit(s)</strong> have been physically received, verified for quality, and assigned to{" "}
+                  I confirm that <strong className="font-semibold underline">{stockInQuantity} unit(s)</strong> have been physically received, verified for quality, and assigned to{" "}
                   <strong>
                     {stockInRecipientName.trim() || `${stockInRecipientRole.toUpperCase()} Custodian`}
                   </strong>
@@ -2027,9 +2026,9 @@ export const ProcurementRequests: React.FC<Props> = ({
 
       {/* Raise Quotation / Record Vendor Quote Modal */}
       <Dialog open={!!quotationModalReq} onOpenChange={(open) => !open && setQuotationModalReq(null)}>
-        <DialogContent className="max-w-xl p-6">
+        <DialogContent className="w-[90%] sm:w-full max-w-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
               <FileText className="w-5 h-5 text-indigo-600" />
               Vendor Quotation / RFQ
             </DialogTitle>
@@ -2092,7 +2091,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                         Vendor / Company Name *
                       </label>
                       <Input
@@ -2103,7 +2102,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                         Vendor Email
                       </label>
                       <Input
@@ -2117,7 +2116,7 @@ export const ProcurementRequests: React.FC<Props> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                         Total Quoted Amount (₹) *
                       </label>
                       <Input
@@ -2133,7 +2132,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                         Vendor Phone (Optional)
                       </label>
                       <Input
@@ -2145,7 +2144,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                       Quotation Document URL / Ref (Optional)
                     </label>
                     <Input
@@ -2156,7 +2155,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                       Quotation Notes / Specifications
                     </label>
                     <Textarea
@@ -2184,7 +2183,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                         Vendor Email *
                       </label>
                       <Input
@@ -2196,7 +2195,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                         Bid Submission Deadline
                       </label>
                       <Input
@@ -2208,7 +2207,7 @@ export const ProcurementRequests: React.FC<Props> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                       RFQ Description & Scope
                     </label>
                     <Textarea

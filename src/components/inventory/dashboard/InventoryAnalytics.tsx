@@ -125,7 +125,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
             <TrendingUp className="w-6 h-6 text-primary" />
             Inventory Analytics & Asset Summary
           </h2>
@@ -143,7 +143,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
           className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-gradient-to-br from-emerald-500/10 via-card to-card hover:border-emerald-500/40 transition-all cursor-pointer shadow-sm space-y-2.5 sm:space-y-3"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Total Asset Valuation
             </span>
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
@@ -151,7 +151,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
             </div>
           </div>
           <div>
-            <h3 className="text-xl sm:text-2xl font-black text-foreground">
+            <h3 className="text-xl sm:text-2xl font-bold text-foreground">
               ₹{Number(kpis.total_valuation).toLocaleString("en-IN")}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -166,7 +166,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
           className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-gradient-to-br from-amber-500/10 via-card to-card hover:border-amber-500/40 transition-all cursor-pointer shadow-sm space-y-2.5 sm:space-y-3"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Assets In Repair
             </span>
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
@@ -174,7 +174,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
             </div>
           </div>
           <div>
-            <h3 className="text-xl sm:text-2xl font-black text-amber-600">
+            <h3 className="text-xl sm:text-2xl font-bold text-amber-600">
               {kpis.in_repair_count}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -189,7 +189,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
           className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-gradient-to-br from-blue-500/10 via-card to-card hover:border-blue-500/40 transition-all cursor-pointer shadow-sm space-y-2.5 sm:space-y-3"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Open Support Tickets
             </span>
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
@@ -197,7 +197,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
             </div>
           </div>
           <div>
-            <h3 className="text-xl sm:text-2xl font-black text-blue-600">
+            <h3 className="text-xl sm:text-2xl font-bold text-blue-600">
               {kpis.active_tickets}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -212,7 +212,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
           className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-gradient-to-br from-purple-500/10 via-card to-card hover:border-purple-500/40 transition-all cursor-pointer shadow-sm space-y-2.5 sm:space-y-3"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Pending Requisitions
             </span>
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
@@ -220,7 +220,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
             </div>
           </div>
           <div>
-            <h3 className="text-xl sm:text-2xl font-black text-purple-600">
+            <h3 className="text-xl sm:text-2xl font-bold text-purple-600">
               {kpis.pending_procurements}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -235,7 +235,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
         {/* Category Breakdown */}
         <Card className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-card shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b pb-3">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Layers className="w-4 h-4 text-primary" /> Top Categories by Valuation
             </h3>
             <span className="text-xs text-muted-foreground">Valuation</span>
@@ -275,7 +275,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
         {/* Location Breakdown */}
         <Card className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-card shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b pb-3">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary" /> Asset Distribution by Block
             </h3>
             <span className="text-xs text-muted-foreground">Units</span>
@@ -313,7 +313,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
 
       {/* Recent Activity Audit Trail */}
       <Card className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border bg-card shadow-sm space-y-3">
-        <h3 className="text-sm font-bold text-foreground flex items-center gap-2 border-b pb-3">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 border-b pb-3">
           <Clock className="w-4 h-4 text-primary" /> Recent Asset Mutations & Audit Trail
         </h3>
 
@@ -335,7 +335,7 @@ export const InventoryAnalytics: React.FC<Props> = ({ onNavigateTab }) => {
                   className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 p-3 bg-muted/20 border rounded-xl text-xs hover:bg-muted/40 transition-colors"
                 >
                   <div className="flex items-start sm:items-center gap-2 flex-wrap min-w-0 flex-1">
-                    <span className="font-mono text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary shrink-0">
+                    <span className="font-mono text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary shrink-0">
                       {log.action_type.replace(/_/g, " ").toUpperCase()}
                     </span>
                     <span className="text-foreground font-medium text-xs break-words">

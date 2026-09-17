@@ -238,14 +238,14 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
               {/* Desktop Table */}
               <div className="hidden md:block flex-1 overflow-y-auto overflow-x-auto border rounded-xl mb-2 relative shadow-inner">
                 <table className="w-full text-base md:text-sm text-left table-auto border-collapse">
-                  <thead className="sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-bold tracking-wider bg-slate-50/95 dark:bg-slate-900/95 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-border shadow-sm backdrop-blur-md">
+                  <thead className="sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-semibold tracking-wider bg-slate-50/95 dark:bg-slate-900/95 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-border shadow-sm backdrop-blur-md">
                     <tr>
-                      <th className="py-3.5 px-4 text-left font-bold">Code Prefix</th>
-                      <th className="py-3.5 px-4 font-bold">Category Name</th>
-                      <th className="py-3.5 px-4 font-bold">Description</th>
-                      <th className="py-3.5 px-4 font-bold text-center">Items Tagged</th>
-                      <th className="py-3.5 px-4 font-bold text-center">Created Date</th>
-                      {canCUD && <th className="py-3.5 px-4 text-right font-bold w-36">Actions</th>}
+                      <th className="py-3.5 px-4 text-left font-semibold">Code Prefix</th>
+                      <th className="py-3.5 px-4 font-semibold">Category Name</th>
+                      <th className="py-3.5 px-4 font-semibold">Description</th>
+                      <th className="py-3.5 px-4 font-semibold text-center">Items Tagged</th>
+                      <th className="py-3.5 px-4 font-semibold text-center">Created Date</th>
+                      {canCUD && <th className="py-3.5 px-4 text-right font-semibold w-36">Actions</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
@@ -263,7 +263,7 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
                         >
                           {/* Prefix */}
                           <td className="py-3.5 px-4 align-middle font-medium whitespace-nowrap">
-                            <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-primary/10 text-primary border border-primary/20 inline-block">
+                            <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-md bg-primary/10 text-primary border border-primary/20 inline-block">
                               {c.prefix}
                             </span>
                           </td>
@@ -340,7 +340,7 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
                     >
                       <div className="flex justify-between items-start gap-2">
                         <div className="space-y-1">
-                          <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 inline-block">
+                          <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 inline-block">
                             {c.prefix}
                           </span>
                           <h3 className="font-semibold text-sm text-foreground mt-1">{c.name}</h3>
@@ -385,11 +385,11 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
         {!loading && (totalCount > pageSize || totalPages > 1) && (
           <div className="px-4 py-3 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground bg-muted/20">
             <div>
-              Showing <span className="font-bold text-foreground">{startIndex + 1}</span> to{" "}
-              <span className="font-bold text-foreground">
+              Showing <span className="font-semibold text-foreground">{startIndex + 1}</span> to{" "}
+              <span className="font-semibold text-foreground">
                 {Math.min(startIndex + pageSize, totalCount || categories.length)}
               </span>{" "}
-              of <span className="font-bold text-foreground">{totalCount || categories.length}</span> Category(ies)
+              of <span className="font-semibold text-foreground">{totalCount || categories.length}</span> Category(ies)
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -415,8 +415,8 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
               </Button>
 
               <div className="flex items-center gap-1 px-2 font-medium">
-                Page <span className="font-bold text-foreground">{currentPage}</span> of{" "}
-                <span className="font-bold text-foreground">{totalPages}</span>
+                Page <span className="font-semibold text-foreground">{currentPage}</span> of{" "}
+                <span className="font-semibold text-foreground">{totalPages}</span>
               </div>
 
               <Button
@@ -446,9 +446,9 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
 
       {/* Add / Edit Category Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="max-w-md p-6">
+        <DialogContent className="w-[90%] sm:w-full max-w-md max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader className="pr-8">
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
               <Tag className="w-5 h-5 text-primary" />
               {editingCategory ? "Edit Asset Category" : "Add Asset Category"}
             </DialogTitle>
@@ -459,7 +459,7 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
 
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                 Category Name *
               </label>
               <Input
@@ -471,7 +471,7 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                 Code Prefix (2-6 letters) *
               </label>
               <Input
@@ -480,7 +480,7 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
                 placeholder="e.g. LAP, PRO, SRV, MIC"
                 value={prefix}
                 onChange={(e) => setPrefix(e.target.value.toUpperCase())}
-                className="font-mono uppercase font-bold"
+                className="font-mono uppercase font-semibold"
               />
               <p className="text-[11px] text-muted-foreground mt-1">
                 Used in item codes: e.g. <code>E-<strong>{prefix || "LAP"}</strong>-0001</code>
@@ -488,7 +488,7 @@ export const CategoryManagement: React.FC<Props> = ({ role = "admin" }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                 Description (Optional)
               </label>
               <Textarea

@@ -273,7 +273,7 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && !submitting && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[92vh] flex flex-col p-0 overflow-hidden bg-background text-foreground shadow-2xl border border-border">
+      <DialogContent className="w-[90%] sm:w-full max-w-3xl max-h-[85vh] sm:max-h-[90vh] flex flex-col p-0 overflow-hidden bg-background text-foreground shadow-2xl border border-border rounded-xl sm:rounded-2xl">
         {/* Header */}
         <DialogHeader className="p-5 pb-4 border-b border-border/60 bg-muted/20 shrink-0">
           <div className="flex items-center gap-2.5">
@@ -281,7 +281,7 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
               <ArrowRightLeft className="w-5 h-5" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-bold text-foreground">
+              <DialogTitle className="text-lg font-semibold text-foreground">
                 Allocate Central Buffer Stock
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">
@@ -294,7 +294,7 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs bg-card border border-border/60 p-3 rounded-lg">
             <div className="space-y-0.5 max-w-lg">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
                   {group.code_range}
                 </span>
                 <span className="font-semibold text-foreground truncate">
@@ -307,7 +307,7 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <span className="px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-200 border border-purple-200 dark:border-purple-800/60 text-xs font-bold flex items-center gap-1">
+              <span className="px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-200 border border-purple-200 dark:border-purple-800/60 text-xs font-semibold flex items-center gap-1">
                 <Package className="w-3.5 h-3.5" />
                 {maxAvailable} Available in Buffer
               </span>
@@ -320,7 +320,7 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
           {/* Section 1: Allocation Quantity */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <PackagePlus className="w-3.5 h-3.5 text-purple-600" />
                 1. Select Quantity to Allocate (Bulk)
               </h4>
@@ -348,7 +348,7 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
                         toast.warning(`Quantity capped to maximum available buffer (${maxAvailable} units).`);
                       }
                     }}
-                    className={`h-10 text-sm font-bold ${
+                    className={`h-10 text-sm font-semibold ${
                       isQuantityExceeded || isQuantityUnderflow || isNaNQuantity
                         ? "border-destructive focus-visible:ring-destructive text-destructive bg-destructive/5"
                         : ""
@@ -454,7 +454,7 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
 
           {/* Section 2: Campus Location & Department Placement */}
           <div className="space-y-3 border-t border-border/50 pt-5">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Building className="w-3.5 h-3.5 text-primary" />
               2. Destination Department & Campus Placement
             </h4>
@@ -508,11 +508,11 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <label className="text-xs font-bold text-foreground block">
+                    <label className="text-xs font-semibold text-foreground block">
                       Room / Lab / Desk Assignment
                     </label>
                     {roomMode === "individual" && selectedUnits.length > 0 && (
-                      <span className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold border ${
+                      <span className={`px-2 py-0.5 rounded-full text-[10.5px] font-semibold border ${
                         selectedUnits.filter((u) => unitRooms[u.id]?.trim()).length === selectedUnits.length
                           ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
                           : "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-800"
@@ -665,10 +665,10 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
                               : "bg-muted/30 border-dashed border-border"
                           }`}
                         >
-                          <div className="w-7 text-center font-mono font-bold text-muted-foreground shrink-0">
+                          <div className="w-7 text-center font-mono font-semibold text-muted-foreground shrink-0">
                             #{idx + 1}
                           </div>
-                          <span className="font-mono font-bold text-primary px-2 py-0.5 rounded bg-primary/10 border border-primary/20 shrink-0">
+                          <span className="font-mono font-semibold text-primary px-2 py-0.5 rounded bg-primary/10 border border-primary/20 shrink-0">
                             {u.item_code}
                           </span>
                           <Input
@@ -743,7 +743,7 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
           {/* Section 3: Recipient / Custodian Handover */}
           <div className="space-y-4 border-t border-border/50 pt-5">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <UserCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                 3. Recipient / Custodian Handover
               </h4>

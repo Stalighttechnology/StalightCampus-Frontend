@@ -219,9 +219,9 @@ export const RaiseTicketModal: React.FC<Props> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-xl max-w-[95vw] w-full p-6 max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-2xl">
+      <DialogContent className="w-[90%] sm:w-full max-w-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto overflow-x-hidden p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
         <DialogHeader className="pr-8">
-          <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+          <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
             <Wrench className="w-5 h-5 text-amber-500 flex-shrink-0" />
             Report Issue / Maintenance Ticket
           </DialogTitle>
@@ -233,7 +233,7 @@ export const RaiseTicketModal: React.FC<Props> = ({
         <form onSubmit={handleSubmit} className="space-y-4 pt-2 w-full min-w-0">
           {/* Asset Selection (Dropdown with Search Box & Paginated 10 Entries) */}
           <div className="space-y-1.5 w-full min-w-0" ref={dropdownRef}>
-            <label className="block text-xs font-bold uppercase tracking-wider text-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-foreground">
               Associated Asset / Equipment <span className="text-rose-500 font-black">*</span>
             </label>
 
@@ -249,7 +249,7 @@ export const RaiseTicketModal: React.FC<Props> = ({
                 {selectedItem ? (
                   <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
                     <Package className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span className="font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary whitespace-nowrap flex-shrink-0">
+                    <span className="font-mono text-xs font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary whitespace-nowrap flex-shrink-0">
                       {selectedItem.item_code}
                     </span>
                     <span className="text-xs font-medium text-foreground truncate min-w-0 flex-1 block">
@@ -330,12 +330,12 @@ export const RaiseTicketModal: React.FC<Props> = ({
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden">
-                              <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-muted/80 text-muted-foreground border border-border/50 flex-shrink-0">
+                              <span className="font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded bg-muted/80 text-muted-foreground border border-border/50 flex-shrink-0">
                                 #{globalIndex}
                               </span>
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2 min-w-0">
-                                  <span className="font-mono font-bold text-xs text-primary whitespace-nowrap flex-shrink-0">
+                                  <span className="font-mono font-semibold text-xs text-primary whitespace-nowrap flex-shrink-0">
                                     {item.item_code}
                                   </span>
                                   <span className="font-medium text-xs text-foreground truncate min-w-0 block">
@@ -401,7 +401,7 @@ export const RaiseTicketModal: React.FC<Props> = ({
           {/* Department & Room */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0 w-full">
             <div className="min-w-0">
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1 truncate">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1 truncate">
                 Department / Branch
               </label>
               <Select
@@ -423,7 +423,7 @@ export const RaiseTicketModal: React.FC<Props> = ({
             </div>
 
             <div className="min-w-0">
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1 truncate">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1 truncate">
                 Room / Lab Location
               </label>
               <Input
@@ -438,7 +438,7 @@ export const RaiseTicketModal: React.FC<Props> = ({
           {/* Category & Priority */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0 w-full">
             <div className="min-w-0">
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1 truncate">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1 truncate">
                 Issue Category <span className="text-rose-500 font-black">*</span>
               </label>
               <Select
@@ -461,7 +461,7 @@ export const RaiseTicketModal: React.FC<Props> = ({
             </div>
 
             <div className="min-w-0">
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1 truncate">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1 truncate">
                 Priority <span className="text-rose-500 font-black">*</span>
               </label>
               <Select
@@ -483,7 +483,7 @@ export const RaiseTicketModal: React.FC<Props> = ({
 
           {/* Issue Description */}
           <div className="w-full min-w-0">
-            <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
               Issue Description <span className="text-rose-500 font-black">*</span>
             </label>
             <Textarea

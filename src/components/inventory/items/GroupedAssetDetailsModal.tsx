@@ -190,14 +190,14 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col p-0 overflow-hidden bg-background text-foreground shadow-2xl border border-border">
+        <DialogContent className="w-[90%] sm:w-full max-w-4xl max-h-[85vh] sm:max-h-[90vh] flex flex-col p-0 overflow-hidden bg-background text-foreground shadow-2xl border border-border rounded-xl sm:rounded-2xl">
           {/* Header */}
           <DialogHeader className="p-5 pb-4 border-b bg-slate-50/80 dark:bg-slate-900/60 shrink-0 pr-12 sm:pr-14">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   {activeGroup.code_range && activeGroup.code_range !== "--" && (
-                    <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+                    <span className="font-mono text-xs font-semibold px-2.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
                       {activeGroup.code_range}
                     </span>
                   )}
@@ -205,14 +205,14 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                     {activeGroup.category_name} ({activeGroup.category_prefix})
                   </span>
                   {activeGroup.in_stock_buffer > 0 && (
-                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 flex items-center gap-1">
+                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 flex items-center gap-1">
                       <Package className="w-3 h-3" />
                       {activeGroup.in_stock_buffer} in Central Buffer
                     </span>
                   )}
                 </div>
 
-                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-snug pt-1">
+                <DialogTitle className="text-lg sm:text-xl font-semibold text-foreground leading-snug pt-1">
                   {activeGroup.item_name}
                 </DialogTitle>
 
@@ -243,7 +243,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
               <div className="p-2.5 rounded-lg bg-background border border-border/60">
                 <span className="text-[11px] text-muted-foreground block font-medium">Total Registered</span>
                 <div className="flex items-baseline gap-1 mt-0.5">
-                  <strong className="text-base font-bold text-foreground">{activeGroup.total_units}</strong>
+                  <strong className="text-base font-semibold text-foreground">{activeGroup.total_units}</strong>
                   <span className="text-[11px] text-muted-foreground">units</span>
                 </div>
                 <div className="text-[10.5px] text-muted-foreground mt-0.5 truncate">
@@ -256,7 +256,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                   <Building className="w-3 h-3" /> Allocated & In Use
                 </span>
                 <div className="flex items-baseline gap-1 mt-0.5">
-                  <strong className="text-base font-bold text-blue-900 dark:text-blue-100">
+                  <strong className="text-base font-semibold text-blue-900 dark:text-blue-100">
                     {activeGroup.in_use_deployed}
                   </strong>
                   <span className="text-[11px] text-blue-700 dark:text-blue-300">deployed</span>
@@ -271,7 +271,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                   <Package className="w-3 h-3" /> Central Buffer Stock
                 </span>
                 <div className="flex items-baseline gap-1 mt-0.5">
-                  <strong className="text-base font-bold text-purple-900 dark:text-purple-100">
+                  <strong className="text-base font-semibold text-purple-900 dark:text-purple-100">
                     {activeGroup.in_stock_buffer}
                   </strong>
                   <span className="text-[11px] text-purple-700 dark:text-purple-300">available</span>
@@ -284,7 +284,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
               <div className="p-2.5 rounded-lg bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-800/50">
                 <span className="text-[11px] text-emerald-700 dark:text-emerald-300 block font-medium">Unit Price</span>
                 <div className="flex items-baseline gap-1 mt-0.5">
-                  <strong className="text-base font-bold text-emerald-900 dark:text-emerald-100">
+                  <strong className="text-base font-semibold text-emerald-900 dark:text-emerald-100">
                     ₹{Number(activeGroup.cost_per_unit || 0).toLocaleString("en-IN")}
                   </strong>
                 </div>
@@ -342,7 +342,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                   <>
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-sm font-bold text-foreground">
+                        <h4 className="text-sm font-semibold text-foreground">
                           Custody & Allocation Ledger
                         </h4>
                         <p className="text-xs text-muted-foreground">
@@ -389,11 +389,11 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
 
                                   <div className="space-y-1">
                                     <div className="flex items-center gap-2">
-                                      <h5 className="text-sm font-bold text-foreground">
+                                      <h5 className="text-sm font-semibold text-foreground">
                                         {dep.department}
                                       </h5>
                                       <span
-                                        className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                                           isBufferBay
                                             ? "bg-purple-200/70 text-purple-800 dark:bg-purple-900/80 dark:text-purple-200"
                                             : "bg-blue-200/70 text-blue-800 dark:bg-blue-900/80 dark:text-blue-200"
@@ -455,7 +455,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                                   <span className="text-[10.5px] text-muted-foreground block font-medium">
                                     Received By / Custodian:
                                   </span>
-                                  <div className="font-bold text-foreground mt-0.5 flex items-center gap-1.5">
+                                  <div className="font-semibold text-foreground mt-0.5 flex items-center gap-1.5">
                                     <UserCheck className="w-3.5 h-3.5 text-primary" />
                                     <span>{dep.received_by || (isBufferBay ? "Central Store Staff" : "Department Custodian")}</span>
                                   </div>
@@ -470,7 +470,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                                   <span className="text-[10.5px] text-muted-foreground block font-medium">
                                     Handed Over By:
                                   </span>
-                                  <div className="font-bold text-foreground mt-0.5 flex items-center gap-1.5">
+                                  <div className="font-semibold text-foreground mt-0.5 flex items-center gap-1.5">
                                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                                     <span>{dep.handed_over_by || "Inventory Admin"}</span>
                                   </div>
@@ -483,7 +483,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                                   <span className="text-[10.5px] text-muted-foreground block font-medium">
                                     Assigned Serial Codes ({dep.count}):
                                   </span>
-                                  <div className="font-mono text-[11px] font-bold text-primary mt-0.5 truncate" title={dep.code_range}>
+                                  <div className="font-mono text-[11px] font-semibold text-primary mt-0.5 truncate" title={dep.code_range}>
                                     {dep.code_range || "--"}
                                   </div>
                                   <span className="text-[10.5px] text-muted-foreground block mt-0.5">
@@ -511,7 +511,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                   <>
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-sm font-bold text-foreground">
+                        <h4 className="text-sm font-semibold text-foreground">
                           Transfer & Movement Audit Logs
                         </h4>
                         <p className="text-xs text-muted-foreground">
@@ -597,7 +597,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                     {/* Units Table */}
                     <div className="border rounded-lg overflow-x-auto bg-background shadow-2xs">
                       <table className="w-full text-xs text-left">
-                        <thead className="border-b bg-muted/50 text-muted-foreground font-bold uppercase text-[10.5px]">
+                        <thead className="border-b bg-muted/50 text-muted-foreground font-semibold uppercase text-[10.5px]">
                           <tr>
                             <th className="py-2.5 px-3">Serial Code</th>
                             <th className="py-2.5 px-3">Placement / Bay</th>
@@ -631,7 +631,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                                     key={it.id}
                                     className="hover:bg-muted/40 transition-colors"
                                   >
-                                    <td className="py-2 px-3 font-mono font-bold text-primary">
+                                    <td className="py-2 px-3 font-mono font-semibold text-primary">
                                       {it.item_code}
                                     </td>
                                     <td className="py-2 px-3 font-medium">
@@ -744,7 +744,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                 {activeTab === "specs" && (
                   <div className="space-y-4">
                     <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-3">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         Hardware & Technical Specifications
                       </h4>
                       <p className="text-sm font-mono whitespace-pre-wrap leading-relaxed text-foreground bg-background p-3 rounded-lg border border-border/60">
@@ -754,7 +754,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       <div className="p-3.5 rounded-xl bg-background border border-border space-y-2">
-                        <span className="font-bold text-foreground block">Procurement & Sourcing</span>
+                        <span className="font-semibold text-foreground block">Procurement & Sourcing</span>
                         <div className="space-y-1 text-muted-foreground">
                           <div>
                             <strong>Vendor:</strong> {activeGroup.vendor_name || "--"}
@@ -771,7 +771,7 @@ export const GroupedAssetDetailsModal: React.FC<Props> = ({
                       </div>
 
                       <div className="p-3.5 rounded-xl bg-background border border-border space-y-2">
-                        <span className="font-bold text-foreground block">Campus Placement & Category</span>
+                        <span className="font-semibold text-foreground block">Campus Placement & Category</span>
                         <div className="space-y-1 text-muted-foreground">
                           <div>
                             <strong>Category:</strong> {activeGroup.category_name} ({activeGroup.category_prefix})

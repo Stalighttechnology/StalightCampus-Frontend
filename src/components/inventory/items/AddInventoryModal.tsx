@@ -116,9 +116,9 @@ export const AddInventoryModal: React.FC<Props> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+      <DialogContent className="w-[90%] sm:w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
         <DialogHeader className="pr-8">
-          <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+          <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
             <PlusCircle className="w-5 h-5 text-primary" />
             Add New Inventory Item
           </DialogTitle>
@@ -134,7 +134,7 @@ export const AddInventoryModal: React.FC<Props> = ({
               <Tag className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground flex items-center gap-1">
+              <p className="text-[11px] uppercase font-semibold tracking-wider text-muted-foreground flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-primary" /> Auto-Generated Item Code Preview
               </p>
               <p className="font-mono text-lg font-black tracking-wider text-foreground">
@@ -150,7 +150,7 @@ export const AddInventoryModal: React.FC<Props> = ({
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           {/* Item Name */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1.5">
               Item Name / Model *
             </label>
             <Input
@@ -164,7 +164,7 @@ export const AddInventoryModal: React.FC<Props> = ({
           {/* Category & Location */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1.5">
                 Category *
               </label>
               <Select
@@ -185,7 +185,7 @@ export const AddInventoryModal: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1.5">
                 Location / Block *
               </label>
               <Select
@@ -209,7 +209,7 @@ export const AddInventoryModal: React.FC<Props> = ({
           {/* Department Branch & Room No */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1.5">
                 Department / Branch (Optional)
               </label>
               <Select
@@ -237,7 +237,7 @@ export const AddInventoryModal: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1.5">
                 Room / Lab / Desk No
               </label>
               <Input
@@ -251,7 +251,7 @@ export const AddInventoryModal: React.FC<Props> = ({
           {/* Asset Type & Initial Status */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1.5">
                 Asset Classification
               </label>
               <Select
@@ -274,7 +274,7 @@ export const AddInventoryModal: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1.5">
                 Initial Status
               </label>
               <Select
@@ -303,7 +303,7 @@ export const AddInventoryModal: React.FC<Props> = ({
           {/* Quantity & Unit Cost */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1.5">
                 Quantity Available
               </label>
               <Input
@@ -317,7 +317,7 @@ export const AddInventoryModal: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1.5">
                 Cost Per Unit (₹)
               </label>
               <Input
@@ -335,7 +335,7 @@ export const AddInventoryModal: React.FC<Props> = ({
 
           {/* Specifications */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1.5">
               Technical Specifications / Details
             </label>
             <Textarea
@@ -348,7 +348,7 @@ export const AddInventoryModal: React.FC<Props> = ({
 
           {/* Vendor & Invoice Metadata */}
           <div className="p-4 bg-muted/20 border rounded-2xl space-y-3">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Purchase & Vendor Information (Optional)
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

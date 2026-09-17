@@ -375,14 +375,14 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
               {/* Desktop Table */}
               <div className="hidden md:block flex-1 overflow-y-auto overflow-x-auto border rounded-xl mb-2 relative shadow-inner">
                 <table className="w-full text-base md:text-sm text-left table-auto border-collapse">
-                  <thead className="sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-bold tracking-wider bg-slate-50/95 dark:bg-slate-900/95 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-border shadow-sm backdrop-blur-md">
+                  <thead className="sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-semibold tracking-wider bg-slate-50/95 dark:bg-slate-900/95 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-border shadow-sm backdrop-blur-md">
                     <tr>
-                      <th className="py-3.5 px-4 text-left font-bold">Quotation / Product Name</th>
-                      <th className="py-3.5 px-4 font-bold">Category</th>
-                      <th className="py-3.5 px-4 font-bold text-center">Quantity</th>
-                      <th className="py-3.5 px-4 font-bold text-center">Status</th>
-                      <th className="py-3.5 px-4 font-bold text-center">Bids</th>
-                      <th className="py-3.5 px-4 text-right font-bold w-44">Actions</th>
+                      <th className="py-3.5 px-4 text-left font-semibold">Quotation / Product Name</th>
+                      <th className="py-3.5 px-4 font-semibold">Category</th>
+                      <th className="py-3.5 px-4 font-semibold text-center">Quantity</th>
+                      <th className="py-3.5 px-4 font-semibold text-center">Status</th>
+                      <th className="py-3.5 px-4 font-semibold text-center">Bids</th>
+                      <th className="py-3.5 px-4 text-right font-semibold w-44">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
@@ -403,7 +403,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="break-words font-semibold text-foreground">{quote.product_name}</span>
                               {(quote.procurement_request_details || quote.procurement_request) && (
-                                <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 whitespace-nowrap flex items-center gap-1">
+                                <span className="font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 whitespace-nowrap flex items-center gap-1">
                                   <span>{quote.procurement_request_details?.request_no || `Req #${quote.procurement_request}`}</span>
                                   {quote.procurement_request_details?.branch_name && (
                                     <span className="text-[9px] opacity-80">({quote.procurement_request_details.branch_name})</span>
@@ -429,7 +429,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                           {/* Status */}
                           <td className="py-3.5 px-4 align-middle text-center">
                             <span
-                              className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border inline-block ${
+                              className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border inline-block ${
                                 quote.status === "accepted"
                                   ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800"
                                   : quote.status === "responded"
@@ -519,7 +519,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                       <div className="flex justify-between items-start gap-2">
                         <div className="space-y-1">
                           <span
-                            className={`text-[11px] font-bold px-2 py-0.5 rounded-full border inline-block ${
+                            className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border inline-block ${
                               quote.status === "accepted"
                                 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                 : quote.status === "responded"
@@ -532,7 +532,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                           <h3 className="font-semibold text-sm text-foreground">{quote.product_name}</h3>
                           <p className="text-xs text-muted-foreground">{quote.company_email}</p>
                           {(quote.procurement_request_details || quote.procurement_request) && (
-                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 inline-block">
+                            <span className="font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 inline-block">
                               {quote.procurement_request_details?.request_no || `Req #${quote.procurement_request}`}
                               {quote.procurement_request_details?.branch_name && ` (${quote.procurement_request_details.branch_name})`}
                             </span>
@@ -595,11 +595,11 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
         {!loading && (totalCount > pageSize || totalPages > 1) && (
           <div className="px-4 py-3 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground bg-muted/20">
             <div>
-              Showing <span className="font-bold text-foreground">{startIndex + 1}</span> to{" "}
-              <span className="font-bold text-foreground">
+              Showing <span className="font-semibold text-foreground">{startIndex + 1}</span> to{" "}
+              <span className="font-semibold text-foreground">
                 {Math.min(startIndex + pageSize, totalCount || quotations.length)}
               </span>{" "}
-              of <span className="font-bold text-foreground">{totalCount || quotations.length}</span> Quotation(s)
+              of <span className="font-semibold text-foreground">{totalCount || quotations.length}</span> Quotation(s)
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -625,8 +625,8 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
               </Button>
 
               <div className="flex items-center gap-1 px-2 font-medium">
-                Page <span className="font-bold text-foreground">{currentPage}</span> of{" "}
-                <span className="font-bold text-foreground">{totalPages}</span>
+                Page <span className="font-semibold text-foreground">{currentPage}</span> of{" "}
+                <span className="font-semibold text-foreground">{totalPages}</span>
               </div>
 
               <Button
@@ -656,9 +656,9 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
       {/* Create RFQ Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="max-w-lg p-6">
+        <DialogContent className="w-[90%] sm:w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
               <Plus className="w-5 h-5 text-primary" />
               Issue Quotation Request (RFQ)
             </DialogTitle>
@@ -669,7 +669,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
           <form onSubmit={handleCreateSubmit} className="space-y-4 pt-2">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                 Product / Equipment Name *
               </label>
               <Input
@@ -682,7 +682,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Category *
                 </label>
                 <Select
@@ -703,7 +703,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Quantity *
                 </label>
                 <Input
@@ -719,7 +719,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Supplier Email *
                 </label>
                 <Input
@@ -732,7 +732,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Deadline for Quotes
                 </label>
                 <Input
@@ -744,7 +744,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                 Specifications / Requirements
               </label>
               <Textarea
@@ -769,9 +769,9 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
       {/* Record Manual Vendor Bid Dialog */}
       <Dialog open={!!recordBidModalQuote} onOpenChange={(open) => !open && setRecordBidModalQuote(null)}>
-        <DialogContent className="max-w-lg p-6">
+        <DialogContent className="w-[90%] sm:w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
               <FileText className="w-5 h-5 text-indigo-600" />
               Record Vendor Bid / Quote
             </DialogTitle>
@@ -784,7 +784,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
           <form onSubmit={handleRecordBidSubmit} className="space-y-4 pt-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Vendor / Supplier Name *
                 </label>
                 <Input
@@ -796,7 +796,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Total Quoted Amount (₹) *
                 </label>
                 <Input
@@ -813,7 +813,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Vendor Email
                 </label>
                 <Input
@@ -825,7 +825,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                   Vendor Phone
                 </label>
                 <Input
@@ -837,7 +837,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                 Quote Document / URL (Optional)
               </label>
               <Input
@@ -848,7 +848,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                 Quotation Remarks / Terms
               </label>
               <Textarea
@@ -886,16 +886,16 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
       {/* View RFQ Details Dialog */}
       <Dialog open={!!viewDetailsQuote} onOpenChange={() => setViewDetailsQuote(null)}>
-        <DialogContent className="max-w-xl p-6 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[90%] sm:w-full max-w-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader className="border-b pb-3 pr-8">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+              <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
                 <FileText className="w-5 h-5 text-primary" />
                 Quotation Request Details
               </DialogTitle>
               {viewDetailsQuote && (
                 <span
-                  className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                  className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
                     viewDetailsQuote.status === "accepted"
                       ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800"
                       : viewDetailsQuote.status === "responded"
@@ -915,7 +915,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
           {viewDetailsQuote && (
             <div className="space-y-4 pt-2">
               <div className="p-3.5 rounded-xl bg-muted/30 border space-y-1">
-                <h3 className="text-base font-bold text-foreground">
+                <h3 className="text-base font-semibold text-foreground">
                   {viewDetailsQuote.product_name}
                 </h3>
                 <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
@@ -934,7 +934,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
               {/* Specifications / Description */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Specifications & Requirements
                 </label>
                 <div className="p-3.5 rounded-xl bg-card border text-xs text-foreground leading-relaxed whitespace-pre-wrap">
@@ -1068,10 +1068,10 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
       {/* Responses Drawer / Dialog */}
       <Dialog open={!!selectedQuotation} onOpenChange={() => setSelectedQuotation(null)}>
-        <DialogContent className="max-w-2xl p-6 max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[90%] sm:w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader className="border-b pb-3 flex flex-row items-center justify-between gap-4">
             <div>
-              <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+              <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
                 <Building className="w-5 h-5 text-primary" />
                 Vendor Bids for {selectedQuotation?.product_name}
               </DialogTitle>
@@ -1119,9 +1119,9 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-foreground text-sm">{resp.vendor_name}</h4>
+                        <h4 className="font-semibold text-foreground text-sm">{resp.vendor_name}</h4>
                         {selectedQuotation.status === "accepted" && idx === 0 && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 flex items-center gap-1">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" /> Awarded Bid
                           </span>
                         )}
@@ -1152,7 +1152,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
                         href={resp.quote_document_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs text-primary hover:underline font-bold flex items-center gap-1"
+                        className="text-xs text-primary hover:underline font-semibold flex items-center gap-1"
                       >
                         <FileText className="w-3.5 h-3.5" /> View Quote Document
                       </a>

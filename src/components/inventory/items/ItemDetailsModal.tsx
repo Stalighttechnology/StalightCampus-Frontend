@@ -318,7 +318,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-6">
+        <DialogContent className="w-[90%] sm:w-full max-w-3xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           {/* Header */}
           <DialogHeader className="border-b pb-4 pr-8">
             <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -331,7 +331,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                   <span className="text-xs px-2 py-0.5 rounded-md bg-muted font-semibold text-muted-foreground uppercase">
                     {item.asset_type.replace(/_/g, " ")}
                   </span>
-                  <span className="text-xs px-2 py-0.5 rounded-md bg-primary/10 font-bold text-primary">
+                  <span className="text-xs px-2 py-0.5 rounded-md bg-primary/10 font-semibold text-primary">
                     {item.quantity_available} Available Unit(s)
                   </span>
                 </div>
@@ -388,7 +388,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {/* Category Card */}
                 <div className="p-3.5 rounded-xl border bg-muted/20 space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                     <Tag className="w-3.5 h-3.5 text-primary" /> Category
                   </span>
                   <div className="font-semibold text-sm text-foreground">
@@ -401,7 +401,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
 
                 {/* Location Card */}
                 <div className="p-3.5 rounded-xl border bg-muted/20 space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                     <Building className="w-3.5 h-3.5 text-primary" /> Location & Room
                   </span>
                   <div className="font-semibold text-sm text-foreground">
@@ -414,7 +414,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
 
                 {/* Department Card */}
                 <div className="p-3.5 rounded-xl border bg-muted/20 space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                     <Building className="w-3.5 h-3.5 text-primary" /> Department / Branch
                   </span>
                   <div className="font-semibold text-sm text-foreground">
@@ -428,7 +428,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                 {/* Valuation & Quantity Card */}
                 {!isFaculty && (
                   <div className="p-3.5 rounded-xl border bg-muted/20 space-y-1 sm:col-span-2 lg:col-span-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                       <IndianRupee className="w-3.5 h-3.5 text-primary" /> Valuation
                     </span>
                     <div className="font-semibold text-sm text-foreground">
@@ -442,7 +442,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
 
                 {/* Dates Card */}
                 <div className="p-3.5 rounded-xl border bg-muted/20 space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-primary" /> Registration Date
                   </span>
                   <div className="font-semibold text-sm text-foreground">
@@ -456,7 +456,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                 {/* Vendor / Invoice Info */}
                 {!isFaculty && (
                   <div className="p-3.5 rounded-xl border bg-muted/20 space-y-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                       <FileText className="w-3.5 h-3.5 text-primary" /> Procurement & Invoice
                     </span>
                     <div className="font-semibold text-sm text-foreground truncate">
@@ -473,7 +473,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
               <div className="space-y-3 pt-2">
                 {item.specifications && (
                   <div className="p-3.5 rounded-xl border bg-card space-y-1">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Technical Specifications & Description
                     </h4>
                     <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">
@@ -484,7 +484,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
 
                 {item.remarks && (
                   <div className="p-3.5 rounded-xl border bg-card space-y-1">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Notes & Custody Remarks
                     </h4>
                     <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">
@@ -501,7 +501,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Item Photo */}
                   <div className="p-4 rounded-xl border bg-card space-y-2">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Asset Photograph
                     </h4>
                     {item.item_photo_url ? (
@@ -515,7 +515,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                           href={item.item_photo_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs text-primary font-bold hover:underline flex items-center gap-1"
+                          className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
                         >
                           View Full Image <ExternalLink className="w-3.5 h-3.5" />
                         </a>
@@ -527,7 +527,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
 
                   {/* Invoice Document */}
                   <div className="p-4 rounded-xl border bg-card space-y-2">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Invoice / Purchase Order
                     </h4>
                     {item.invoice_photo_url ? (
@@ -540,7 +540,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                           href={item.invoice_photo_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs text-primary font-bold hover:underline flex items-center gap-1"
+                          className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
                         >
                           Open Document <ExternalLink className="w-3.5 h-3.5" />
                         </a>
@@ -557,7 +557,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
             <TabsContent value="status" className="space-y-4 pt-3">
               <div className="bg-card border rounded-2xl p-4 space-y-4">
                 <div className="border-b pb-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">
                     Update Condition / Status
                   </h4>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -629,7 +629,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
               <div className="bg-card border rounded-2xl p-4 sm:p-5 space-y-5">
                 <div className="border-b pb-3 flex items-start justify-between gap-3 flex-wrap">
                   <div>
-                    <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                    <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                       <ArrowRightLeft className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       Transfer & Quantity Allocation
                     </h4>
@@ -637,7 +637,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                       Allocate partial or full quantity of this asset to a specific campus block, department, lab room, and custodian.
                     </p>
                   </div>
-                  <span className="text-xs font-bold px-2.5 py-1 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50 rounded-lg">
+                  <span className="text-xs font-semibold px-2.5 py-1 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50 rounded-lg">
                     Total Available: {item.quantity_available} unit(s)
                   </span>
                 </div>
@@ -645,7 +645,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                 {/* Step 0: Transfer Mode Selection (When multiple units available) */}
                 {item.quantity_available > 1 && (
                   <div className="space-y-2 p-3 bg-muted/20 border rounded-xl">
-                    <label className="block text-xs font-bold text-foreground">
+                    <label className="block text-xs font-semibold text-foreground">
                       Transfer & Allocation Mode
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -663,7 +663,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                             : "border-border hover:bg-muted/40 text-foreground"
                         }`}
                       >
-                        <div className="flex items-center gap-2 font-bold text-xs">
+                        <div className="flex items-center gap-2 font-semibold text-xs">
                           <Layers className="w-4 h-4 text-purple-600" /> Partial Quantity Allocation
                         </div>
                         <p className="text-[11px] text-muted-foreground mt-1">
@@ -683,7 +683,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                             : "border-border hover:bg-muted/40 text-foreground"
                         }`}
                       >
-                        <div className="flex items-center gap-2 font-bold text-xs">
+                        <div className="flex items-center gap-2 font-semibold text-xs">
                           <Package className="w-4 h-4 text-purple-600" /> Full Asset Relocation
                         </div>
                         <p className="text-[11px] text-muted-foreground mt-1">
@@ -698,7 +698,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                 {transferMode === "split" && item.quantity_available > 1 && (
                   <div className="p-3.5 bg-purple-50/40 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800/40 rounded-xl space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                         <Package className="w-3.5 h-3.5 text-purple-600" />
                         Quantity to Allocate & Handover <span className="text-red-500">*</span>
                       </label>
@@ -717,7 +717,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                           setTransferQuantity(Math.min(item.quantity_available - 1, Math.max(1, val)));
                         }}
                         onWheel={(e) => (e.target as HTMLElement).blur()}
-                        className="h-9 w-36 font-bold text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="h-9 w-36 font-semibold text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                       <span className="text-xs text-muted-foreground">
                         unit(s) out of <strong>{item.quantity_available}</strong> available in {item.item_code}
@@ -728,7 +728,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
 
                 {/* Target Location & Department Section */}
                 <div className="space-y-3 border-t border-border/50 pt-4">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                     <Building className="w-3.5 h-3.5 text-primary" />
                     1. Destination Location & Department
                   </h4>
@@ -797,7 +797,7 @@ export const ItemDetailsModal: React.FC<Props> = ({
                 {/* Stepped Recipient / Custodian Handover */}
                 <div className="space-y-3.5 border-t border-border/50 pt-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                       <UserCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                       2. Assign Custodian / Recipient Handover
                     </h4>
