@@ -120,6 +120,7 @@ const ALL_ROLES = [
   "Placement Officer",
   "Transport Admin",
   "Library Admin",
+  "Inventory Manager",
   "Admission Manager",
   "Admission Counsellor",
   "Driver"
@@ -169,6 +170,7 @@ const roleMap: Record<string, string> = {
   "Placement Officer": "placement_officer",
   "Transport Admin": "transport_admin",
   "Library Admin": "library_admin",
+  "Inventory Manager": "inventory_manager",
   "Admission Manager": "admission_manager",
   "Admission Counsellor": "counsellor",
   "Driver": "driver"
