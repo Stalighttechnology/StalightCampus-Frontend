@@ -115,8 +115,7 @@ export const TicketDetailDrawer: React.FC<Props> = ({
       <DialogContent className="w-[90%] sm:w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
         <DialogHeader className="border-b pb-3 pr-8">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-              <Wrench className="w-5 h-5 text-primary" />
+            <DialogTitle className="text-lg font-semibold">
               Maintenance Ticket Details
             </DialogTitle>
             <span className="font-mono text-xs font-semibold px-2.5 py-0.5 rounded bg-primary/10 text-primary">

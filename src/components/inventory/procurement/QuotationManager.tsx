@@ -658,8 +658,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent className="w-[90%] sm:w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-              <Plus className="w-5 h-5 text-primary" />
+            <DialogTitle className="text-lg font-semibold">
               Issue Quotation Request (RFQ)
             </DialogTitle>
             <DialogDescription>
@@ -771,8 +770,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
       <Dialog open={!!recordBidModalQuote} onOpenChange={(open) => !open && setRecordBidModalQuote(null)}>
         <DialogContent className="w-[90%] sm:w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-              <FileText className="w-5 h-5 text-indigo-600" />
+            <DialogTitle className="text-lg font-semibold">
               Record Vendor Bid / Quote
             </DialogTitle>
             <DialogDescription>
@@ -889,8 +887,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
         <DialogContent className="w-[90%] sm:w-full max-w-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader className="border-b pb-3 pr-8">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-                <FileText className="w-5 h-5 text-primary" />
+              <DialogTitle className="text-lg font-semibold">
                 Quotation Request Details
               </DialogTitle>
               {viewDetailsQuote && (
@@ -1071,8 +1068,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
         <DialogContent className="w-[90%] sm:w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader className="border-b pb-3 flex flex-row items-center justify-between gap-4">
             <div>
-              <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-                <Building className="w-5 h-5 text-primary" />
+              <DialogTitle className="text-lg font-semibold">
                 Vendor Bids for {selectedQuotation?.product_name}
               </DialogTitle>
               <DialogDescription>

@@ -178,8 +178,7 @@ export const QRScannerModal: React.FC<Props> = ({ isOpen, onClose, onScanSuccess
       <DialogContent className="sm:max-w-md p-6">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
-              <Camera className="w-5 h-5 text-primary" />
+            <DialogTitle className="text-lg font-semibold">
               Scan Asset QR Code
             </DialogTitle>
             {videoDevices.length > 1 && (

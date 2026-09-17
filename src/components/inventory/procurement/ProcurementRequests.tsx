@@ -1049,8 +1049,7 @@ export const ProcurementRequests: React.FC<Props> = ({
         <DialogContent className="w-[90%] sm:w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-xl sm:rounded-2xl">
           <DialogHeader className="p-5 border-b shrink-0 bg-white dark:bg-card">
             <div className="flex items-center justify-between gap-2">
-              <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-                <FileText className="w-5 h-5 text-primary" />
+              <DialogTitle className="text-lg font-semibold">
                 Procurement Requisition Details
               </DialogTitle>
               {viewDetailsReq && getStatusBadge(viewDetailsReq.status)}
@@ -1498,18 +1497,13 @@ export const ProcurementRequests: React.FC<Props> = ({
       <Dialog open={!!stockInRequest} onOpenChange={() => setStockInRequest(null)}>
         <DialogContent className="w-[90%] sm:w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-xl sm:rounded-2xl">
           <DialogHeader className="p-5 pb-4 border-b border-border/60 bg-muted/20">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
-                <PackagePlus className="w-5 h-5" />
-              </div>
-              <div>
-                <DialogTitle className="text-lg font-semibold text-foreground">
-                  Stock In & Handover Assets
-                </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                  Requisition <span className="font-semibold text-foreground">{stockInRequest?.request_no}</span> &bull; {stockInRequest?.title}
-                </DialogDescription>
-              </div>
+            <div>
+              <DialogTitle className="text-lg font-semibold text-foreground">
+                Stock In & Handover Assets
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                Requisition <span className="font-semibold text-foreground">{stockInRequest?.request_no}</span> &bull; {stockInRequest?.title}
+              </DialogDescription>
             </div>
 
             {/* Quick Requisition summary bar */}
@@ -2028,8 +2022,7 @@ export const ProcurementRequests: React.FC<Props> = ({
       <Dialog open={!!quotationModalReq} onOpenChange={(open) => !open && setQuotationModalReq(null)}>
         <DialogContent className="w-[90%] sm:w-full max-w-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-              <FileText className="w-5 h-5 text-indigo-600" />
+            <DialogTitle className="text-lg font-semibold">
               Vendor Quotation / RFQ
             </DialogTitle>
             <DialogDescription>

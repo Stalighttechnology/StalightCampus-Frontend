@@ -276,18 +276,13 @@ export const BulkBufferAllocationModal: React.FC<Props> = ({
       <DialogContent className="w-[90%] sm:w-full max-w-3xl max-h-[85vh] sm:max-h-[90vh] flex flex-col p-0 overflow-hidden bg-background text-foreground shadow-2xl border border-border rounded-xl sm:rounded-2xl">
         {/* Header */}
         <DialogHeader className="p-5 pb-4 border-b border-border/60 bg-muted/20 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2.5 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60">
-              <ArrowRightLeft className="w-5 h-5" />
-            </div>
-            <div>
-              <DialogTitle className="text-lg font-semibold text-foreground">
-                Allocate Central Buffer Stock
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                Handover and deploy buffer assets in bulk to departments, labs, and custodians.
-              </DialogDescription>
-            </div>
+          <div>
+            <DialogTitle className="text-lg font-semibold text-foreground">
+              Allocate Central Buffer Stock
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+              Handover and deploy buffer assets in bulk to departments, labs, and custodians.
+            </DialogDescription>
           </div>
 
           {/* Quick Asset Summary Card */}

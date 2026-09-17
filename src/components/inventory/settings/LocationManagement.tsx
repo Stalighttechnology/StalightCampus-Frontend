@@ -456,8 +456,7 @@ export const LocationManagement: React.FC<Props> = ({ role = "admin" }) => {
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="w-[90%] sm:w-full max-w-md max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader className="pr-8">
-            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-              <MapPin className="w-5 h-5 text-primary" />
+            <DialogTitle className="text-lg font-semibold">
               {editingLocation ? "Edit Campus Location" : "Add Campus Location"}
             </DialogTitle>
             <DialogDescription>

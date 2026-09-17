@@ -58,8 +58,7 @@ export const QRCodePreviewModal: React.FC<Props> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg font-bold">
-            <QrCode className="w-5 h-5 text-primary" />
+          <DialogTitle className="text-lg font-semibold">
             Printable Asset Badge
           </DialogTitle>
         </DialogHeader>

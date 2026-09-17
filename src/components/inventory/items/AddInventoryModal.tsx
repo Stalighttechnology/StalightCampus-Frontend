@@ -118,8 +118,7 @@ export const AddInventoryModal: React.FC<Props> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[90%] sm:w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
         <DialogHeader className="pr-8">
-          <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
-            <PlusCircle className="w-5 h-5 text-primary" />
+          <DialogTitle className="text-xl font-semibold">
             Add New Inventory Item
           </DialogTitle>
           <DialogDescription>
@@ -135,7 +134,7 @@ export const AddInventoryModal: React.FC<Props> = ({
             </div>
             <div>
               <p className="text-[11px] uppercase font-semibold tracking-wider text-muted-foreground flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-primary" /> Auto-Generated Item Code Preview
+                Auto-Generated Item Code Preview
               </p>
               <p className="font-mono text-lg font-black tracking-wider text-foreground">
                 {previewCode}
