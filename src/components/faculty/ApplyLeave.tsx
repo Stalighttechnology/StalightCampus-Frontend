@@ -461,7 +461,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           if (faculty_branch) {
             setUserBranch(faculty_branch);
             setSelectedBranch(faculty_branch.id.toString());
-          } else if (branches && branches.length > 0 && !selectedBranch && (userRole === 'teacher' || userRole === 'hod' || userRole === 'faculty')) {
+          } else if (branches && branches.length > 0 && !selectedBranch) {
             setSelectedBranch(branches[0].id.toString());
           }
         }
@@ -823,12 +823,15 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    const branchRequired = showBranchField && branches.length > 0;
 
     if (leaveType !== 'short_permission') {
-      if (!title.trim() || !selectedBranch || !dateRange?.from || !dateRange?.to || !reason.trim()) {
+      if (!title.trim() || (branchRequired && !selectedBranch) || !dateRange?.from || !dateRange?.to || !reason.trim()) {
         await MySwal.fire({
           title: 'Missing Information',
-          text: 'Please provide a valid title, branch, date range, and reason.',
+          text: branchRequired
+            ? 'Please provide a valid title, branch, date range, and reason.'
+            : 'Please provide a valid title, date range, and reason.',
           icon: 'warning',
           confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
           background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
@@ -942,10 +945,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         return;
       }
     } else {
-      if (!title.trim() || !selectedBranch || !permissionDate || !reason.trim()) {
+      if (!title.trim() || (branchRequired && !selectedBranch) || !permissionDate || !reason.trim()) {
         await MySwal.fire({
           title: 'Missing Information',
-          text: 'Please provide a valid title, branch, permission date, time slot, and reason.',
+          text: branchRequired
+            ? 'Please provide a valid title, branch, permission date, time slot, and reason.'
+            : 'Please provide a valid title, permission date, time slot, and reason.',
           icon: 'warning',
           confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
           background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
