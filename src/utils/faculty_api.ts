@@ -216,6 +216,7 @@ export interface ApplyLeaveRequest {
   is_half_day?: boolean;
   half_day_session?: 'forenoon' | 'afternoon';
   alternate_faculty_id?: number | string | null;
+  alternate_faculty_ids?: (number | string)[];
   od_purpose_category?: string;
   document?: File;
   initial_document_url?: string;

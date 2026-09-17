@@ -6,8 +6,9 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
+import { Checkbox } from '../ui/checkbox';
 import { PopoverTrigger, Popover, PopoverContent } from '../ui/popover';
-import { CalendarIcon, UserCheck, Clock, CheckCircle2, XCircle, AlertCircle, Users, ArrowRight, ShieldCheck, Eye, ChevronRight, Check, FileText, Upload, Paperclip, ExternalLink, Image as ImageIcon, X } from 'lucide-react';
+import { CalendarIcon, UserCheck, Clock, CheckCircle2, XCircle, AlertCircle, Users, ArrowRight, ShieldCheck, Eye, ChevronRight, Check, FileText, Upload, Paperclip, ExternalLink, Image as ImageIcon, X, Search, CheckSquare, Square } from 'lucide-react';
 import { format, isSameDay } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
@@ -164,6 +165,16 @@ interface LeaveRequestDisplay {
   alternate_duty_status?: string;
   alternate_duty_remarks?: string;
   alternate_duty_acted_at?: string;
+  substitute_assignments?: Array<{
+    id: number | string;
+    name: string;
+    role?: string;
+    status: string;
+    remarks?: string;
+    acted_at?: string;
+  }>;
+  total_substitutes?: number;
+  accepted_substitutes?: number;
   hod_approval_status?: string;
   hod_remarks?: string;
   hod_reviewed_by?: string;
@@ -215,6 +226,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [halfDaySession, setHalfDaySession] = useState<'forenoon' | 'afternoon'>('afternoon');
   const [targetRole, setTargetRole] = useState<string>('');
   const [selectedAlternateFaculty, setSelectedAlternateFaculty] = useState<string>('');
+  const [selectedAlternateFaculties, setSelectedAlternateFaculties] = useState<string[]>([]);
+  const [colleagueSearchQuery, setColleagueSearchQuery] = useState<string>('');
   const [availableColleagues, setAvailableColleagues] = useState<ColleagueOption[]>([]);
   const [colleaguesLoading, setColleaguesLoading] = useState<boolean>(false);
   const [permissionDate, setPermissionDate] = useState<Date | undefined>();
@@ -304,6 +317,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [renominateRole, setRenominateRole] = useState<string>('');
   const [renominateBranch, setRenominateBranch] = useState<string>('');
   const [newColleagueId, setNewColleagueId] = useState<string>('');
+  const [renominateColleagueIds, setRenominateColleagueIds] = useState<string[]>([]);
+  const [renominateSearchQuery, setRenominateSearchQuery] = useState<string>('');
   const [renominatingLoading, setRenominatingLoading] = useState<boolean>(false);
   const [renominateColleagues, setRenominateColleagues] = useState<ColleagueOption[]>([]);
   const [renominateColleaguesLoading, setRenominateColleaguesLoading] = useState<boolean>(false);
@@ -333,6 +348,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     if (isStageZero) {
       setTargetRole('none');
       setSelectedAlternateFaculty('');
+      setSelectedAlternateFaculties([]);
       setSelectedSubstituteBranch('');
     }
   }, [isStageZero]);
@@ -506,6 +522,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               alternate_duty_status: leave.alternate_duty_status,
               alternate_duty_remarks: leave.alternate_duty_remarks,
               alternate_duty_acted_at: leave.alternate_duty_acted_at,
+              substitute_assignments: leave.substitute_assignments || [],
+              total_substitutes: leave.total_substitutes || (leave.substitute_assignments?.length ?? (leave.alternate_faculty_name ? 1 : 0)),
+              accepted_substitutes: leave.accepted_substitutes || (leave.substitute_assignments?.filter((s: any) => s.status === 'ACCEPTED').length ?? (leave.alternate_duty_status === 'ACCEPTED' ? 1 : 0)),
               hod_approval_status: leave.hod_approval_status,
               hod_remarks: leave.hod_remarks,
               hod_reviewed_by: leave.hod_reviewed_by,
@@ -637,6 +656,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           alternate_duty_status: d.alternate_duty_status,
           alternate_duty_remarks: d.alternate_duty_remarks,
           alternate_duty_acted_at: d.alternate_duty_acted_at,
+          substitute_assignments: d.substitute_assignments || [],
+          total_substitutes: d.total_substitutes || (d.substitute_assignments?.length ?? (d.alternate_faculty_name ? 1 : 0)),
+          accepted_substitutes: d.accepted_substitutes || (d.substitute_assignments?.filter((s: any) => s.status === 'ACCEPTED').length ?? (d.alternate_duty_status === 'ACCEPTED' ? 1 : 0)),
           hod_approval_status: d.hod_approval_status,
           hod_remarks: d.hod_remarks,
           hod_reviewed_by: d.hod_reviewed_by,
@@ -665,6 +687,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     setRenominateRole('');
     setRenominateBranch('');
     setNewColleagueId('');
+    setRenominateColleagueIds([]);
+    setRenominateSearchQuery('');
     setRenominateColleagues([]);
   };
 
@@ -695,19 +719,23 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       .finally(() => setRenominateColleaguesLoading(false));
   }, [isRenominating, renominateRole, renominateBranch]);
 
-  // Handle re-nominating a substitute colleague if declined/pending
+  // Handle re-nominating substitute colleague(s) if declined/pending
   const handleRenominateColleague = async () => {
-    if (!selectedLeaveForFlow || !newColleagueId) return;
+    if (!selectedLeaveForFlow) return;
+    const targetIds = renominateColleagueIds.length > 0 ? renominateColleagueIds : (newColleagueId ? [newColleagueId] : []);
+    if (targetIds.length === 0) return;
+
     setRenominatingLoading(true);
     try {
       const res = await renominateAlternateFaculty({
         leave_id: selectedLeaveForFlow.id,
-        alternate_faculty_id: newColleagueId
-      });
+        alternate_faculty_id: targetIds[0],
+        alternate_faculty_ids: targetIds
+      } as any);
       if (res.success) {
         await MySwal.fire({
-          title: 'Substitute Re-Nominated!',
-          text: res.message || 'New colleague nominated. A notification has been sent for their acceptance.',
+          title: 'Substitute(s) Re-Nominated!',
+          text: res.message || 'New colleague(s) nominated. In-app notifications have been sent for duty acceptance.',
           icon: 'success',
           confirmButtonText: 'OK',
           confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
@@ -716,35 +744,49 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         });
 
         const pool = renominateColleagues.length > 0 ? renominateColleagues : availableColleagues;
-        const newColleagueObj = pool.find(c => String(c.id) === String(newColleagueId));
-        const newName = newColleagueObj ? newColleagueObj.name : 'Nominated Colleague';
+        const newColleaguesObj = pool.filter(c => targetIds.includes(String(c.id)));
+        const newNames = newColleaguesObj.length > 0 ? newColleaguesObj.map(c => c.name).join(', ') : 'Nominated Colleague(s)';
+
+        const newAssignments = newColleaguesObj.map(c => ({
+          id: c.id,
+          name: c.name,
+          role: c.role,
+          status: 'PENDING'
+        }));
 
         setSelectedLeaveForFlow(prev => prev ? ({
           ...prev,
-          alternate_faculty_name: newName,
+          alternate_faculty_name: newNames,
           alternate_duty_status: 'PENDING',
           alternate_duty_acted_at: undefined,
           alternate_duty_remarks: undefined,
+          substitute_assignments: newAssignments,
+          total_substitutes: newAssignments.length,
+          accepted_substitutes: 0,
           current_stage: 'alternate_duty',
           status: 'Pending'
         }) : null);
 
         setLeaveList(prev => prev.map(l => l.id === selectedLeaveForFlow.id ? ({
           ...l,
-          alternate_faculty_name: newName,
+          alternate_faculty_name: newNames,
           alternate_duty_status: 'PENDING',
           alternate_duty_acted_at: undefined,
           alternate_duty_remarks: undefined,
+          substitute_assignments: newAssignments,
+          total_substitutes: newAssignments.length,
+          accepted_substitutes: 0,
           current_stage: 'alternate_duty',
           status: 'Pending'
         }) : l));
 
         setIsRenominating(false);
         setNewColleagueId('');
+        setRenominateColleagueIds([]);
         window.dispatchEvent(new CustomEvent('leaves-updated'));
         fetchBootstrapData();
       } else {
-        throw new Error(res.message || 'Failed to re-nominate colleague');
+        throw new Error(res.message || 'Failed to re-nominate colleague(s)');
       }
     } catch (err: any) {
       await MySwal.fire({
@@ -1037,7 +1079,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       end_time: endTimeStr,
       is_half_day: leaveType === 'casual' ? isHalfDay : false,
       half_day_session: (leaveType === 'casual' && isHalfDay) ? halfDaySession : undefined,
-      alternate_faculty_id: (selectedAlternateFaculty && selectedAlternateFaculty !== 'none') ? parseInt(selectedAlternateFaculty) : null
+      alternate_faculty_id: (selectedAlternateFaculties.length > 0)
+        ? parseInt(selectedAlternateFaculties[0])
+        : ((selectedAlternateFaculty && selectedAlternateFaculty !== 'none') ? parseInt(selectedAlternateFaculty) : null),
+      alternate_faculty_ids: selectedAlternateFaculties.length > 0
+        ? selectedAlternateFaculties.map(id => parseInt(id))
+        : ((selectedAlternateFaculty && selectedAlternateFaculty !== 'none') ? [parseInt(selectedAlternateFaculty)] : []),
+      od_purpose_category: leaveType === 'od' ? odPurposeCategory : undefined,
     };
 
     if (leaveType === 'od') {
@@ -1074,7 +1122,32 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         ? format(dateRange!.from!, 'MMM dd, yyyy')
         : `${format(dateRange!.from!, 'MMM dd, yyyy')} to ${format(dateRange!.to!, 'MMM dd, yyyy')}`);
 
-    const alternateFacultyObj = availableColleagues.find(c => c.id.toString() === selectedAlternateFaculty);
+    const selectedSubstituteObjs = availableColleagues.filter(c =>
+      selectedAlternateFaculties.includes(c.id.toString()) ||
+      (selectedAlternateFaculty && selectedAlternateFaculty !== 'none' && c.id.toString() === selectedAlternateFaculty)
+    );
+
+    const getColleagueLabel = (c: ColleagueOption) => {
+      const parts: string[] = [];
+      if (c.role) {
+        parts.push(c.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
+      }
+      if (c.department) {
+        parts.push(c.department);
+      }
+      const detailStr = parts.length > 0 ? ` (${parts.join(' - ')})` : '';
+      return `${c.name}${detailStr}`;
+    };
+
+    const substituteDisplayHtml = selectedSubstituteObjs.length > 0
+      ? selectedSubstituteObjs.length === 1
+        ? `<div style="margin-bottom: 6px;"><strong>Substitute Faculty:</strong> <span>${getColleagueLabel(selectedSubstituteObjs[0])}</span></div>`
+        : `<div style="margin-bottom: 6px;"><strong>Substitute Faculty (${selectedSubstituteObjs.length}):</strong>
+            <div style="margin-top: 4px; padding-left: 8px; display: flex; flex-direction: column; gap: 4px;">
+              ${selectedSubstituteObjs.map(s => `<div style="display: flex; align-items: baseline; gap: 6px;"><span style="color: ${currentTheme === 'dark' ? '#60a5fa' : '#2563eb'}; font-weight: bold;">•</span><span>${getColleagueLabel(s)}</span></div>`).join('')}
+            </div>
+          </div>`
+      : '';
 
     const confirmResult = await MySwal.fire({
       title: 'Confirm Leave Request?',
@@ -1084,7 +1157,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           <div style="margin-bottom: 6px;"><strong>Period / Time:</strong> <span>${dateDisplay}</span></div>
           <div style="margin-bottom: 6px;"><strong>Title:</strong> <span>${title.trim()}</span></div>
           ${initialDocFile ? `<div style="margin-bottom: 6px;"><strong>Attached Document:</strong> <span>${initialDocFile.name}</span></div>` : ''}
-          ${alternateFacultyObj ? `<div style="margin-bottom: 6px;"><strong>Substitute Faculty:</strong> <span>${alternateFacultyObj.name}</span></div>` : ''}
+          ${substituteDisplayHtml}
           <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed ${currentTheme === 'dark' ? '#374151' : '#e5e7eb'}; font-size: 13px; opacity: 0.9;">
             ${isStageZero
           ? 'This leave request will be <strong>auto-approved immediately for records</strong> without requiring approvals.'
@@ -2214,7 +2287,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         if (!isStageZero) {
                           setTargetRole(val);
                           setSelectedAlternateFaculty('');
+                          setSelectedAlternateFaculties([]);
                           setSelectedSubstituteBranch('');
+                          setColleagueSearchQuery('');
                         }
                       }}
                       disabled={isStageZero}
@@ -2261,6 +2336,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         onValueChange={(val) => {
                           setSelectedSubstituteBranch(val);
                           setSelectedAlternateFaculty('');
+                          setSelectedAlternateFaculties([]);
+                          setColleagueSearchQuery('');
                         }}
                       >
                         <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
@@ -2277,7 +2354,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                     </div>
                   )}
 
-                  {/* Step 2: Assign To (Hidden when Direct is selected) */}
+                  {/* Step 2: Assign To (Multi-Select Checkboxes for Duty Coverage) */}
                   {(isStageZero || targetRole === 'none') ? (
                     <div className={`p-3 rounded-lg border text-xs flex items-center gap-2 ${isStageZero
                       ? (theme === 'dark' ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-800')
@@ -2287,59 +2364,204 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       <span>Direct Review enabled: Request will be sent directly for approval without substitute duty assignment.</span>
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                       <div className="flex items-center justify-between">
                         <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          Assign To
+                          Assign To (Duty Coverage)
                         </Label>
-                        <span className="text-[11px] text-muted-foreground">Optional</span>
+                        <div className="flex items-center gap-2">
+                          {selectedAlternateFaculties.length > 0 && (
+                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                              {selectedAlternateFaculties.length} selected
+                            </span>
+                          )}
+                          <span className="text-[11px] text-muted-foreground">Multiple Selection</span>
+                        </div>
                       </div>
+
                       {(() => {
                         const isBranchRole = targetRole === 'faculty' || targetRole === 'teacher' || targetRole === 'hod';
                         const isBranchMissing = isBranchRole && !selectedSubstituteBranch;
 
+                        if (!targetRole) {
+                          return (
+                            <div className={`p-3 rounded-lg border text-xs text-muted-foreground ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50 border-gray-200'}`}>
+                              Select substitute role above to choose colleagues.
+                            </div>
+                          );
+                        }
+
+                        if (isBranchMissing) {
+                          return (
+                            <div className={`p-3 rounded-lg border text-xs text-amber-600 dark:text-amber-400 ${theme === 'dark' ? 'bg-amber-950/20 border-amber-800/40' : 'bg-amber-50 border-amber-200'}`}>
+                              Please select department / branch above to view colleagues.
+                            </div>
+                          );
+                        }
+
+                        if (colleaguesLoading) {
+                          return (
+                            <div className={`p-4 rounded-lg border text-xs text-center flex items-center justify-center gap-2 text-muted-foreground ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50 border-gray-200'}`}>
+                              <Clock className="w-4 h-4 animate-spin text-primary" />
+                              <span>Loading available colleagues...</span>
+                            </div>
+                          );
+                        }
+
+                        if (availableColleagues.length === 0) {
+                          return (
+                            <div className={`p-3 rounded-lg border text-xs text-muted-foreground ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50 border-gray-200'}`}>
+                              No staff found for role "{targetRole.replace('_', ' ')}".
+                            </div>
+                          );
+                        }
+
+                        const filteredColleagues = availableColleagues.filter((c) =>
+                          c.name.toLowerCase().includes(colleagueSearchQuery.toLowerCase()) ||
+                          (c.username && c.username.toLowerCase().includes(colleagueSearchQuery.toLowerCase()))
+                        );
+
+                        const toggleColleague = (idStr: string) => {
+                          setSelectedAlternateFaculties((prev) => {
+                            const next = prev.includes(idStr)
+                              ? prev.filter((item) => item !== idStr)
+                              : [...prev, idStr];
+                            setSelectedAlternateFaculty(next[0] || '');
+                            return next;
+                          });
+                        };
+
                         return (
-                          <Select
-                            value={selectedAlternateFaculty || undefined}
-                            onValueChange={setSelectedAlternateFaculty}
-                            disabled={!targetRole || isBranchMissing || colleaguesLoading}
-                          >
-                            <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
-                              <SelectValue
-                                placeholder={
-                                  !targetRole
-                                    ? "Select substitute role first..."
-                                    : isBranchMissing
-                                      ? "Select department / branch above first..."
-                                      : colleaguesLoading
-                                        ? "Loading colleagues..."
-                                        : "Select colleague..."
-                                }
-                              />
-                            </SelectTrigger>
-                            <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                              <SelectItem value="none">-- None (Direct review) --</SelectItem>
-                              {colleaguesLoading ? (
-                                <SelectItem value="loading_colleagues" disabled>
-                                  Loading colleagues...
-                                </SelectItem>
-                              ) : availableColleagues.length === 0 ? (
-                                <SelectItem value="none_available" disabled>
-                                  {isBranchMissing ? "Please select a department / branch above" : `No staff found for role "${targetRole.replace('_', ' ')}"`}
-                                </SelectItem>
-                              ) : (
-                                availableColleagues.map((c) => (
-                                  <SelectItem key={c.id} value={c.id.toString()}>
-                                    {c.name}
-                                  </SelectItem>
-                                ))
+                          <div className={`rounded-lg border p-3 space-y-3 ${theme === 'dark' ? 'bg-muted/10 border-border' : 'bg-slate-50/50 border-gray-200'}`}>
+                            {/* Selected colleagues chips/badges */}
+                            {selectedAlternateFaculties.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 pb-2 border-b border-border/60">
+                                {selectedAlternateFaculties.map((idStr) => {
+                                  const col = availableColleagues.find((c) => c.id.toString() === idStr);
+                                  return (
+                                    <span
+                                      key={idStr}
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border shadow-2xs transition-all ${
+                                        theme === 'dark'
+                                          ? 'bg-primary/20 text-primary-foreground border-primary/30 text-sky-200'
+                                          : 'bg-primary/10 text-primary border-primary/20'
+                                      }`}
+                                    >
+                                      <UserCheck className="w-3.5 h-3.5 text-primary shrink-0" />
+                                      <span className="truncate max-w-[180px]">{col ? col.name : `Colleague #${idStr}`}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleColleague(idStr)}
+                                        className="ml-0.5 hover:opacity-80 rounded-full p-0.5 transition cursor-pointer"
+                                        title="Remove"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Search & Quick Actions */}
+                            <div className="flex items-center gap-2">
+                              <div className="relative flex-1">
+                                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                  type="text"
+                                  placeholder="Search colleague by name..."
+                                  value={colleagueSearchQuery}
+                                  onChange={(e) => setColleagueSearchQuery(e.target.value)}
+                                  className={`h-8 pl-8 text-xs ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}
+                                />
+                                {colleagueSearchQuery && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setColleagueSearchQuery('')}
+                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                )}
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const allFilteredIds = filteredColleagues.map((c) => c.id.toString());
+                                  const allSelected = allFilteredIds.length > 0 && allFilteredIds.every((id) => selectedAlternateFaculties.includes(id));
+                                  if (allSelected) {
+                                    const next = selectedAlternateFaculties.filter((id) => !allFilteredIds.includes(id));
+                                    setSelectedAlternateFaculties(next);
+                                    setSelectedAlternateFaculty(next[0] || '');
+                                  } else {
+                                    const next = Array.from(new Set([...selectedAlternateFaculties, ...allFilteredIds]));
+                                    setSelectedAlternateFaculties(next);
+                                    setSelectedAlternateFaculty(next[0] || '');
+                                  }
+                                }}
+                                className="h-8 text-xs px-2.5 font-medium shrink-0"
+                              >
+                                {filteredColleagues.length > 0 && filteredColleagues.every((c) => selectedAlternateFaculties.includes(c.id.toString()))
+                                  ? 'Deselect All'
+                                  : 'Select All'}
+                              </Button>
+                              {selectedAlternateFaculties.length > 0 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedAlternateFaculties([]);
+                                    setSelectedAlternateFaculty('');
+                                  }}
+                                  className="h-8 text-xs px-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 shrink-0"
+                                >
+                                  Clear
+                                </Button>
                               )}
-                            </SelectContent>
-                          </Select>
+                            </div>
+
+                            {/* Checkbox List */}
+                            <div className={`max-h-48 overflow-y-auto rounded-md border divide-y ${theme === 'dark' ? 'bg-background/80 border-border divide-border/60' : 'bg-white border-gray-200 divide-gray-100'}`}>
+                              {filteredColleagues.length === 0 ? (
+                                <div className="p-3 text-center text-xs text-muted-foreground">
+                                  No colleagues match "{colleagueSearchQuery}"
+                                </div>
+                              ) : (
+                                filteredColleagues.map((col) => {
+                                  const isChecked = selectedAlternateFaculties.includes(col.id.toString());
+                                  return (
+                                    <label
+                                      key={col.id}
+                                      className={`flex items-center gap-3 p-2.5 cursor-pointer text-xs transition-colors hover:bg-muted/40 ${
+                                        isChecked ? (theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5 font-medium') : ''
+                                      }`}
+                                    >
+                                      <Checkbox
+                                        checked={isChecked}
+                                        onCheckedChange={() => toggleColleague(col.id.toString())}
+                                        className="shrink-0"
+                                      />
+                                      <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+                                        <span className="truncate text-foreground font-medium">{col.name}</span>
+                                        {col.role && (
+                                          <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0">
+                                            {col.role.replace('_', ' ')}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </label>
+                                  );
+                                })
+                              )}
+                            </div>
+                          </div>
                         );
                       })()}
                       <p className="text-[11px] text-muted-foreground">
-                        Selected colleague will receive an invitation to accept duty coverage before request moves forward.
+                        ℹ️ Selected colleagues will each receive an invitation to accept duty coverage. All selected colleagues must approve before the request moves forward to the next authority.
                       </p>
                     </div>
                   )}
@@ -3153,7 +3375,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                   <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
                     {/* Stage 0: Alternate Colleague Duty */}
-                    {selectedLeaveForFlow.alternate_faculty_name && (
+                    {((selectedLeaveForFlow.substitute_assignments && selectedLeaveForFlow.substitute_assignments.length > 0) || selectedLeaveForFlow.alternate_faculty_name) && (
                       <div className="relative group">
                         <div className={`absolute -left-6 top-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold ${selectedLeaveForFlow.alternate_duty_status === 'ACCEPTED'
                           ? 'bg-emerald-500 text-white'
@@ -3170,7 +3392,14 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           : theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
                           }`}>
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-semibold text-foreground">Alternate Duty Colleague</span>
+                            <span className="font-semibold text-foreground flex items-center gap-1.5">
+                              <span>Alternate Duty Coverage</span>
+                              {selectedLeaveForFlow.substitute_assignments && selectedLeaveForFlow.substitute_assignments.length > 1 && (
+                                <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-primary/10 text-primary">
+                                  {selectedLeaveForFlow.substitute_assignments.length} Nominees
+                                </span>
+                              )}
+                            </span>
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${selectedLeaveForFlow.alternate_duty_status === 'ACCEPTED'
                               ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
                               : selectedLeaveForFlow.alternate_duty_status === 'DECLINED'
@@ -3180,17 +3409,76 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                               {selectedLeaveForFlow.alternate_duty_status || 'PENDING'}
                             </span>
                           </div>
-                          <p className="text-muted-foreground mt-1">
-                            Nominated: <span className="font-medium text-foreground">{selectedLeaveForFlow.alternate_faculty_name}</span>
-                          </p>
-                          {selectedLeaveForFlow.alternate_duty_acted_at && (
-                            <p className="text-[10px] text-muted-foreground mt-0.5">
+
+                          {/* Render all assigned substitutes */}
+                          {selectedLeaveForFlow.substitute_assignments && selectedLeaveForFlow.substitute_assignments.length > 0 ? (
+                            <div className="mt-2.5 space-y-2">
+                              {selectedLeaveForFlow.substitute_assignments.map((sub, sIdx) => {
+                                const isSubAcc = sub.status === 'ACCEPTED';
+                                const isSubDec = sub.status === 'DECLINED';
+                                return (
+                                  <div key={sub.id || sIdx} className={`p-2 rounded-md border flex items-center justify-between gap-2 text-xs ${
+                                    isSubAcc
+                                      ? (theme === 'dark' ? 'bg-emerald-950/20 border-emerald-800/40' : 'bg-emerald-50/60 border-emerald-200')
+                                      : isSubDec
+                                        ? (theme === 'dark' ? 'bg-rose-950/20 border-rose-800/40' : 'bg-rose-50/60 border-rose-200')
+                                        : (theme === 'dark' ? 'bg-muted/20 border-border/60' : 'bg-gray-50 border-gray-200')
+                                  }`}>
+                                    <div className="min-w-0">
+                                      <div className="font-medium text-foreground flex items-center gap-1.5">
+                                        <UserCheck className="w-3.5 h-3.5 text-primary shrink-0" />
+                                        <span className="truncate">{sub.name}</span>
+                                        {sub.role && (
+                                          <span className="text-[9px] uppercase px-1 py-0.2 rounded bg-muted text-muted-foreground">
+                                            {sub.role.replace('_', ' ')}
+                                          </span>
+                                        )}
+                                      </div>
+                                      {sub.acted_at && (
+                                        <div className="text-[10px] text-muted-foreground mt-0.5">
+                                          Responded: {sub.acted_at}
+                                        </div>
+                                      )}
+                                      {sub.remarks && (
+                                        <div className="text-[10px] italic text-muted-foreground mt-0.5">
+                                          "{sub.remarks}"
+                                        </div>
+                                      )}
+                                    </div>
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold shrink-0 ${
+                                      isSubAcc
+                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                        : isSubDec
+                                          ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
+                                          : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
+                                    }`}>
+                                      {sub.status}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <p className="text-muted-foreground mt-1">
+                              Nominated: <span className="font-medium text-foreground">{selectedLeaveForFlow.alternate_faculty_name}</span>
+                            </p>
+                          )}
+
+                          {selectedLeaveForFlow.alternate_duty_acted_at && (!selectedLeaveForFlow.substitute_assignments || selectedLeaveForFlow.substitute_assignments.length <= 1) && (
+                            <p className="text-[10px] text-muted-foreground mt-1">
                               Acted on: {selectedLeaveForFlow.alternate_duty_acted_at}
                             </p>
                           )}
-                          {selectedLeaveForFlow.alternate_duty_remarks && (
+                          {selectedLeaveForFlow.alternate_duty_remarks && (!selectedLeaveForFlow.substitute_assignments || selectedLeaveForFlow.substitute_assignments.length <= 1) && (
                             <p className="text-[11px] mt-1 p-1.5 rounded bg-muted/30 italic">
                               "{selectedLeaveForFlow.alternate_duty_remarks}"
+                            </p>
+                          )}
+
+                          {selectedLeaveForFlow.current_stage === 'alternate_duty' && selectedLeaveForFlow.status === 'Pending' && (
+                            <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-1">
+                              <Clock className="w-3 h-3 animate-spin" />
+                              Awaiting approval from all nominated substitute colleagues before forwarding to next authority.
                             </p>
                           )}
 
@@ -3206,13 +3494,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                     className="text-xs h-7 px-2.5 font-semibold text-primary border-primary/30 hover:bg-primary/5 flex items-center gap-1.5"
                                   >
                                     <UserCheck className="w-3.5 h-3.5" />
-                                    {selectedLeaveForFlow.alternate_duty_status === 'DECLINED' ? 'Change / Re-nominate Colleague' : 'Change Nominated Colleague'}
+                                    {selectedLeaveForFlow.alternate_duty_status === 'DECLINED' ? 'Change / Re-nominate Colleague(s)' : 'Change Nominated Colleague(s)'}
                                   </Button>
                                 ) : (
                                 <div className="space-y-3 p-3 rounded-lg bg-muted/20 border border-border">
                                   <div className="flex items-center justify-between pb-1 border-b border-border/40">
                                     <Label className="text-xs font-semibold text-foreground">
-                                      Re-nominate Substitute Colleague
+                                      Re-nominate Substitute Colleague(s)
                                     </Label>
                                     <button
                                       type="button"
@@ -3234,6 +3522,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                         setRenominateRole(val);
                                         setRenominateBranch('');
                                         setNewColleagueId('');
+                                        setRenominateColleagueIds([]);
                                       }}
                                     >
                                       <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
@@ -3273,6 +3562,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                         onValueChange={(val) => {
                                           setRenominateBranch(val);
                                           setNewColleagueId('');
+                                          setRenominateColleagueIds([]);
                                         }}
                                       >
                                         <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
@@ -3289,54 +3579,90 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                     </div>
                                   )}
 
-                                  {/* Step 2: Assign To Colleague */}
+                                  {/* Step 2: Assign To Colleague(s) */}
                                   <div className="space-y-1.5">
-                                    <Label className="text-[11px] font-medium text-foreground">
-                                      Assign To <span className="text-red-500">*</span>
-                                    </Label>
+                                    <div className="flex items-center justify-between">
+                                      <Label className="text-[11px] font-medium text-foreground">
+                                        Assign To <span className="text-red-500">*</span>
+                                      </Label>
+                                      {renominateColleagueIds.length > 0 && (
+                                        <span className="text-[10px] text-primary font-semibold">
+                                          {renominateColleagueIds.length} selected
+                                        </span>
+                                      )}
+                                    </div>
                                     {(() => {
                                       const isBranchRole = renominateRole === 'faculty' || renominateRole === 'teacher' || renominateRole === 'hod';
                                       const isBranchMissing = isBranchRole && !renominateBranch;
 
+                                      if (!renominateRole) {
+                                        return (
+                                          <div className="text-[11px] text-muted-foreground p-2 rounded border bg-muted/20">
+                                            Select substitute role first...
+                                          </div>
+                                        );
+                                      }
+
+                                      if (isBranchMissing) {
+                                        return (
+                                          <div className="text-[11px] text-amber-600 dark:text-amber-400 p-2 rounded border bg-amber-50 dark:bg-amber-950/20">
+                                            Select department / branch above first...
+                                          </div>
+                                        );
+                                      }
+
+                                      if (renominateColleaguesLoading) {
+                                        return (
+                                          <div className="text-[11px] text-muted-foreground p-2 rounded border bg-muted/20 flex items-center gap-1.5">
+                                            <Clock className="w-3.5 h-3.5 animate-spin text-primary" />
+                                            Loading colleagues...
+                                          </div>
+                                        );
+                                      }
+
+                                      const validRenomPool = renominateColleagues.filter(c => c.username !== user?.username);
+
+                                      if (validRenomPool.length === 0) {
+                                        return (
+                                          <div className="text-[11px] text-muted-foreground p-2 rounded border bg-muted/20">
+                                            No colleagues found for this role/branch
+                                          </div>
+                                        );
+                                      }
+
+                                      const toggleRenomColleague = (idStr: string) => {
+                                        setRenominateColleagueIds(prev => {
+                                          const next = prev.includes(idStr)
+                                            ? prev.filter(x => x !== idStr)
+                                            : [...prev, idStr];
+                                          setNewColleagueId(next[0] || '');
+                                          return next;
+                                        });
+                                      };
+
                                       return (
-                                        <Select
-                                          value={newColleagueId || undefined}
-                                          onValueChange={setNewColleagueId}
-                                          disabled={!renominateRole || isBranchMissing || renominateColleaguesLoading}
-                                        >
-                                          <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
-                                            <SelectValue
-                                              placeholder={
-                                                !renominateRole
-                                                  ? "Select substitute role first..."
-                                                  : isBranchMissing
-                                                    ? "Select department / branch above first..."
-                                                    : renominateColleaguesLoading
-                                                      ? "Loading colleagues..."
-                                                      : "Select colleague..."
-                                              }
-                                            />
-                                          </SelectTrigger>
-                                          <SelectContent className={`max-h-[220px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : ''}`}>
-                                            {renominateColleaguesLoading ? (
-                                              <SelectItem value="loading_colleagues" disabled>
-                                                Loading colleagues...
-                                              </SelectItem>
-                                            ) : renominateColleagues.length === 0 ? (
-                                              <SelectItem value="no_colleagues" disabled>
-                                                No colleagues found for this role/branch
-                                              </SelectItem>
-                                            ) : (
-                                              renominateColleagues
-                                                .filter(c => c.username !== user?.username)
-                                                .map((c) => (
-                                                  <SelectItem key={c.id} value={String(c.id)}>
-                                                    {c.name}
-                                                  </SelectItem>
-                                                ))
-                                            )}
-                                          </SelectContent>
-                                        </Select>
+                                        <div className="space-y-2">
+                                          <div className={`max-h-36 overflow-y-auto rounded border divide-y ${theme === 'dark' ? 'bg-background border-border divide-border' : 'bg-white border-gray-200 divide-gray-100'}`}>
+                                            {validRenomPool.map((c) => {
+                                              const isChecked = renominateColleagueIds.includes(String(c.id));
+                                              return (
+                                                <label
+                                                  key={c.id}
+                                                  className={`flex items-center gap-2 p-2 cursor-pointer text-xs transition-colors hover:bg-muted/40 ${
+                                                    isChecked ? (theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5 font-medium') : ''
+                                                  }`}
+                                                >
+                                                  <Checkbox
+                                                    checked={isChecked}
+                                                    onCheckedChange={() => toggleRenomColleague(String(c.id))}
+                                                    className="shrink-0"
+                                                  />
+                                                  <span className="truncate flex-1 text-foreground">{c.name}</span>
+                                                </label>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
                                       );
                                     })()}
                                   </div>
@@ -3353,7 +3679,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                     <Button
                                       size="sm"
                                       onClick={handleRenominateColleague}
-                                      disabled={!newColleagueId || renominatingLoading}
+                                      disabled={(renominateColleagueIds.length === 0 && !newColleagueId) || renominatingLoading}
                                       className="h-7 text-xs px-3 font-semibold bg-primary text-white hover:bg-primary/90 shadow-xs"
                                     >
                                       {renominatingLoading ? 'Sending...' : 'Confirm & Nominate'}
@@ -3363,9 +3689,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                 )}
                               </div>
                             )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* Sequential Stages or Auto-Approved 0-Stage Record */}
                     {(() => {
