@@ -56,6 +56,9 @@ const SyllabusTracker = () => {
         const [year, month, day] = trimmed.split("-");
         return `${day}-${month}-${year}`;
       }
+      if (/^\d{2}-\d{2}-\d{4}$/.test(trimmed)) {
+        return trimmed;
+      }
       const dateObj = new Date(trimmed);
       if (isNaN(dateObj.getTime())) return dateStr;
       const day = String(dateObj.getDate()).padStart(2, '0');
@@ -65,6 +68,67 @@ const SyllabusTracker = () => {
     } catch (e) {
       return dateStr;
     }
+  };
+
+  const parseDateString = (str: string | null | undefined): Date | undefined => {
+    if (!str) return undefined;
+    try {
+      const trimmed = str.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        const [y, m, d] = trimmed.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      }
+      if (/^\d{2}-\d{2}-\d{4}$/.test(trimmed)) {
+        const [d, m, y] = trimmed.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      }
+      const d = new Date(trimmed);
+      return isNaN(d.getTime()) ? undefined : d;
+    } catch {
+      return undefined;
+    }
+  };
+
+  const DAY_OPTIONS = [
+    { value: 1, label: "Monday" },
+    { value: 2, label: "Tuesday" },
+    { value: 3, label: "Wednesday" },
+    { value: 4, label: "Thursday" },
+    { value: 5, label: "Friday" },
+    { value: 6, label: "Saturday" },
+    { value: 7, label: "Sunday" }
+  ];
+
+  const getDayInfoFromDate = (date: Date) => {
+    const jsDay = date.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+    const dayNum = jsDay === 0 ? 7 : jsDay;
+    const opt = DAY_OPTIONS.find((o) => o.value === dayNum);
+    return {
+      day: dayNum,
+      day_name: opt?.label || `Day ${dayNum}`
+    };
+  };
+
+  const sortDailyLogs = (logs: any[]): any[] => {
+    if (!Array.isArray(logs)) return [];
+    return [...logs].sort((a, b) => {
+      const parsedA = parseDateString(a?.date);
+      const parsedB = parseDateString(b?.date);
+      const dateA = parsedA ? parsedA.getTime() : 0;
+      const dateB = parsedB ? parsedB.getTime() : 0;
+
+      if (dateA && dateB) {
+        if (dateA !== dateB) return dateA - dateB;
+      } else if (dateA && !dateB) {
+        return -1;
+      } else if (!dateA && dateB) {
+        return 1;
+      }
+
+      const dayA = typeof a?.day === 'number' ? a.day : Number(a?.day) || 99;
+      const dayB = typeof b?.day === 'number' ? b.day : Number(b?.day) || 99;
+      return dayA - dayB;
+    });
   };
 
   const { toast } = useToast();
@@ -261,7 +325,7 @@ const SyllabusTracker = () => {
             topics_covered: w.topics_covered || "",
             notes: w.notes || "",
             is_completed: w.is_completed || false,
-            daily_logs: Array.isArray(w.daily_logs) ? w.daily_logs : []
+            daily_logs: Array.isArray(w.daily_logs) ? sortDailyLogs(w.daily_logs) : []
           };
         });
         setProgressEdits(edits);
@@ -279,23 +343,14 @@ const SyllabusTracker = () => {
     fetchSyllabus();
   }, [semesterId, subjectId, sectionId, isElective, batchId]);
 
-  const [savingDayKey, setSavingDayKey] = useState<string | null>(null);
-
-  const DAY_OPTIONS = [
-    { value: 1, label: "Monday" },
-    { value: 2, label: "Tuesday" },
-    { value: 3, label: "Wednesday" },
-    { value: 4, label: "Thursday" },
-    { value: 5, label: "Friday" },
-    { value: 6, label: "Saturday" },
-    { value: 7, label: "Sunday" }
-  ];
+    const [savingDayKey, setSavingDayKey] = useState<string | null>(null);
 
   // Save individual week progress
   const handleSaveProgress = async (weekNum: number, currentCompleted: boolean) => {
     if (!subjectId) return;
     setSavingProgress(weekNum);
     const edit = progressEdits[weekNum];
+    const sortedLogs = sortDailyLogs(edit.daily_logs || []);
     try {
       const matchingAssignment = normalizedAssignments.find(a => a.subject_id === subjectId && a.semester_id === semesterId);
       const res = await updateSyllabusProgress({
@@ -308,7 +363,7 @@ const SyllabusTracker = () => {
         is_completed: currentCompleted,
         topics_covered: edit.topics_covered,
         notes: edit.notes,
-        daily_logs: edit.daily_logs || []
+        daily_logs: sortedLogs
       });
       if (res.success) {
         toast({ title: "Success", description: `Week ${weekNum} progress saved!` });
@@ -329,7 +384,8 @@ const SyllabusTracker = () => {
     const saveKey = `${weekNum}-${dayIdx}`;
     setSavingDayKey(saveKey);
     const edit = progressEdits[weekNum];
-    const targetDay = edit.daily_logs?.[dayIdx];
+    const sortedLogs = sortDailyLogs(edit.daily_logs || []);
+    const targetDay = sortedLogs[dayIdx];
     const dayName = targetDay?.day_name || (DAY_OPTIONS.find(d => d.value === targetDay?.day)?.label || `Day ${targetDay?.day || dayIdx + 1}`);
 
     try {
@@ -344,7 +400,7 @@ const SyllabusTracker = () => {
         is_completed: edit.is_completed ?? false,
         topics_covered: edit.topics_covered || "",
         notes: edit.notes || "",
-        daily_logs: edit.daily_logs || []
+        daily_logs: sortedLogs
       });
 
       if (res.success) {
@@ -367,7 +423,8 @@ const SyllabusTracker = () => {
   const handleDeleteDayLog = async (weekNum: number, dayIdx: number) => {
     if (!subjectId) return;
     const edit = progressEdits[weekNum];
-    const targetDay = edit?.daily_logs?.[dayIdx];
+    const currentSortedLogs = sortDailyLogs(edit?.daily_logs || []);
+    const targetDay = currentSortedLogs[dayIdx];
     const dayName = targetDay?.day_name || (DAY_OPTIONS.find(d => d.value === targetDay?.day)?.label || `Day ${targetDay?.day || dayIdx + 1}`);
 
     const confirmResult = await showConfirmAlert(
@@ -378,13 +435,13 @@ const SyllabusTracker = () => {
 
     if (!confirmResult.isConfirmed) return;
 
-    const currentLogs = edit?.daily_logs || [];
-    const updated = currentLogs.filter((_: any, i: number) => i !== dayIdx);
+    const updated = currentSortedLogs.filter((_: any, i: number) => i !== dayIdx);
+    const finalSorted = sortDailyLogs(updated);
     
     // Update local state immediately for instant UI feedback
     setProgressEdits({
       ...progressEdits,
-      [weekNum]: { ...edit, daily_logs: updated }
+      [weekNum]: { ...edit, daily_logs: finalSorted }
     });
 
     try {
@@ -399,7 +456,7 @@ const SyllabusTracker = () => {
         is_completed: edit.is_completed ?? false,
         topics_covered: edit.topics_covered || "",
         notes: edit.notes || "",
-        daily_logs: updated
+        daily_logs: finalSorted
       });
 
       if (res.success) {
@@ -680,7 +737,7 @@ const SyllabusTracker = () => {
                     const edit = progressEdits[w.week] || { topics_covered: "", notes: "", is_completed: false, daily_logs: [] };
                     const isExpanded = !!expandedWeeks[w.week];
                     const plannedDays = Array.isArray(w.days) ? w.days : [];
-                    const dailyLogs = Array.isArray(edit.daily_logs) ? edit.daily_logs : [];
+                    const dailyLogs = Array.isArray(edit.daily_logs) ? sortDailyLogs(edit.daily_logs) : [];
                     const completedDaysCount = dailyLogs.filter((d: any) => d.is_completed).length;
                     const totalDaysCount = plannedDays.length > 0 ? plannedDays.length : dailyLogs.length;
 
@@ -822,18 +879,30 @@ const SyllabusTracker = () => {
                                 className="w-full sm:w-auto h-8 text-xs gap-1.5 shadow-xs bg-background hover:bg-muted justify-center"
                                 onClick={() => {
                                   const currentLogs = [...dailyLogs];
-                                  const nextDayNum = currentLogs.length + 1;
-                                  const matchedPlanned = plannedDays.find((pd: any) => pd.day === nextDayNum);
+                                  const today = new Date();
+                                  const year = today.getFullYear();
+                                  const month = String(today.getMonth() + 1).padStart(2, '0');
+                                  const day = String(today.getDate()).padStart(2, '0');
+                                  const todayDateStr = `${year}-${month}-${day}`;
+                                  const dayInfo = getDayInfoFromDate(today);
+
+                                  // If there is an unlogged plannedDay, prioritize matching planned day or default to today's day
+                                  const unloggedPlanned = plannedDays.find((pd: any) => !currentLogs.some((l: any) => l.day === pd.day));
+                                  const chosenDayNum = unloggedPlanned ? unloggedPlanned.day : dayInfo.day;
+                                  const chosenDayName = DAY_OPTIONS.find((o) => o.value === chosenDayNum)?.label || dayInfo.day_name;
+                                  const matchedPlan = plannedDays.find((pd: any) => pd.day === chosenDayNum);
+
                                   currentLogs.push({
-                                    day: nextDayNum,
-                                    topic_covered: matchedPlanned ? matchedPlanned.topic : "",
-                                    date: new Date().toISOString().slice(0, 10),
+                                    day: chosenDayNum,
+                                    day_name: chosenDayName,
+                                    topic_covered: matchedPlan ? matchedPlan.topic : "",
+                                    date: todayDateStr,
                                     is_completed: true,
                                     notes: ""
                                   });
                                   setProgressEdits({
                                     ...progressEdits,
-                                    [w.week]: { ...edit, daily_logs: currentLogs }
+                                    [w.week]: { ...edit, daily_logs: sortDailyLogs(currentLogs) }
                                   });
                                 }}
                               >
@@ -857,20 +926,26 @@ const SyllabusTracker = () => {
                                           variant="outline"
                                           className="h-6 text-[11px] w-full mt-1 bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary"
                                           onClick={() => {
+                                            const today = new Date();
+                                            const y = today.getFullYear();
+                                            const m = String(today.getMonth() + 1).padStart(2, '0');
+                                            const d = String(today.getDate()).padStart(2, '0');
+                                            const todayStr = `${y}-${m}-${d}`;
+
                                             const newLogs = plannedDays.map((p: any) => {
                                               const dOpt = DAY_OPTIONS.find(o => o.value === p.day);
                                               return {
                                                 day: p.day,
                                                 day_name: p.day_name || dOpt?.label || `Day ${p.day}`,
                                                 topic_covered: p.topic,
-                                                date: new Date().toISOString().slice(0, 10),
+                                                date: todayStr,
                                                 is_completed: p.day === pd.day,
                                                 notes: ""
                                               };
                                             });
                                             setProgressEdits({
                                               ...progressEdits,
-                                              [w.week]: { ...edit, daily_logs: newLogs }
+                                              [w.week]: { ...edit, daily_logs: sortDailyLogs(newLogs) }
                                             });
                                           }}
                                         >
@@ -887,7 +962,7 @@ const SyllabusTracker = () => {
                               <div className="space-y-3">
                                 {dailyLogs.map((log: any, idx: number) => {
                                   const plannedForDay = plannedDays.find((pd: any) => pd.day === log.day);
-                                  const logDate = log.date ? new Date(log.date) : undefined;
+                                  const logDate = parseDateString(log.date);
                                   const saveKey = `${w.week}-${idx}`;
                                   const isSavingThisDay = savingDayKey === saveKey;
 
@@ -929,7 +1004,7 @@ const SyllabusTracker = () => {
                                               };
                                               setProgressEdits({
                                                 ...progressEdits,
-                                                [w.week]: { ...edit, daily_logs: updated }
+                                                [w.week]: { ...edit, daily_logs: sortDailyLogs(updated) }
                                               });
                                             }}
                                           >
@@ -998,11 +1073,20 @@ const SyllabusTracker = () => {
                                                     const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
                                                     const day = String(selectedDate.getDate()).padStart(2, '0');
                                                     const dateStr = `${year}-${month}-${day}`;
+                                                    const dayInfo = getDayInfoFromDate(selectedDate);
+                                                    const matchedPlan = plannedDays.find((pd: any) => pd.day === dayInfo.day);
+
                                                     const updated = [...dailyLogs];
-                                                    updated[idx] = { ...log, date: dateStr };
+                                                    updated[idx] = {
+                                                      ...log,
+                                                      date: dateStr,
+                                                      day: dayInfo.day,
+                                                      day_name: dayInfo.day_name,
+                                                      topic_covered: log.topic_covered || (matchedPlan ? matchedPlan.topic : "")
+                                                    };
                                                     setProgressEdits({
                                                       ...progressEdits,
-                                                      [w.week]: { ...edit, daily_logs: updated }
+                                                      [w.week]: { ...edit, daily_logs: sortDailyLogs(updated) }
                                                     });
                                                   }
                                                 }}
