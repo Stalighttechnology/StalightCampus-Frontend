@@ -44,7 +44,7 @@ interface Props {
 }
 
 export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
-  const canCUD = role === "inventory_manager" || role === "superadmin";
+  const canCUD = ["inventory_manager", "superadmin", "org_admin", "admin", "principal", "dean"].includes(role);
   const [quotations, setQuotations] = useState<InventoryQuotation[]>([]);
   const [categories, setCategories] = useState<InventoryCategory[]>([]);
   const [loading, setLoading] = useState(true);

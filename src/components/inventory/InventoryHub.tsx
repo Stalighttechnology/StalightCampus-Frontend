@@ -79,12 +79,13 @@ export const InventoryHub: React.FC<Props> = ({
   const isStaff = ["faculty", "staff"].includes(role);
   const isHOD = role === "hod";
   const isAdmin = ["admin", "org_admin", "dean", "superadmin", "principal"].includes(role);
+  const isProcurementAuthorized = ["admin", "org_admin", "dean", "superadmin", "principal", "inventory_manager"].includes(role);
 
   const tabs = [
     ...(!isStaff ? [{ id: "analytics", label: "Overview", icon: <TrendingUp className="w-4 h-4" /> }] : []),
     { id: "items", label: isHOD ? "Department Assets" : "Assets Directory", icon: <Package className="w-4 h-4" /> },
     { id: "procurement", label: "Requisitions", icon: <ShoppingCart className="w-4 h-4" /> },
-    ...(isAdmin ? [{ id: "quotations", label: "Vendor RFQs", icon: <FileText className="w-4 h-4" /> }] : []),
+    ...(isProcurementAuthorized ? [{ id: "quotations", label: "Vendor RFQs & Bids", icon: <FileText className="w-4 h-4" /> }] : []),
     { id: "tickets", label: "Maintenance & Tickets", icon: <Wrench className="w-4 h-4" /> },
     ...(isAdmin
       ? [
@@ -182,7 +183,7 @@ export const InventoryHub: React.FC<Props> = ({
             />
           )}
 
-          {activeTab === "quotations" && isAdmin && (
+          {activeTab === "quotations" && isProcurementAuthorized && (
             <QuotationManager role={role} />
           )}
 

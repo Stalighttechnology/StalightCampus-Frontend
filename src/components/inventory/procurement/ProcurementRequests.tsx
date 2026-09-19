@@ -10,6 +10,7 @@ import {
   sanctionProcurementRequest,
   stockInProcurementRequest,
   createQuotationFromProcurement,
+  acceptQuotationResponse,
   markProcurementDelivered,
   fetchInventoryCategories,
   fetchInventoryLocations,
@@ -445,6 +446,20 @@ export const ProcurementRequests: React.FC<Props> = ({
     }
   };
 
+  const handleAcceptBid = async (quotationId: number, responseId: number) => {
+    try {
+      setActionLoading(true);
+      await acceptQuotationResponse(quotationId, responseId);
+      toast.success("Vendor bid accepted and purchase order placed!");
+      setViewDetailsReq(null);
+      loadRequests(currentPage);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to accept bid");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleMarkDelivered = async (req: ProcurementRequest) => {
     try {
       setActionLoading(true);
@@ -463,35 +478,28 @@ export const ProcurementRequests: React.FC<Props> = ({
       toast.error("Please select a target campus location");
       return;
     }
-    if (stockInQuantity <= 0) {
-      toast.error("Stock-in quantity must be at least 1");
-      return;
-    }
-    if (!stockInConfirmedReceipt) {
-      toast.error("Please confirm physical receipt and handover of the assets");
-      return;
-    }
 
     try {
-      setActionLoading(true);
-      await stockInProcurementRequest(stockInRequest.id, {
+      setStockInLoading(true);
+      const res = await stockInProcurementRequest(stockInRequest.id, {
         location_id: Number(stockInLocationId),
-        branch_id: stockInBranchId && stockInBranchId !== "none" ? Number(stockInBranchId) : null,
-        room_no: stockInRoom.trim() || undefined,
-        quantity: Number(stockInQuantity),
-        stock_remaining_as_buffer: stockRemainingAsBuffer,
-        received_by_id: stockInRecipientId ? Number(stockInRecipientId) : null,
-        received_by_name: stockInRecipientName.trim() || undefined,
-        received_by_role: stockInRecipientRole,
+        branch_id: stockInBranchId && stockInBranchId !== "unassigned" ? Number(stockInBranchId) : null,
+        room_no: stockInRoomNo.trim(),
+        item_photo_url: stockInPhotoUrl || undefined,
+        invoice_no: stockInInvoiceNo.trim() || undefined,
+        invoice_photo_url: stockInInvoiceUrl || undefined,
       });
-      toast.success("Assets successfully generated, stocked in, and assigned to recipient!");
+
+      toast.success(
+        `Successfully stocked in ${res.created_items_count || res.item_codes?.length || 1} item(s)! Codes: ${res.item_codes?.join(", ") || ""}`
+      );
       setStockInRequest(null);
       loadRequests(currentPage);
       if (onStockInSuccess) onStockInSuccess();
     } catch (err: any) {
-      toast.error(err.message || "Failed to stock in inventory");
+      toast.error(err.message || "Failed to stock in assets");
     } finally {
-      setActionLoading(false);
+      setStockInLoading(false);
     }
   };
 
@@ -516,7 +524,7 @@ export const ProcurementRequests: React.FC<Props> = ({
 
   const isPrincipalOrAdmin = ["principal", "org_admin", "dean", "admin"].includes(role);
   const isHOD = role === "hod";
-  const isManager = role === "inventory_manager" || role === "superadmin";
+  const isManager = ["inventory_manager", "superadmin", "org_admin", "admin", "principal", "dean"].includes(role);
 
   const handleResetFilters = () => {
     setSearch("");
@@ -1171,39 +1179,83 @@ export const ProcurementRequests: React.FC<Props> = ({
               )}
 
               {/* Quotations & RFQ Bids (if RFQ issued or multiple responses exist) */}
-              {!viewDetailsReq.selected_vendor && viewDetailsReq.quotations_summary && viewDetailsReq.quotations_summary.length > 0 && (
-                <div className="p-3.5 rounded-xl border bg-indigo-50/40 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800/60 space-y-2 text-xs">
+              {viewDetailsReq.quotations_summary && viewDetailsReq.quotations_summary.length > 0 && (
+                <div className="p-3.5 rounded-xl border bg-indigo-50/40 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800/60 space-y-2.5 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5">
                       <FileText className="w-4 h-4 text-indigo-600" /> Digital RFQ & Vendor Bids
                     </span>
+                    <span className="text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-900/60 px-2 py-0.5 rounded-full">
+                      {viewDetailsReq.quotations_summary.reduce((acc, q) => acc + (q.responses?.length || 0), 0)} Bid(s) Received
+                    </span>
                   </div>
                   {viewDetailsReq.quotations_summary.map((q) => (
-                    <div key={q.id} className="space-y-1.5">
-                      <div className="flex justify-between text-muted-foreground text-[11px]">
-                        <span>Issued To: <strong>{q.company_email || "Vendor Pool"}</strong></span>
+                    <div key={q.id} className="space-y-2 bg-white/70 dark:bg-card/70 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/40">
+                      <div className="flex justify-between items-center text-muted-foreground text-[11px]">
+                        <span>Vendor Request: <strong>{q.company_email || "Vendor Pool"}</strong></span>
                         <span>Deadline: {q.last_reply_date || "N/A"}</span>
                       </div>
                       {q.responses && q.responses.length > 0 ? (
-                        <div className="space-y-1.5 pt-1">
-                          {q.responses.map((resp: any) => (
-                            <div key={resp.id} className="p-2 rounded-lg bg-background border flex justify-between items-center text-xs">
-                              <div>
-                                <span className="font-semibold text-foreground">{resp.vendor_name}</span>
-                                {resp.vendor_email && <span className="text-muted-foreground text-[11px] block">{resp.vendor_email}</span>}
+                        <div className="space-y-2 pt-1">
+                          {q.responses.map((resp: any) => {
+                            const isAwarded = q.status === "accepted" || (viewDetailsReq.selected_vendor && viewDetailsReq.selected_vendor.vendor_email === resp.vendor_email);
+                            return (
+                              <div
+                                key={resp.id}
+                                className={`p-2.5 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs transition-all ${
+                                  isAwarded
+                                    ? "bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700"
+                                    : "bg-background border-border/80"
+                                }`}
+                              >
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-bold text-foreground">{resp.vendor_name}</span>
+                                    {isAwarded && (
+                                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 flex items-center gap-1">
+                                        <CheckCircle2 className="w-3 h-3" /> Awarded
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-muted-foreground text-[11px]">
+                                    {resp.vendor_email} {resp.vendor_phone && `• ${resp.vendor_phone}`}
+                                  </div>
+                                  {resp.description && (
+                                    <p className="text-[11px] text-muted-foreground italic pt-0.5">
+                                      "{resp.description}"
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex sm:flex-col items-center sm:items-end justify-between gap-1.5 shrink-0">
+                                  <span className="font-extrabold text-sm text-emerald-600 dark:text-emerald-400">
+                                    ₹{Number(resp.total_amount || 0).toLocaleString("en-IN")}
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    {resp.quote_document_url && (
+                                      <a
+                                        href={resp.quote_document_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-[11px] text-primary underline font-medium"
+                                      >
+                                        Quote PDF ↗
+                                      </a>
+                                    )}
+                                    {isManager && q.status !== "accepted" && viewDetailsReq.status !== "ordered" && viewDetailsReq.status !== "delivered" && viewDetailsReq.status !== "added_to_inventory" && (
+                                      <Button
+                                        size="sm"
+                                        onClick={() => handleAcceptBid(q.id, resp.id)}
+                                        disabled={actionLoading}
+                                        className="h-7 px-2.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                                      >
+                                        <CheckCircle2 className="w-3 h-3" /> Award Bid
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                                  ₹{Number(resp.total_amount || 0).toLocaleString("en-IN")}
-                                </span>
-                                {resp.quote_document_url && (
-                                  <a href={resp.quote_document_url} target="_blank" rel="noreferrer" className="block text-[10px] text-primary underline">
-                                    Quote PDF ↗
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <p className="text-muted-foreground text-[11px] italic">Awaiting vendor quotation responses...</p>
@@ -1240,7 +1292,9 @@ export const ProcurementRequests: React.FC<Props> = ({
                   {/* Step 2: HOD Endorsement */}
                   <div className="flex items-start gap-2.5">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center font-semibold text-[11px] shrink-0 mt-0.5 ${
-                      viewDetailsReq.hod_endorsed_by_name ? 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300' : 'bg-muted text-muted-foreground'
+                      viewDetailsReq.hod_endorsed_by_name || viewDetailsReq.requested_by_role === 'inventory_manager'
+                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300'
+                        : 'bg-muted text-muted-foreground'
                     }`}>
                       2
                     </div>
@@ -1249,6 +1303,8 @@ export const ProcurementRequests: React.FC<Props> = ({
                       <p className="text-muted-foreground text-[11px]">
                         {viewDetailsReq.hod_endorsed_by_name
                           ? `${viewDetailsReq.hod_endorsed_by_name} (${viewDetailsReq.hod_endorsement_remarks || "Endorsed"})`
+                          : viewDetailsReq.requested_by_role === 'inventory_manager'
+                          ? "Direct Manager Requisition (HOD Endorsement Bypassed → Direct to Principal)"
                           : "Pending HOD Review"}
                       </p>
                     </div>

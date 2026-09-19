@@ -106,6 +106,7 @@ export interface ProcurementRequest {
   status: 'draft' | 'pending_hod' | 'pending_principal' | 'approved' | 'rejected' | 'rfq_issued' | 'ordered' | 'delivered' | 'added_to_inventory';
   requested_by: number;
   requested_by_name: string;
+  requested_by_role?: string;
   hod_endorsed_by?: number;
   hod_endorsed_by_name?: string;
   hod_endorsement_remarks?: string;

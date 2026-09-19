@@ -6,7 +6,7 @@ import { Card } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Textarea } from "../../ui/textarea";
-import { Building, Send, CheckCircle2, AlertCircle, Loader2, Package, IndianRupee } from "lucide-react";
+import { Building, Send, CheckCircle2, AlertCircle, Loader2, IndianRupee, FileCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export const PublicVendorQuote: React.FC = () => {
@@ -24,6 +24,10 @@ export const PublicVendorQuote: React.FC = () => {
   const [description, setDescription] = useState("");
   const [documentUrl, setDocumentUrl] = useState("");
 
+  // Validation state
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+
   useEffect(() => {
     if (!token) return;
     fetchPublicQuotation(token)
@@ -36,12 +40,96 @@ export const PublicVendorQuote: React.FC = () => {
       .finally(() => setLoading(false));
   }, [token]);
 
+  // Validation helpers
+  const isValidIndianPhone = (phone: string): boolean => {
+    const clean = phone.replace(/[\s\-\(\)]/g, "");
+    // Indian Mobile (10 digits starting with 6,7,8,9 with optional +91, 91, or 0)
+    const mobileRegex = /^(?:\+91|91|0)?[6-9]\d{9}$/;
+    // Indian Landline / Telephone (STD code 2-4 digits + 6-8 digits, total 10-11 digits)
+    const landlineRegex = /^(?:\+91|91|0)?[1-9]\d{1,4}\d{6,8}$/;
+    return mobileRegex.test(clean) || landlineRegex.test(clean);
+  };
+
+  const isValidEmail = (email: string): boolean => {
+    // Validates email with @ and . supporting .com, .ac.in, .co.in, .edu.in, etc.
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email.trim());
+  };
+
+  const countWords = (text: string): number => {
+    const trimmed = text.trim();
+    if (!trimmed) return 0;
+    return trimmed.split(/\s+/).filter(Boolean).length;
+  };
+
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!vendorName.trim()) {
+      newErrors.vendorName = "Company / Vendor Name is required.";
+    }
+
+    if (!vendorEmail.trim()) {
+      newErrors.vendorEmail = "Contact Email is required.";
+    } else if (!isValidEmail(vendorEmail)) {
+      newErrors.vendorEmail = "Please enter a valid email address (e.g. abc@gmail.com or abcd@abc.ac.in).";
+    }
+
+    if (!vendorPhone.trim()) {
+      newErrors.vendorPhone = "Contact Phone Number is required.";
+    } else if (!isValidIndianPhone(vendorPhone)) {
+      newErrors.vendorPhone = "Please enter a valid 10-digit Indian mobile or landline number with STD code.";
+    }
+
+    if (!totalAmount || parseFloat(totalAmount) <= 0) {
+      newErrors.totalAmount = "Please enter a valid total quotation price greater than 0.";
+    }
+
+    const wordCount = countWords(description);
+    if (!description.trim()) {
+      newErrors.description = "Proposal notes / delivery timeline is required.";
+    } else if (wordCount > 100) {
+      newErrors.description = `Proposal notes must not exceed 100 words (currently ${wordCount} words).`;
+    }
+
+    setErrors(newErrors);
+    return newErrors;
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setDescription(val);
+    const wc = countWords(val);
+    if (wc > 100) {
+      setErrors((prev) => ({
+        ...prev,
+        description: `Proposal notes must not exceed 100 words (currently ${wc} words).`,
+      }));
+    } else {
+      setErrors((prev) => {
+        const copy = { ...prev };
+        delete copy.description;
+        return copy;
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
 
-    if (!vendorName.trim() || !vendorEmail.trim() || !totalAmount) {
-      toast.error("Please fill in company name, email, and total quotation price");
+    setTouched({
+      vendorName: true,
+      vendorEmail: true,
+      vendorPhone: true,
+      totalAmount: true,
+      description: true,
+    });
+
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      const firstError = Object.values(validationErrors)[0];
+      toast.error(firstError);
       return;
     }
 
@@ -109,6 +197,8 @@ export const PublicVendorQuote: React.FC = () => {
     );
   }
 
+  const wordCount = countWords(description);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background py-12 px-4 flex items-center justify-center">
       <Card className="max-w-2xl w-full p-6 sm:p-8 rounded-3xl shadow-2xl border bg-card space-y-6">
@@ -139,76 +229,134 @@ export const PublicVendorQuote: React.FC = () => {
         </div>
 
         {/* Submission Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Supplier Commercial Proposal
-          </h3>
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Supplier Commercial Proposal
+            </h3>
+            <span className="text-[11px] text-muted-foreground">
+              Fields marked with <span className="text-red-500 font-bold">*</span> are compulsory
+            </span>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">
-                Company / Vendor Name *
+                Company / Vendor Name <span className="text-red-500 font-bold">*</span>
               </label>
               <Input
                 required
                 placeholder="e.g. Apex Tech Solutions Pvt Ltd"
                 value={vendorName}
-                onChange={(e) => setVendorName(e.target.value)}
+                onChange={(e) => {
+                  setVendorName(e.target.value);
+                  if (errors.vendorName) setErrors({ ...errors, vendorName: "" });
+                }}
+                onBlur={() => setTouched({ ...touched, vendorName: true })}
+                className={touched.vendorName && !vendorName.trim() ? "border-red-500 focus-visible:ring-red-500" : ""}
               />
+              {touched.vendorName && !vendorName.trim() && (
+                <p className="text-[11px] text-red-500 mt-1">Company / Vendor Name is required</p>
+              )}
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">
-                Contact Email *
+                Contact Email <span className="text-red-500 font-bold">*</span>
               </label>
               <Input
                 type="email"
                 required
-                placeholder="sales@apextech.com"
+                placeholder="sales@apextech.com or info@abc.ac.in"
                 value={vendorEmail}
-                onChange={(e) => setVendorEmail(e.target.value)}
+                onChange={(e) => {
+                  setVendorEmail(e.target.value);
+                  if (errors.vendorEmail) setErrors({ ...errors, vendorEmail: "" });
+                }}
+                onBlur={() => setTouched({ ...touched, vendorEmail: true })}
+                className={touched.vendorEmail && (!vendorEmail.trim() || !isValidEmail(vendorEmail)) ? "border-red-500 focus-visible:ring-red-500" : ""}
               />
+              {touched.vendorEmail && !vendorEmail.trim() && (
+                <p className="text-[11px] text-red-500 mt-1">Contact Email is required</p>
+              )}
+              {touched.vendorEmail && vendorEmail.trim() && !isValidEmail(vendorEmail) && (
+                <p className="text-[11px] text-red-500 mt-1">Enter valid email (e.g. abc@gmail.com, abcd@abc.ac.in)</p>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">
-                Contact Phone Number
+                Contact Phone Number <span className="text-red-500 font-bold">*</span>
               </label>
               <Input
-                placeholder="+91 98765 43210"
+                required
+                placeholder="+91 98765 43210 or 080-23456789"
                 value={vendorPhone}
-                onChange={(e) => setVendorPhone(e.target.value)}
+                onChange={(e) => {
+                  setVendorPhone(e.target.value);
+                  if (errors.vendorPhone) setErrors({ ...errors, vendorPhone: "" });
+                }}
+                onBlur={() => setTouched({ ...touched, vendorPhone: true })}
+                className={touched.vendorPhone && (!vendorPhone.trim() || !isValidIndianPhone(vendorPhone)) ? "border-red-500 focus-visible:ring-red-500" : ""}
               />
+              {touched.vendorPhone && !vendorPhone.trim() && (
+                <p className="text-[11px] text-red-500 mt-1">Contact Phone Number is required</p>
+              )}
+              {touched.vendorPhone && vendorPhone.trim() && !isValidIndianPhone(vendorPhone) && (
+                <p className="text-[11px] text-red-500 mt-1">Enter a valid 10-digit Indian mobile or landline with STD</p>
+              )}
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">
-                Total Quotation Price (INR ₹) *
+                Total Quotation Price (INR ₹) <span className="text-red-500 font-bold">*</span>
               </label>
               <Input
                 type="number"
                 required
-                min={0}
+                min={0.01}
                 step="0.01"
                 placeholder="0.00"
                 value={totalAmount}
-                onChange={(e) => setTotalAmount(e.target.value)}
+                onChange={(e) => {
+                  setTotalAmount(e.target.value);
+                  if (errors.totalAmount) setErrors({ ...errors, totalAmount: "" });
+                }}
+                onBlur={() => setTouched({ ...touched, totalAmount: true })}
+                className={touched.totalAmount && (!totalAmount || parseFloat(totalAmount) <= 0) ? "border-red-500 focus-visible:ring-red-500" : ""}
               />
+              {touched.totalAmount && (!totalAmount || parseFloat(totalAmount) <= 0) && (
+                <p className="text-[11px] text-red-500 mt-1">Please enter a valid price greater than 0</p>
+              )}
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-foreground mb-1">
-              Proposal Notes / Delivery Timeline & Warranty
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-xs font-semibold text-foreground">
+                Proposal Notes / Delivery Timeline & Warranty <span className="text-red-500 font-bold">*</span>
+              </label>
+              <span className={`text-[11px] font-medium ${wordCount > 100 ? "text-red-500 font-bold" : "text-muted-foreground"}`}>
+                {wordCount} / 100 words
+              </span>
+            </div>
             <Textarea
               rows={3}
+              required
               placeholder="e.g. Delivery within 7 business days, 3-year on-site comprehensive warranty included..."
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={handleDescriptionChange}
+              onBlur={() => setTouched({ ...touched, description: true })}
+              className={touched.description && (!description.trim() || wordCount > 100) ? "border-red-500 focus-visible:ring-red-500" : ""}
             />
+            {touched.description && !description.trim() && (
+              <p className="text-[11px] text-red-500 mt-1">Proposal notes / terms are required</p>
+            )}
+            {wordCount > 100 && (
+              <p className="text-[11px] text-red-500 mt-1">Maximum 100 words allowed (currently {wordCount} words)</p>
+            )}
           </div>
 
           <PhotoUploader
@@ -220,7 +368,7 @@ export const PublicVendorQuote: React.FC = () => {
 
           <Button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || wordCount > 100}
             className="w-full py-6 text-sm font-bold gap-2 shadow-lg"
           >
             {submitting ? (
@@ -238,3 +386,4 @@ export const PublicVendorQuote: React.FC = () => {
     </div>
   );
 };
+
