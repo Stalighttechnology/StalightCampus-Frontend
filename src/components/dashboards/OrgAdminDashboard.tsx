@@ -33,6 +33,7 @@ import CampusLocationManager from "../dean/CampusLocationManager";
 import ScheduleMeeting from "../common/ScheduleMeeting";
 import StaffTaskTracker from "../common/StaffTaskTracker";
 import ComplianceReports from "../admin/ComplianceReports";
+import { InventoryHub } from "../inventory/InventoryHub";
 
 interface OrgAdminDashboardProps {
   user: any;
@@ -124,6 +125,8 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
         return <StaffTaskTracker />;
       case "compliance-reports":
         return <ComplianceReports />;
+      case "inventory":
+        return <InventoryHub role="org_admin" />;
       case "external-links":
         return <ExternalLinksPage userRole={user?.role || "org_admin"} />;
       default:

@@ -90,6 +90,7 @@ const displayRoleMap: Record<string, string> = {
   "placement_officer": "Placement Officer",
   "transport_admin": "Transport Admin",
   "library_admin": "Library Admin",
+  "inventory_manager": "Inventory Manager",
   "admission_manager": "Admission Manager",
   "counsellor": "Admission Counsellor",
   "driver": "Driver"
@@ -119,6 +120,7 @@ const ALL_ROLES = [
   "Placement Officer",
   "Transport Admin",
   "Library Admin",
+  "Inventory Manager",
   "Admission Manager",
   "Admission Counsellor",
   "Driver"
@@ -168,6 +170,7 @@ const roleMap: Record<string, string> = {
   "Placement Officer": "placement_officer",
   "Transport Admin": "transport_admin",
   "Library Admin": "library_admin",
+  "Inventory Manager": "inventory_manager",
   "Admission Manager": "admission_manager",
   "Admission Counsellor": "counsellor",
   "Driver": "driver"

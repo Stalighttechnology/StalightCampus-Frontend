@@ -24,6 +24,9 @@ const StudentSyllabus = () => {
         const [year, month, day] = trimmed.split("-");
         return `${day}-${month}-${year}`;
       }
+      if (/^\d{2}-\d{2}-\d{4}$/.test(trimmed)) {
+        return trimmed;
+      }
       const dateObj = new Date(trimmed);
       if (isNaN(dateObj.getTime())) return dateStr;
       const day = String(dateObj.getDate()).padStart(2, '0');
@@ -33,6 +36,47 @@ const StudentSyllabus = () => {
     } catch (e) {
       return dateStr;
     }
+  };
+
+  const parseDateString = (str: string | null | undefined): Date | undefined => {
+    if (!str) return undefined;
+    try {
+      const trimmed = str.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        const [y, m, d] = trimmed.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      }
+      if (/^\d{2}-\d{2}-\d{4}$/.test(trimmed)) {
+        const [d, m, y] = trimmed.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      }
+      const d = new Date(trimmed);
+      return isNaN(d.getTime()) ? undefined : d;
+    } catch {
+      return undefined;
+    }
+  };
+
+  const sortDailyLogs = (logs: any[]): any[] => {
+    if (!Array.isArray(logs)) return [];
+    return [...logs].sort((a, b) => {
+      const parsedA = parseDateString(a?.date);
+      const parsedB = parseDateString(b?.date);
+      const dateA = parsedA ? parsedA.getTime() : 0;
+      const dateB = parsedB ? parsedB.getTime() : 0;
+
+      if (dateA && dateB) {
+        if (dateA !== dateB) return dateA - dateB;
+      } else if (dateA && !dateB) {
+        return -1;
+      } else if (!dateA && dateB) {
+        return 1;
+      }
+
+      const dayA = typeof a?.day === 'number' ? a.day : Number(a?.day) || 99;
+      const dayB = typeof b?.day === 'number' ? b.day : Number(b?.day) || 99;
+      return dayA - dayB;
+    });
   };
 
   const { theme } = useTheme();
@@ -308,7 +352,7 @@ const StudentSyllabus = () => {
                               <div className="mt-2.5 pt-2 border-t border-dashed space-y-1.5">
                                 <span className="font-semibold text-primary block text-[11px]">Day-Wise Lectures:</span>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                  {w.daily_logs.map((dl: any, dIdx: number) => {
+                                  {sortDailyLogs(w.daily_logs).map((dl: any, dIdx: number) => {
                                     const dayLabels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
                                     const dayTitle = dl.day_name || (dl.day >= 1 && dl.day <= 7 ? dayLabels[dl.day - 1] : `Day ${dl.day || dIdx + 1}`);
                                     return (

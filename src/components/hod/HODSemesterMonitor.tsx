@@ -57,6 +57,47 @@ interface HODSemesterMonitorProps {
   userRole?: string;
 }
 
+const parseDateString = (str: string | null | undefined): Date | undefined => {
+  if (!str) return undefined;
+  try {
+    const trimmed = str.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      const [y, m, d] = trimmed.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+    if (/^\d{2}-\d{2}-\d{4}$/.test(trimmed)) {
+      const [d, m, y] = trimmed.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+    const d = new Date(trimmed);
+    return isNaN(d.getTime()) ? undefined : d;
+  } catch {
+    return undefined;
+  }
+};
+
+const sortDailyLogs = (logs: any[]): any[] => {
+  if (!Array.isArray(logs)) return [];
+  return [...logs].sort((a, b) => {
+    const parsedA = parseDateString(a?.date);
+    const parsedB = parseDateString(b?.date);
+    const dateA = parsedA ? parsedA.getTime() : 0;
+    const dateB = parsedB ? parsedB.getTime() : 0;
+
+    if (dateA && dateB) {
+      if (dateA !== dateB) return dateA - dateB;
+    } else if (dateA && !dateB) {
+      return -1;
+    } else if (!dateA && dateB) {
+      return 1;
+    }
+
+    const dayA = typeof a?.day === 'number' ? a.day : Number(a?.day) || 99;
+    const dayB = typeof b?.day === 'number' ? b.day : Number(b?.day) || 99;
+    return dayA - dayB;
+  });
+};
+
 const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
   const { toast } = useToast();
   const { theme } = useTheme();
@@ -766,13 +807,30 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
 
           <Dialog open={!!selectedSubject} onOpenChange={(open) => !open && setSelectedSubject(null)}>
             <DialogContent className={`w-[90%] max-h-[80vh] sm:max-w-2xl sm:h-auto sm:max-h-[85vh] overflow-hidden flex flex-col rounded-2xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                  Section-wise Syllabus Coverage
-                </DialogTitle>
-                <DialogDescription className="text-sm opacity-75">
-                  Detailed progress for {selectedSubject?.subject_name} ({selectedSubject?.subject_code})
-                </DialogDescription>
+              <DialogHeader className="flex flex-row items-start justify-between gap-3 text-left">
+                <div>
+                  <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                    Section-wise Syllabus Coverage
+                  </DialogTitle>
+                  <DialogDescription className="text-sm opacity-75">
+                    Detailed progress for {selectedSubject?.subject_name} ({selectedSubject?.subject_code})
+                  </DialogDescription>
+                </div>
+                {selectedSubject && (
+                  <Button
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90 text-white gap-1.5 shrink-0 mr-6"
+                    onClick={() => handleExportSubjectPDF(selectedSubject)}
+                    disabled={exportingSubjectId === selectedSubject.subject_id}
+                  >
+                    {exportingSubjectId === selectedSubject.subject_id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <FileDown className="w-3.5 h-3.5" />
+                    )}
+                    <span>Export PDF</span>
+                  </Button>
+                )}
               </DialogHeader>
 
               <div className="flex-1 overflow-y-auto py-4 space-y-4 custom-scrollbar pr-1">
@@ -1064,7 +1122,7 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
 
                   if (!activeWeekData) return null;
 
-                  const dailyLogs = Array.isArray(activeWeekData.daily_logs) ? activeWeekData.daily_logs : [];
+                  const dailyLogs = Array.isArray(activeWeekData.daily_logs) ? sortDailyLogs(activeWeekData.daily_logs) : [];
 
                   return (
                     <div className="p-4 rounded-xl border bg-card space-y-3.5 shadow-sm">

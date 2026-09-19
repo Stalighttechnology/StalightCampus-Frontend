@@ -37,6 +37,7 @@ import ScheduleMeeting from "../common/ScheduleMeeting";
 import FacultyPayroll from "../faculty/FacultyPayroll";
 import StaffTaskTracker from "../common/StaffTaskTracker";
 import SecurityGatePassScanner from "../security/SecurityGatePassScanner";
+import { InventoryHub } from "../inventory/InventoryHub";
 
 interface FacultyDashboardProps {
   user: {
@@ -241,6 +242,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
         return <StaffTaskTracker />;
       case "gate-pass-scanner":
         return <SecurityGatePassScanner currentUser={currentUser} />;
+      case "inventory":
+        return <InventoryHub role="faculty" />;
       case "external-links":
         return <ExternalLinksPage userRole={user?.role || "faculty"} />;
       default:
