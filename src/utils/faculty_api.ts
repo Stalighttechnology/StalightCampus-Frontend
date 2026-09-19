@@ -1399,14 +1399,22 @@ export const getFacultyDashboardBootstrap = async (): Promise<GetFacultyDashboar
   return facultyDashboardPromise;
 };
 
-export const getAttendanceRecordsWithSummary = async (params?: {
+export interface GetAttendanceRecordsParams {
   page?: number;
   page_size?: number;
+  branch_id?: string;
+  semester_id?: string;
+  section_id?: string;
+  batch_id?: string;
   subject_id?: string;
   lab_batch_id?: string;
+  date?: string;
   start_date?: string;
   end_date?: string;
-}): Promise<GetAttendanceRecordsWithSummaryResponse> => {
+  search?: string;
+}
+
+export const getAttendanceRecordsWithSummary = async (params?: GetAttendanceRecordsParams): Promise<GetAttendanceRecordsWithSummaryResponse> => {
   try {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -1416,10 +1424,16 @@ export const getAttendanceRecordsWithSummary = async (params?: {
       const ps = Math.min(params.page_size, MAX_PAGE_SIZE);
       queryParams.append('page_size', ps.toString());
     }
-    if (params?.subject_id) queryParams.append('subject_id', params.subject_id);
-    if (params?.lab_batch_id) queryParams.append('lab_batch_id', params.lab_batch_id);
+    if (params?.branch_id && params.branch_id !== 'all') queryParams.append('branch_id', params.branch_id);
+    if (params?.semester_id && params.semester_id !== 'all') queryParams.append('semester_id', params.semester_id);
+    if (params?.section_id && params.section_id !== 'all') queryParams.append('section_id', params.section_id);
+    if (params?.batch_id && params.batch_id !== 'all') queryParams.append('batch_id', params.batch_id);
+    if (params?.subject_id && params.subject_id !== 'all') queryParams.append('subject_id', params.subject_id);
+    if (params?.lab_batch_id && params.lab_batch_id !== 'all') queryParams.append('lab_batch_id', params.lab_batch_id);
+    if (params?.date && params.date !== 'all') queryParams.append('date', params.date);
     if (params?.start_date) queryParams.append('start_date', params.start_date);
     if (params?.end_date) queryParams.append('end_date', params.end_date);
+    if (params?.search && params.search.trim()) queryParams.append('search', params.search.trim());
 
     const url = queryParams.toString() ?
     `${API_ENDPOINT}/faculty/attendance-records/summary/?${queryParams.toString()}` :
@@ -2993,3 +3007,191 @@ export const updateAttendanceRecord = async (
     return { success: false, message: "Network error" };
   }
 };
+
+export interface FacultyAttendanceFilterItem {
+  id: number | string;
+  name?: string;
+  code?: string;
+  number?: number;
+  subject_code?: string;
+  subject_type?: string;
+  semester_id?: number | string | null;
+  section_id?: number | string | null;
+  branch_id?: number | string | null;
+  branch_name?: string | null;
+  branch_ids?: number[];
+  semester_ids?: number[];
+  section_ids?: number[];
+  batch_ids?: (number | string)[];
+}
+
+export interface FacultyAttendanceFiltersResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    faculty_name?: string;
+    branches?: FacultyAttendanceFilterItem[];
+    semesters: FacultyAttendanceFilterItem[];
+    sections: FacultyAttendanceFilterItem[];
+    subjects: FacultyAttendanceFilterItem[];
+    batches: FacultyAttendanceFilterItem[];
+    overall: {
+      total_sessions: number;
+      total_present: number;
+      total_absent: number;
+      avg_attendance: number;
+    };
+    subject_stats: Array<{
+      subject_id: string;
+      subject_name: string;
+      subject_code: string;
+      sessions: number;
+      present: number;
+      absent: number;
+      attendance_percentage: number;
+    }>;
+  };
+}
+
+export const getFacultyAttendanceFilters = async (
+  batchId?: number | string
+): Promise<FacultyAttendanceFiltersResponse> => {
+  try {
+    const url =
+      batchId && String(batchId).trim() !== "" && String(batchId).trim().toLowerCase() !== "all"
+        ? `${API_ENDPOINT}/faculty/attendance-records/filters/?batch_id=${encodeURIComponent(String(batchId))}`
+        : `${API_ENDPOINT}/faculty/attendance-records/filters/`;
+
+    const response = await fetchWithTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export interface FacultyStudentAttendanceSummaryResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    students: Array<{
+      id: number;
+      name: string;
+      usn: string;
+      branch?: string;
+      batch?: string;
+      section: string;
+      semester: number | string;
+      conducted_classes: number;
+      attended_classes: number;
+      absent_classes: number;
+      attendance_percentage: number;
+      status: 'Eligible' | 'Warning' | 'Shortage' | 'No Classes';
+    }>;
+    faculty_info?: {
+      assigned_faculty_name?: string;
+      marked_by_faculty_name?: string;
+      subject_name?: string;
+      subject_code?: string;
+      subject_type?: string;
+    };
+    summary?: {
+      total_students: number;
+      total_sessions: number;
+      avg_attendance: number;
+      eligible_count: number;
+      shortage_count: number;
+      start_date?: string;
+      end_date?: string;
+    };
+  };
+}
+
+export const getFacultyStudentAttendanceSummary = async (params: {
+  semester_id?: string;
+  section_id?: string;
+  batch_id?: string;
+  subject_id: string;
+  lab_batch_id?: string;
+  start_date?: string;
+  end_date?: string;
+  search?: string;
+}): Promise<FacultyStudentAttendanceSummaryResponse> => {
+  try {
+    const query = new URLSearchParams();
+    if (params.semester_id && params.semester_id !== "all") query.append("semester_id", params.semester_id);
+    if (params.section_id && params.section_id !== "all") query.append("section_id", params.section_id);
+    if (params.batch_id && params.batch_id !== "all") query.append("batch_id", params.batch_id);
+    if (params.subject_id && params.subject_id !== "all") query.append("subject_id", params.subject_id);
+    if (params.lab_batch_id && params.lab_batch_id !== "all") query.append("lab_batch_id", params.lab_batch_id);
+    if (params.start_date) query.append("start_date", params.start_date);
+    if (params.end_date) query.append("end_date", params.end_date);
+    if (params.search) query.append("search", params.search);
+
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/attendance-records/student-summary/${qs}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export interface FacultyStudentSessionLogResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    sessions: Array<{
+      record_id: number;
+      date: string;
+      subject_name: string;
+      subject_code: string;
+      section: string;
+      semester: number | string;
+      status: boolean;
+      is_present: boolean;
+    }>;
+    total_sessions: number;
+    present_sessions: number;
+    absent_sessions: number;
+    attendance_percentage: number;
+  };
+}
+
+export const getFacultyStudentSessionLog = async (params: {
+  student_id: number | string;
+  subject_id?: string;
+  start_date?: string;
+  end_date?: string;
+}): Promise<FacultyStudentSessionLogResponse> => {
+  try {
+    const query = new URLSearchParams();
+    query.append("student_id", String(params.student_id));
+    if (params.subject_id && params.subject_id !== "all") query.append("subject_id", params.subject_id);
+    if (params.start_date) query.append("start_date", params.start_date);
+    if (params.end_date) query.append("end_date", params.end_date);
+
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/attendance-records/student-history/${qs}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+

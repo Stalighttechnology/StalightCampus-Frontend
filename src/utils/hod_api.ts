@@ -3094,6 +3094,18 @@ export interface FacultyAttendanceInfo {
   subject_type?: string | null;
 }
 
+export interface AttendanceSessionItem {
+  id: number;
+  record_id?: number;
+  date: string;
+  formatted_date?: string;
+  day_of_week?: string;
+  section?: string;
+  faculty_name?: string;
+  present_count?: number;
+  absent_count?: number;
+}
+
 export interface StudentAttendanceSummaryItem {
   id: number;
   name: string;
@@ -3107,6 +3119,7 @@ export interface StudentAttendanceSummaryItem {
   absent_classes: number;
   attendance_percentage: number;
   status: "Eligible" | "Warning" | "Shortage" | "No Classes";
+  session_status?: Record<number | string, "present" | "absent">;
 }
 
 export interface StudentAttendanceSummaryResponse {
@@ -3114,6 +3127,7 @@ export interface StudentAttendanceSummaryResponse {
   message?: string;
   data?: {
     students: StudentAttendanceSummaryItem[];
+    sessions?: AttendanceSessionItem[];
     faculty_info?: FacultyAttendanceInfo;
     summary: {
       total_students: number;

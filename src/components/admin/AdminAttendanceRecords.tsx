@@ -33,7 +33,9 @@ import {
   Users,
   ChevronDown,
   ChevronUp,
-  Filter
+  Filter,
+  History,
+  CalendarClock
 } from "lucide-react";
 import {
   Dialog,
@@ -148,6 +150,11 @@ const AdminAttendanceRecords: React.FC = () => {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [modalSearch, setModalSearch] = useState("");
+
+  // Student Attendance Timeline Modal State
+  const [selectedStudentForTimeline, setSelectedStudentForTimeline] = useState<StudentAttendanceSummaryItem | null>(null);
+  const [studentTimelineModalOpen, setStudentTimelineModalOpen] = useState(false);
+  const [sessionDateList, setSessionDateList] = useState<any[]>([]);
 
   // Format Date Helper (DD-MM-YYYY)
   const formatDateToDDMMYYYY = (dateStr: string | null | undefined): string => {
@@ -288,6 +295,7 @@ const AdminAttendanceRecords: React.FC = () => {
 
       if (res.success && res.data) {
         setStudents(res.data.students || []);
+        setSessionDateList(res.data.sessions || []);
         setSummaryStats(res.data.summary || null);
         setFacultyInfo(res.data.faculty_info || null);
         setTotalRecordsCount(res.data.students ? res.data.students.length : 0);
@@ -333,6 +341,7 @@ const AdminAttendanceRecords: React.FC = () => {
     setDebouncedSearch("");
     setPage(1);
     setStudents([]);
+    setSessionDateList([]);
     setSummaryStats(null);
     setFacultyInfo(null);
     setTotalRecordsCount(0);
@@ -1002,6 +1011,279 @@ const AdminAttendanceRecords: React.FC = () => {
     toast({
       title: "Excel Exported Successfully",
       description: `Exported ${totalStudents} students (${presentCount} present, ${absentCount} absent) to ${filename}`
+    });
+  };
+
+  // Export Individual Student Timeline to PDF (With Dynamic Org Logo & Theme)
+  const handleExportStudentTimelinePDF = async () => {
+    if (!selectedStudentForTimeline) {
+      toast({ variant: "destructive", title: "Export Failed", description: "No student selected for timeline export." });
+      return;
+    }
+
+    // Dynamic Organization Name and Logo
+    let orgName = "STALIGHT CAMPUS ERP";
+    let orgLogoUrl = "";
+    try {
+      const rawUser = sessionStorage.getItem("user") || localStorage.getItem("user");
+      if (rawUser) {
+        const u = JSON.parse(rawUser);
+        orgName = u.org_name || u.organization?.name || localStorage.getItem("org_name") || sessionStorage.getItem("org_name") || "STALIGHT CAMPUS ERP";
+        orgLogoUrl = u.org_logo || u.organization?.logo_url || u.organization?.logo || localStorage.getItem("org_logo") || sessionStorage.getItem("org_logo") || "";
+      } else {
+        orgName = localStorage.getItem("org_name") || sessionStorage.getItem("org_name") || "STALIGHT CAMPUS ERP";
+        orgLogoUrl = localStorage.getItem("org_logo") || sessionStorage.getItem("org_logo") || "";
+      }
+    } catch {
+      orgName = localStorage.getItem("org_name") || "STALIGHT CAMPUS ERP";
+      orgLogoUrl = localStorage.getItem("org_logo") || "";
+    }
+    if (!orgLogoUrl) {
+      orgLogoUrl = "/logo.jpeg";
+    }
+
+    // Helper to load organization logo image
+    const loadOrgLogo = (url: string): Promise<{ dataUrl: string; width: number; height: number } | null> => {
+      if (!url) return Promise.resolve(null);
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth || img.width || 120;
+            canvas.height = img.naturalHeight || img.height || 120;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0);
+              const dataUrl = canvas.toDataURL("image/png");
+              resolve({ dataUrl, width: canvas.width, height: canvas.height });
+            } else {
+              resolve(null);
+            }
+          } catch {
+            resolve(null);
+          }
+        };
+        img.onerror = () => resolve(null);
+        img.src = url;
+        setTimeout(() => resolve(null), 1200);
+      });
+    };
+
+    const logoInfo = await loadOrgLogo(orgLogoUrl);
+
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 14;
+
+    // Header Background
+    const headerHeight = 26;
+    doc.setFillColor(30, 41, 59); // Slate 800
+    doc.rect(0, 0, pageWidth, headerHeight, "F");
+
+    // Brand Accent Stripe
+    doc.setFillColor(99, 102, 241); // Indigo Accent
+    doc.rect(0, headerHeight, pageWidth, 1.8, "F");
+
+    // Draw Logo if available
+    let textStartX = margin;
+    if (logoInfo) {
+      const boxSize = 17;
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(margin, 4.5, boxSize, boxSize, 2, 2, "F");
+      const aspect = logoInfo.width / (logoInfo.height || 1);
+      let imgW = 14;
+      let imgH = 14;
+      if (aspect > 1) {
+        imgH = 14 / aspect;
+      } else {
+        imgW = 14 * aspect;
+      }
+      const imgX = margin + (boxSize - imgW) / 2;
+      const imgY = 4.5 + (boxSize - imgH) / 2;
+      try {
+        doc.addImage(logoInfo.dataUrl, "PNG", imgX, imgY, imgW, imgH);
+        textStartX = margin + boxSize + 4;
+      } catch {
+        textStartX = margin;
+      }
+    }
+
+    // Title
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text(orgName.toUpperCase(), textStartX, 11.5);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(203, 213, 225);
+    doc.text("INSTITUTIONAL ATTENDANCE - STUDENT TIMELINE REPORT", textStartX, 18.5);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(203, 213, 225);
+    doc.text(`Generated: ${format(new Date(), "dd-MM-yyyy HH:mm")}`, pageWidth - margin, 18.5, { align: "right" });
+
+    // Student Information Card Box
+    const startY = 34;
+    doc.setFillColor(248, 250, 252); // Slate 50
+    doc.setDrawColor(226, 232, 240); // Slate 200
+    doc.setLineWidth(0.4);
+    doc.roundedRect(margin, startY, pageWidth - margin * 2, 38, 2, 2, "FD");
+
+    // Info Labels & Values
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text(selectedStudentForTimeline.name || "Student", margin + 4, startY + 8);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`USN / ID: ${selectedStudentForTimeline.usn || "--"}`, margin + 4, startY + 14);
+
+    const subjectName = facultyInfo?.subject_name || availableSubjects.find((s) => String(s.id) === selectedSubject)?.name || "Subject";
+    const subjectCode = facultyInfo?.subject_code || availableSubjects.find((s) => String(s.id) === selectedSubject)?.subject_code || "";
+    doc.text(`Subject: ${subjectName} ${subjectCode ? `(${subjectCode})` : ""}`, margin + 4, startY + 20);
+
+    const classStr = `Sem ${selectedStudentForTimeline.semester ?? selectedSemester ?? "--"} - Sec ${selectedStudentForTimeline.section ?? selectedSection ?? "--"}`;
+    const batchStr = selectedStudentForTimeline.batch || (selectedBatch !== "all" ? filterMeta?.batches.find(b => String(b.id) === selectedBatch)?.name : "All Batches") || "--";
+    const branchStr = selectedStudentForTimeline.branch || filterMeta?.branches.find(b => String(b.id) === selectedBranch)?.name || "Department";
+    doc.text(`Class: ${classStr}  |  Batch: ${batchStr}  |  Branch: ${branchStr}`, margin + 4, startY + 26);
+
+    const dateRangeStr = startDate ? `${format(startDate, "dd-MM-yyyy")} to ${format(endDate || startDate, "dd-MM-yyyy")}` : "All Recorded Sessions";
+    doc.text(`Duration: ${dateRangeStr}`, margin + 4, startY + 32);
+
+    // Right Side Stats Box
+    const statBoxX = pageWidth - margin - 58;
+    const isEligible = (selectedStudentForTimeline.attendance_percentage ?? 0) >= 75;
+    const badgeColor = isEligible ? [16, 185, 129] : [239, 68, 68];
+
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(statBoxX, startY + 4, 54, 30, 1.5, 1.5, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(badgeColor[0], badgeColor[1], badgeColor[2]);
+    doc.text(`${selectedStudentForTimeline.attendance_percentage}%`, statBoxX + 27, startY + 12, { align: "center" });
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.text(isEligible ? "ELIGIBLE (>=75%)" : "SHORTAGE (<75%)", statBoxX + 27, startY + 17, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Held: ${selectedStudentForTimeline.conducted_classes}  |  Attended: ${selectedStudentForTimeline.attended_classes}  |  Absent: ${selectedStudentForTimeline.absent_classes}`, statBoxX + 27, startY + 24, { align: "center" });
+
+    // Table Data
+    const tableHeaders = ["#", "Date", "Day", "Section", "Marked By / Faculty", "Status"];
+    const tableRows = sessionDateList.map((session, idx) => {
+      const status = selectedStudentForTimeline.session_status?.[session.id] || selectedStudentForTimeline.session_status?.[String(session.id)];
+      const isPres = status === "present";
+      const isAbs = status === "absent";
+      const statusText = isPres ? "PRESENT" : isAbs ? "ABSENT" : "NOT RECORDED";
+
+      return [
+        `#${idx + 1}`,
+        session.formatted_date || session.date || "--",
+        session.day_of_week || "--",
+        `Sec ${session.section || selectedStudentForTimeline.section || "--"}`,
+        session.faculty_name || facultyInfo?.marked_by_faculty_name || "--",
+        statusText
+      ];
+    });
+
+    autoTable(doc, {
+      startY: startY + 43,
+      head: [tableHeaders],
+      body: tableRows,
+      theme: "striped",
+      styles: {
+        fontSize: 8,
+        cellPadding: 2.5,
+        textColor: [51, 65, 85],
+        lineColor: [226, 232, 240],
+        lineWidth: 0.2
+      },
+      headStyles: {
+        fillColor: [30, 41, 59],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+        fontSize: 8,
+        halign: "center"
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252]
+      },
+      columnStyles: {
+        0: { halign: "center", cellWidth: 14 },
+        1: { halign: "center", cellWidth: 28 },
+        2: { halign: "center", cellWidth: 24 },
+        3: { halign: "center", cellWidth: 22 },
+        4: { halign: "left", cellWidth: 54 },
+        5: { halign: "center", cellWidth: 40, fontStyle: "bold" }
+      },
+      didDrawCell: (data: any) => {
+        if (data.section === "body" && data.column.index === 5) {
+          const val = String(tableRows[data.row.index]?.[5] || "");
+          const isPres = val === "PRESENT";
+          const isAbs = val === "ABSENT";
+
+          const bg = isPres ? [236, 253, 245] : isAbs ? [254, 242, 242] : [241, 245, 249];
+          const border = isPres ? [167, 243, 208] : isAbs ? [254, 202, 202] : [203, 213, 225];
+          const text = isPres ? [5, 150, 105] : isAbs ? [220, 38, 38] : [100, 116, 139];
+
+          const cell = data.cell;
+          const badgeWidth = cell.width - 6;
+          const badgeHeight = cell.height - 2.5;
+          const badgeX = cell.x + 3;
+          const badgeY = cell.y + 1.25;
+
+          doc.setFillColor(bg[0], bg[1], bg[2]);
+          doc.setDrawColor(border[0], border[1], border[2]);
+          doc.setLineWidth(0.3);
+          doc.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 1, 1, "FD");
+
+          doc.setTextColor(text[0], text[1], text[2]);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(7.5);
+          doc.text(val, cell.x + cell.width / 2, cell.y + cell.height / 2 + 1, { align: "center" });
+          return false;
+        }
+      },
+      didDrawPage: (data: any) => {
+        const pageCount = (doc as any).internal.getNumberOfPages();
+        const currentPage = data.pageNumber;
+        const footerY = doc.internal.pageSize.getHeight() - 8;
+
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.3);
+        doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7);
+        doc.setTextColor(148, 163, 184);
+        doc.text(`CONFIDENTIAL • ${orgName.toUpperCase()} • OFFICIAL INDIVIDUAL ATTENDANCE RECORD`, margin, footerY);
+        doc.text(`Page ${currentPage} of ${pageCount}`, pageWidth - margin, footerY, { align: "right" });
+      }
+    });
+
+    const safeName = (selectedStudentForTimeline.name || "Student").replace(/[^a-zA-Z0-9_-]/g, "_");
+    const safeUsn = (selectedStudentForTimeline.usn || "USN").replace(/[^a-zA-Z0-9_-]/g, "_");
+    const filename = `Attendance_Timeline_${safeName}_${safeUsn}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
+
+    doc.save(filename);
+    toast({
+      title: "PDF Exported Successfully",
+      description: `Student attendance timeline exported for ${selectedStudentForTimeline.name}.`
     });
   };
 
@@ -2328,6 +2610,7 @@ const AdminAttendanceRecords: React.FC = () => {
                         <TableHead className="w-24 text-center">Absent</TableHead>
                         <TableHead className="w-28 text-center">Attendance %</TableHead>
                         <TableHead className="w-24 text-center">Eligibility Status</TableHead>
+                        <TableHead className="w-28 text-center">Daily History</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -2406,6 +2689,20 @@ const AdminAttendanceRecords: React.FC = () => {
                               >
                                 {s.status}
                               </Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedStudentForTimeline(s);
+                                  setStudentTimelineModalOpen(true);
+                                }}
+                                className="h-7 px-2.5 text-[11px] font-semibold text-primary hover:text-primary hover:bg-primary/10 gap-1 rounded-md"
+                              >
+                                <History className="w-3.5 h-3.5" />
+                                <span>View Timeline</span>
+                              </Button>
                             </TableCell>
                           </TableRow>
                         );
@@ -2621,12 +2918,12 @@ const AdminAttendanceRecords: React.FC = () => {
 
               {/* Roster Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                 <Input
                   placeholder="Filter students by name or USN..."
                   value={modalSearch}
                   onChange={e => setModalSearch(e.target.value)}
-                  className="pl-9 h-8 text-xs bg-background"
+                  className="pl-10 h-8 text-xs bg-background"
                 />
               </div>
 
@@ -2778,6 +3075,184 @@ const AdminAttendanceRecords: React.FC = () => {
                 Close
               </Button>
             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Student Attendance Timeline Modal */}
+      <Dialog open={studentTimelineModalOpen} onOpenChange={setStudentTimelineModalOpen}>
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[85vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="p-4 sm:p-5 pb-3 border-b border-border bg-muted/20">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <History className="w-5 h-5 text-primary" />
+                <DialogTitle className="text-base sm:text-lg font-bold">
+                  Student Attendance Timeline
+                </DialogTitle>
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedStudentForTimeline && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-xs px-2.5 py-0.5 font-bold hidden sm:inline-flex",
+                      selectedStudentForTimeline.attendance_percentage >= 75
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                        : selectedStudentForTimeline.attendance_percentage >= 60
+                        ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                        : "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30"
+                    )}
+                  >
+                    {selectedStudentForTimeline.status} ({selectedStudentForTimeline.attendance_percentage}%)
+                  </Badge>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportStudentTimelinePDF}
+                  className="h-8 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 shrink-0"
+                  title="Export Student Timeline to PDF"
+                >
+                  <FileText className="w-3.5 h-3.5 text-rose-600" />
+                  <span className="hidden sm:inline">Export PDF</span>
+                </Button>
+              </div>
+            </div>
+            {selectedStudentForTimeline && (
+              <DialogDescription className="text-xs text-muted-foreground mt-2">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <span className="font-semibold text-foreground text-sm">
+                    {selectedStudentForTimeline.name}
+                  </span>
+                  <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">
+                    {selectedStudentForTimeline.usn}
+                  </span>
+                  <span>
+                    Sem {selectedStudentForTimeline.semester ?? "--"} - Sec {selectedStudentForTimeline.section ?? "--"}
+                  </span>
+                  {selectedStudentForTimeline.batch && (
+                    <span>Batch: {selectedStudentForTimeline.batch}</span>
+                  )}
+                </div>
+              </DialogDescription>
+            )}
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+            {selectedStudentForTimeline && (
+              <>
+                {/* 3 Metric cards */}
+                <div className="grid grid-cols-3 gap-2.5 text-center">
+                  <div className="p-3 rounded-xl bg-card border border-border/70 shadow-xs">
+                    <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Total Classes</div>
+                    <div className="text-lg sm:text-xl font-bold mt-1 text-foreground">
+                      {selectedStudentForTimeline.conducted_classes}
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 shadow-xs">
+                    <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider">Attended</div>
+                    <div className="text-lg sm:text-xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+                      {selectedStudentForTimeline.attended_classes}
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 shadow-xs">
+                    <div className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold uppercase tracking-wider">Absent</div>
+                    <div className="text-lg sm:text-xl font-bold mt-1 text-rose-600 dark:text-rose-400">
+                      {selectedStudentForTimeline.absent_classes}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timeline Log */}
+                <div className="border border-border/70 rounded-xl overflow-hidden bg-card">
+                  <div className="p-3 bg-muted/40 border-b border-border/70 flex items-center justify-between text-xs font-semibold">
+                    <span className="flex items-center gap-1.5 text-foreground">
+                      <CalendarClock className="w-4 h-4 text-primary" />
+                      Session History Log ({sessionDateList.length} Sessions)
+                    </span>
+                    <span className="text-[11px] text-muted-foreground font-normal">Chronological Order</span>
+                  </div>
+
+                  <div className="divide-y divide-border/60 max-h-80 overflow-y-auto">
+                    {sessionDateList.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-muted-foreground">
+                        No individual session timestamps recorded for this range.
+                      </div>
+                    ) : (
+                      sessionDateList.map((ses, idx) => {
+                        const status = selectedStudentForTimeline.session_status?.[ses.id] || selectedStudentForTimeline.session_status?.[String(ses.id)];
+                        const isPresent = status === "present";
+                        const isAbsent = status === "absent";
+
+                        return (
+                          <div
+                            key={ses.id || idx}
+                            className={cn(
+                              "p-3 flex items-center justify-between gap-3 text-xs transition-colors",
+                              isPresent ? "hover:bg-emerald-500/[0.03]" : isAbsent ? "hover:bg-rose-500/[0.03]" : "hover:bg-muted/30"
+                            )}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">
+                                #{idx + 1}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="font-semibold text-foreground flex items-center gap-2">
+                                  <span>{ses.formatted_date || ses.date}</span>
+                                  {ses.day_of_week && (
+                                    <span className="text-[10px] font-normal text-muted-foreground bg-muted/70 px-1.5 py-0.5 rounded">
+                                      {ses.day_of_week}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                                  <span>Sec {ses.section || selectedStudentForTimeline.section || "--"}</span>
+                                  {ses.faculty_name && (
+                                    <>
+                                      <span>•</span>
+                                      <span>Marked by: {ses.faculty_name}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="shrink-0">
+                              {isPresent ? (
+                                <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 text-xs font-bold gap-1 px-2.5 py-1">
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                  Present
+                                </Badge>
+                              ) : isAbsent ? (
+                                <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30 hover:bg-rose-500/20 text-xs font-bold gap-1 px-2.5 py-1">
+                                  <XCircle className="w-3.5 h-3.5" />
+                                  Absent
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-muted-foreground text-xs font-normal">
+                                  Not Marked
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          <DialogFooter className="p-3 sm:p-4 border-t border-border bg-muted/10 flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setStudentTimelineModalOpen(false)}
+              className="text-xs h-8"
+            >
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
