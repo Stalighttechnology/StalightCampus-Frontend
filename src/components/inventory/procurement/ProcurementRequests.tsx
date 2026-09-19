@@ -19,12 +19,15 @@ import {
 } from "../../../utils/inventory_api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../ui/dialog";
 import { Popover, PopoverTrigger, PopoverContent } from "../../ui/popover";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Textarea } from "../../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/card";
 import { Skeleton, SkeletonTable, SkeletonList } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
   ShoppingCart,
   Plus,
@@ -128,6 +131,7 @@ export const ProcurementRequests: React.FC<Props> = ({
   // Quotation Modal state
   const [quotationModalReq, setQuotationModalReq] = useState<ProcurementRequest | null>(null);
   const [quotationMode, setQuotationMode] = useState<"manual" | "rfq">("manual");
+  const [rfqDeadlineCalendarOpen, setRfqDeadlineCalendarOpen] = useState(false);
   const [quoteFormData, setQuoteFormData] = useState({
     vendor_name: "",
     vendor_email: "",
@@ -139,6 +143,15 @@ export const ProcurementRequests: React.FC<Props> = ({
     description: "",
     auto_order: true,
   });
+
+  const parseDateString = (dateStr: string) => {
+    if (!dateStr) return undefined;
+    const parts = dateStr.split("-").map(Number);
+    if (parts.length === 3) {
+      return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+    return undefined;
+  };
 
   // Create Form state
   const [formData, setFormData] = useState({
@@ -2247,11 +2260,48 @@ export const ProcurementRequests: React.FC<Props> = ({
                       <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
                         Bid Submission Deadline
                       </label>
-                      <Input
-                        type="date"
-                        value={quoteFormData.last_reply_date}
-                        onChange={(e) => setQuoteFormData({ ...quoteFormData, last_reply_date: e.target.value })}
-                      />
+                      <Popover open={rfqDeadlineCalendarOpen} onOpenChange={setRfqDeadlineCalendarOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal h-9 text-xs sm:text-sm bg-white dark:bg-card border-input",
+                              !quoteFormData.last_reply_date && "text-muted-foreground"
+                            )}
+                          >
+                            <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                            {quoteFormData.last_reply_date ? (
+                              (() => {
+                                const parsed = parseDateString(quoteFormData.last_reply_date);
+                                return parsed ? format(parsed, "dd/MM/yyyy") : quoteFormData.last_reply_date;
+                              })()
+                            ) : (
+                              <span className="text-muted-foreground">dd/mm/yyyy</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 bg-popover text-popover-foreground border-border shadow-lg z-[9999]" align="start">
+                          <CalendarPicker
+                            mode="single"
+                            selected={parseDateString(quoteFormData.last_reply_date)}
+                            onSelect={(date) => {
+                              if (date) {
+                                setQuoteFormData({ ...quoteFormData, last_reply_date: format(date, "yyyy-MM-dd") });
+                              } else {
+                                setQuoteFormData({ ...quoteFormData, last_reply_date: "" });
+                              }
+                              setRfqDeadlineCalendarOpen(false);
+                            }}
+                            disabled={(date) => {
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              return date < today;
+                            }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </div>
 

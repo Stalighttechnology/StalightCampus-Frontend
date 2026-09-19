@@ -9,12 +9,16 @@ import {
   fetchInventoryCategories,
 } from "../../../utils/inventory_api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Textarea } from "../../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/card";
 import { Skeleton, SkeletonTable, SkeletonList } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
   FileText,
   Plus,
@@ -62,11 +66,22 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
   // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [deadlineCalendarOpen, setDeadlineCalendarOpen] = useState(false);
   const [selectedQuotation, setSelectedQuotation] = useState<InventoryQuotation | null>(null);
   const [viewDetailsQuote, setViewDetailsQuote] = useState<InventoryQuotation | null>(null);
   const [recordBidModalQuote, setRecordBidModalQuote] = useState<InventoryQuotation | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Parse YYYY-MM-DD to Date object avoiding timezone issues
+  const parseDateString = (dateStr: string) => {
+    if (!dateStr) return undefined;
+    const parts = dateStr.split("-").map(Number);
+    if (parts.length === 3) {
+      return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+    return undefined;
+  };
 
   // Record Manual Bid State
   const [bidFormData, setBidFormData] = useState({
@@ -195,8 +210,34 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.product_name.trim() || !formData.company_email || !formData.category_id) {
-      toast.error("Please fill in product name, vendor email, and category");
+    if (!formData.product_name.trim()) {
+      toast.error("Please enter a product / equipment name");
+      return;
+    }
+    if (!formData.category_id) {
+      toast.error("Please select a category");
+      return;
+    }
+    const qty = Number(formData.quantity);
+    if (!formData.quantity || isNaN(qty) || qty < 1) {
+      toast.error("Please enter a valid quantity of at least 1");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.company_email.trim()) {
+      toast.error("Please enter a supplier email");
+      return;
+    }
+    if (!emailRegex.test(formData.company_email.trim())) {
+      toast.error("Please enter a valid supplier email address (e.g. vendor@company.com)");
+      return;
+    }
+    if (!formData.last_reply_date) {
+      toast.error("Please select a deadline date for quotes");
+      return;
+    }
+    if (!formData.description.trim()) {
+      toast.error("Please enter specifications / requirements");
       return;
     }
 
@@ -204,12 +245,16 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
       setSubmitting(true);
       await createInventoryQuotation({
         ...formData,
+        product_name: formData.product_name.trim(),
+        company_email: formData.company_email.trim(),
+        description: formData.description.trim(),
         category_id: Number(formData.category_id),
-        quantity: Number(formData.quantity) || 1,
+        quantity: qty,
       });
 
       toast.success("Quotation request created successfully with public token");
       setShowCreateModal(false);
+      setDeadlineCalendarOpen(false);
       setFormData({
         product_name: "",
         description: "",
@@ -655,7 +700,13 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
       </Card>
 
       {/* Create RFQ Modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+      <Dialog
+        open={showCreateModal}
+        onOpenChange={(open) => {
+          setShowCreateModal(open);
+          if (!open) setDeadlineCalendarOpen(false);
+        }}
+      >
         <DialogContent className="w-[90%] sm:w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-xl sm:rounded-2xl custom-scrollbar">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">
@@ -669,7 +720,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
           <form onSubmit={handleCreateSubmit} className="space-y-4 pt-2">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
-                Product / Equipment Name *
+                Product / Equipment Name <span className="text-red-500">*</span>
               </label>
               <Input
                 required
@@ -682,13 +733,13 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
-                  Category *
+                  Category <span className="text-red-500">*</span>
                 </label>
                 <Select
                   value={formData.category_id}
                   onValueChange={(v) => setFormData({ ...formData, category_id: v })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={!formData.category_id ? "text-muted-foreground" : ""}>
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -703,11 +754,12 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
-                  Quantity *
+                  Quantity <span className="text-red-500">*</span>
                 </label>
                 <Input
                   type="number"
                   min={1}
+                  required
                   value={formData.quantity}
                   onChange={(e) =>
                     setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })
@@ -719,7 +771,7 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
-                  Supplier Email *
+                  Supplier Email <span className="text-red-500">*</span>
                 </label>
                 <Input
                   type="email"
@@ -732,22 +784,60 @@ export const QuotationManager: React.FC<Props> = ({ role = "admin" }) => {
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
-                  Deadline for Quotes
+                  Deadline for Quotes <span className="text-red-500">*</span>
                 </label>
-                <Input
-                  type="date"
-                  value={formData.last_reply_date}
-                  onChange={(e) => setFormData({ ...formData, last_reply_date: e.target.value })}
-                />
+                <Popover open={deadlineCalendarOpen} onOpenChange={setDeadlineCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal h-9 text-xs sm:text-sm bg-white dark:bg-card border-input",
+                        !formData.last_reply_date && "text-muted-foreground"
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                      {formData.last_reply_date ? (
+                        (() => {
+                          const parsed = parseDateString(formData.last_reply_date);
+                          return parsed ? format(parsed, "dd/MM/yyyy") : formData.last_reply_date;
+                        })()
+                      ) : (
+                        <span className="text-muted-foreground">dd/mm/yyyy</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-popover text-popover-foreground border-border shadow-lg z-[9999]" align="start">
+                    <CalendarPicker
+                      mode="single"
+                      selected={parseDateString(formData.last_reply_date)}
+                      onSelect={(date) => {
+                        if (date) {
+                          setFormData({ ...formData, last_reply_date: format(date, "yyyy-MM-dd") });
+                        } else {
+                          setFormData({ ...formData, last_reply_date: "" });
+                        }
+                        setDeadlineCalendarOpen(false);
+                      }}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return date < today;
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-foreground mb-1">
-                Specifications / Requirements
+                Specifications / Requirements <span className="text-red-500">*</span>
               </label>
               <Textarea
                 rows={3}
+                required
                 placeholder="Detail technical specs, warranty terms, and delivery expectations..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
