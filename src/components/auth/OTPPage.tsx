@@ -70,6 +70,9 @@ const OTPPage = ({ setRole, setPage, setUser }: OTPPageProps) => {
         const userRole = response.role;
         setTimeout(() => {
           switch (userRole) {
+            case "org_admin":
+              navigate("/org-admin", { replace: true });
+              break;
             case "admin":
             case "principal":
               navigate("/admin", { replace: true });
@@ -83,11 +86,45 @@ const OTPPage = ({ setRole, setPage, setUser }: OTPPageProps) => {
             case "hms_admin":
               navigate("/hms", { replace: true });
               break;
+            case "warden":
+              navigate("/warden", { replace: true });
+              break;
+            case "transport_admin":
+              navigate("/transport-admin", { replace: true });
+              break;
+            case "library_admin":
+              navigate("/library-admin", { replace: true });
+              break;
+            case "driver":
+              navigate("/driver", { replace: true });
+              break;
             case "teacher":
+            case "faculty":
+            case "group_d":
+            case "security":
               navigate("/faculty", { replace: true });
               break;
             case "student":
+            case "parent":
               navigate("/dashboard", { replace: true });
+              break;
+            case "outside_student":
+              navigate("/student-hostel-details", { replace: true });
+              break;
+            case "dean":
+              navigate("/dean", { replace: true });
+              break;
+            case "coe":
+              navigate("/coe", { replace: true });
+              break;
+            case "inventory_manager":
+              navigate("/inventory-manager", { replace: true });
+              break;
+            case "admission_manager":
+              navigate("/admission-manager", { replace: true });
+              break;
+            case "counsellor":
+              navigate("/counsellor", { replace: true });
               break;
             default:
               navigate("/", { replace: true });

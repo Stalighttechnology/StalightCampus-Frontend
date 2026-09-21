@@ -62,9 +62,18 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
 
           const userRole = response.role;
           switch (userRole) {
+            case "org_admin":
+              navigate("/org-admin", { replace: true });
+              break;
             case "admin":
             case "principal":
               navigate("/admin", { replace: true });
+              break;
+            case "transport_admin":
+              navigate("/transport-admin", { replace: true });
+              break;
+            case "driver":
+              navigate("/driver", { replace: true });
               break;
             case "hod":
               navigate("/hod", { replace: true });
@@ -79,6 +88,9 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
               navigate("/warden", { replace: true });
               break;
             case "teacher":
+            case "faculty":
+            case "group_d":
+            case "security":
               navigate("/faculty", { replace: true });
               break;
             case "dean":
