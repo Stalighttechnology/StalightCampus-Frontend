@@ -226,7 +226,8 @@ const UploadMarks = () => {
     semester: [] as { id: number; number: number; }[],
     section: [] as { id: number; name: string; }[],
     subject: [] as { id: number; name: string; }[],
-    testType: ["IA1", "IA2", "IA3", "IA4", "IA5", "SEE"]
+    testType: ["IA1", "IA2", "IA3", "IA4", "IA5", "SEE"],
+    setNumber: [] as string[]
   });
   const [selected, setSelected] = useState({
     batch_id: undefined as number | undefined,
@@ -239,7 +240,8 @@ const UploadMarks = () => {
     section_id: undefined as number | undefined,
     semester: "",
     semester_id: undefined as number | undefined,
-    testType: ""
+    testType: "",
+    setNumber: ""
   });
   const [students, setStudents] = useState<(ClassStudent & { marks: string; total: string; isEditing: boolean; totalEdited?: boolean; })[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
@@ -260,6 +262,7 @@ const UploadMarks = () => {
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isSectionOpen, setIsSectionOpen] = useState(false);
   const [isTestTypeOpen, setIsTestTypeOpen] = useState(false);
+  const [isSetNumberOpen, setIsSetNumberOpen] = useState(false);
 
   // Auto calculation logic has been removed. Total is manually entered by the teacher.
 
@@ -270,6 +273,7 @@ const UploadMarks = () => {
     if (selected.branch_id) params.branch_id = selected.branch_id.toString();
     if (selected.semester_id) params.semester_id = selected.semester_id.toString();
     if (selected.section_id) params.section_id = selected.section_id.toString();
+    if (selected.setNumber) params.set_number = selected.setNumber;
     setLoadingStudents(true);
     try {
       const response: StudentsForMarksResponse = await getStudentsForMarks(params);
@@ -286,7 +290,7 @@ const UploadMarks = () => {
           }
         });
         const newStudents = response.data.map((s) => {
-          const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${s.id}`;
+          const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${selected.setNumber || 'default'}_${s.id}`;
           const localDataStr = localStorage.getItem(localKey);
           let loadedMarks = initialMarks[s.id?.toString()] || {};
           let totalValue = existingTotals[s.id] != null ? String(existingTotals[s.id]) : "";
@@ -464,8 +468,9 @@ const UploadMarks = () => {
       setQpId(null);
       setExistingQpSummary(null);
       setQuestions([]);
+      setDropdownData((prev) => ({ ...prev, setNumber: [] }));
     }
-  }, [selected.branch_id, selected.semester_id, selected.section_id, selected.subject_id, selected.testType]);
+  }, [selected.batch_id, selected.branch_id, selected.semester_id, selected.section_id, selected.subject_id, selected.testType, selected.setNumber]);
 
   // Load students only when switching to Marks Entry tab and all criteria met
   useEffect(() => {
@@ -475,7 +480,7 @@ const UploadMarks = () => {
       setStudents([]);
       setStudentMarks({});
     }
-  }, [tabValue, selected.branch_id, selected.semester_id, selected.section_id, selected.subject_id, selected.testType, existingQpSummary]);
+  }, [tabValue, selected.batch_id, selected.branch_id, selected.semester_id, selected.section_id, selected.subject_id, selected.testType, selected.setNumber, existingQpSummary]);
 
   // Load full QP detail only when user opens the Question Paper tab
   useEffect(() => {
@@ -667,12 +672,37 @@ const UploadMarks = () => {
         detail: true
       });
       if (qpResponse.success && qpResponse.data) {
-        let existingQp = qpResponse.data.find((q: any) => {
+        const matchingQPs = qpResponse.data.filter((q: any) => {
           const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
           return branchId === selected.branch_id &&
             q.subject === selected.subject_id &&
             q.test_type === selected.testType;
         });
+
+        // Only approved QPs should be available in the dropdown
+        const approvedQPs = matchingQPs.filter((q: any) => q.status === 'approved');
+        const approvedSets = Array.from(
+          new Set(approvedQPs.map((q: any) => q.set_number || 'Set 1').filter(Boolean))
+        ) as string[];
+        approvedSets.sort();
+
+        setDropdownData((prev) => ({ ...prev, setNumber: approvedSets }));
+
+        let targetSet = selected.setNumber;
+        if (!targetSet || !approvedSets.includes(targetSet)) {
+          targetSet = approvedSets.length > 0 ? approvedSets[0] : (matchingQPs[0]?.set_number || '');
+          if (targetSet !== selected.setNumber) {
+            setSelected((prev) => ({ ...prev, setNumber: targetSet }));
+          }
+        }
+
+        let existingQp = null;
+        if (targetSet) {
+          existingQp = matchingQPs.find((q: any) => (q.set_number || 'Set 1') === targetSet);
+        }
+        if (!existingQp && matchingQPs.length > 0) {
+          existingQp = matchingQPs[0];
+        }
 
         if (existingQp) {
           setQpId(existingQp.id);
@@ -979,7 +1009,7 @@ const UploadMarks = () => {
       if (res.success) {
         // Clear local storage drafts
         students.forEach((s) => {
-          const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${s.id}`;
+          const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${selected.setNumber || 'default'}_${s.id}`;
           localStorage.removeItem(localKey);
         });
         MySwal.fire({
@@ -1253,6 +1283,9 @@ const UploadMarks = () => {
       setDropdownData((prev) => ({ ...prev, section: sections }));
       updated.section_id = undefined;
       updated.section = "";
+      updated.setNumber = "";
+    } else if (field === "section_id" || field === "testType") {
+      updated.setNumber = "";
     }
 
     setSelected(updated);
@@ -1274,6 +1307,8 @@ const UploadMarks = () => {
       setTimeout(() => setIsSectionOpen(true), 150);
     } else if (field === 'section_id') {
       setTimeout(() => setIsTestTypeOpen(true), 150);
+    } else if (field === 'testType') {
+      setTimeout(() => setIsSetNumberOpen(true), 150);
     }
   };
 
@@ -1352,6 +1387,7 @@ const UploadMarks = () => {
       if (selected.branch_id) params.branch_id = selected.branch_id.toString();
       if (selected.semester_id) params.semester_id = selected.semester_id.toString();
       if (selected.section_id) params.section_id = selected.section_id.toString();
+      if (selected.setNumber) params.set_number = selected.setNumber;
 
       let studentList: any[] = [];
       const res: StudentsForMarksResponse = await getStudentsForMarks(params);
@@ -1377,7 +1413,7 @@ const UploadMarks = () => {
         const studentIdStr = studentId.toString();
 
         // Check local storage draft
-        const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${studentId}`;
+        const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${selected.setNumber || 'default'}_${studentId}`;
         let draftMarks: Record<string, string> = {};
         let draftTotal = '';
         try {
@@ -1613,8 +1649,9 @@ const UploadMarks = () => {
 
       const safeSubject = subjectName.replace(/[^a-zA-Z0-9_-]/g, "_");
       const safeTestType = selected.testType.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const safeSet = (selected.setNumber || "").replace(/[^a-zA-Z0-9_-]/g, "_");
       const safeBatch = (batchName || "").replace(/[^a-zA-Z0-9_-]/g, "_");
-      const filename = `${safeSubject}_${safeTestType}_Marks_Statement${safeBatch ? `_${safeBatch}` : ""}.xlsx`;
+      const filename = `${safeSubject}_${safeTestType}${safeSet ? `_${safeSet}` : ""}_Marks_Statement${safeBatch ? `_${safeBatch}` : ""}.xlsx`;
 
       XLSX.writeFile(workbook, filename);
 
@@ -1658,7 +1695,7 @@ const UploadMarks = () => {
             </div>
           </CardHeader>
           <CardContent className="pb-0 space-y-6">
-            <div id="upload-marks-selectors" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+            <div id="upload-marks-selectors" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
               <Select value={selected.batch_id?.toString()} onValueChange={(value) => handleSelectChange('batch_id', Number(value))}>
                 <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
                   <SelectValue placeholder="Select Batch" />
@@ -1763,6 +1800,24 @@ const UploadMarks = () => {
                   ) : (
                     <div className="p-2 text-sm text-center text-muted-foreground">
                       No test type
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+              <Select value={selected.setNumber} onValueChange={(value) => handleSelectChange('setNumber', value)} disabled={!selected.testType || dropdownData.setNumber.length === 0} open={isSetNumberOpen} onOpenChange={setIsSetNumberOpen}>
+                <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.testType || dropdownData.setNumber.length === 0}>
+                  <SelectValue placeholder={dropdownData.setNumber.length > 0 ? "Select Set" : "No approved set"} />
+                </SelectTrigger>
+                <SelectContent className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} max-h-[200px]`}>
+                  {dropdownData.setNumber.length > 0 ? (
+                    dropdownData.setNumber.map((item) =>
+                      <SelectItem key={item} value={item}>
+                        {item}
+                      </SelectItem>
+                    )
+                  ) : (
+                    <div className="p-2 text-sm text-center text-muted-foreground">
+                      No approved set
                     </div>
                   )}
                 </SelectContent>
@@ -2073,7 +2128,7 @@ const UploadMarks = () => {
                                                 return;
                                               }
 
-                                              const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${student.id}`;
+                                              const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${selected.setNumber || 'default'}_${student.id}`;
                                               const marksData = {
                                                 questionMarks: studentMarks[student.id] || {},
                                                 total: displayTotal,
