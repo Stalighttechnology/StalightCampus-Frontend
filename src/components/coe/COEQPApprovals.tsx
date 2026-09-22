@@ -800,7 +800,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
           <CardHeader className="flex-shrink-0">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <CardTitle className="text-xl sm:text-2xl font-bold">Question Paper Approvals</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl font-semibold">Question Paper Approvals</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">Review, approve, and finalize question papers for upcoming examinations.</p>
               </div>
               <TabsList className="grid w-full sm:w-auto grid-cols-2">
@@ -1075,10 +1075,10 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                     ) : null}
                   </div>
                   <div className="flex-1 text-center space-y-1">
-                    <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wide">
+                    <h2 className="text-lg sm:text-xl font-semibold uppercase tracking-wide">
                       {getOrgName(qpDetail?.org_name || selectedQP?.org_name)}
                     </h2>
-                    <div className="text-sm sm:text-base font-bold text-primary">
+                    <div className="text-sm sm:text-base font-semibold text-primary">
                       {qpDetail.test_type ? qpDetail.test_type.replace('_', ' ') : (selectedQP?.test_type ? selectedQP.test_type.replace('_', ' ') : 'Internal Assessment')} {qpDetail.set_number ? `- Set ${qpDetail.set_number}` : (selectedQP?.set_number ? `- Set ${selectedQP.set_number}` : '')}
                     </div>
                   </div>
@@ -1088,33 +1088,33 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                 {/* Master Info Table */}
                 <div className={`border ${theme === 'dark' ? 'border-border' : 'border-slate-900'} rounded-sm overflow-hidden text-xs sm:text-sm`}>
                   <div className={`grid grid-cols-12 border-b ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
-                    <div className={`col-span-3 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Subject :</div>
+                    <div className={`col-span-3 font-semibold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Subject :</div>
                     <div className={`col-span-4 p-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'} border-r font-medium`}>
                       {qpDetail.subject || selectedQP?.subject || '--'}
                     </div>
-                    <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Date:</div>
+                    <div className={`col-span-2 font-semibold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Date:</div>
                     <div className="col-span-3 p-2 font-medium">
                       {qpDetail.exam_date ? format(new Date(qpDetail.exam_date.includes('T') ? qpDetail.exam_date : `${qpDetail.exam_date}T00:00:00`), "MMM. dd, yyyy") : (selectedQP?.exam_date ? format(new Date(selectedQP.exam_date.includes('T') ? selectedQP.exam_date : `${selectedQP.exam_date}T00:00:00`), "MMM. dd, yyyy") : '--')}
                     </div>
                   </div>
 
                   <div className={`grid grid-cols-12 border-b ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
-                    <div className={`col-span-3 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Subject Code :</div>
+                    <div className={`col-span-3 font-semibold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Subject Code :</div>
                     <div className={`col-span-4 p-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'} border-r font-medium`}>
                       {qpDetail.subject_code || selectedQP?.subject_code || '--'}
                     </div>
-                    <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Time:</div>
+                    <div className={`col-span-2 font-semibold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Time:</div>
                     <div className="col-span-3 p-2 font-medium">
                       {qpDetail.exam_time || selectedQP?.exam_time || '--'}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-12">
-                    <div className={`col-span-3 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Prepared by:</div>
+                    <div className={`col-span-3 font-semibold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Prepared by:</div>
                     <div className={`col-span-4 p-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'} border-r font-medium`}>
                       {qpDetail.faculty || selectedQP?.faculty || 'Faculty'}
                     </div>
-                    <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Semester / Div:</div>
+                    <div className={`col-span-2 font-semibold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Semester / Div:</div>
                     <div className="col-span-3 p-2 font-medium">
                       {`Semester ${qpDetail.semester || selectedQP?.semester || '--'}${qpDetail.branch || (typeof selectedQP?.branch === 'object' ? selectedQP?.branch?.name : selectedQP?.branch) ? ` - ${qpDetail.branch || (typeof selectedQP?.branch === 'object' ? selectedQP?.branch?.name : selectedQP?.branch)}` : ''} / ${qpDetail.section || selectedQP?.section || '--'}`}
                     </div>
@@ -1124,14 +1124,14 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                 {/* Instructions & Max Marks */}
                 <div className={`flex justify-between items-end border ${theme === 'dark' ? 'border-border bg-muted/20' : 'border-slate-900 bg-slate-50/50'} p-2.5 text-xs sm:text-sm`}>
                   <div>
-                    <span className="font-bold italic">NOTE:</span>
+                    <span className="font-semibold italic">NOTE:</span>
                     <ol className="list-decimal list-inside text-xs mt-0.5 space-y-0.5 text-muted-foreground">
                       <li>Answer one FULL question from each part.</li>
                       <li>Assume missing data suitably.</li>
                     </ol>
                   </div>
-                  <div className="text-right font-bold italic text-sm">
-                    Max Marks: <span className="text-primary font-bold text-base not-italic ml-1">{calculateFlatTotalMarks(getFlattenedQuestions(qpDetail))}</span>
+                  <div className="text-right font-semibold italic text-sm">
+                    Max Marks: <span className="text-primary font-semibold text-base not-italic ml-1">{calculateFlatTotalMarks(getFlattenedQuestions(qpDetail))}</span>
                   </div>
                 </div>
 
@@ -1139,7 +1139,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <div className={`border ${theme === 'dark' ? 'border-border' : 'border-slate-900'} rounded-sm overflow-hidden`}>
                   <table className="w-full text-xs sm:text-sm border-collapse">
                     <thead>
-                      <tr className={`${theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-slate-100 border-slate-900'} border-b font-bold`}>
+                      <tr className={`${theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-slate-100 border-slate-900'} border-b font-semibold`}>
                         <th className={`w-16 p-2 text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>Q No.</th>
                         <th className={`p-2 text-left border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>Question Content</th>
                         <th className={`w-16 p-2 text-center border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>Marks</th>
@@ -1151,7 +1151,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                       {groupFlatQuestionsByPart(getFlattenedQuestions(qpDetail)).map((part) => (
                         <React.Fragment key={part.name}>
                           {/* Part Header */}
-                          <tr className={`${theme === 'dark' ? 'bg-muted/70 border-border' : 'bg-slate-200/80 border-slate-900'} border-b border-t font-bold text-center`}>
+                          <tr className={`${theme === 'dark' ? 'bg-muted/70 border-border' : 'bg-slate-200/80 border-slate-900'} border-b border-t font-semibold text-center`}>
                             <td colSpan={5} className="py-1.5 uppercase tracking-wider text-xs sm:text-sm">
                               {part.name}
                             </td>
@@ -1161,7 +1161,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                             <React.Fragment key={q.id}>
                               {/* OR Separator */}
                               {q.isOr && (
-                                <tr className={`border-b ${theme === 'dark' ? 'border-border bg-amber-950/20 text-amber-400' : 'border-slate-900 bg-amber-50/60 text-amber-700'} font-bold text-center`}>
+                                <tr className={`border-b ${theme === 'dark' ? 'border-border bg-amber-950/20 text-amber-400' : 'border-slate-900 bg-amber-50/60 text-amber-700'} font-semibold text-center`}>
                                   <td colSpan={5} className="py-1 text-xs tracking-widest uppercase">
                                     — OR —
                                   </td>
@@ -1170,7 +1170,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
 
                               {/* Question Row */}
                               <tr className={`border-b ${theme === 'dark' ? 'border-border hover:bg-muted/30' : 'border-slate-900 hover:bg-slate-50/50'} transition-colors`}>
-                                <td className={`p-2.5 text-center font-bold align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'} whitespace-nowrap`}>
+                                <td className={`p-2.5 text-center font-semibold align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'} whitespace-nowrap`}>
                                   Q.{q.number}
                                 </td>
                                 <td className={`p-2.5 text-left align-top border-r ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
@@ -1207,7 +1207,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
 
                 {/* Revised Bloom's Taxonomy Footer Table */}
                 <div className="space-y-1.5 pt-2">
-                  <div className="font-bold text-xs">RBT – Revised Bloom’s Taxonomy</div>
+                  <div className="font-semibold text-xs">RBT – Revised Bloom’s Taxonomy</div>
                   <table className={`w-full max-w-md text-xs border ${theme === 'dark' ? 'border-border text-muted-foreground' : 'border-slate-300 text-slate-700'}`}>
                     <tbody>
                       <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-slate-300'}`}>

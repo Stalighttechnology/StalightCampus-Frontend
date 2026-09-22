@@ -838,7 +838,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 <div className="flex-1 w-full">
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 sm:gap-6 w-full max-w-4xl">
                     <div className="flex flex-col gap-2 flex-1 min-w-0 w-full">
-                      <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>User Role</span>
+                      <span className={`filter-label text-[10px] sm:text-[11px] font-semibold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>User Role</span>
                       <SelectMenu
                         label=""
                         placeholder="Choose Role"
@@ -849,7 +849,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                     </div>
 
                     <div className="flex flex-col gap-2 flex-1 min-w-0">
-                      <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>{translateTerminology("Department")}</span>
+                      <span className={`filter-label text-[10px] sm:text-[11px] font-semibold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>{translateTerminology("Department")}</span>
                       <SelectMenu
                         label=""
                         placeholder={translateTerminology("Choose Department")}
@@ -861,7 +861,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                     </div>
 
                     <div className="flex flex-col gap-2 flex-1 min-w-0">
-                      <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Status</span>
+                      <span className={`filter-label text-[10px] sm:text-[11px] font-semibold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Status</span>
                       <SelectMenu
                         label=""
                         placeholder="Choose Status"
@@ -874,7 +874,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 {/* Search Section */}
                 <div className="w-full xl:w-auto xl:min-w-[320px]">
                   <div className="flex flex-col gap-2">
-                    <label className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Global Search</label>
+                    <label className={`filter-label text-[11px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Global Search</label>
                     <div className="search-wrapper flex gap-2">
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40" />
@@ -1386,12 +1386,12 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                     className="w-20 h-20 rounded-full object-cover border-2 border-primary/20 shadow-sm"
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center text-2xl font-bold border border-primary/10">
+                  <div className="w-20 h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center text-2xl font-semibold border border-primary/10">
                     {viewingUser.name.charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div className="text-center">
-                  <h3 className="font-bold text-lg text-foreground">{viewingUser.name}</h3>
+                  <h3 className="font-semibold text-lg text-foreground">{viewingUser.name}</h3>
                   {viewProfileData?.designation && (
                     <span className="text-xs font-semibold text-primary block mt-0.5">
                       {viewProfileData.designation}
@@ -1405,35 +1405,35 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Email Address</span>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Email Address</span>
                   <span className="text-foreground select-all block truncate">{viewingUser.email}</span>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Mobile Number</span>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Mobile Number</span>
                   <span className="text-foreground">
                     {viewProfileData?.mobile_number || viewingUser.mobile || "—"}
                   </span>
                 </div>
                 {viewingUser.role === 'student' && viewingUser.extra?.usn && (
                   <div className="space-y-1">
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">{translateTerminology("USN")}</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">{translateTerminology("USN")}</span>
                     <span className="text-foreground">{viewingUser.extra.usn}</span>
                   </div>
                 )}
                 {viewingUser.department && viewingUser.department !== "N/A" && (
                   <div className="space-y-1">
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Department</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Department</span>
                     <span className="text-foreground">{viewingUser.department}</span>
                   </div>
                 )}
                 {viewingUser.extra?.branch && (
                   <div className="space-y-1">
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Branch</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Branch</span>
                     <span className="text-foreground">{viewingUser.extra.branch}</span>
                   </div>
                 )}
                 <div className="space-y-1">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Status</span>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Status</span>
                   <span className="text-foreground">{viewingUser.status}</span>
                 </div>
 
@@ -1441,37 +1441,37 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                   <>
                     {viewProfileData?.student_details?.course && (
                       <div className="space-y-1">
-                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Course</span>
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Course</span>
                         <span className="text-foreground">{viewProfileData.student_details.course}</span>
                       </div>
                     )}
                     {viewProfileData?.student_details?.proctor_name && (
                       <div className="space-y-1">
-                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Proctor / Mentor</span>
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Proctor / Mentor</span>
                         <span className="text-foreground">{viewProfileData.student_details.proctor_name}</span>
                       </div>
                     )}
                     {viewProfileData?.student_details?.parent_name && (
                       <div className="space-y-1">
-                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Parent's Name</span>
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Parent's Name</span>
                         <span className="text-foreground">{viewProfileData.student_details.parent_name}</span>
                       </div>
                     )}
                     {viewProfileData?.student_details?.parent_contact && (
                       <div className="space-y-1">
-                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Parent's Phone</span>
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Parent's Phone</span>
                         <span className="text-foreground select-all">{viewProfileData.student_details.parent_contact}</span>
                       </div>
                     )}
                     {viewProfileData?.student_details?.blood_group && (
                       <div className="space-y-1">
-                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Blood Group</span>
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Blood Group</span>
                         <span className="text-foreground">{viewProfileData.student_details.blood_group}</span>
                       </div>
                     )}
                     {viewProfileData?.student_details?.mode_of_admission && (
                       <div className="space-y-1">
-                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Admission Mode</span>
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Admission Mode</span>
                         <span className="text-foreground">{viewProfileData.student_details.mode_of_admission}</span>
                       </div>
                     )}
@@ -1481,7 +1481,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
               {['teacher', 'hod'].includes(viewingUser.role) && viewProfileData?.teaching_assignments?.length > 0 && (
                 <div className="space-y-2 pt-3 border-t border-border mt-2">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Active Teaching Assignments</span>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Active Teaching Assignments</span>
                   <div className="overflow-x-auto rounded-xl border border-border bg-accent/10">
                     <table className="w-full text-left border-collapse text-xs">
                       <thead>
@@ -1507,7 +1507,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
               {viewProfileData?.address && (
                 <div className="space-y-1 pt-2">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Residential Address</span>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Residential Address</span>
                   <p className="text-muted-foreground leading-relaxed bg-accent/30 p-2.5 rounded-xl border border-border">
                     {viewProfileData.address}
                   </p>
@@ -1516,7 +1516,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
               {viewProfileData?.bio && (
                 <div className="space-y-1 pt-2">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Biography</span>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Biography</span>
                   <p className="text-muted-foreground leading-relaxed bg-accent/30 p-2.5 rounded-xl border border-border">
                     {viewProfileData.bio}
                   </p>

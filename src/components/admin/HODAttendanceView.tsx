@@ -523,7 +523,7 @@ const AdminHODAttendance: React.FC = () => {
                                     <div className="flex items-center gap-1">
                                       <span className="font-semibold">In:</span> {formatTime(r.first_check_in || r.check_in_time)}
                                       {r.delays?.[0] > 0 && (
-                                        <span className="text-[10px] text-orange-500 font-bold bg-orange-500/10 px-1 py-0.5 rounded">
+                                        <span className="text-[10px] text-orange-500 font-semibold bg-orange-500/10 px-1 py-0.5 rounded">
                                           +{r.delays[0]}m
                                         </span>
                                       )}
@@ -570,7 +570,7 @@ const AdminHODAttendance: React.FC = () => {
                                 <div className="flex items-center gap-1">
                                   <span className="font-semibold">In:</span> {formatTime(r.first_check_in || r.check_in_time)}
                                   {r.delays?.[0] > 0 && (
-                                    <span className="text-[10px] text-orange-500 font-bold bg-orange-500/10 px-1 py-0.5 rounded">
+                                    <span className="text-[10px] text-orange-500 font-semibold bg-orange-500/10 px-1 py-0.5 rounded">
                                       +{r.delays[0]}m
                                     </span>
                                   )}

@@ -92,7 +92,7 @@ export default function AdmissionReports() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Enquiries</p>
-                <h3 className="text-3xl font-bold text-foreground">{analytics.total_enquiries}</h3>
+                <h3 className="text-3xl font-semibold text-foreground">{analytics.total_enquiries}</h3>
               </div>
               <div className="p-3 bg-primary/10 rounded-xl text-primary">
                 <Users className="w-5 h-5" />
@@ -109,7 +109,7 @@ export default function AdmissionReports() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Applications</p>
-                <h3 className="text-3xl font-bold text-foreground">{analytics.total_applications}</h3>
+                <h3 className="text-3xl font-semibold text-foreground">{analytics.total_applications}</h3>
               </div>
               <div className="p-3 bg-primary/10 rounded-xl text-primary">
                 <FileTextIcon className="w-5 h-5" />
@@ -126,7 +126,7 @@ export default function AdmissionReports() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Conversion Rate</p>
-                <h3 className="text-3xl font-bold text-foreground">{conversionRate}%</h3>
+                <h3 className="text-3xl font-semibold text-foreground">{conversionRate}%</h3>
               </div>
               <div className="p-3 bg-primary/10 rounded-xl text-primary">
                 <PieChartIcon className="w-5 h-5" />

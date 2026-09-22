@@ -290,7 +290,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                     <div className="text-[18px] sm:text-md font-semibold sm:font-medium mb-1 sm:mb-2">Total Students</div>
                     <Users className="h-6 w-6 text-muted-foreground" />
                   </div>
-                  <div className="text-[26px] sm:text-2xl font-bold sm:font-semibold summary-card-value self-center">
+                  <div className="text-[26px] sm:text-2xl font-semibold sm:font-semibold summary-card-value self-center">
                     {data.summary.total_students}
                   </div>
                 </div>
@@ -304,7 +304,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                     <div className="text-[18px] sm:text-md font-semibold sm:font-medium mb-1 sm:mb-2">Applied</div>
                     <CheckCircle className="h-6 w-6 text-green-500" />
                   </div>
-                  <div className="text-[26px] sm:text-2xl font-bold sm:font-semibold text-green-600 summary-card-value self-center">
+                  <div className="text-[26px] sm:text-2xl font-semibold sm:font-semibold text-green-600 summary-card-value self-center">
                     {data.summary.applied_students}
                   </div>
                 </div>
@@ -318,7 +318,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                     <div className="text-[18px] sm:text-md font-semibold sm:font-medium mb-1 sm:mb-2">Not Applied</div>
                     <XCircle className="h-6 w-6 text-red-500" />
                   </div>
-                  <div className="text-[26px] sm:text-2xl font-bold sm:font-semibold text-red-600 summary-card-value self-center">
+                  <div className="text-[26px] sm:text-2xl font-semibold sm:font-semibold text-red-600 summary-card-value self-center">
                     {data.summary.not_applied_students}
                   </div>
                 </div>
@@ -332,7 +332,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                     <div className="text-[18px] sm:text-md font-semibold sm:font-medium mb-1 sm:mb-2">App Rate</div>
                     <Search className="h-6 w-6  text-blue-500" />
                   </div>
-                  <div className="text-[26px] sm:text-2xl font-bold sm:font-semibold text-blue-600 summary-card-value self-center">
+                  <div className="text-[26px] sm:text-2xl font-semibold sm:font-semibold text-blue-600 summary-card-value self-center">
                     {data.summary.application_rate}%
                   </div>
                 </div>

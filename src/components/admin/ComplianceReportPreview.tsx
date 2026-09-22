@@ -126,7 +126,7 @@ const Field = memo(({
 // ─── Stat pill (read-only) ──────────────────────────────────────────────────
 const StatPill = memo(({ label, value, isDark }: { label: string; value: string; isDark: boolean }) => (
   <div className={`rounded-xl p-3 text-center border ${isDark ? "bg-muted/30 border-border" : "bg-gray-50 border-gray-100"}`}>
-    <p className={`text-2xl font-bold ${isDark ? "text-foreground" : "text-gray-900"}`}>{value || "—"}</p>
+    <p className={`text-2xl font-semibold ${isDark ? "text-foreground" : "text-gray-900"}`}>{value || "—"}</p>
     <p className={`text-xs mt-0.5 leading-tight ${isDark ? "text-muted-foreground" : "text-gray-500"}`}>{label}</p>
   </div>
 ));
@@ -186,7 +186,7 @@ const CriterionBlock = memo(({
   const border = CRITERION_BORDER[criterion.id] || "border-gray-300";
   return (
     <div className={`border-l-4 ${border} rounded-r-xl px-4 py-3 mb-3 ${isDark ? "bg-muted/20" : "bg-gray-50/80"}`}>
-      <p className={`text-[11px] font-bold uppercase tracking-widest mb-3 ${isDark ? "text-muted-foreground" : "text-gray-500"}`}>
+      <p className={`text-[11px] font-semibold uppercase tracking-widest mb-3 ${isDark ? "text-muted-foreground" : "text-gray-500"}`}>
         {criterion.title}
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -387,8 +387,8 @@ const ComplianceReportPreview = ({ reportType, data, onClose }: Props) => {
               <tr key={i} className={`${isDark ? "border-t border-border/40 hover:bg-muted/20" : "border-t border-gray-100 hover:bg-gray-50"} transition-colors`}>
                 <td className="px-3 py-2 font-medium">{r.name}</td>
                 <td className="px-3 py-2">{r.code}</td>
-                <td className="px-3 py-2 font-bold text-blue-500">{r.students}</td>
-                <td className="px-3 py-2 font-bold text-purple-500">{r.faculty}</td>
+                <td className="px-3 py-2 font-semibold text-blue-500">{r.students}</td>
+                <td className="px-3 py-2 font-semibold text-purple-500">{r.faculty}</td>
               </tr>
             ))}
           </tbody>
@@ -516,7 +516,7 @@ const ComplianceReportPreview = ({ reportType, data, onClose }: Props) => {
             <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">
               {reportType === "NAAC_SSR" ? "NAAC" : "NBA"} Compliance Report
             </p>
-            <h2 className="text-xl font-bold text-white leading-tight">
+            <h2 className="text-xl font-semibold text-white leading-tight">
               {reportType === "NAAC_SSR" ? "Self Study Report (SSR)" : "Self Assessment Report (SAR)"}
             </h2>
             <p className="text-white/60 text-xs mt-1">Edit any field below, then download the final Excel.</p>

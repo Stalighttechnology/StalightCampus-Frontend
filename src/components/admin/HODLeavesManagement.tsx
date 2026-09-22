@@ -110,7 +110,7 @@ const renderLeaveCategoryBadge = (leaveType: string, isHalfDay?: boolean, halfDa
 
   return (
     <div className="flex flex-wrap items-center gap-1 mt-1">
-      <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded w-fit ${colorClass}`}>
+      <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.2 rounded w-fit ${colorClass}`}>
         {label}
       </span>
       {odCategory && (

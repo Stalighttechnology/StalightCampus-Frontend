@@ -90,7 +90,7 @@ export default function AdmissionSettings() {
     <Card id="admission-settings-container" className="w-full">
       <CardHeader id="admission-settings-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
         <div>
-          <CardTitle className="text-lg md:text-xl font-bold">Admission Settings</CardTitle>
+          <CardTitle className="text-lg md:text-xl font-semibold">Admission Settings</CardTitle>
           <p className="text-muted-foreground text-xs md:text-sm mt-1">Manage institutional campaigns, intake timelines, and status thresholds.</p>
         </div>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>

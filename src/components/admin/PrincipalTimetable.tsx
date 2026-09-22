@@ -266,7 +266,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, labelCl
             ))}
           </SelectContent>
         </Select>
-        <span className="text-xs font-bold opacity-60">:</span>
+        <span className="text-xs font-semibold opacity-60">:</span>
         <Select value={minute} onValueChange={m => onChange(to24h(hour12Str, m, period))}>
           <SelectTrigger className="flex-1 h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-xs">
             <SelectValue placeholder="MM" />
@@ -1673,7 +1673,7 @@ const PrincipalTimetable = () => {
                                           </div>
                                           {entry.attendance_taken_today && (
                                             <div className="mt-1 flex items-center">
-                                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30" title="Attendance Taken Today">
+                                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30" title="Attendance Taken Today">
                                                 <CheckCircle2 size={10} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                                                 <span>Attendance Marked</span>
                                               </span>
@@ -1749,7 +1749,7 @@ const PrincipalTimetable = () => {
                     Conflict Warning
                   </Badge>
                 </div>
-                <AlertDialogTitle className="text-base sm:text-lg font-bold text-foreground tracking-tight leading-snug">
+                <AlertDialogTitle className="text-base sm:text-lg font-semibold text-foreground tracking-tight leading-snug">
                   Schedule Conflict Detected
                 </AlertDialogTitle>
                 <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed">

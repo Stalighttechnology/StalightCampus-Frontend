@@ -733,14 +733,14 @@ const fetchData = async (page: number = 1, search: string = filter) => {
                   {/* Desktop View: Table */}
                   <div className="branches-table-container hidden md:block flex-1 overflow-y-auto overflow-x-auto border rounded-xl mb-2 relative shadow-inner">
                     <table className="branches-table w-full text-base md:text-sm text-left table-auto border-collapse">
-                      <thead className={`sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-bold tracking-wider ${theme === 'dark' ? 'bg-slate-900/95 text-slate-300 border-border' : 'bg-slate-50/95 text-slate-700 border-gray-200'} shadow-sm backdrop-blur-md`}>
+                      <thead className={`sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-semibold tracking-wider ${theme === 'dark' ? 'bg-slate-900/95 text-slate-300 border-border' : 'bg-slate-50/95 text-slate-700 border-gray-200'} shadow-sm backdrop-blur-md`}>
                         <tr>
-                          <th className="branch-name-col py-3.5 px-4 text-left font-bold">{translateTerminology("Branch Name")}</th>
-                          <th className="py-3.5 px-4 hidden sm:table-cell font-bold">{translateTerminology("Branch Code")}</th>
-                          <th className="py-3.5 px-4 font-bold text-center">{translateTerminology("Semesters")}</th>
-                          <th className="hod-col py-3.5 px-4 font-bold">{translateTerminology("Assigned HOD")}</th>
-                          <th className="py-3.5 px-4 hidden sm:table-cell font-bold">{translateTerminology("HOD Contact")}</th>
-                          {!isReadOnly && <th className="actions-col py-3.5 px-4 text-right w-24 font-bold">Actions</th>}
+                          <th className="branch-name-col py-3.5 px-4 text-left font-semibold">{translateTerminology("Branch Name")}</th>
+                          <th className="py-3.5 px-4 hidden sm:table-cell font-semibold">{translateTerminology("Branch Code")}</th>
+                          <th className="py-3.5 px-4 font-semibold text-center">{translateTerminology("Semesters")}</th>
+                          <th className="hod-col py-3.5 px-4 font-semibold">{translateTerminology("Assigned HOD")}</th>
+                          <th className="py-3.5 px-4 hidden sm:table-cell font-semibold">{translateTerminology("HOD Contact")}</th>
+                          {!isReadOnly && <th className="actions-col py-3.5 px-4 text-right w-24 font-semibold">Actions</th>}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/60">
@@ -854,15 +854,15 @@ const fetchData = async (page: number = 1, search: string = filter) => {
 
                           <div className={`grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t text-xs sm:text-sm ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">{translateTerminology("Semesters")}</span>
+                              <span className="block opacity-60 uppercase font-semibold tracking-wider text-[10px] sm:text-xs mb-0.5">{translateTerminology("Semesters")}</span>
                               <span className="font-medium">{branch.total_semesters || "--"}</span>
                             </div>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">{translateTerminology("Assigned HOD")}</span>
+                              <span className="block opacity-60 uppercase font-semibold tracking-wider text-[10px] sm:text-xs mb-0.5">{translateTerminology("Assigned HOD")}</span>
                               <span className="font-medium break-words">{branch.hod || "--"}</span>
                             </div>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">{translateTerminology("HOD Contact")}</span>
+                              <span className="block opacity-60 uppercase font-semibold tracking-wider text-[10px] sm:text-xs mb-0.5">{translateTerminology("HOD Contact")}</span>
                               <span className="font-medium break-words text-wrap">{branch.hod_contact || "--"}</span>
                             </div>
                           </div>
@@ -1105,7 +1105,7 @@ const fetchData = async (page: number = 1, search: string = filter) => {
               </div>
               <div className="space-y-2">
                 <label className={`block text-xs font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
-                  Please type <span className="font-bold">{branchToDelete?.name}</span> to confirm:
+                  Please type <span className="font-semibold">{branchToDelete?.name}</span> to confirm:
                 </label>
                 <Input
                   value={confirmName}
