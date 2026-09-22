@@ -1,6 +1,7 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect, Fragment } from "react";
-import { Pencil, Plus, Trash2, Layers, Settings2, FileDown, RotateCcw, Save, Check } from "lucide-react";
+import { Pencil, Plus, Trash2, Layers, Settings2, FileDown, RotateCcw, Save, Check, FileSpreadsheet } from "lucide-react";
+import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -216,6 +217,7 @@ const UploadMarks = () => {
   const navigate = useNavigate();
   const { data: assignments = [], isLoading: assignmentsLoading, error: assignmentsError } = useFacultyAssignmentsQuery();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [tabValue, setTabValue] = useState("questionPaper");
   const [errorMessage, setErrorMessage] = useState("");
   const [dropdownData, setDropdownData] = useState({
@@ -1318,6 +1320,320 @@ const UploadMarks = () => {
     }
   };
 
+  const handleExportExcelMarksSheet = async () => {
+    if (!areAllDropdownsSelected()) {
+      toast({
+        title: "Selection Required",
+        description: "Please select all dropdown fields before exporting.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!existingQpSummary || existingQpSummary.status !== 'approved') {
+      toast({
+        title: "Question Paper Not Approved",
+        description: "The question paper must be approved before exporting marks statement.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsExportingExcel(true);
+    try {
+      // 1. Fetch complete student list for excel (up to 1000 students to bypass pagination limit)
+      const params: any = {
+        subject_id: selected.subject_id?.toString(),
+        test_type: selected.testType,
+        page: 1,
+        page_size: 1000
+      };
+      if (selected.batch_id) params.batch_id = selected.batch_id.toString();
+      if (selected.branch_id) params.branch_id = selected.branch_id.toString();
+      if (selected.semester_id) params.semester_id = selected.semester_id.toString();
+      if (selected.section_id) params.section_id = selected.section_id.toString();
+
+      let studentList: any[] = [];
+      const res: StudentsForMarksResponse = await getStudentsForMarks(params);
+      if (res && res.success && res.data && res.data.length > 0) {
+        studentList = res.data;
+      } else if (students && students.length > 0) {
+        studentList = students;
+      } else {
+        toast({
+          title: "No Students Found",
+          description: "There are no students to export for the selected criteria.",
+          variant: "destructive"
+        });
+        setIsExportingExcel(false);
+        return;
+      }
+
+      const qpMax = calculateQPMaxMarks(questions);
+
+      // 2. Prepare merged data for every student
+      const exportRows = studentList.map((s, idx) => {
+        const studentId = s.id;
+        const studentIdStr = studentId.toString();
+
+        // Check local storage draft
+        const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${studentId}`;
+        let draftMarks: Record<string, string> = {};
+        let draftTotal = '';
+        try {
+          const localDataStr = localStorage.getItem(localKey);
+          if (localDataStr) {
+            const parsed = JSON.parse(localDataStr);
+            if (parsed.questionMarks) draftMarks = parsed.questionMarks;
+            if (parsed.total) draftTotal = parsed.total;
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        // Check in-memory state
+        const stateMarks = studentMarks[studentIdStr] || {};
+        const currentStudentObj = students.find((st) => st.id === studentId);
+        const stateTotal = currentStudentObj?.total ?? '';
+
+        // Check backend existing_mark
+        const backendMarks: Record<string, string> = {};
+        let backendTotal = '';
+        if (s.existing_mark) {
+          if (s.existing_mark.marks_detail) {
+            Object.keys(s.existing_mark.marks_detail).forEach((k) => {
+              backendMarks[k] = String(s.existing_mark.marks_detail[k]);
+            });
+          }
+          if (s.existing_mark.total_obtained !== undefined && s.existing_mark.total_obtained !== null) {
+            backendTotal = String(s.existing_mark.total_obtained);
+          }
+        }
+
+        // Precedence: current state > local draft > backend DB
+        const mergedMarks: Record<string, string> = { ...backendMarks, ...draftMarks, ...stateMarks };
+        let finalTotal = stateTotal || draftTotal || backendTotal;
+        if (!finalTotal || finalTotal === '') {
+          finalTotal = calculateStudentTotalFromMarks(mergedMarks, questions, qpMax);
+        }
+
+        return {
+          index: idx + 1,
+          usn: s.usn || '--',
+          name: s.name || '--',
+          marks: mergedMarks,
+          total: finalTotal || '-'
+        };
+      });
+
+      // 3. Organization & Header Metadata
+      const orgName = getOrgName(existingQpSummary?.org_name);
+      const batchName = dropdownData.batch.find((b) => String(b.id) === String(selected.batch_id))?.name || '';
+      const subjectObj = dropdownData.subject.find((s) => String(s.id) === String(selected.subject_id));
+      const subjectName = subjectObj?.name || selected.subject || '--';
+      const subjectCode = subjectObj?.code || (subjectObj as any)?.subject_code || assignments.find((a) => String(a.subject_id) === String(selected.subject_id))?.subject_code || '--';
+      const branchName = dropdownData.branch.find((b) => String(b.id) === String(selected.branch_id))?.name || selected.branch || '--';
+      const semNumber = selected.semester || dropdownData.semester.find((s) => String(s.id) === String(selected.semester_id))?.number || '--';
+      const sectionName = selected.section || dropdownData.section.find((s) => String(s.id) === String(selected.section_id))?.name || '--';
+      const formattedTest = formatTestType(selected.testType);
+
+      let facultyName = 'Faculty';
+      try {
+        const u = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user') || '{}');
+        facultyName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.full_name || u.name || u.username || 'Faculty';
+      } catch (e) {
+        // ignore
+      }
+
+      const formattedDate = existingQpSummary?.exam_date || existingQpSummary?.date
+        ? format(new Date((existingQpSummary.exam_date || existingQpSummary.date).includes('T') ? (existingQpSummary.exam_date || existingQpSummary.date) : `${existingQpSummary.exam_date || existingQpSummary.date}T00:00:00`), "dd/MM/yyyy")
+        : format(new Date(), "dd/MM/yyyy");
+
+      // Total columns calculation
+      // Col 0: #, Col 1: USN, Col 2: Student Name
+      // Questions: 3 sub-columns each (CO, Max, Marks)
+      // Last Col: Total Marks
+      const totalColumns = 3 + (questions.length * 3) + 1;
+      const lastColIdx = totalColumns - 1;
+      const midColIdx = Math.floor(totalColumns / 2);
+
+      // Build Array of Arrays (aoa)
+      const aoa: any[][] = [];
+
+      // Row 0: Org Title
+      const row0 = new Array(totalColumns).fill("");
+      row0[0] = orgName.toUpperCase();
+      aoa.push(row0);
+
+      // Row 1: Test Title
+      const row1 = new Array(totalColumns).fill("");
+      row1[0] = `${formattedTest.toUpperCase()} MARKS STATEMENT`;
+      aoa.push(row1);
+
+      // Row 2: Date
+      const row2 = new Array(totalColumns).fill("");
+      row2[lastColIdx - 1] = `Date: ${formattedDate}`;
+      aoa.push(row2);
+
+      // Row 3: Subject & Subject Code
+      const row3 = new Array(totalColumns).fill("");
+      row3[0] = "Subject:";
+      row3[1] = subjectName;
+      row3[midColIdx] = "Subject Code:";
+      row3[midColIdx + 1] = subjectCode;
+      aoa.push(row3);
+
+      // Row 4: Branch / Sem / Sec & Academic Batch
+      const row4 = new Array(totalColumns).fill("");
+      row4[0] = "Branch / Sem / Sec:";
+      row4[1] = `${branchName} / Sem ${semNumber} / Sec ${sectionName}`;
+      row4[midColIdx] = "Academic Batch:";
+      row4[midColIdx + 1] = batchName || "--";
+      aoa.push(row4);
+
+      // Row 5: Faculty & Maximum Marks
+      const row5 = new Array(totalColumns).fill("");
+      row5[0] = "Faculty:";
+      row5[1] = facultyName;
+      row5[midColIdx] = "Maximum Marks:";
+      row5[midColIdx + 1] = totalMarks;
+      aoa.push(row5);
+
+      // Row 6: Blank row
+      aoa.push(new Array(totalColumns).fill(""));
+
+      // Row 7 (Header Tier 1): #, USN, Student Name, Q1a, Q1b..., Total Marks
+      const row7 = new Array(totalColumns).fill("");
+      row7[0] = "#";
+      row7[1] = "USN";
+      row7[2] = "Student Name";
+      questions.forEach((q, idx) => {
+        row7[3 + idx * 3] = `Q${q.number}`;
+      });
+      row7[lastColIdx] = "Total Marks";
+      aoa.push(row7);
+
+      // Row 8 (Header Tier 2): CO, Max, Marks
+      const row8 = new Array(totalColumns).fill("");
+      questions.forEach((q, idx) => {
+        row8[3 + idx * 3] = "CO";
+        row8[3 + idx * 3 + 1] = "Max";
+        row8[3 + idx * 3 + 2] = "Marks";
+      });
+      aoa.push(row8);
+
+      // Row 9 (Header Tier 3): e.g. CO2, 7, IA Test 1
+      const row9 = new Array(totalColumns).fill("");
+      questions.forEach((q, idx) => {
+        row9[3 + idx * 3] = formatCO(q.co) || "CO";
+        row9[3 + idx * 3 + 1] = Number(q.maxMarks) || q.maxMarks;
+        row9[3 + idx * 3 + 2] = formattedTest;
+      });
+      aoa.push(row9);
+
+      // Student Rows (Row 10+)
+      exportRows.forEach((row) => {
+        const studentRow = new Array(totalColumns).fill("");
+        studentRow[0] = row.index;
+        studentRow[1] = row.usn;
+        studentRow[2] = row.name;
+        questions.forEach((q, idx) => {
+          studentRow[3 + idx * 3] = formatCO(q.co) || "-";
+          studentRow[3 + idx * 3 + 1] = Number(q.maxMarks) || q.maxMarks;
+          const markVal = row.marks[q.number];
+          studentRow[3 + idx * 3 + 2] = markVal !== undefined && markVal !== "" ? (isNaN(Number(markVal)) ? markVal : Number(markVal)) : "-";
+        });
+        studentRow[lastColIdx] = row.total !== undefined && row.total !== "" && row.total !== "-" ? (isNaN(Number(row.total)) ? row.total : Number(row.total)) : "-";
+        aoa.push(studentRow);
+      });
+
+      // Footer Signatures
+      aoa.push(new Array(totalColumns).fill(""));
+      aoa.push(new Array(totalColumns).fill(""));
+
+      const sigRow1 = new Array(totalColumns).fill("");
+      sigRow1[1] = "Staff In-charge / Faculty";
+      sigRow1[midColIdx] = "Head of Department";
+      sigRow1[lastColIdx - 2] = "Controller of Examinations";
+      aoa.push(sigRow1);
+
+      const sigRow2 = new Array(totalColumns).fill("");
+      sigRow2[1] = `(${facultyName})`;
+      sigRow2[midColIdx] = `Department of ${branchName}`;
+      sigRow2[lastColIdx - 2] = orgName;
+      aoa.push(sigRow2);
+
+      // Generate worksheet from aoa
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+      // Define Merges
+      const merges: any[] = [
+        // Title Rows
+        { s: { r: 0, c: 0 }, e: { r: 0, c: lastColIdx } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: lastColIdx } },
+        // Metadata Rows
+        { s: { r: 3, c: 1 }, e: { r: 3, c: midColIdx - 1 } },
+        { s: { r: 3, c: midColIdx + 1 }, e: { r: 3, c: lastColIdx } },
+        { s: { r: 4, c: 1 }, e: { r: 4, c: midColIdx - 1 } },
+        { s: { r: 4, c: midColIdx + 1 }, e: { r: 4, c: lastColIdx } },
+        { s: { r: 5, c: 1 }, e: { r: 5, c: midColIdx - 1 } },
+        { s: { r: 5, c: midColIdx + 1 }, e: { r: 5, c: lastColIdx } },
+        // Table Headers
+        { s: { r: 7, c: 0 }, e: { r: 9, c: 0 } }, // #
+        { s: { r: 7, c: 1 }, e: { r: 9, c: 1 } }, // USN
+        { s: { r: 7, c: 2 }, e: { r: 9, c: 2 } }, // Student Name
+        { s: { r: 7, c: lastColIdx }, e: { r: 9, c: lastColIdx } }, // Total Marks
+      ];
+
+      // Question headers merge (spanning 3 columns)
+      questions.forEach((_, idx) => {
+        const startC = 3 + idx * 3;
+        merges.push({ s: { r: 7, c: startC }, e: { r: 7, c: startC + 2 } });
+      });
+
+      ws["!merges"] = merges;
+
+      // Define Column Widths
+      const colWidths: any[] = [
+        { wch: 6 },  // #
+        { wch: 16 }, // USN
+        { wch: 28 }, // Student Name
+      ];
+      questions.forEach(() => {
+        colWidths.push({ wch: 8 });  // CO
+        colWidths.push({ wch: 8 });  // Max
+        colWidths.push({ wch: 10 }); // Marks
+      });
+      colWidths.push({ wch: 14 }); // Total Marks
+      ws["!cols"] = colWidths;
+
+      // Create Workbook and save as .xlsx
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, ws, `${selected.testType} Marks`);
+
+      const safeSubject = subjectName.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const safeTestType = selected.testType.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const safeBatch = (batchName || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+      const filename = `${safeSubject}_${safeTestType}_Marks_Statement${safeBatch ? `_${safeBatch}` : ""}.xlsx`;
+
+      XLSX.writeFile(workbook, filename);
+
+      toast({
+        title: "Excel Downloaded",
+        description: `Successfully exported ${exportRows.length} students to ${filename}`
+      });
+    } catch (error: any) {
+      console.error("Excel export error:", error);
+      toast({
+        title: "Export Failed",
+        description: error.message || "Failed to generate Excel file",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}>
       <Tabs id="upload-marks-tabs" value={tabValue} onValueChange={(newTab) => {
@@ -1499,8 +1815,25 @@ const UploadMarks = () => {
                 {qpReady &&
                   <div className={`border rounded-lg overflow-hidden ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-white'}`}>
                     {/* Header */}
-                    <div className={`p-4 border-b ${theme === 'dark' ? 'border-border bg-muted' : 'border-gray-300 bg-gray-50'}`}>
+                    <div className={`p-4 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${theme === 'dark' ? 'border-border bg-muted' : 'border-gray-300 bg-gray-50'}`}>
                       <h3 className="text-lg font-semibold">Internal Assessment Test</h3>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleExportExcelMarksSheet}
+                          disabled={isExportingExcel || loadingStudents || currentStudents.length === 0}
+                          className="h-9 px-3.5 flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50 dark:text-emerald-300 font-medium border-emerald-300 dark:border-emerald-800 shadow-sm transition-all text-xs sm:text-sm"
+                        >
+                          {isExportingExcel ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-emerald-600 dark:text-emerald-400" />
+                          ) : (
+                            <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                          )}
+                          <span>{isExportingExcel ? "Generating Excel..." : "Export to Excel (.xlsx)"}</span>
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Table with new structure based on question format */}
