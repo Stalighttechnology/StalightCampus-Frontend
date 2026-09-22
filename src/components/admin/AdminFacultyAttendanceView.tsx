@@ -1016,7 +1016,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           <div className="flex flex-row items-center justify-between gap-2">
                             <div>
                               <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Faculty</p>
-                              <p className={`text-lg sm:text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{combinedTotalFaculty}</p>
+                              <p className={`text-lg sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{combinedTotalFaculty}</p>
                             </div>
                             <Users className="w-6 sm:w-8 h-6 sm:h-8 text-blue-600 flex-shrink-0" />
                           </div>
@@ -1025,7 +1025,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           <div className="flex flex-row items-center justify-between gap-2">
                             <div>
                               <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
-                              <p className={`text-lg sm:text-2xl font-bold text-green-600`}>{combinedPresent}</p>
+                              <p className={`text-lg sm:text-2xl font-semibold text-green-600`}>{combinedPresent}</p>
                             </div>
                             <CheckCircle className="w-6 sm:w-8 h-6 sm:h-8 text-green-600 flex-shrink-0" />
                           </div>
@@ -1034,7 +1034,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           <div className="flex flex-row items-center justify-between gap-2">
                             <div>
                               <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
-                              <p className={`text-lg sm:text-2xl font-bold text-red-600`}>{combinedAbsent}</p>
+                              <p className={`text-lg sm:text-2xl font-semibold text-red-600`}>{combinedAbsent}</p>
                             </div>
                             <XCircle className="w-6 sm:w-8 h-6 sm:h-8 text-red-600 flex-shrink-0" />
                           </div>
@@ -1043,7 +1043,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           <div className="flex flex-row items-center justify-between gap-2">
                             <div>
                               <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>On Leave</p>
-                              <p className={`text-lg sm:text-2xl font-bold text-yellow-600`}>{combinedOnLeave}</p>
+                              <p className={`text-lg sm:text-2xl font-semibold text-yellow-600`}>{combinedOnLeave}</p>
                             </div>
                             <CalendarX className="w-6 sm:w-8 h-6 sm:h-8 text-yellow-600 flex-shrink-0" />
                           </div>
@@ -1053,7 +1053,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           <div className="flex flex-row items-center justify-between gap-2">
                             <div>
                               <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
-                              <p className={`text-lg sm:text-2xl font-bold text-gray-600`}>{combinedNotMarked}</p>
+                              <p className={`text-lg sm:text-2xl font-semibold text-gray-600`}>{combinedNotMarked}</p>
                             </div>
                             <Clock className="w-6 sm:w-8 h-6 sm:h-8 text-gray-600 flex-shrink-0" />
                           </div>
@@ -1184,7 +1184,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                              record.status.charAt(0).toUpperCase() + record.status.slice(1)}
                                           </span>
                                           {record.status !== 'on_leave' && record.leave_type && (
-                                            <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider">
+                                            <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-2.5 py-1 rounded-full font-semibold text-[10px] uppercase tracking-wider">
                                               On Leave ({record.leave_type})
                                             </span>
                                           )}
@@ -1289,11 +1289,11 @@ const AdminFacultyAttendanceView: React.FC = () => {
                       <div className="flex flex-col h-full">
                         <div className={`p-6 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
                           <div className="flex items-center gap-3 mb-2">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-lg ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                               {selectedTodayRecord.faculty_name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                 {selectedTodayRecord.faculty_name}
                               </h2>
                               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -1307,7 +1307,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           {/* Status Badge */}
                           <div className="flex justify-between items-center">
                             <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Status</span>
-                            <span className={`${getStatusBadge(selectedTodayRecord.status)} text-sm px-3 py-1 rounded-full font-bold`}>
+                            <span className={`${getStatusBadge(selectedTodayRecord.status)} text-sm px-3 py-1 rounded-full font-semibold`}>
                               {selectedTodayRecord.status === 'not_marked' ? 'Not Marked' : 
                                selectedTodayRecord.status === 'on_leave' ? (selectedTodayRecord.leave_type ? `On Leave (${selectedTodayRecord.leave_type})` : 'On Leave') : 
                                selectedTodayRecord.status.charAt(0).toUpperCase() + selectedTodayRecord.status.slice(1)}
@@ -1317,7 +1317,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           {/* Time & Periodic Check-ins */}
                           {(selectedTodayRecord.checkin_timestamps?.length > 0 || selectedTodayRecord.check_in_time) && (
                             <div className="space-y-4">
-                              <h3 className={`text-sm font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Timeline</h3>
+                              <h3 className={`text-sm font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Timeline</h3>
                               <div className={`space-y-3 p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                                 
                                 {selectedTodayRecord.checkin_timestamps?.length > 0 ? (
@@ -1325,7 +1325,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                     {selectedTodayRecord.checkin_timestamps.map((ts: any, idx: number) => (
                                       <div key={idx} className={`flex items-center justify-between pb-3 ${idx < selectedTodayRecord.checkin_timestamps.length - 1 ? (theme === 'dark' ? 'border-b border-white/10' : 'border-b border-gray-200') : ''}`}>
                                         <div className="flex items-center gap-2">
-                                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${ts === 'Missed' ? 'bg-red-500/10 text-red-500' : ts ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500'}`}>
+                                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${ts === 'Missed' ? 'bg-red-500/10 text-red-500' : ts ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500'}`}>
                                             {idx + 1}
                                           </div>
                                           <span className="font-semibold text-gray-500">
@@ -1336,14 +1336,14 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                         </div>
                                         <div className="flex items-center gap-2">
                                           {ts === "Missed" ? (
-                                            <span className="text-red-500 font-bold bg-red-500/10 px-2 py-0.5 rounded">Missed</span>
+                                            <span className="text-red-500 font-semibold bg-red-500/10 px-2 py-0.5 rounded">Missed</span>
                                           ) : ts ? (
                                             <>
-                                              <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                              <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                                 {new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                                               </span>
                                               {selectedTodayRecord.delays && selectedTodayRecord.delays[idx] > 0 && (
-                                                <span className="text-xs font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full">
+                                                <span className="text-xs font-semibold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full">
                                                   +{selectedTodayRecord.delays[idx]}m
                                                 </span>
                                               )}
@@ -1355,9 +1355,9 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                       </div>
                                     ))}
                                     {selectedTodayRecord.check_out_time && (
-                                      <div className={`flex items-center justify-between font-bold pt-3 border-t ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'}`}>
+                                      <div className={`flex items-center justify-between font-semibold pt-3 border-t ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'}`}>
                                         <div className="flex items-center gap-2">
-                                          <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-blue-500/10 text-blue-500">
+                                          <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold bg-blue-500/10 text-blue-500">
                                             Out
                                           </div>
                                           <span className="font-semibold text-gray-500">Check Out</span>
@@ -1373,7 +1373,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                     {(selectedTodayRecord.first_check_in || selectedTodayRecord.check_in_time) && (
                                       <div className="flex justify-between items-center">
                                         <span className="font-semibold text-gray-500">{selectedTodayRecord.first_check_in ? '1st Half In' : 'Check In'}</span> 
-                                        <span className={`font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                        <span className={`font-semibold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                           {new Date(selectedTodayRecord.first_check_in || selectedTodayRecord.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                                           {selectedTodayRecord.delays?.[0] > 0 && (
                                             <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
@@ -1386,7 +1386,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                     {selectedTodayRecord.first_check_out && (
                                       <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-200 dark:border-white/10">
                                         <span className="font-semibold text-gray-500">1st Half Out</span> 
-                                        <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                        <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                           {new Date(selectedTodayRecord.first_check_out).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                                         </span>
                                       </div>
@@ -1394,7 +1394,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                     {selectedTodayRecord.second_check_in && (
                                       <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-200 dark:border-white/10">
                                         <span className="font-semibold text-gray-500">2nd Half In</span> 
-                                        <span className={`font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                        <span className={`font-semibold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                           {new Date(selectedTodayRecord.second_check_in).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                                           {selectedTodayRecord.delays?.[2] > 0 && (
                                             <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
@@ -1407,7 +1407,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                     {(selectedTodayRecord.second_check_out || selectedTodayRecord.check_out_time) && (
                                       <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-200 dark:border-white/10">
                                         <span className="font-semibold text-gray-500">{selectedTodayRecord.second_check_out ? '2nd Half Out' : 'Check Out'}</span> 
-                                        <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                        <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                           {new Date(selectedTodayRecord.second_check_out || selectedTodayRecord.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                                         </span>
                                       </div>
@@ -1444,7 +1444,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
 
                           {/* Location & Notes */}
                           <div className="space-y-4">
-                            <h3 className={`text-sm font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Details</h3>
+                            <h3 className={`text-sm font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Details</h3>
                             <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'} space-y-3`}>
                               
                               <div className="flex gap-2">
@@ -1912,7 +1912,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                             <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary/20' : 'bg-primary/10'}`}>
                               <FileText className="w-5 h-5 text-primary" />
                             </div>
-                            <CardTitle className={`text-lg font-bold tracking-tight ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>
+                            <CardTitle className={`text-lg font-semibold tracking-tight ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>
                               Subject Assignments
                             </CardTitle>
                           </CardHeader>
@@ -1930,7 +1930,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                 <CalendarIcon className="w-5 h-5 text-blue-500" />
                               </div>
                               <div>
-                                <CardTitle className={`text-lg font-bold tracking-tight ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>
+                                <CardTitle className={`text-lg font-semibold tracking-tight ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>
                                   Weekly Schedule
                                 </CardTitle>
                                 {workLoadProfile.total_weekly_hours !== undefined && (
@@ -1975,15 +1975,15 @@ const AdminFacultyAttendanceView: React.FC = () => {
               <div className="flex flex-wrap items-center gap-4 bg-muted/50 p-3 rounded-xl border border-border/50">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-80 detail-day-weekday">Present</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-widest opacity-80 detail-day-weekday">Present</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)]"></div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-80 detail-day-weekday">On Leave</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-widest opacity-80 detail-day-weekday">On Leave</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-80 detail-day-weekday">Absent</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-widest opacity-80 detail-day-weekday">Absent</span>
                 </div>
               </div>
             </div>
@@ -2049,7 +2049,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                               {date.toLocaleDateString('en-US', { weekday: 'short' })}
                             </span>
                             <span className="text-xl font-black leading-tight detail-day-num">{date.getDate()}</span>
-                            <span className={`text-[10px] font-bold uppercase tracking-widest opacity-60 detail-day-month ${(isPresent || isAbsent || isNonWorkingDay) ? 'opacity-100' : ''}`}>
+                            <span className={`text-[10px] font-semibold uppercase tracking-widest opacity-60 detail-day-month ${(isPresent || isAbsent || isNonWorkingDay) ? 'opacity-100' : ''}`}>
                               {date.toLocaleDateString('en-US', { month: 'short' })}
                             </span>
 
@@ -2101,7 +2101,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
           }}>
             <DialogContent className={`w-[90%] max-w-[360px] p-0 border-0 rounded-2xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-slate-900 text-white' : 'bg-white text-gray-900'}`}>
               <div className={`p-5 ${theme === 'dark' ? 'bg-slate-800' : 'bg-primary/5'} border-b ${theme === 'dark' ? 'border-white/10' : 'border-primary/10'}`}>
-                <DialogTitle className="text-lg font-bold">
+                <DialogTitle className="text-lg font-semibold">
                   {dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 </DialogTitle>
                 <DialogDescription className={`mt-1 font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -2112,7 +2112,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
               <div className="p-5">
                 {record && (
                   <div className="space-y-4">
-                    <div className={`${isPresent ? 'text-green-500 bg-green-500/10' : (record.status === 'on_leave' ? 'text-purple-500 bg-purple-500/10' : 'text-red-500 bg-red-500/10')} p-3 rounded-xl font-bold flex items-center gap-2 text-base capitalize`}>
+                    <div className={`${isPresent ? 'text-green-500 bg-green-500/10' : (record.status === 'on_leave' ? 'text-purple-500 bg-purple-500/10' : 'text-red-500 bg-red-500/10')} p-3 rounded-xl font-semibold flex items-center gap-2 text-base capitalize`}>
                       {isPresent ? <CheckCircle className="w-5 h-5" /> : (record.status === 'on_leave' ? <CalendarIcon className="w-5 h-5" /> : <XCircle className="w-5 h-5" />)} 
                       {record.status === 'not_marked' ? 'Not Marked' : (record.status === 'on_leave' ? (leaveTypes[dateStr] ? `On Leave (${leaveTypes[dateStr]})` : 'On Leave') : record.status.replace('_', ' '))}
                     </div>
@@ -2128,10 +2128,10 @@ const AdminFacultyAttendanceView: React.FC = () => {
                             </span>
                             <div className="flex items-center gap-2">
                               {ts === "Missed" ? (
-                                <span className="text-red-500 font-bold">Missed</span>
+                                <span className="text-red-500 font-semibold">Missed</span>
                               ) : ts ? (
                                 <>
-                                  <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                     {new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                                   </span>
                                   {record.delays && record.delays[idx] > 0 && (
@@ -2147,7 +2147,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           </div>
                         ))}
                         {record.check_out_time && (
-                          <div className={`flex items-center justify-between font-bold pt-2 border-t mt-2 ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
+                          <div className={`flex items-center justify-between font-semibold pt-2 border-t mt-2 ${theme === 'dark' ? 'border-white/10' : 'border-gray-300'}`}>
                             <span className="text-gray-500">Check Out</span> 
                             <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                               {new Date(record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
@@ -2160,7 +2160,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                         {(record.first_check_in || record.check_in_time) && (
                           <div className="flex justify-between items-center">
                             <span className="font-semibold text-gray-500">{record.first_check_in ? '1st Half In' : 'Check In'}</span> 
-                            <span className={`font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            <span className={`font-semibold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                               {new Date(record.first_check_in || record.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                               {record.delays?.[0] > 0 && (
                                 <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
@@ -2173,7 +2173,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                         {record.first_check_out && (
                           <div className="flex justify-between items-center">
                             <span className="font-semibold text-gray-500">1st Half Out</span> 
-                            <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                               {new Date(record.first_check_out).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                             </span>
                           </div>
@@ -2181,7 +2181,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                         {record.second_check_in && (
                           <div className="flex justify-between items-center">
                             <span className="font-semibold text-gray-500">2nd Half In</span> 
-                            <span className={`font-bold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            <span className={`font-semibold flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                               {new Date(record.second_check_in).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                               {record.delays?.[2] > 0 && (
                                 <span className="text-xs text-orange-500 font-black bg-orange-500/20 px-2 py-0.5 rounded shadow-sm">
@@ -2194,7 +2194,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                         {(record.second_check_out || record.check_out_time) && (
                           <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-200 dark:border-white/10">
                             <span className="font-semibold text-gray-500">{record.second_check_out ? '2nd Half Out' : 'Check Out'}</span> 
-                            <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                               {new Date(record.second_check_out || record.check_out_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                             </span>
                           </div>
@@ -2226,21 +2226,21 @@ const AdminFacultyAttendanceView: React.FC = () => {
                 )}
                 
                 {!record && isOnLeave && (
-                  <div className="text-purple-500 font-bold flex flex-col items-center justify-center gap-2 p-6 bg-purple-500/10 rounded-xl border border-purple-500/20 text-center">
+                  <div className="text-purple-500 font-semibold flex flex-col items-center justify-center gap-2 p-6 bg-purple-500/10 rounded-xl border border-purple-500/20 text-center">
                     <CalendarIcon className="w-10 h-10 opacity-80" /> 
                     <span>{leaveTypes[dateStr] ? `On Leave (${leaveTypes[dateStr]})` : 'On Leave'}</span>
                   </div>
                 )}
                 
                 {!record && !isFuture && !isNonWorkingDay && !isOnLeave && (
-                  <div className="text-red-500 font-bold flex flex-col items-center justify-center gap-2 p-6 bg-red-500/10 rounded-xl border border-red-500/20 text-center">
+                  <div className="text-red-500 font-semibold flex flex-col items-center justify-center gap-2 p-6 bg-red-500/10 rounded-xl border border-red-500/20 text-center">
                     <XCircle className="w-10 h-10 opacity-80" /> 
                     <span>Auto-marked Absent</span>
                   </div>
                 )}
                 
                 {isNonWorkingDay && (
-                  <div className={`font-bold flex flex-col items-center justify-center gap-2 p-6 rounded-xl border text-center ${theme === 'dark' ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+                  <div className={`font-semibold flex flex-col items-center justify-center gap-2 p-6 rounded-xl border text-center ${theme === 'dark' ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
                     <CalendarX className="w-10 h-10 opacity-50" /> 
                     <span>{isHoliday ? 'Holiday' : 'Sunday'}</span>
                   </div>
