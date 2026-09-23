@@ -1462,7 +1462,7 @@ const AdminAttendanceRecords: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b pb-4 dark:border-slate-800">
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">Attendance Records</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">Attendance Records</h1>
             <Badge
               variant="outline"
               className={cn(
@@ -1524,7 +1524,7 @@ const AdminAttendanceRecords: React.FC = () => {
               </div>
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <CardTitle className="text-base sm:text-lg font-bold tracking-tight">
+                  <CardTitle className="text-base sm:text-lg font-semibold tracking-tight">
                     Attendance Intelligence &amp; Overview
                   </CardTitle>
                   <Badge
@@ -1591,7 +1591,7 @@ const AdminAttendanceRecords: React.FC = () => {
                 className={cn(
                   "px-2 sm:px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1",
                   chartView === "branch"
-                    ? "bg-background text-foreground shadow-xs font-bold"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -1604,7 +1604,7 @@ const AdminAttendanceRecords: React.FC = () => {
                 className={cn(
                   "px-2 sm:px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1",
                   chartView === "batch"
-                    ? "bg-background text-foreground shadow-xs font-bold"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -1617,7 +1617,7 @@ const AdminAttendanceRecords: React.FC = () => {
                 className={cn(
                   "px-2 sm:px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1",
                   chartView === "semester"
-                    ? "bg-background text-foreground shadow-xs font-bold"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -1707,7 +1707,7 @@ const AdminAttendanceRecords: React.FC = () => {
               <div className="space-y-3.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
+                    <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
                       <GraduationCap className="w-4 h-4 text-primary" />
                       <span>
                         {chartView === "branch"
@@ -1757,7 +1757,7 @@ const AdminAttendanceRecords: React.FC = () => {
                           {/* Card Header: Title + Percentage */}
                           <div className="flex items-start justify-between gap-2.5">
                             <div className="space-y-1 min-w-0">
-                              <div className="font-bold text-sm text-foreground flex items-center gap-1.5 flex-wrap">
+                              <div className="font-semibold text-sm text-foreground flex items-center gap-1.5 flex-wrap">
                                 <span className="truncate">{item.name}</span>
                                 {isSelected && (
                                   <Badge className="text-[9px] px-1.5 py-0 bg-primary text-primary-foreground font-semibold shrink-0">
@@ -1909,10 +1909,10 @@ const AdminAttendanceRecords: React.FC = () => {
                             return (
                               <div className="bg-popover/95 backdrop-blur-sm p-3 rounded-xl border border-border shadow-xl space-y-1.5 min-w-[170px] text-xs">
                                 <div className="flex items-center justify-between gap-2 pb-1 border-b border-border/60">
-                                  <span className="font-bold text-foreground truncate max-w-[120px]">{data.name}</span>
+                                  <span className="font-semibold text-foreground truncate max-w-[120px]">{data.name}</span>
                                   <span
                                     className={cn(
-                                      "px-2 py-0.5 rounded-md font-bold text-xs shrink-0",
+                                      "px-2 py-0.5 rounded-md font-semibold text-xs shrink-0",
                                       data.percentage >= 75
                                         ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
                                         : data.percentage >= 60
@@ -2011,7 +2011,7 @@ const AdminAttendanceRecords: React.FC = () => {
                 <Filter className="w-4 h-4" />
               </div>
               <div>
-                <CardTitle className="text-base font-bold">Filter Attendance Records</CardTitle>
+                <CardTitle className="text-base font-semibold">Filter Attendance Records</CardTitle>
                 <p className="text-xs text-muted-foreground">
                   Select branch, semester, section, subject, and date range to fetch student register.
                 </p>
@@ -2047,7 +2047,7 @@ const AdminAttendanceRecords: React.FC = () => {
             {/* 1. Branch Filter (First & Mandatory) */}
             <div className="space-y-2">
               <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">
-                Branch<span className="text-rose-500 ml-1 font-bold">*</span>
+                Branch<span className="text-rose-500 ml-1 font-semibold">*</span>
               </label>
               <Select value={selectedBranch} onValueChange={handleBranchChange}>
                 <SelectTrigger id="branch-select" className="w-full">
@@ -2086,7 +2086,7 @@ const AdminAttendanceRecords: React.FC = () => {
             {/* 3. Semester Filter (Mandatory, Dependent on Branch) */}
             <div className="space-y-2">
               <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">
-                Semester<span className="text-rose-500 ml-1 font-bold">*</span>
+                Semester<span className="text-rose-500 ml-1 font-semibold">*</span>
               </label>
               <Select
                 value={selectedSemester}
@@ -2109,7 +2109,7 @@ const AdminAttendanceRecords: React.FC = () => {
             {/* 4. Section Filter (Mandatory, Dependent on Semester) */}
             <div className="space-y-2">
               <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">
-                Section<span className="text-rose-500 ml-1 font-bold">*</span>
+                Section<span className="text-rose-500 ml-1 font-semibold">*</span>
               </label>
               <Select
                 value={selectedSection}
@@ -2135,7 +2135,7 @@ const AdminAttendanceRecords: React.FC = () => {
             {/* 5. Subject Filter (Mandatory Single Subject) */}
             <div className="space-y-2">
               <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">
-                Subject / Course<span className="text-rose-500 ml-1 font-bold">*</span>
+                Subject / Course<span className="text-rose-500 ml-1 font-semibold">*</span>
               </label>
               <Select
                 value={selectedSubject}
@@ -2172,7 +2172,7 @@ const AdminAttendanceRecords: React.FC = () => {
             {/* Date Range Picker (Mandatory, maxDate = Today) */}
             <div className="md:col-span-4 space-y-2">
               <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">
-                Date Range<span className="text-rose-500 ml-1 font-bold">*</span>
+                Date Range<span className="text-rose-500 ml-1 font-semibold">*</span>
               </label>
               <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
@@ -2392,7 +2392,7 @@ const AdminAttendanceRecords: React.FC = () => {
               <BookOpen className="w-4 h-4" />
             </div>
             <div>
-              <CardTitle className="text-base font-bold">Student Attendance Register</CardTitle>
+              <CardTitle className="text-base font-semibold">Student Attendance Register</CardTitle>
             </div>
             {totalRecordsCount > 0 && (
               <Badge variant="secondary" className="text-xs px-2.5 py-0.5 font-semibold rounded-full">
@@ -2489,16 +2489,16 @@ const AdminAttendanceRecords: React.FC = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-base text-foreground">
+                      <span className="font-semibold text-base text-foreground">
                         {facultyInfo?.subject_name || availableSubjects.find((s) => String(s.id) === selectedSubject)?.name || "Subject Attendance"}
                       </span>
                       {(facultyInfo?.subject_code || availableSubjects.find((s) => String(s.id) === selectedSubject)?.subject_code) && (
-                        <Badge variant="outline" className="text-xs font-mono font-bold bg-background/90 border-primary/30 px-2 py-0.5 rounded-md">
+                        <Badge variant="outline" className="text-xs font-mono font-semibold bg-background/90 border-primary/30 px-2 py-0.5 rounded-md">
                           {facultyInfo?.subject_code || availableSubjects.find((s) => String(s.id) === selectedSubject)?.subject_code}
                         </Badge>
                       )}
                       {facultyInfo?.subject_type && (
-                        <Badge variant="secondary" className="text-[10px] uppercase font-bold rounded-md px-1.5 py-0.5">
+                        <Badge variant="secondary" className="text-[10px] uppercase font-semibold rounded-md px-1.5 py-0.5">
                           {facultyInfo.subject_type}
                         </Badge>
                       )}
@@ -2529,7 +2529,7 @@ const AdminAttendanceRecords: React.FC = () => {
                     </div>
                     <div>
                       <span className="text-[10px] text-muted-foreground font-medium block uppercase tracking-wider">Assigned Faculty</span>
-                      <span className="font-bold text-foreground">
+                      <span className="font-semibold text-foreground">
                         {facultyInfo?.assigned_faculty_name || (facultyInfo?.assigned_faculty && facultyInfo.assigned_faculty.length > 0 ? facultyInfo.assigned_faculty.join(", ") : "Not Assigned")}
                       </span>
                     </div>
@@ -2544,7 +2544,7 @@ const AdminAttendanceRecords: React.FC = () => {
                     </div>
                     <div>
                       <span className="text-[10px] text-muted-foreground font-medium block uppercase tracking-wider">Attendance Marked By</span>
-                      <span className="font-bold text-foreground">
+                      <span className="font-semibold text-foreground">
                         {facultyInfo?.marked_by_faculty_name || (facultyInfo?.marked_by_faculty && facultyInfo.marked_by_faculty.length > 0 ? facultyInfo.marked_by_faculty.join(", ") : "None recorded")}
                       </span>
                     </div>
@@ -2601,7 +2601,7 @@ const AdminAttendanceRecords: React.FC = () => {
                 <div className="overflow-x-auto">
                   <Table id="attendance-records-table">
                     <TableHeader>
-                      <TableRow className="hover:bg-transparent bg-muted/40 text-xs font-bold border-b">
+                      <TableRow className="hover:bg-transparent bg-muted/40 text-xs font-semibold border-b">
                         <TableHead className="w-12 text-center">#</TableHead>
                         <TableHead className="min-w-[180px]">Student Details</TableHead>
                         <TableHead className="min-w-[160px]">Class &amp; Branch</TableHead>
@@ -2628,12 +2628,12 @@ const AdminAttendanceRecords: React.FC = () => {
 
                         const statusBadge =
                           s.status === "Eligible"
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-bold"
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-semibold"
                             : s.status === "Warning"
-                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 font-bold"
+                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 font-semibold"
                             : s.status === "No Classes"
                             ? "bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/30 font-medium"
-                            : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30 font-bold";
+                            : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30 font-semibold";
 
                         return (
                           <TableRow
@@ -2647,7 +2647,7 @@ const AdminAttendanceRecords: React.FC = () => {
                               {rowNumber}
                             </TableCell>
                             <TableCell>
-                              <div className="font-bold text-xs sm:text-sm text-foreground">
+                              <div className="font-semibold text-xs sm:text-sm text-foreground">
                                 {s.name}
                               </div>
                               <span className="text-[11px] font-mono text-muted-foreground bg-muted/70 px-1.5 py-0.5 rounded-md mt-0.5 inline-block font-semibold">
@@ -2721,15 +2721,15 @@ const AdminAttendanceRecords: React.FC = () => {
             <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 flex-wrap font-medium">
               <span>
                 Showing{" "}
-                <span className="font-bold text-foreground">
+                <span className="font-semibold text-foreground">
                   {startItemIndex}
                 </span>{" "}
                 to{" "}
-                <span className="font-bold text-foreground">
+                <span className="font-semibold text-foreground">
                   {endItemIndex}
                 </span>{" "}
                 of{" "}
-                <span className="font-bold text-foreground">
+                <span className="font-semibold text-foreground">
                   {totalRecordsCount}
                 </span>{" "}
                 records
@@ -2833,7 +2833,7 @@ const AdminAttendanceRecords: React.FC = () => {
         >
           <DialogHeader className="border-b pb-3 border-border/50">
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <DialogTitle className="text-lg font-semibold flex items-center gap-2">
                 <UserCheck className="w-5 h-5 text-primary" />
                 <span>Lecture Attendance Breakdown</span>
               </DialogTitle>
@@ -2903,7 +2903,7 @@ const AdminAttendanceRecords: React.FC = () => {
                   <span className="text-muted-foreground block text-[11px]">Attendance:</span>
                   <span
                     className={cn(
-                      "font-bold",
+                      "font-semibold",
                       recordDetails.present_percentage >= 75
                         ? "text-emerald-600"
                         : recordDetails.present_percentage >= 60
@@ -2932,7 +2932,7 @@ const AdminAttendanceRecords: React.FC = () => {
                 {/* Present Students Panel */}
                 <div className="border rounded-lg p-3 space-y-2 bg-emerald-50/20 dark:bg-emerald-950/10 border-emerald-200 dark:border-emerald-900/40">
                   <div className="flex items-center justify-between pb-1.5 border-b border-emerald-200/50">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
                       <CheckCircle className="w-4 h-4" />
                       <span>Present Students ({recordDetails.present_count})</span>
                     </div>
@@ -2961,7 +2961,7 @@ const AdminAttendanceRecords: React.FC = () => {
                             <Badge
                               variant="outline"
                               className={cn(
-                                "text-[11px] px-2 py-0.5 font-bold",
+                                "text-[11px] px-2 py-0.5 font-semibold",
                                 (s.subject_percentage ?? 0) >= 75
                                   ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                                   : (s.subject_percentage ?? 0) >= 60
@@ -2988,7 +2988,7 @@ const AdminAttendanceRecords: React.FC = () => {
                 {/* Absent Students Panel */}
                 <div className="border rounded-lg p-3 space-y-2 bg-rose-50/20 dark:bg-rose-950/10 border-rose-200 dark:border-rose-900/40">
                   <div className="flex items-center justify-between pb-1.5 border-b border-rose-200/50">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-400">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400">
                       <XCircle className="w-4 h-4" />
                       <span>Absent Students ({recordDetails.absent_count})</span>
                     </div>
@@ -3017,7 +3017,7 @@ const AdminAttendanceRecords: React.FC = () => {
                             <Badge
                               variant="outline"
                               className={cn(
-                                "text-[11px] px-2 py-0.5 font-bold",
+                                "text-[11px] px-2 py-0.5 font-semibold",
                                 (s.subject_percentage ?? 0) >= 75
                                   ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                                   : (s.subject_percentage ?? 0) >= 60
@@ -3086,7 +3086,7 @@ const AdminAttendanceRecords: React.FC = () => {
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <History className="w-5 h-5 text-primary" />
-                <DialogTitle className="text-base sm:text-lg font-bold">
+                <DialogTitle className="text-base sm:text-lg font-semibold">
                   Student Attendance Timeline
                 </DialogTitle>
               </div>
@@ -3095,7 +3095,7 @@ const AdminAttendanceRecords: React.FC = () => {
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-xs px-2.5 py-0.5 font-bold hidden sm:inline-flex",
+                      "text-xs px-2.5 py-0.5 font-semibold hidden sm:inline-flex",
                       selectedStudentForTimeline.attendance_percentage >= 75
                         ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                         : selectedStudentForTimeline.attendance_percentage >= 60
@@ -3145,19 +3145,19 @@ const AdminAttendanceRecords: React.FC = () => {
                 <div className="grid grid-cols-3 gap-2.5 text-center">
                   <div className="p-3 rounded-xl bg-card border border-border/70 shadow-xs">
                     <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Total Classes</div>
-                    <div className="text-lg sm:text-xl font-bold mt-1 text-foreground">
+                    <div className="text-lg sm:text-xl font-semibold mt-1 text-foreground">
                       {selectedStudentForTimeline.conducted_classes}
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 shadow-xs">
                     <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider">Attended</div>
-                    <div className="text-lg sm:text-xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+                    <div className="text-lg sm:text-xl font-semibold mt-1 text-emerald-600 dark:text-emerald-400">
                       {selectedStudentForTimeline.attended_classes}
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 shadow-xs">
                     <div className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold uppercase tracking-wider">Absent</div>
-                    <div className="text-lg sm:text-xl font-bold mt-1 text-rose-600 dark:text-rose-400">
+                    <div className="text-lg sm:text-xl font-semibold mt-1 text-rose-600 dark:text-rose-400">
                       {selectedStudentForTimeline.absent_classes}
                     </div>
                   </div>
@@ -3193,7 +3193,7 @@ const AdminAttendanceRecords: React.FC = () => {
                             )}
                           >
                             <div className="flex items-center gap-3 min-w-0">
-                              <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">
+                              <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-semibold text-muted-foreground shrink-0">
                                 #{idx + 1}
                               </span>
                               <div className="min-w-0">
@@ -3219,12 +3219,12 @@ const AdminAttendanceRecords: React.FC = () => {
 
                             <div className="shrink-0">
                               {isPresent ? (
-                                <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 text-xs font-bold gap-1 px-2.5 py-1">
+                                <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 text-xs font-semibold gap-1 px-2.5 py-1">
                                   <CheckCircle className="w-3.5 h-3.5" />
                                   Present
                                 </Badge>
                               ) : isAbsent ? (
-                                <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30 hover:bg-rose-500/20 text-xs font-bold gap-1 px-2.5 py-1">
+                                <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30 hover:bg-rose-500/20 text-xs font-semibold gap-1 px-2.5 py-1">
                                   <XCircle className="w-3.5 h-3.5" />
                                   Absent
                                 </Badge>

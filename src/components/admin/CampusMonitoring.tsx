@@ -365,7 +365,7 @@ export default function CampusMonitoring() {
                         )}
                       </div>
                       <div className="mt-2 text-center">
-                        <span className="px-2.5 py-0.5 bg-blue-950/90 text-blue-200 font-bold text-xs rounded-full border border-blue-400/30">
+                        <span className="px-2.5 py-0.5 bg-blue-950/90 text-blue-200 font-semibold text-xs rounded-full border border-blue-400/30">
                           {activeSession?.org_name || campuses[0]?.name || "Campus Center"}
                         </span>
                       </div>
@@ -389,7 +389,7 @@ export default function CampusMonitoring() {
                         <div className="absolute -inset-1.5 rounded-full bg-red-500/40 animate-ping" />
                         <Avatar className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-red-500 shadow-lg">
                           <AvatarImage src={alert.profile_picture} alt={facultyName} />
-                          <AvatarFallback className="bg-rose-600 text-white font-bold text-xs sm:text-sm">
+                          <AvatarFallback className="bg-rose-600 text-white font-semibold text-xs sm:text-sm">
                             {facultyName.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
@@ -406,7 +406,7 @@ export default function CampusMonitoring() {
               {/* Quick Info Sidebar Panel */}
               <Card className="shadow-sm border-border">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-primary" /> Active Boundary
                   </CardTitle>
                   <CardDescription className="text-xs">Configured geofence coordinates</CardDescription>
@@ -433,7 +433,7 @@ export default function CampusMonitoring() {
                   )}
 
                   <div className="pt-2 border-t border-border space-y-2">
-                    <h4 className="text-xs font-bold text-muted-foreground uppercase">Recent Out-of-Bounds</h4>
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase">Recent Out-of-Bounds</h4>
                     {liveAlerts.length === 0 ? (
                       <p className="text-xs text-green-600 font-medium">✓ All faculty inside campus</p>
                     ) : (
@@ -467,7 +467,7 @@ export default function CampusMonitoring() {
             /* LIST VIEW TABLE */
             <Card className="shadow-sm border-border">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-red-500" /> Today's Alerts
                 </CardTitle>
               </CardHeader>
@@ -501,7 +501,7 @@ export default function CampusMonitoring() {
                               <div className="flex items-center gap-2.5 min-w-0">
                                 <Avatar className="w-8 h-8 border border-red-400 shrink-0">
                                   <AvatarImage src={alert.profile_picture} />
-                                  <AvatarFallback className="bg-red-500 text-white text-xs font-bold">
+                                  <AvatarFallback className="bg-red-500 text-white text-xs font-semibold">
                                     {alert.faculty_name?.charAt(0)}
                                   </AvatarFallback>
                                 </Avatar>
@@ -537,7 +537,7 @@ export default function CampusMonitoring() {
           <Card className="shadow-sm border-border">
             <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50">
               <div>
-                <CardTitle className="text-lg sm:text-xl font-bold">Monitoring Audit Reports</CardTitle>
+                <CardTitle className="text-lg sm:text-xl font-semibold">Monitoring Audit Reports</CardTitle>
                 <CardDescription className="text-xs sm:text-sm">Historical logs of faculty detected outside campus.</CardDescription>
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -712,7 +712,7 @@ export default function CampusMonitoring() {
                             <div className="flex items-center gap-2.5 min-w-0">
                               <Avatar className="w-7 h-7 border border-border shrink-0">
                                 <AvatarImage src={alert.profile_picture} />
-                                <AvatarFallback className="text-[10px] bg-muted font-bold">
+                                <AvatarFallback className="text-[10px] bg-muted font-semibold">
                                   {alert.faculty_name?.charAt(0)}
                                 </AvatarFallback>
                               </Avatar>
@@ -832,7 +832,7 @@ export default function CampusMonitoring() {
                     {selectedFaculty.faculty_name?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <DialogTitle className="text-xl font-bold">{selectedFaculty.faculty_name}</DialogTitle>
+                <DialogTitle className="text-xl font-semibold">{selectedFaculty.faculty_name}</DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground font-medium mt-0.5">
                   {selectedFaculty.faculty_designation || "Faculty Member"}
                 </DialogDescription>

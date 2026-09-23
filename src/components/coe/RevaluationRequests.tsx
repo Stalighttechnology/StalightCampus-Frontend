@@ -461,7 +461,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                       <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Previous Marks</TableHead>
                       <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Status</TableHead>
                       <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Requested</TableHead>
-                      <TableHead className={theme === 'dark' ? 'font-bold text-foreground' : 'font-bold text-slate-900'}>Actions</TableHead>
+                      <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -566,7 +566,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                             className="w-10 h-10 rounded-full object-cover shrink-0 border border-border/50 shadow-sm"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0 shadow-inner">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm shrink-0 shadow-inner">
                             {getInitials(request.student_name)}
                           </div>
                         )}
@@ -584,44 +584,44 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                       {/* Details section */}
                       <div className="space-y-3 text-sm">
                         <div>
-                          <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Subject</span>
+                          <span className="text-[11.5px] font-semibold text-muted-foreground uppercase block tracking-wider mb-0.5">Subject</span>
                           <div className="font-medium text-foreground">{request.subject_name}</div>
                           <div className="text-xs text-muted-foreground mt-0.5">{request.subject_code}</div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Batch / Sem</span>
+                            <span className="text-[11.5px] font-semibold text-muted-foreground uppercase block tracking-wider mb-0.5">Batch / Sem</span>
                             <div className="text-xs font-semibold text-foreground">{request.batch} / Sem {request.semester}</div>
                           </div>
                           <div>
-                            <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Exam Period</span>
+                            <span className="text-[11.5px] font-semibold text-muted-foreground uppercase block tracking-wider mb-0.5">Exam Period</span>
                             <div className="text-xs font-semibold text-foreground">{request.exam_period}</div>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Branch</span>
+                            <span className="text-[11.5px] font-semibold text-muted-foreground uppercase block tracking-wider mb-0.5">Branch</span>
                             <div className="text-xs font-semibold text-foreground truncate">{request.branch}</div>
                           </div>
                           <div>
-                            <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Requested Date</span>
+                            <span className="text-[11.5px] font-semibold text-muted-foreground uppercase block tracking-wider mb-0.5">Requested Date</span>
                             <div className="text-xs font-semibold text-foreground">{new Date(request.requested_at).toLocaleDateString()}</div>
                           </div>
                         </div>
 
                         <div className="p-2.5 rounded-lg border border-border/30 bg-muted/5 grid grid-cols-3 gap-2 text-center">
                           <div>
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-0.5">CIE</span>
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-0.5">CIE</span>
                             <span className="text-xs font-semibold">{request.previous_cie ?? 'N/A'}</span>
                           </div>
                           <div>
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-0.5">SEE</span>
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-0.5">SEE</span>
                             <span className="text-xs font-semibold">{request.previous_see ?? 'N/A'}</span>
                           </div>
                           <div>
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-0.5">Total</span>
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-0.5">Total</span>
                             <span className="text-xs font-semibold">{request.previous_total ?? 'N/A'}</span>
                           </div>
                         </div>
@@ -682,12 +682,12 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                         className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover shrink-0 border border-border/50 shadow-sm"
                       />
                     ) : (
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm sm:text-base shrink-0 shadow-inner">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm sm:text-base shrink-0 shadow-inner">
                         {getInitials(selectedRequest.student_name)}
                       </div>
                     )}
                     <div>
-                      <div className="font-bold text-foreground text-sm sm:text-base">{selectedRequest.student_name}</div>
+                      <div className="font-semibold text-foreground text-sm sm:text-base">{selectedRequest.student_name}</div>
                       <div className="text-xs text-muted-foreground font-mono mt-0.5">{selectedRequest.student_usn}</div>
                     </div>
                   </div>
@@ -699,34 +699,34 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 {/* Grid of properties */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="p-2.5 sm:p-3.5 rounded-xl border border-border/30 bg-muted/5">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Subject</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Subject</span>
                     <div className="font-semibold text-foreground text-sm leading-snug">{selectedRequest.subject_name}</div>
                     <div className="text-xs text-muted-foreground mt-0.5 font-mono">{selectedRequest.subject_code}</div>
                   </div>
 
                   <div className="p-2.5 sm:p-3.5 rounded-xl border border-border/30 bg-muted/5">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Batch / Semester</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Batch / Semester</span>
                     <div className="text-xs font-semibold text-foreground leading-normal mt-0.5">
                       {selectedRequest.batch} / Sem {selectedRequest.semester}
                     </div>
                   </div>
 
                   <div className="p-2.5 sm:p-3.5 rounded-xl border border-border/30 bg-muted/5">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Branch</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Branch</span>
                     <div className="text-xs font-semibold text-foreground leading-normal mt-0.5">
                       {selectedRequest.branch}
                     </div>
                   </div>
 
                   <div className="p-2.5 sm:p-3.5 rounded-xl border border-border/30 bg-muted/5">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Exam Period</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Exam Period</span>
                     <div className="text-xs font-semibold text-foreground leading-normal mt-0.5">
                       {selectedRequest.exam_period}
                     </div>
                   </div>
 
                   <div className="p-2.5 sm:p-3.5 rounded-xl border border-border/30 bg-muted/5 sm:col-span-2">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Requested Date</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Requested Date</span>
                     <div className="text-xs font-semibold text-foreground leading-normal mt-0.5">
                       {new Date(selectedRequest.requested_at).toLocaleString()}
                     </div>
@@ -735,7 +735,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
                 {/* Previous Marks Grid */}
                 <div className="p-3.5 sm:p-5 rounded-xl border border-border/30 bg-muted/5 space-y-3">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Previous Marks</span>
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Previous Marks</span>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
                       <span className="text-xs text-muted-foreground block mb-0.5">CIE</span>
@@ -754,7 +754,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
                 {/* Request Types */}
                 <div className="space-y-1.5">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Request Types</span>
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Request Types</span>
                   <div className={`p-3 rounded-xl text-sm font-semibold border ${theme === 'dark' ? 'bg-muted/15 border-border/50' : 'bg-gray-50 border-gray-100'}`}>
                     {(selectedRequest.types || []).map((type: string) => type === 'photocopy' ? 'Photocopy' : 'Revaluation').join(', ') || '-'}
                   </div>
@@ -762,7 +762,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
                 {/* Reason */}
                 <div className="space-y-1.5">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Reason</span>
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Reason</span>
                   <div className={`p-3 sm:p-4 rounded-xl text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap border ${theme === 'dark' ? 'bg-muted/15 border-border/50' : 'bg-gray-50 border-gray-100'}`}>
                     {selectedRequest.reason || <span className="italic text-muted-foreground">No reason provided.</span>}
                   </div>
@@ -771,7 +771,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 {/* Response Note (If exists) */}
                 {selectedRequest.response_note && (
                   <div className="space-y-1.5">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Response Note</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Response Note</span>
                     <div className={`p-3 sm:p-4 rounded-xl text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap border ${selectedRequest.status === 'approved' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-800 dark:text-emerald-300' : 'bg-destructive/10 border-destructive/20 text-destructive'}`}>
                       {selectedRequest.response_note}
                     </div>
@@ -795,7 +795,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 {/* Photocopy upload UI */}
                 {selectedRequest && selectedRequest.types?.includes('photocopy') && selectedRequest.status === 'approved' && !selectedRequest.attachment && (
                   <div className="pt-4 border-t border-border/40 space-y-2">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Upload Photocopy</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Upload Photocopy</span>
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                       <input
                         type="file"

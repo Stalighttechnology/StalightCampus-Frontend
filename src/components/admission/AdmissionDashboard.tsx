@@ -173,7 +173,7 @@ const AdmissionDashboard: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{item.title}</p>
-                  <p className="text-3xl font-bold text-foreground my-0.5">{item.value}</p>
+                  <p className="text-3xl font-semibold text-foreground my-0.5">{item.value}</p>
                   <p className="text-xs text-muted-foreground">{item.subtitle}</p>
                 </div>
               </CardContent>
@@ -216,7 +216,7 @@ const AdmissionDashboard: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{item.title}</p>
-                  <p className="text-2xl font-bold text-foreground my-0.5">{item.value}</p>
+                  <p className="text-2xl font-semibold text-foreground my-0.5">{item.value}</p>
                   <p className="text-[11px] text-muted-foreground">{item.subtitle}</p>
                 </div>
               </CardContent>

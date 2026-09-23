@@ -299,19 +299,19 @@ export default function AdmissionSeatMatrix() {
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       <div className="p-3 bg-card rounded-lg text-center border">
                         <p className="text-xs text-muted-foreground uppercase mb-1 font-semibold">Total Intake</p>
-                        <p className="text-2xl font-bold text-foreground">{matrix.total_capacity}</p>
+                        <p className="text-2xl font-semibold text-foreground">{matrix.total_capacity}</p>
                       </div>
                       <div className={`p-3 rounded-lg text-center border ${isFull ? 'bg-red-500/10 border-red-500/20' : 'bg-primary/10 border-primary/20'}`}>
-                        <p className={`text-xs uppercase font-bold mb-1 ${isFull ? 'text-red-500' : 'text-primary'}`}>Enrolled</p>
-                        <p className={`text-2xl font-bold ${isFull ? 'text-red-500' : 'text-primary'}`}>{matrix.filled_seats}</p>
+                        <p className={`text-xs uppercase font-semibold mb-1 ${isFull ? 'text-red-500' : 'text-primary'}`}>Enrolled</p>
+                        <p className={`text-2xl font-semibold ${isFull ? 'text-red-500' : 'text-primary'}`}>{matrix.filled_seats}</p>
                       </div>
                       <div className="p-3 bg-card rounded-lg text-center border">
                         <p className="text-xs text-muted-foreground uppercase mb-1 font-semibold flex items-center justify-center gap-1"><Award size={10} /> Merit Quota</p>
-                        <p className="text-xl font-bold text-foreground">{matrix.merit_quota}</p>
+                        <p className="text-xl font-semibold text-foreground">{matrix.merit_quota}</p>
                       </div>
                       <div className="p-3 bg-card rounded-lg text-center border">
                         <p className="text-xs text-muted-foreground uppercase mb-1 font-semibold flex items-center justify-center gap-1"><Users size={10} /> Mgmt Quota</p>
-                        <p className="text-xl font-bold text-foreground">{matrix.management_quota}</p>
+                        <p className="text-xl font-semibold text-foreground">{matrix.management_quota}</p>
                       </div>
                     </div>
 

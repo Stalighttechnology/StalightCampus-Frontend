@@ -236,13 +236,13 @@ function CategoryWorkflowTabContent({
       {/* Half-Day Split Controls */}
       {mode === 'half_day_split' && (
         <div className="space-y-4">
-          <div className="text-xs font-bold text-primary uppercase tracking-wider">Session 1 (First Half)</div>
+          <div className="text-xs font-semibold text-primary uppercase tracking-wider">Session 1 (First Half)</div>
           
           {/* 1st Half In */}
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#1</div>
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs">#1</div>
                 <div>
                   <Label className="text-sm font-semibold">First Half Check-In Window</Label>
                   <p className="text-xs text-muted-foreground">Morning check-in timeframe</p>
@@ -273,7 +273,7 @@ function CategoryWorkflowTabContent({
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#2</div>
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs">#2</div>
                 <div>
                   <Label className="text-sm font-semibold">First Half Check-Out Window</Label>
                   <p className="text-xs text-muted-foreground">Lunch / mid-day departure window</p>
@@ -300,13 +300,13 @@ function CategoryWorkflowTabContent({
             </div>
           </div>
 
-          <div className="text-xs font-bold text-primary uppercase tracking-wider pt-2">Session 2 (Second Half)</div>
+          <div className="text-xs font-semibold text-primary uppercase tracking-wider pt-2">Session 2 (Second Half)</div>
 
           {/* 2nd Half In */}
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#3</div>
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs">#3</div>
                 <div>
                   <Label className="text-sm font-semibold">Second Half Check-In Window</Label>
                   <p className="text-xs text-muted-foreground">Post-lunch check-in timeframe</p>
@@ -337,7 +337,7 @@ function CategoryWorkflowTabContent({
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#4</div>
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs">#4</div>
                 <div>
                   <Label className="text-sm font-semibold">Second Half Check-Out Window</Label>
                   <p className="text-xs text-muted-foreground">Evening final departure window</p>
@@ -372,7 +372,7 @@ function CategoryWorkflowTabContent({
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#1</div>
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs">#1</div>
                 <div>
                   <Label className="text-sm font-semibold">Full Day Check-In Window</Label>
                   <p className="text-xs text-muted-foreground">Morning arrival check-in timeframe</p>
@@ -402,7 +402,7 @@ function CategoryWorkflowTabContent({
           <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-gray-200 shadow-sm'}`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">#2</div>
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs">#2</div>
                 <div>
                   <Label className="text-sm font-semibold">Full Day Check-Out Window</Label>
                   <p className="text-xs text-muted-foreground">Evening departure check-out timeframe</p>
@@ -1415,7 +1415,7 @@ export default function PrincipalTimetableSettings() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
             <Label className="text-xs font-semibold">{title}</Label>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${colorConfig.badge}`}>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${colorConfig.badge}`}>
               {selectedRoles.length} selected
             </span>
           </div>
@@ -1826,7 +1826,7 @@ export default function PrincipalTimetableSettings() {
                           <CardHeader className="p-3.5 sm:p-4 pb-3 border-b border-border/40">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                               <div className="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
-                                <span className="w-8 h-8 shrink-0 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-xs flex items-center justify-center border border-indigo-500/20 mt-0.5 sm:mt-0">
+                                <span className="w-8 h-8 shrink-0 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold text-xs flex items-center justify-center border border-indigo-500/20 mt-0.5 sm:mt-0">
                                   <CalendarCheck2 className="w-4 h-4" />
                                 </span>
                                 <div className="min-w-0 flex-1">
@@ -1838,7 +1838,7 @@ export default function PrincipalTimetableSettings() {
                                   </CardDescription>
                                 </div>
                               </div>
-                              <span className="text-[10px] sm:text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 self-start sm:self-auto shrink-0 border border-indigo-200 dark:border-indigo-800">
+                              <span className="text-[10px] sm:text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 self-start sm:self-auto shrink-0 border border-indigo-200 dark:border-indigo-800">
                                 Active Cycle: AY {cycleLabel}
                               </span>
                             </div>
@@ -1926,13 +1926,13 @@ export default function PrincipalTimetableSettings() {
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="w-6 h-6 shrink-0 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-xs flex items-center justify-center border border-emerald-500/20">
                                 CL
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Casual Leave (CL) Policy</CardTitle>
                             </div>
                             <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                              <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
                                 Personal / Urgent
                               </span>
                               <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
@@ -2325,13 +2325,13 @@ export default function PrincipalTimetableSettings() {
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="w-6 h-6 shrink-0 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center border border-blue-500/20">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold text-xs flex items-center justify-center border border-blue-500/20">
                                 EL
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Earned Leave (EL) Policy</CardTitle>
                             </div>
                             <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
+                              <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
                                 Service Accrued
                               </span>
                               <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
@@ -2503,13 +2503,13 @@ export default function PrincipalTimetableSettings() {
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="w-6 h-6 shrink-0 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-xs flex items-center justify-center border border-emerald-500/20">
                                 OD
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">On Duty (OD) Policy</CardTitle>
                             </div>
                             <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                              <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
                                 Duty Deputation
                               </span>
                               <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
@@ -2615,13 +2615,13 @@ export default function PrincipalTimetableSettings() {
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="w-6 h-6 shrink-0 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold text-xs flex items-center justify-center border border-teal-500/20">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold text-xs flex items-center justify-center border border-teal-500/20">
                                 VL
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Vacation Leave Policy</CardTitle>
                             </div>
                             <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300">
+                              <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300">
                                 Vacational Staff
                               </span>
                               <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
@@ -2728,13 +2728,13 @@ export default function PrincipalTimetableSettings() {
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="w-6 h-6 shrink-0 rounded-md bg-pink-500/10 text-pink-600 dark:text-pink-400 font-bold text-xs flex items-center justify-center border border-pink-500/20">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-pink-500/10 text-pink-600 dark:text-pink-400 font-semibold text-xs flex items-center justify-center border border-pink-500/20">
                                 ML
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Maternity Leave Policy</CardTitle>
                             </div>
                             <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-pink-100 text-pink-800 dark:bg-pink-950/50 dark:text-pink-300">
+                              <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full bg-pink-100 text-pink-800 dark:bg-pink-950/50 dark:text-pink-300">
                                 Female Staff
                               </span>
                               <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
@@ -2822,13 +2822,13 @@ export default function PrincipalTimetableSettings() {
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="w-6 h-6 shrink-0 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold text-xs flex items-center justify-center border border-purple-500/20">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 font-semibold text-xs flex items-center justify-center border border-purple-500/20">
                                 RH
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Restricted Holiday (RH) Policy</CardTitle>
                             </div>
                             <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300">
+                              <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300">
                                 Optional Holiday
                               </span>
                               <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
@@ -2919,13 +2919,13 @@ export default function PrincipalTimetableSettings() {
                         <CardHeader className="p-4 pb-2 border-b border-border/40">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="w-6 h-6 shrink-0 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs flex items-center justify-center border border-amber-500/20">
+                              <span className="w-6 h-6 shrink-0 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold text-xs flex items-center justify-center border border-amber-500/20">
                                 SP
                               </span>
                               <CardTitle className="text-sm font-semibold truncate sm:whitespace-normal">Short Permission Policy</CardTitle>
                             </div>
                             <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                              <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
                                 Hourly Window
                               </span>
                               <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
@@ -3259,7 +3259,7 @@ export default function PrincipalTimetableSettings() {
                                   <span className={`px-2 py-0.5 rounded font-mono ${theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
                                     Leave Applied
                                   </span>
-                                  <span className="text-muted-foreground font-bold">➔</span>
+                                  <span className="text-muted-foreground font-semibold">➔</span>
                                   <span className="px-2 py-0.5 rounded font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                                     ⚡ Auto-Approved (For Records)
                                   </span>
@@ -3272,7 +3272,7 @@ export default function PrincipalTimetableSettings() {
                                   </span>
                                   {stages.map((stg, sIdx) => (
                                     <div key={sIdx} className="flex items-center gap-1.5">
-                                      <span className="text-muted-foreground font-bold">➔</span>
+                                      <span className="text-muted-foreground font-semibold">➔</span>
                                       <span className={`px-2 py-0.5 rounded font-medium ${
                                         sIdx === stages.length - 1 
                                           ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
@@ -3282,7 +3282,7 @@ export default function PrincipalTimetableSettings() {
                                       </span>
                                     </div>
                                   ))}
-                                  <span className="text-muted-foreground font-bold">➔</span>
+                                  <span className="text-muted-foreground font-semibold">➔</span>
                                   <span className="px-2 py-0.5 rounded font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                                     Approved
                                   </span>
@@ -3450,7 +3450,7 @@ export default function PrincipalTimetableSettings() {
                   <div className="space-y-6">
                     {/* --- GLOBAL SETTINGS --- */}
                     <div className="space-y-4 pb-6 border-b border-border/60">
-                      <h3 className="text-sm font-bold tracking-wide uppercase text-muted-foreground mb-4">Global Configuration</h3>
+                      <h3 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground mb-4">Global Configuration</h3>
                       
                       {/* Allow Web Attendance Toggle */}
                       <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-amber-50/60 border-amber-200/60'}`}>
@@ -3459,7 +3459,7 @@ export default function PrincipalTimetableSettings() {
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-semibold">Allow Web / Desktop Attendance Marking</span>
                               {!allowWebAttendance && (
-                                <span className="text-[10px] font-bold uppercase tracking-wide bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">Hidden for all staff</span>
+                                <span className="text-[10px] font-semibold uppercase tracking-wide bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">Hidden for all staff</span>
                               )}
                             </div>
                             <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
@@ -3480,7 +3480,7 @@ export default function PrincipalTimetableSettings() {
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-semibold">Enforce Single Device Restriction</span>
                               {requireDeviceIdAttendance && (
-                                <span className="text-[10px] font-bold uppercase tracking-wide bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full">Strict Mode Active</span>
+                                <span className="text-[10px] font-semibold uppercase tracking-wide bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full">Strict Mode Active</span>
                               )}
                             </div>
                             <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
@@ -3539,7 +3539,7 @@ export default function PrincipalTimetableSettings() {
                               { key: 'admin_branch', label: 'Administrative Workflow' },
                             ].map((col) => (
                               <div key={col.key} className={`p-3 rounded-lg border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} space-y-3`}>
-                                <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground border-b pb-2">{col.label}</div>
+                                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground border-b pb-2">{col.label}</div>
                                 <div className="space-y-2">
                                   {/* List roles mapped to this category */}
                                   {(staffCategoryMapping[col.key] || []).map((mappedRole) => {
@@ -3624,7 +3624,7 @@ export default function PrincipalTimetableSettings() {
 
                       {/* --- CATEGORY SETTINGS --- */}
                       <div className="space-y-4">
-                        <h3 className="text-sm font-bold tracking-wide uppercase text-muted-foreground mb-2">Category-Specific Workflows</h3>
+                        <h3 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground mb-2">Category-Specific Workflows</h3>
                       
                         {/* Mobile Category Dropdown (< sm) */}
                         <div className="block sm:hidden w-full pb-3 border-b border-border/60">

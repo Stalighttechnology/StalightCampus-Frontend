@@ -582,15 +582,15 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
 
                           <div className={`grid grid-cols-3 gap-2 pt-2 border-t text-xs sm:text-sm ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">Start Year</span>
+                              <span className="block opacity-60 uppercase font-semibold tracking-wider text-[10px] sm:text-xs mb-0.5">Start Year</span>
                               <span className="font-medium">{batch.start_year}</span>
                             </div>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">End Year</span>
+                              <span className="block opacity-60 uppercase font-semibold tracking-wider text-[10px] sm:text-xs mb-0.5">End Year</span>
                               <span className="font-medium">{batch.end_year}</span>
                             </div>
                             <div>
-                              <span className="block opacity-60 uppercase font-bold tracking-wider text-[10px] sm:text-xs mb-0.5">Created At</span>
+                              <span className="block opacity-60 uppercase font-semibold tracking-wider text-[10px] sm:text-xs mb-0.5">Created At</span>
                               <span className="font-medium">{new Date(batch.created_at).toLocaleDateString()}</span>
                             </div>
                           </div>
@@ -711,7 +711,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
               </div>
               <div className="space-y-2">
                 <label className={`block text-xs font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
-                  Please type <span className="font-bold">{batchToDelete?.name}</span> to confirm:
+                  Please type <span className="font-semibold">{batchToDelete?.name}</span> to confirm:
                 </label>
                 <Input
                   value={confirmName}

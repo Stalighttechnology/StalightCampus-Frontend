@@ -947,7 +947,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                               ))}
                             </SelectContent>
                           </Select>
-                          <span className="text-muted-foreground font-bold">:</span>
+                          <span className="text-muted-foreground font-semibold">:</span>
                           <Select
                             value={from24h(categoryStartTime).m}
                             onValueChange={(mVal) => {
@@ -994,7 +994,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                               ))}
                             </SelectContent>
                           </Select>
-                          <span className="text-muted-foreground font-bold">:</span>
+                          <span className="text-muted-foreground font-semibold">:</span>
                           <Select
                             value={from24h(categoryEndTime).m}
                             onValueChange={(mVal) => {
@@ -1162,7 +1162,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <span className="text-muted-foreground font-bold">:</span>
+                            <span className="text-muted-foreground font-semibold">:</span>
                             <Select
                               value={from24h(sub.start_time).m}
                               onValueChange={(mVal) => {
@@ -1215,7 +1215,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <span className="text-muted-foreground font-bold">:</span>
+                            <span className="text-muted-foreground font-semibold">:</span>
                             <Select
                               value={from24h(sub.end_time).m}
                               onValueChange={(mVal) => {
@@ -1262,7 +1262,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="sm:col-span-2 flex flex-row items-center justify-end gap-3 pt-6 border-t mt-4 w-full">
                 <Button type="button" variant="outline" className="flex-1 sm:flex-none h-12 sm:h-10 text-[18px] sm:text-sm" onClick={() => resetForm()}>Cancel</Button>
-                <Button type="submit" disabled={loading} className="flex-1 sm:flex-none h-12 sm:h-10 text-[18px] sm:text-sm font-bold sm:font-semibold">
+                <Button type="submit" disabled={loading} className="flex-1 sm:flex-none h-12 sm:h-10 text-[18px] sm:text-sm font-semibold sm:font-semibold">
                   {loading ? "Scheduling..." : "Create Schedule"}
                 </Button>
               </div>
@@ -1417,10 +1417,10 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                         {/* Title Area */}
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1">
-                            <span className="text-[10px] tracking-wider uppercase font-bold text-muted-foreground px-2 py-0.5 rounded-full bg-secondary border border-border">
+                            <span className="text-[10px] tracking-wider uppercase font-semibold text-muted-foreground px-2 py-0.5 rounded-full bg-secondary border border-border">
                               {g.exam_type?.replace('_', ' ') || 'Exam'}
                             </span>
-                            <h3 className="font-bold text-lg text-foreground mt-1.5 tracking-tight leading-snug">{g.title}</h3>
+                            <h3 className="font-semibold text-lg text-foreground mt-1.5 tracking-tight leading-snug">{g.title}</h3>
                           </div>
 
                           <Badge className={`capitalize font-semibold text-xs px-2.5 py-1 rounded-lg border ${
@@ -1440,7 +1440,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                           <div className="flex items-start gap-2">
                             <BookOpen className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                             <div>
-                              <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Class Info</span>
+                              <span className="block text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Class Info</span>
                               <span className="font-semibold text-foreground text-[13px] leading-snug break-words">
                                 {g.batch} / {g.branch} / {g.semester}
                               </span>
@@ -1451,7 +1451,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                           <div className="flex items-start gap-2">
                             <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                             <div>
-                              <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Date & Time</span>
+                              <span className="block text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Date & Time</span>
                               <span className="font-semibold text-foreground text-[13px]">{g.dateStr}</span>
                             </div>
                           </div>
@@ -1460,7 +1460,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                           <div className="flex items-start gap-2">
                             <BookOpen className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                             <div>
-                              <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Subjects</span>
+                              <span className="block text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Subjects</span>
                               <span className="font-semibold text-foreground text-[13px]">{g.subjects.length} Subjects</span>
                             </div>
                           </div>
@@ -1469,7 +1469,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                           <div className="flex items-start gap-2">
                             <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                             <div>
-                              <span className="block text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Venue / Room</span>
+                              <span className="block text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Venue / Room</span>
                               <span className="font-semibold text-foreground text-[13px]">{g.subjects[0]?.room || 'TBD'}</span>
                             </div>
                           </div>
@@ -1665,7 +1665,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </SelectContent>
                   </Select>
 
-                  <span className="text-xs font-bold text-muted-foreground">:</span>
+                  <span className="text-xs font-semibold text-muted-foreground">:</span>
 
                   <Select
                     value={from24h(editFormData.start_time).m}
@@ -1723,7 +1723,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </SelectContent>
                   </Select>
 
-                  <span className="text-xs font-bold text-muted-foreground">:</span>
+                  <span className="text-xs font-semibold text-muted-foreground">:</span>
 
                   <Select
                     value={from24h(editFormData.end_time).m}

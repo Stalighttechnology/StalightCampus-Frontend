@@ -1657,64 +1657,76 @@ const AttendanceRecords = () => {
 
   // Export Records Summary Excel
   const handleExportRecordsListExcel = () => {
-    if (viewMode === "consolidated") {
-      if (!consolidatedRecords.length) {
-        toast({ variant: "destructive", title: "Export Failed", description: "No records to export." });
+    try {
+      if (!consolidatedRecords.length && !records.length) {
+        toast({ variant: "destructive", title: "Export Failed", description: "No attendance records found to export." });
         return;
       }
-      const exportRows = consolidatedRecords.map((c, index) => ({
-        "Sl No": index + 1,
-        "Duration": c.total_sessions === 1 ? formatDateToDDMMYYYY(c.first_date) : `${formatDateToDDMMYYYY(c.first_date)} to ${formatDateToDDMMYYYY(c.last_date)}`,
-        "Subject": c.subject || "--",
-        "Subject Code": c.subject_code || "--",
-        "Section": c.section || "--",
-        "Semester / Class": c.semester ? `${getInstitutionType() === 'school' ? 'Class' : 'Sem'} ${c.semester}` : "--",
-        "Department / Branch": c.branch || "--",
-        "Batch": c.batch || "--",
-        "Lab Batch": c.lab_batch_name || "--",
-        "Total Classes Held": c.total_sessions,
-        "Total Attended (Present)": c.total_present,
-        "Total Absent": c.total_absent,
-        "Total Student Calls": c.total_student_calls,
-        "Overall Turnout %": `${c.avg_attendance_pct}%`,
-        "Status": c.status
-      }));
 
-      const worksheet = XLSX.utils.json_to_sheet(exportRows);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Consolidated Summary");
-      XLSX.writeFile(workbook, `Consolidated_Attendance_Summary_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-      toast({ title: "Export Successful", description: `${consolidatedRecords.length} class summaries exported to Excel.` });
-      return;
+
+      // Sheet 1: Consolidated Class Summaries (matches the main table on screen)
+      if (consolidatedRecords.length > 0) {
+        const summaryRows = consolidatedRecords.map((c, index) => ({
+          "Sl No": index + 1,
+          "Duration / Dates": c.total_sessions === 1 ? formatDateToDDMMYYYY(c.first_date) : `${formatDateToDDMMYYYY(c.first_date)} to ${formatDateToDDMMYYYY(c.last_date)}`,
+          "Subject": c.subject || "--",
+          "Subject Code": c.subject_code || "--",
+          "Section": c.section || "--",
+          "Semester / Class": c.semester ? `${getInstitutionType() === 'school' ? 'Class' : 'Sem'} ${c.semester}` : "--",
+          "Department / Branch": c.branch || "--",
+          "Batch": c.batch || "--",
+          "Lab Batch": c.lab_batch_name || "--",
+          "Classes Held": c.total_sessions,
+          "Total Present": c.total_present,
+          "Total Absent": c.total_absent,
+          "Total Student Calls": c.total_student_calls,
+          "Overall Turnout %": `${c.avg_attendance_pct}%`,
+          "Status": c.status || "Completed"
+        }));
+
+        const summarySheet = XLSX.utils.json_to_sheet(summaryRows);
+        XLSX.utils.book_append_sheet(workbook, summarySheet, "Consolidated Summary");
+      }
+
+      // Sheet 2: Individual Daily Session Records
+      if (records.length > 0) {
+        const sessionRows = records.map((r, index) => ({
+          "Sl No": index + 1,
+          "Date": formatDateToDDMMYYYY(r.date),
+          "Subject": r.subject || "--",
+          "Subject Code": r.subject_code || "--",
+          "Section": r.section || "--",
+          "Semester / Class": r.semester ? `${getInstitutionType() === 'school' ? 'Class' : 'Sem'} ${r.semester}` : "--",
+          "Department / Branch": r.branch || "--",
+          "Batch": r.batch || "--",
+          "Lab Batch": r.lab_batch_name || "--",
+          "Present Count": r.summary?.present_count ?? 0,
+          "Absent Count": r.summary?.absent_count ?? 0,
+          "Total Strength": r.summary?.total_count ?? 0,
+          "Attendance %": `${r.summary?.present_percentage ?? 0}%`,
+          "Status": r.status || "Completed"
+        }));
+
+        const sessionsSheet = XLSX.utils.json_to_sheet(sessionRows);
+        XLSX.utils.book_append_sheet(workbook, sessionsSheet, "Daily Session Records");
+      }
+
+      const dateStr = format(new Date(), "yyyy-MM-dd");
+      const filename = `Faculty_Attendance_Records_${dateStr}.xlsx`;
+      XLSX.writeFile(workbook, filename);
+      toast({
+        title: "Export Successful",
+        description: `Exported ${consolidatedRecords.length} class summaries and ${records.length} session records to Excel.`
+      });
+    } catch (err: any) {
+      console.error("Export Excel error:", err);
+      toast({
+        variant: "destructive",
+        title: "Export Failed",
+        description: err?.message || "Failed to generate Excel file."
+      });
     }
-
-    if (!records.length) {
-      toast({ variant: "destructive", title: "Export Failed", description: "No records to export." });
-      return;
-    }
-
-    const exportRows = records.map((r, index) => ({
-      "Sl No": index + 1,
-      "Date": formatDateToDDMMYYYY(r.date),
-      "Subject": r.subject || "--",
-      "Subject Code": r.subject_code || "--",
-      "Section": r.section || "--",
-      "Semester / Class": r.semester ? `${getInstitutionType() === 'school' ? 'Class' : 'Sem'} ${r.semester}` : "--",
-      "Department / Branch": r.branch || "--",
-      "Batch": r.batch || "--",
-      "Lab Batch": r.lab_batch_name || "--",
-      "Present Count": r.summary.present_count,
-      "Absent Count": r.summary.absent_count,
-      "Total Strength": r.summary.total_count,
-      "Attendance %": `${r.summary.present_percentage}%`,
-      "Status": r.status
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(exportRows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance Sessions");
-    XLSX.writeFile(workbook, `Attendance_Sessions_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-    toast({ title: "Export Successful", description: `${records.length} session records exported to Excel.` });
   };
 
   const hasActiveFilters = Boolean(selectedBatch || selectedSubject || startDate || endDate || searchTerm);
@@ -1742,8 +1754,8 @@ const AttendanceRecords = () => {
                 size="sm"
                 variant="outline"
                 onClick={handleExportRecordsListExcel}
-                disabled={records.length === 0}
-                className="text-xs h-8 gap-1.5 border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium"
+                disabled={consolidatedRecords.length === 0 && records.length === 0}
+                className="text-xs h-8 gap-1.5 border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium cursor-pointer"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
                 Export Excel

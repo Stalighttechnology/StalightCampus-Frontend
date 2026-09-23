@@ -55,6 +55,8 @@ const Index = () => {
         currentPath.startsWith("/dean") ||
         currentPath.startsWith("/coe") ||
         currentPath.startsWith("/counsellor") ||
+        currentPath.startsWith("/inventory-manager") ||
+        currentPath.startsWith("/inventory-admin") ||
         currentPath.startsWith("/admission-manager");
 
       if (!isOnDashboard) {
@@ -87,6 +89,9 @@ const Index = () => {
             break;
           case "driver":
             navigate("/driver", { replace: true });
+            break;
+          case "inventory_manager":
+            navigate("/inventory-manager", { replace: true });
             break;
           case "teacher":
           case "faculty":

@@ -402,7 +402,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
 
                                         {/* Day header: number and star */}
                                         <div className="flex justify-between items-center w-full relative z-20">
-                                            <span className={`text-xs md:text-sm font-semibold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full transition-transform ${isToday ? 'bg-primary text-white shadow-md ring-2 ring-primary/25 ring-offset-1 dark:ring-offset-card font-bold scale-105' : (theme === 'dark' ? 'text-foreground' : 'text-gray-800')}`}>
+                                            <span className={`text-xs md:text-sm font-semibold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full transition-transform ${isToday ? 'bg-primary text-white shadow-md ring-2 ring-primary/25 ring-offset-1 dark:ring-offset-card font-semibold scale-105' : (theme === 'dark' ? 'text-foreground' : 'text-gray-800')}`}>
                                                 {isCurrentMonth ? format(day, 'dd') : ''}
                                             </span>
                                             {isCurrentMonth && hasHoliday && (
@@ -569,7 +569,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                     {selectedExam && (
                         <div className="space-y-3 py-3">
                             <div className={`rounded-lg p-3 border ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-100'}`}>
-                                <p className="text-sm font-bold text-amber-600 dark:text-amber-400">{selectedExam.subject}</p>
+                                <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">{selectedExam.subject}</p>
                                 {selectedExam.subject_code && (
                                     <p className="text-xs text-muted-foreground mt-0.5">{selectedExam.subject_code}</p>
                                 )}
@@ -634,7 +634,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ readOnly = fal
                                         ? (theme === 'dark' ? 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400' : 'bg-red-50 border-red-100 text-red-600')
                                         : (theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-yellow-50 border-yellow-100 text-yellow-600')
                             }`}>
-                                <p className="text-sm font-bold text-teal-600 dark:text-teal-400 capitalize">{selectedLeave.leave_type?.replace(/_/g, ' ')}</p>
+                                <p className="text-sm font-semibold text-teal-600 dark:text-teal-400 capitalize">{selectedLeave.leave_type?.replace(/_/g, ' ')}</p>
                                 {selectedLeave.title && (
                                     <p className="text-xs text-muted-foreground mt-0.5">{selectedLeave.title}</p>
                                 )}

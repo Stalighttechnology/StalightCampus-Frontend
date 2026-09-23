@@ -111,7 +111,7 @@ const ComplianceReports = () => {
           <div className={`p-2 rounded-xl ${isDark ? "bg-primary/20" : "bg-indigo-50"}`}>
             <BookOpen size={22} className={isDark ? "text-primary" : "text-indigo-600"} />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Compliance Reports</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Compliance Reports</h1>
         </div>
         <p className={`text-sm ${isDark ? "text-muted-foreground" : "text-gray-500"}`}>
           Generate NAAC Self Study Report (SSR) and NBA Self Assessment Report (SAR) with a single click.
@@ -155,14 +155,14 @@ const ComplianceReports = () => {
                 <div className="text-white">
                   {report.icon}
                   <span
-                    className="mt-3 inline-block text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/20"
+                    className="mt-3 inline-block text-xs font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/20"
                   >
                     {report.badge}
                   </span>
                 </div>
                 <FileCheck size={18} className="text-white/60" />
               </div>
-              <h2 className="mt-4 text-2xl font-bold text-white">{report.title}</h2>
+              <h2 className="mt-4 text-2xl font-semibold text-white">{report.title}</h2>
               <p className="text-white/80 text-sm font-medium">{report.subtitle}</p>
             </div>
 

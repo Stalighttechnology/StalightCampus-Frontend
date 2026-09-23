@@ -99,7 +99,8 @@ const HODSyllabusTracker = () => {
         subject_id: subjectId.toString(),
         branch_id: "",
         semester_id: semesterId?.toString() || "",
-        section_id: ""
+        section_id: "",
+        batch_id: batchId?.toString() || ""
       });
 
       const url = window.URL.createObjectURL(blob);

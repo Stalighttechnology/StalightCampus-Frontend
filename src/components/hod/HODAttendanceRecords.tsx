@@ -1487,7 +1487,7 @@ const HODAttendanceRecords = () => {
                   className={cn(
                     "px-3 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
                     chartView === "batch"
-                      ? "bg-background text-foreground shadow-xs font-bold"
+                      ? "bg-background text-foreground shadow-xs font-semibold"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -1500,7 +1500,7 @@ const HODAttendanceRecords = () => {
                   className={cn(
                     "px-3 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
                     chartView === "semester"
-                      ? "bg-background text-foreground shadow-xs font-bold"
+                      ? "bg-background text-foreground shadow-xs font-semibold"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -1594,7 +1594,7 @@ const HODAttendanceRecords = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                       <GraduationCap className="w-4 h-4 text-primary" />
                       <span>{chartView === "batch" ? "Academic Batch Turnout Cards" : "Semester Turnout Cards"}</span>
                     </h3>
@@ -1635,7 +1635,7 @@ const HODAttendanceRecords = () => {
                         >
                           <div className="flex items-start justify-between gap-2.5">
                             <div className="space-y-1 min-w-0">
-                              <div className="font-bold text-sm text-foreground flex items-center gap-1.5 flex-wrap">
+                              <div className="font-semibold text-sm text-foreground flex items-center gap-1.5 flex-wrap">
                                 <span className="truncate">{item.name}</span>
                                 {isSelected && (
                                   <Badge className="text-[9px] px-1.5 py-0 bg-primary text-primary-foreground font-semibold shrink-0">
@@ -1805,12 +1805,12 @@ const HODAttendanceRecords = () => {
                             return (
                               <div className="bg-popover/95 backdrop-blur-sm p-3 rounded-xl border border-border shadow-xl space-y-1.5 min-w-[170px]">
                                 <div className="flex items-center justify-between gap-2 pb-1 border-b border-border/60">
-                                  <div className="font-bold text-xs text-foreground truncate max-w-[120px]">
+                                  <div className="font-semibold text-xs text-foreground truncate max-w-[120px]">
                                     {d.name}
                                   </div>
                                   <span
                                     className={cn(
-                                      "px-2 py-0.5 rounded-md text-xs font-bold shrink-0",
+                                      "px-2 py-0.5 rounded-md text-xs font-semibold shrink-0",
                                       isGood
                                         ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
                                         : isWarning
@@ -1996,7 +1996,7 @@ const HODAttendanceRecords = () => {
               <div className="space-y-2">
                 <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">
                   {getInstitutionType() === "school" ? "Class" : translateTerminology("Semester")}
-                  <span className="text-rose-500 ml-1 font-bold">*</span>
+                  <span className="text-rose-500 ml-1 font-semibold">*</span>
                 </label>
                 <Select
                   value={selectedSemester}
@@ -2043,7 +2043,7 @@ const HODAttendanceRecords = () => {
               {/* 3. Section Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">
-                  Section<span className="text-rose-500 ml-1 font-bold">*</span>
+                  Section<span className="text-rose-500 ml-1 font-semibold">*</span>
                 </label>
                 <Select
                   value={selectedSection}
@@ -2096,7 +2096,7 @@ const HODAttendanceRecords = () => {
               {/* 4. Subject Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">
-                  Subject / Course<span className="text-rose-500 ml-1 font-bold">*</span>
+                  Subject / Course<span className="text-rose-500 ml-1 font-semibold">*</span>
                 </label>
                 <Select
                   value={selectedSubject}
@@ -2147,7 +2147,7 @@ const HODAttendanceRecords = () => {
               {/* 5. Date Range Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">
-                  Date Range<span className="text-rose-500 ml-1 font-bold">*</span>
+                  Date Range<span className="text-rose-500 ml-1 font-semibold">*</span>
                 </label>
                 <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                   <PopoverTrigger asChild>
@@ -2457,7 +2457,7 @@ const HODAttendanceRecords = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-sm sm:text-base text-foreground">
+                      <span className="font-semibold text-sm sm:text-base text-foreground">
                         {facultyInfo?.subject_name || availableSubjects.find((s) => String(s.id) === selectedSubject)?.name || "Subject Attendance"}
                       </span>
                       {(facultyInfo?.subject_code || availableSubjects.find((s) => String(s.id) === selectedSubject)?.subject_code) && (
@@ -2631,16 +2631,16 @@ const HODAttendanceRecords = () => {
                             <TableCell className="text-center font-medium text-xs sm:text-sm text-foreground">
                               {s.conducted_classes}
                             </TableCell>
-                            <TableCell className="text-center font-bold text-xs sm:text-sm text-emerald-600 dark:text-emerald-400">
+                            <TableCell className="text-center font-semibold text-xs sm:text-sm text-emerald-600 dark:text-emerald-400">
                               {s.attended_classes}
                             </TableCell>
-                            <TableCell className="text-center font-bold text-xs sm:text-sm text-rose-600 dark:text-rose-400">
+                            <TableCell className="text-center font-semibold text-xs sm:text-sm text-rose-600 dark:text-rose-400">
                               {s.absent_classes}
                             </TableCell>
                             <TableCell className="text-center">
                               <span
                                 className={cn(
-                                  "inline-flex items-center justify-center font-bold px-2.5 py-0.5 rounded-full text-xs border",
+                                  "inline-flex items-center justify-center font-semibold px-2.5 py-0.5 rounded-full text-xs border",
                                   badgeColor
                                 )}
                               >
@@ -2787,7 +2787,7 @@ const HODAttendanceRecords = () => {
         <DialogContent className="max-w-2xl w-[95vw] max-h-[85vh] flex flex-col p-0 overflow-hidden">
           <DialogHeader className="p-4 sm:p-5 pb-3 border-b border-border bg-muted/20">
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-base sm:text-lg font-bold flex items-center gap-2">
+              <DialogTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-primary" />
                 Lecture Attendance Breakdown
               </DialogTitle>
@@ -2855,19 +2855,19 @@ const HODAttendanceRecords = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
                   <div className="p-2.5 rounded-lg bg-muted/40 border border-border/60">
                     <div className="text-xs text-muted-foreground">Total Students</div>
-                    <div className="text-lg font-bold mt-0.5">{recordDetails.total_count}</div>
+                    <div className="text-lg font-semibold mt-0.5">{recordDetails.total_count}</div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                     <div className="text-xs font-medium">Present</div>
-                    <div className="text-lg font-bold mt-0.5">{recordDetails.present_count}</div>
+                    <div className="text-lg font-semibold mt-0.5">{recordDetails.present_count}</div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400">
                     <div className="text-xs font-medium">Absent</div>
-                    <div className="text-lg font-bold mt-0.5">{recordDetails.absent_count}</div>
+                    <div className="text-lg font-semibold mt-0.5">{recordDetails.absent_count}</div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">
                     <div className="text-xs font-medium">Attendance</div>
-                    <div className="text-lg font-bold mt-0.5">
+                    <div className="text-lg font-semibold mt-0.5">
                       {recordDetails.present_percentage}%
                     </div>
                   </div>
@@ -2889,7 +2889,7 @@ const HODAttendanceRecords = () => {
                   {/* Present List */}
                   <div className="border border-emerald-500/30 rounded-lg p-3 bg-emerald-500/[0.02]">
                     <div className="flex items-center justify-between pb-2 mb-2 border-b border-emerald-500/20">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                         <CheckCircle className="w-4 h-4" />
                         <span>Present Students ({filteredModalStudents.present.length})</span>
                       </div>
@@ -2916,7 +2916,7 @@ const HODAttendanceRecords = () => {
                               <Badge
                                 variant="outline"
                                 className={cn(
-                                  "text-[11px] px-2 py-0.5 font-bold",
+                                  "text-[11px] px-2 py-0.5 font-semibold",
                                   (s.subject_percentage ?? 0) >= 75
                                     ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                                     : (s.subject_percentage ?? 0) >= 50
@@ -2941,7 +2941,7 @@ const HODAttendanceRecords = () => {
                   {/* Absent List */}
                   <div className="border border-rose-500/30 rounded-lg p-3 bg-rose-500/[0.02]">
                     <div className="flex items-center justify-between pb-2 mb-2 border-b border-rose-500/20">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
                         <XCircle className="w-4 h-4" />
                         <span>Absent Students ({filteredModalStudents.absent.length})</span>
                       </div>
@@ -2968,7 +2968,7 @@ const HODAttendanceRecords = () => {
                               <Badge
                                 variant="outline"
                                 className={cn(
-                                  "text-[11px] px-2 py-0.5 font-bold",
+                                  "text-[11px] px-2 py-0.5 font-semibold",
                                   (s.subject_percentage ?? 0) >= 75
                                     ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                                     : (s.subject_percentage ?? 0) >= 50
@@ -3036,7 +3036,7 @@ const HODAttendanceRecords = () => {
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <History className="w-5 h-5 text-primary" />
-                <DialogTitle className="text-base sm:text-lg font-bold">
+                <DialogTitle className="text-base sm:text-lg font-semibold">
                   Student Attendance Timeline
                 </DialogTitle>
               </div>
@@ -3045,7 +3045,7 @@ const HODAttendanceRecords = () => {
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-xs px-2.5 py-0.5 font-bold hidden sm:inline-flex",
+                      "text-xs px-2.5 py-0.5 font-semibold hidden sm:inline-flex",
                       selectedStudentForTimeline.attendance_percentage >= 75
                         ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                         : selectedStudentForTimeline.attendance_percentage >= 60
@@ -3095,19 +3095,19 @@ const HODAttendanceRecords = () => {
                 <div className="grid grid-cols-3 gap-2.5 text-center">
                   <div className="p-3 rounded-xl bg-card border border-border/70 shadow-xs">
                     <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Total Classes</div>
-                    <div className="text-lg sm:text-xl font-bold mt-1 text-foreground">
+                    <div className="text-lg sm:text-xl font-semibold mt-1 text-foreground">
                       {selectedStudentForTimeline.conducted_classes}
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 shadow-xs">
                     <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider">Attended</div>
-                    <div className="text-lg sm:text-xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+                    <div className="text-lg sm:text-xl font-semibold mt-1 text-emerald-600 dark:text-emerald-400">
                       {selectedStudentForTimeline.attended_classes}
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 shadow-xs">
                     <div className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold uppercase tracking-wider">Absent</div>
-                    <div className="text-lg sm:text-xl font-bold mt-1 text-rose-600 dark:text-rose-400">
+                    <div className="text-lg sm:text-xl font-semibold mt-1 text-rose-600 dark:text-rose-400">
                       {selectedStudentForTimeline.absent_classes}
                     </div>
                   </div>
@@ -3143,7 +3143,7 @@ const HODAttendanceRecords = () => {
                             )}
                           >
                             <div className="flex items-center gap-3 min-w-0">
-                              <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">
+                              <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-semibold text-muted-foreground shrink-0">
                                 #{idx + 1}
                               </span>
                               <div className="min-w-0">
@@ -3169,12 +3169,12 @@ const HODAttendanceRecords = () => {
 
                             <div className="shrink-0">
                               {isPresent ? (
-                                <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 text-xs font-bold gap-1 px-2.5 py-1">
+                                <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 text-xs font-semibold gap-1 px-2.5 py-1">
                                   <CheckCircle className="w-3.5 h-3.5" />
                                   Present
                                 </Badge>
                               ) : isAbsent ? (
-                                <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30 hover:bg-rose-500/20 text-xs font-bold gap-1 px-2.5 py-1">
+                                <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30 hover:bg-rose-500/20 text-xs font-semibold gap-1 px-2.5 py-1">
                                   <XCircle className="w-3.5 h-3.5" />
                                   Absent
                                 </Badge>

@@ -989,36 +989,9 @@ const SyllabusTracker = () => {
                                             }}
                                             className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer accent-primary"
                                           />
-                                          <Select
-                                            value={String(log.day || idx + 1)}
-                                            onValueChange={(val) => {
-                                              const updated = [...dailyLogs];
-                                              const selectedDayNum = Number(val);
-                                              const opt = DAY_OPTIONS.find(o => o.value === selectedDayNum);
-                                              const matchedPlan = plannedDays.find((pd: any) => pd.day === selectedDayNum);
-                                              updated[idx] = {
-                                                ...log,
-                                                day: selectedDayNum,
-                                                day_name: opt?.label || `Day ${selectedDayNum}`,
-                                                topic_covered: log.topic_covered || (matchedPlan ? matchedPlan.topic : "")
-                                              };
-                                              setProgressEdits({
-                                                ...progressEdits,
-                                                [w.week]: { ...edit, daily_logs: sortDailyLogs(updated) }
-                                              });
-                                            }}
-                                          >
-                                            <SelectTrigger className="h-8 min-w-28 text-xs font-semibold bg-background">
-                                              <SelectValue placeholder="Select Day" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {DAY_OPTIONS.map((d) => (
-                                                <SelectItem key={d.value} value={String(d.value)} className="text-xs font-medium">
-                                                  {d.label}
-                                                </SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
+                                          <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-muted/70 text-foreground border border-border/70 min-w-22 text-center shrink-0">
+                                            {log.day_name || (log.date ? getDayInfoFromDate(parseDateString(log.date))?.day_name : `Day ${idx + 1}`)}
+                                          </span>
                                         </div>
 
                                         {/* Status Badge */}
