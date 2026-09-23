@@ -18,7 +18,8 @@ import {
   FileText,
   MessageSquare,
   Mail,
-  Megaphone
+  Megaphone,
+  Briefcase
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useTheme } from "../context/ThemeContext";
@@ -60,6 +61,7 @@ const allMenuItems = [
   { id: "nda", label: "NDA & Consents", icon: <FileText size={20} /> },
   { id: "marketing", label: "Marketing Emails", icon: <Mail size={20} /> },
   { id: "certificates", label: "Certificates", icon: <FileText size={20} /> },
+  { id: "offer-letters", label: "Offer Letters", icon: <Briefcase size={20} /> },
   { id: "profile", label: "My Profile", icon: <UserCircle2 size={20} /> },
 ];
 

@@ -26,6 +26,7 @@ import { Sun, Moon, Menu } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Capacitor } from "@capacitor/core";
 import CertificateManagement from "../components/admin/CertificateManagement";
+import OfferLetterManagement from "../components/admin/OfferLetterManagement";
 
 interface Props {
   setIsAuthenticated: (val: boolean) => void;
@@ -162,6 +163,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
               <Route path="marketing" element={<BulkEmailer />} />
               <Route path="profile" element={<Profile />} />
               <Route path="certificates" element={<CertificateManagement />} />
+              <Route path="offer-letters" element={<OfferLetterManagement />} />
               <Route path="office-locations" element={<OfficeLocation />} />
               <Route path="developer-audit" element={<DeveloperAttendanceAudit />} />
               <Route path="announcements" element={<DeveloperAnnouncements />} />
