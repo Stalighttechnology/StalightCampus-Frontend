@@ -359,8 +359,14 @@ const AppContent = () => {
             </>
           } />
 
-          {/* Public Offer Letter Verification */}
+          {/* Public Offer Letter Verification & Verification Alias */}
           <Route path="/verify-offer/:offerId" element={
+            <>
+              <VerifyOffer />
+              {shouldShowFloatingAssistant() && <FloatingAssistant />}
+            </>
+          } />
+          <Route path="/verify/:offerId" element={
             <>
               <VerifyOffer />
               {shouldShowFloatingAssistant() && <FloatingAssistant />}

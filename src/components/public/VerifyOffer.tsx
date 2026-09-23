@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { CheckCircle2, XCircle, ShieldCheck, Download, Building2, Calendar, User, Briefcase, FileText, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { API_ENDPOINT } from "@/utils/config";
 
 interface OfferDetails {
   offer_id: string;
@@ -36,7 +37,7 @@ export const VerifyOffer: React.FC = () => {
     const fetchOffer = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/public/verify-offer/${encodeURIComponent(offerId)}/`);
+        const res = await fetch(`${API_ENDPOINT}/public/verify-offer/${encodeURIComponent(offerId)}/`);
         if (!res.ok) {
           if (res.status === 404) {
             setError("No authentic offer letter was found matching this credential ID.");
