@@ -29,18 +29,41 @@ export const VerifyOffer: React.FC = () => {
 
   useEffect(() => {
     if (!offerId) {
-      setError("No Offer Reference ID provided.");
+      setError("No Credential Reference ID provided.");
       setLoading(false);
       return;
     }
 
-    const fetchOffer = async () => {
+    const fetchCredential = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_ENDPOINT}/public/verify-offer/${encodeURIComponent(offerId)}/`);
+        // Try offer letter first
+        let res = await fetch(`${API_ENDPOINT}/public/verify-offer/${encodeURIComponent(offerId)}/`);
+        
+        // If not found or if it's a certificate ID format, try certificate verification
+        if (!res.ok && (res.status === 404 || offerId.startsWith("STL-INT-20") || offerId.startsWith("STL-COURSE-") || offerId.startsWith("STL-WORK-"))) {
+          const certRes = await fetch(`${API_ENDPOINT}/public/verify/${encodeURIComponent(offerId)}/`);
+          if (certRes.ok) {
+            const certData = await certRes.json();
+            setOffer({
+              offer_id: certData.certificate_id,
+              candidate_name: certData.student_name,
+              email: certData.email,
+              designation: certData.internship_role || certData.course_name || "Intern",
+              offer_type: certData.certificate_type,
+              date_of_joining: certData.start_date || certData.issue_date,
+              issue_date: certData.issue_date,
+              status: certData.status || "Verified",
+              pdf_url: certData.pdf_url,
+            });
+            setError(null);
+            return;
+          }
+        }
+
         if (!res.ok) {
           if (res.status === 404) {
-            setError("No authentic offer letter was found matching this credential ID.");
+            setError("No authentic credential was found matching this reference ID.");
           } else {
             setError("Unable to verify credential at this moment. Please try again later.");
           }
@@ -58,7 +81,7 @@ export const VerifyOffer: React.FC = () => {
       }
     };
 
-    fetchOffer();
+    fetchCredential();
   }, [offerId]);
 
   const getOfferTypeLabel = (type: string) => {
@@ -199,14 +222,19 @@ export const VerifyOffer: React.FC = () => {
                 </span>
 
                 <a
-                  href={`/api/offer-letters/${encodeURIComponent(offer.offer_id)}/download/`}
+                  href={
+                    offer.pdf_url ||
+                    (offer.offer_id.startsWith("STL-INT-20") || offer.offer_id.startsWith("STL-COURSE-") || offer.offer_id.startsWith("STL-WORK-")
+                      ? `${API_ENDPOINT}/certificates/download/${encodeURIComponent(offer.offer_id)}/`
+                      : `${API_ENDPOINT}/offer-letters/${encodeURIComponent(offer.offer_id)}/download/`)
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto"
                 >
                   <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-semibold shadow-md">
                     <Download className="w-4 h-4" />
-                    Download Official PDF
+                    Download Official Document (PDF)
                   </Button>
                 </a>
               </div>
