@@ -667,7 +667,14 @@ const UploadMarks = () => {
         detail: true
       });
       if (qpResponse.success && qpResponse.data) {
+        // Prioritize approved question paper first, otherwise fallback to any matching QP (to display pending/rejected status)
         let existingQp = qpResponse.data.find((q: any) => {
+          const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
+          return branchId === selected.branch_id &&
+            q.subject === selected.subject_id &&
+            q.test_type === selected.testType &&
+            q.status === 'approved';
+        }) || qpResponse.data.find((q: any) => {
           const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
           return branchId === selected.branch_id &&
             q.subject === selected.subject_id &&
@@ -775,6 +782,12 @@ const UploadMarks = () => {
     let existingQp = null;
     if (qpResponse.success && qpResponse.data) {
       existingQp = qpResponse.data.find((q: any) => {
+        const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
+        return branchId === selected.branch_id &&
+          q.subject === selected.subject_id &&
+          q.test_type === selected.testType &&
+          q.status === 'approved';
+      }) || qpResponse.data.find((q: any) => {
         const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
         return branchId === selected.branch_id && q.subject === selected.subject_id && q.test_type === selected.testType;
       });
