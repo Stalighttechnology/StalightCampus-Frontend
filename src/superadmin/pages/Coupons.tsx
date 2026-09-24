@@ -9,6 +9,16 @@ import { useToast } from '@/components/ui/use-toast';
 import { manageCoupons } from '@/utils/authService';
 import { Plus, Tag, Calendar, Activity, Trash2, Loader2, IndianRupee } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useTheme } from '../../context/ThemeContext';
 
 interface Coupon {
@@ -27,6 +37,8 @@ export const AdminCoupons: React.FC = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [deleteCouponId, setDeleteCouponId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
   const { theme } = useTheme();
@@ -99,18 +111,22 @@ export const AdminCoupons: React.FC = () => {
     }
   };
 
-  const deleteCoupon = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this coupon?')) return;
+  const confirmDeleteCoupon = async () => {
+    if (!deleteCouponId) return;
     try {
-      const res = await manageCoupons('DELETE', null, id);
+      setDeleting(true);
+      const res = await manageCoupons('DELETE', null, deleteCouponId);
       if (res.success) {
-        setCoupons(prev => prev.filter(c => c.id !== id));
-        toast({ title: 'Success', description: 'Coupon deleted' });
+        setCoupons(prev => prev.filter(c => c.id !== deleteCouponId));
+        toast({ title: 'Success', description: 'Coupon deleted successfully' });
+        setDeleteCouponId(null);
       } else {
         toast({ title: 'Error', description: res.message, variant: 'destructive' });
       }
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -182,7 +198,7 @@ export const AdminCoupons: React.FC = () => {
                         onCheckedChange={() => toggleStatus(coupon.id, coupon.is_active)}
                       />
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => deleteCoupon(coupon.id)} className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                    <Button variant="ghost" size="icon" onClick={() => setDeleteCouponId(coupon.id)} className="text-destructive hover:bg-destructive/10 hover:text-destructive">
                       <Trash2 size={16} />
                     </Button>
                   </div>
@@ -284,6 +300,31 @@ export const AdminCoupons: React.FC = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Coupon Alert Dialog */}
+      <AlertDialog open={!!deleteCouponId} onOpenChange={(open) => !open && setDeleteCouponId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Coupon?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this coupon? This action cannot be undone and will prevent any new checkouts from using this coupon code.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDeleteCoupon();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting..." : "Delete Coupon"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

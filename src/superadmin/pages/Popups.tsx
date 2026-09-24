@@ -8,7 +8,17 @@ import { Label } from "../../components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../../components/ui/select";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Plus, Edit2, Trash2, CheckCircle2, XCircle, RotateCcw } from "lucide-react";
-import { showSuccessAlert, showConfirmAlert } from "../../utils/sweetalert";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useTheme } from "../../context/ThemeContext";
 
 interface Popup {
@@ -30,10 +40,13 @@ import { AppVersionControlCard } from "./AppVersionControlCard";
 
 const Popups = () => {
   const { theme } = useTheme();
+  const { toast } = useToast();
   const [popups, setPopups] = useState<Popup[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [deletePopupId, setDeletePopupId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
   
   const [formData, setFormData] = useState<Partial<Popup>>({
     title: "",
@@ -87,10 +100,10 @@ const Popups = () => {
       });
 
       if (res.ok) {
-        showSuccessAlert(
-          "Success",
-          `Popup ${isEditing ? "updated" : "created"} successfully!`
-        );
+        toast({
+          title: "Success",
+          description: `Popup ${isEditing ? "updated" : "created"} successfully!`
+        });
         setShowForm(false);
         setIsEditing(false);
         setFormData({
@@ -99,30 +112,42 @@ const Popups = () => {
         });
         fetchPopups();
       } else {
-        alert("Failed to save popup.");
+        toast({
+          title: "Error",
+          description: "Failed to save popup.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error("Save error", error);
+      toast({
+        title: "Error",
+        description: "An error occurred while saving.",
+        variant: "destructive"
+      });
     }
   };
 
-  const handleDelete = async (id: number) => {
-    const confirm = await showConfirmAlert(
-      "Are you sure?",
-      "Do you really want to delete this popup?"
-    );
-    if (!confirm.isConfirmed) return;
+  const confirmDeletePopup = async () => {
+    if (!deletePopupId) return;
 
     try {
-      const res = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/admin/popups/${id}/`, {
+      setDeleting(true);
+      const res = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/admin/popups/${deletePopupId}/`, {
         method: "DELETE",
       });
       if (res.ok) {
-        showSuccessAlert("Deleted", "Popup deleted successfully");
+        toast({ title: "Deleted", description: "Popup deleted successfully" });
+        setDeletePopupId(null);
         fetchPopups();
+      } else {
+        toast({ title: "Error", description: "Failed to delete popup", variant: "destructive" });
       }
     } catch (error) {
       console.error("Delete error", error);
+      toast({ title: "Error", description: "Network error", variant: "destructive" });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -369,7 +394,7 @@ const Popups = () => {
                     <Edit2 size={14} />
                   </Button>
                   
-                  <Button variant="destructive" size="icon" onClick={() => handleDelete(popup.id)}>
+                  <Button variant="destructive" size="icon" onClick={() => setDeletePopupId(popup.id)}>
                     <Trash2 size={14} />
                   </Button>
                 </div>
@@ -387,6 +412,31 @@ const Popups = () => {
           )}
         </div>
       )}
+
+      {/* Delete Popup Alert Dialog */}
+      <AlertDialog open={!!deletePopupId} onOpenChange={(open) => !open && setDeletePopupId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Popup Announcement?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this popup? This action cannot be undone and will prevent the modal from displaying to any users.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDeletePopup();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting..." : "Delete Popup"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

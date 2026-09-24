@@ -8,6 +8,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -426,6 +436,8 @@ export const HQChatUI = () => {
   const [sending, setSending] = useState(false);
   const [search, setSearch] = useState("");
   const [unreadMap, setUnreadMap] = useState<Record<number, number>>({});
+  const [deleteChatConfirmOpen, setDeleteChatConfirmOpen] = useState(false);
+  const [deletingChat, setDeletingChat] = useState(false);
 
   const [text, setText] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
@@ -692,7 +704,7 @@ export const HQChatUI = () => {
                     />
                   </>
                 )}
-                <Button variant="ghost" size="icon" onClick={() => { if(confirm("Are you sure you want to delete this chat?")) handleLeaveOrDelete("delete") }} className="h-8 w-8 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20" title="Delete chat">
+                <Button variant="ghost" size="icon" onClick={() => setDeleteChatConfirmOpen(true)} className="h-8 w-8 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20" title="Delete chat">
                   <Trash2 size={16} />
                 </Button>
               </div>
@@ -810,6 +822,37 @@ export const HQChatUI = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Chat Confirmation Alert Dialog */}
+      <AlertDialog open={deleteChatConfirmOpen} onOpenChange={setDeleteChatConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Chat Conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this chat? All messages in this conversation will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingChat}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async (e) => {
+                e.preventDefault();
+                setDeletingChat(true);
+                try {
+                  await handleLeaveOrDelete("delete");
+                  setDeleteChatConfirmOpen(false);
+                } finally {
+                  setDeletingChat(false);
+                }
+              }}
+              disabled={deletingChat}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingChat ? "Deleting..." : "Delete Chat"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -44,6 +44,7 @@ import {
 import { Switch } from "../../components/ui/switch";
 import { API_BASE_URL } from "@/utils/config";
 import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
+import { useToast } from "@/components/ui/use-toast";
 
 const Organizations = () => {
   const [orgs, setOrgs] = useState<any[]>([]);
@@ -51,6 +52,7 @@ const Organizations = () => {
   const [search, setSearch] = useState("");
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Action states
   const [deleteOrg, setDeleteOrg] = useState<any>(null);
@@ -58,6 +60,7 @@ const Organizations = () => {
   const [newPlan, setNewPlan] = useState<string>("");
   const [actionLoading, setActionLoading] = useState(false);
   const [viewOrg, setViewOrg] = useState<any | null>(null);
+  const [confirmModuleSaveOpen, setConfirmModuleSaveOpen] = useState(false);
   const [viewOrgLoading, setViewOrgLoading] = useState(false);
 
   const [moduleOrg, setModuleOrg] = useState<any | null>(null);
@@ -111,12 +114,13 @@ const Organizations = () => {
       if (response.ok) {
         setOrgs(orgs.filter((o) => o.id !== deleteOrg.id));
         setDeleteOrg(null);
+        toast({ title: 'Success', description: 'Organization deleted successfully' });
       } else {
-        const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete organization');
+        const errorData = await response.json().catch(() => ({}));
+        toast({ title: 'Error', description: errorData.error || 'Failed to delete organization', variant: 'destructive' });
       }
     } catch (error) {
-      alert('Error deleting organization');
+      toast({ title: 'Error', description: 'Error deleting organization', variant: 'destructive' });
     } finally {
       setActionLoading(false);
     }
@@ -137,9 +141,12 @@ const Organizations = () => {
       if (response.ok) {
         await fetchOrgs(); // Refresh data
         setPlanOrg(null);
+        toast({ title: 'Success', description: 'Subscription plan updated successfully' });
+      } else {
+        toast({ title: 'Error', description: 'Failed to update subscription plan', variant: 'destructive' });
       }
     } catch (error) {
-
+      toast({ title: 'Error', description: 'Failed to update subscription plan', variant: 'destructive' });
     } finally {
       setActionLoading(false);
     }
@@ -167,9 +174,6 @@ const Organizations = () => {
   };
 
   const handleModuleSave = async () => {
-    if (!window.confirm(`Are you sure you want to save these module changes for ${moduleOrg?.name}?\n\nDisabled modules will instantly disappear from the sidebar for ALL users across this institution.`)) {
-      return;
-    }
     setModuleSaveLoading(true);
     try {
       const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/organizations/${moduleOrg.id}/`, {
@@ -182,10 +186,14 @@ const Organizations = () => {
       });
       if (response.ok) {
         setModuleOrg(null);
+        setConfirmModuleSaveOpen(false);
         fetchOrgs();
+        toast({ title: 'Success', description: 'Module permissions saved successfully' });
+      } else {
+        toast({ title: 'Error', description: 'Failed to save module changes', variant: 'destructive' });
       }
     } catch (error) {
-      console.error(error);
+      toast({ title: 'Error', description: 'Failed to save module changes', variant: 'destructive' });
     } finally {
       setModuleSaveLoading(false);
     }
@@ -453,13 +461,41 @@ const Organizations = () => {
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setModuleOrg(null)}>Cancel</Button>
-            <Button onClick={handleModuleSave} disabled={moduleSaveLoading}>
-              {moduleSaveLoading ? "Saving..." : "Save Modules"}
+            <Button variant="outline" onClick={() => setModuleOrg(null)} disabled={moduleSaveLoading}>Cancel</Button>
+            <Button onClick={() => setConfirmModuleSaveOpen(true)} disabled={moduleSaveLoading}>
+              Save Modules
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirm Save Modules Alert Dialog */}
+      <AlertDialog open={confirmModuleSaveOpen} onOpenChange={setConfirmModuleSaveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save Module Changes?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <span>Are you sure you want to save these module changes for <strong>{moduleOrg?.name}</strong>?</span>
+              <span className="block text-xs text-muted-foreground mt-2">
+                Disabled modules will instantly disappear from the sidebar for ALL users across this institution.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={moduleSaveLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleModuleSave();
+              }}
+              disabled={moduleSaveLoading}
+              className="bg-primary text-primary-foreground"
+            >
+              {moduleSaveLoading ? "Saving..." : "Confirm & Save"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={!!viewOrg} onOpenChange={(open) => !open && setViewOrg(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
