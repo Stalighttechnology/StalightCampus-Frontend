@@ -35,6 +35,7 @@ import AdminQPApprovals from "../admin/AdminQPApprovals";
 import ComplianceReports from "../admin/ComplianceReports";
 import Reports from "../FeesManager/Reports";
 import { InventoryHub } from "../inventory/InventoryHub";
+import CollegeDetailsPage from "../college_details/CollegeDetailsPage";
 
 interface DeanUser {
   username: string;
@@ -50,6 +51,7 @@ const getActivePageFromPath = (pathname: string): string => {
   const lastPart = pathParts[pathParts.length - 1] || '';
   const pathMap: { [key: string]: string } = {
     'dean': 'dashboard',
+    'college-details': 'college-details',
     'my-payroll': 'my-payroll',
     'my-attendance': 'my-attendance',
     'staff-tasks': 'staff-tasks',
@@ -113,6 +115,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
     switch (activePage) {
       case 'dashboard':
         return <div><DeanStats /></div>;
+      case 'college-details':
+        return <CollegeDetailsPage userRole="dean" />;
       case 'attendance':
         return <div><DeanAttendance /></div>;
       case 'faculty-attendance':

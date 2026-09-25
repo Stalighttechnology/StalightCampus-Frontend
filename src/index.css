@@ -891,3 +891,121 @@ body.tutorial-active aside {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.7);
 }
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  html,
+  body {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide the underlying root web page when printing */
+  #root {
+    display: none !important;
+  }
+
+  /* Make Radix Portal flow naturally in print */
+  [data-radix-portal] {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide backdrop overlay, dialog close button, and modal action bar */
+  [data-radix-portal] > [class*="fixed"],
+  [data-radix-portal] button,
+  #report-modal-header,
+  .print\:hidden,
+  .print-hidden {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Reset Radix DialogContent to static full-page flow */
+  [role="dialog"] {
+    position: static !important;
+    transform: none !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  /* Wrapper for printable canvas */
+  #report-canvas-wrapper {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  #printable-college-report-card {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    display: block !important;
+  }
+
+  /* Table and section page-break controls */
+  #printable-college-report-card table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+
+  #printable-college-report-card tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  #printable-college-report-card th,
+  #printable-college-report-card td {
+    border: 1px solid #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #printable-college-report-card .report-section {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}

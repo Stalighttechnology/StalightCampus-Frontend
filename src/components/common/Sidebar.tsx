@@ -48,7 +48,7 @@ import {
   CalendarCheck, Megaphone, ListTodo, RefreshCcw, FileQuestion, PieChart,
   Clock, LineChart, List, Activity, MonitorPlay, BookCopy, PenTool, DoorOpen,
   UtensilsCrossed, ClipboardSignature, Ticket, BusFront, Map, Navigation, History, Library, Repeat, FileCode, CheckCircle2, TrendingUp, ArrowLeftRight, Link, QrCode, Boxes,
-  ShoppingCart, Wrench, Layers, MapPin
+  ShoppingCart, Wrench, Layers, MapPin, Building2
 } from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
 import {
@@ -501,6 +501,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "return-to-hod": <LogOut size={20} />,
       "alumni-directory": <GraduationCap size={20} />,
       "external-links": <Link size={20} />,
+      "college-details": <Building2 size={20} />,
     };
     return iconMap[page] || <LayoutDashboard size={20} />;
   };
@@ -559,6 +560,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "My Attendance", page: "my-attendance" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Reports", page: "reports" },
+      { name: "College Profile & Report Card", page: "college-details" },
       { name: "Finance", page: "finance" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Staff Tasks", page: "staff-tasks" },
@@ -586,6 +588,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Payments", page: "payments" },
       { name: "Invoices", page: "invoices" },
       { name: "Reports", page: "reports" },
+      { name: "College Profile & Report Card", page: "college-details" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Campus Locations", page: "campus-locations" },
@@ -614,6 +617,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Faculty Attendance", page: "faculty-attendance" },
       { name: "Attendance Records", page: "attendance-records" },
       { name: "Announcement Management", page: "announcement-management" },
+      { name: "College Profile & Report Card", page: "college-details" },
       { name: "Leave Requests", page: "hod-leaves" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
@@ -752,6 +756,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       // { name: translateTerminology("HOD & Admin Attendance"), page: "attendance" },
       { name: "Faculty Attendance", page: "faculty-attendance" },
       { name: "Reports", page: "reports" },
+      { name: "College Profile & Report Card", page: "college-details" },
       { name: "Enroll Staff", page: "enroll-user" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Finance", page: "finance" },

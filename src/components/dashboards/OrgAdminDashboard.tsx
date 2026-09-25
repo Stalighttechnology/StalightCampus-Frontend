@@ -34,6 +34,7 @@ import ScheduleMeeting from "../common/ScheduleMeeting";
 import StaffTaskTracker from "../common/StaffTaskTracker";
 import ComplianceReports from "../admin/ComplianceReports";
 import { InventoryHub } from "../inventory/InventoryHub";
+import CollegeDetailsPage from "../college_details/CollegeDetailsPage";
 
 interface OrgAdminDashboardProps {
   user: any;
@@ -69,6 +70,9 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
     switch (activePage) {
       case "dashboard":
         return <AdminStats setError={setError} onNavigate={handlePageChange} />;
+
+      case "college-details":
+        return <CollegeDetailsPage userRole="org_admin" />;
 
       case "users":
         return <UsersManagement setError={setError} toast={toast} />;

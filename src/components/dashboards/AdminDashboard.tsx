@@ -40,6 +40,7 @@ import ComplianceReports from "../admin/ComplianceReports";
 import ExternalLinksPage from "../admin/ExternalLinksPage";
 import HODSemesterMonitor from "../hod/HODSemesterMonitor";
 import { InventoryHub } from "../inventory/InventoryHub";
+import CollegeDetailsPage from "../college_details/CollegeDetailsPage";
 
 import {
   Users,
@@ -118,6 +119,9 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
           <div className="space-y-6">
             <AdminStats setError={setError} onNavigate={handlePageChange} />
           </div>);
+
+      case "college-details":
+        return <CollegeDetailsPage userRole={user?.role || "principal"} />;
 
       case "enroll-user":
         return (
