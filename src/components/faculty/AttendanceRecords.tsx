@@ -1733,14 +1733,14 @@ const AttendanceRecords = () => {
   const isFilterComplete = Boolean(selectedBatch && selectedSubject && startDate && endDate);
 
   return (
-    <div className={`space-y-4 p-3 sm:p-4 md:p-6 min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div className="space-y-4 p-3 sm:p-4 md:p-6 min-h-screen bg-background text-foreground">
       
       {/* 1. TOP HEADER & METRICS */}
-      <Card className={`border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+      <Card className="border shadow-sm bg-card border-border">
         <CardHeader className="p-4 sm:p-6 border-b">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-2">
+              <CardTitle className="text-xl sm:text-2xl font-semibold tracking-tight flex items-center gap-2">
                 <ClipboardList className="w-6 h-6 text-primary" />
                 Attendance Records
               </CardTitle>
@@ -1859,7 +1859,7 @@ const AttendanceRecords = () => {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto max-w-[calc(100vw-1.5rem)] p-0 border border-border shadow-2xl rounded-2xl overflow-hidden text-xs" align="start">
+                <PopoverContent className="w-[calc(100vw-2rem)] sm:w-auto max-w-sm p-0 border border-border shadow-2xl rounded-2xl overflow-hidden text-xs z-50 bg-popover text-popover-foreground" align="start" sideOffset={8}>
                   <div className="p-3 flex flex-col gap-2">
                     <div className="flex items-center justify-between px-1">
                       <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -1952,189 +1952,29 @@ const AttendanceRecords = () => {
             </div>
 
           </div>
-
-          {/* ACTIVE FILTER TAGS ROW */}
-          {hasActiveFilters && (
-            <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase flex items-center gap-1 mr-1 shrink-0">
-                Active Filters:
-              </span>
-
-              {/* Batch Tag */}
-              {selectedBatch && (
-                <Badge variant="secondary" className="text-xs py-1 px-2.5 flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 max-w-full truncate">
-                  <span className="truncate">Batch: <strong>{availableBatches.find(b => String(b.id) === selectedBatch)?.name || selectedBatch}</strong></span>
-                  <button
-                    onClick={() => handleBatchChange("all")}
-                    className="hover:bg-emerald-500/20 rounded p-0.5 ml-0.5 text-emerald-600 dark:text-emerald-300 shrink-0"
-                    title="Remove Batch filter"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </Badge>
-              )}
-
-              {/* Subject Tag */}
-              {selectedSubject && (
-                <Badge variant="secondary" className="text-xs py-1 px-2.5 flex items-center gap-1.5 bg-primary/10 text-primary border border-primary/20 max-w-full truncate">
-                  <span className="truncate">Subject: <strong>{availableAssignedSubjects.find(s => String(s.id) === selectedSubject)?.name || selectedSubject}</strong></span>
-                  <button
-                    onClick={() => handleSubjectChange("all")}
-                    className="hover:bg-primary/20 rounded p-0.5 ml-0.5 text-primary shrink-0"
-                    title="Remove Subject filter"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </Badge>
-              )}
-
-              {/* Date Range Tag */}
-              {(startDate || endDate) && (
-                <Badge variant="secondary" className="text-xs py-1 px-2.5 flex items-center gap-1.5 bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 max-w-full truncate">
-                  <CalendarIcon className="w-3 h-3 text-blue-500 shrink-0" />
-                  <span className="truncate">
-                    Date: <strong>{startDate && endDate ? (startDate === endDate ? formatDateToDDMMYYYY(startDate) : `${formatDateToDDMMYYYY(startDate)} - ${formatDateToDDMMYYYY(endDate)}`) : startDate ? `From ${formatDateToDDMMYYYY(startDate)}` : `Up to ${formatDateToDDMMYYYY(endDate)}`}</strong>
-                  </span>
-                  <button
-                    onClick={() => applyDatePreset("all")}
-                    className="hover:bg-blue-500/20 rounded p-0.5 ml-0.5 text-blue-600 dark:text-blue-300 shrink-0"
-                    title="Remove Date filter"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </Badge>
-              )}
-
-              {/* Search Tag */}
-              {searchTerm && (
-                <Badge variant="secondary" className="text-xs py-1 px-2.5 flex items-center gap-1.5 bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 max-w-full truncate">
-                  <span className="truncate">Search: <strong>"{searchTerm}"</strong></span>
-                  <button
-                    onClick={() => setSearchTerm("")}
-                    className="hover:bg-purple-500/20 rounded p-0.5 ml-0.5 text-purple-600 dark:text-purple-300 shrink-0"
-                    title="Clear search"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </Badge>
-              )}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleResetFilters}
-                className="text-xs h-7 px-2.5 text-rose-600 border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/30 ml-auto shrink-0 flex items-center gap-1 font-medium shadow-xs"
-              >
-                <RotateCcw className="w-3 h-3" />
-                Clear All
-              </Button>
-            </div>
-          )}
         </CardHeader>
 
         {/* 2. VISUAL ATTENDANCE ANALYTICS & RECORDS TABLE */}
         <CardContent className="p-4 sm:p-6 space-y-6">
           {!isFilterComplete ? (
-            /* 3-Step Guided Filter Progress Card */
-            <div className={`p-6 sm:p-10 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center ${
-              theme === 'dark' ? 'border-border/70 bg-card/40' : 'border-slate-200 bg-slate-50/70'
-            }`}>
-              <div className="p-3.5 rounded-2xl bg-primary/10 text-primary mb-3 shadow-xs">
-                <Filter className="w-8 h-8 opacity-90" />
+            <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-dashed rounded-xl border-border bg-muted/20">
+              <div className="p-3.5 rounded-full bg-primary/10 text-primary mb-3">
+                <Filter className="w-6 h-6" />
               </div>
-              <h3 className="text-base sm:text-lg font-bold mb-1 text-foreground">
-                Complete Filter Selection to View Records
+              <h3 className="text-base font-semibold mb-1 text-foreground">
+                Select Filters to View Attendance Records
               </h3>
-              <p className="max-w-md text-xs text-muted-foreground mb-6">
-                Please complete all 3 mandatory filter steps to accurately load your class attendance analytics.
-              </p>
-
-              {/* 3 Steps Progress Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl text-left">
-                
-                {/* Step 1: Batch */}
-                <div className={`p-3.5 rounded-xl border transition-all ${
-                  selectedBatch
-                    ? 'border-emerald-500/40 bg-emerald-500/5 text-emerald-950 dark:text-emerald-100'
-                    : 'border-primary/50 bg-primary/5 shadow-xs ring-2 ring-primary/20'
-                }`}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">Step 1: Batch</span>
-                    {selectedBatch ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    ) : (
-                      <Badge className="text-[10px] px-1.5 py-0 h-4 bg-primary text-primary-foreground font-medium">Active</Badge>
-                    )}
-                  </div>
-                  <p className="text-xs font-semibold truncate">
-                    {selectedBatch ? (availableBatches.find(b => String(b.id) === selectedBatch)?.name || selectedBatch) : "Select Batch First"}
-                  </p>
-                </div>
-
-                {/* Step 2: Subject */}
-                <div className={`p-3.5 rounded-xl border transition-all ${
-                  selectedSubject
-                    ? 'border-emerald-500/40 bg-emerald-500/5 text-emerald-950 dark:text-emerald-100'
-                    : selectedBatch
-                    ? 'border-primary/50 bg-primary/5 shadow-xs ring-2 ring-primary/20'
-                    : 'border-border/50 opacity-50 bg-muted/20'
-                }`}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">Step 2: Subject</span>
-                    {selectedSubject ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    ) : selectedBatch ? (
-                      <Badge className="text-[10px] px-1.5 py-0 h-4 bg-primary text-primary-foreground font-medium">Next</Badge>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground">Locked</span>
-                    )}
-                  </div>
-                  <p className="text-xs font-semibold truncate">
-                    {selectedSubject ? (availableAssignedSubjects.find(s => String(s.id) === selectedSubject)?.name || selectedSubject) : "Select Subject"}
-                  </p>
-                </div>
-
-                {/* Step 3: Date Range */}
-                <div className={`p-3.5 rounded-xl border transition-all ${
-                  (startDate && endDate)
-                    ? 'border-emerald-500/40 bg-emerald-500/5 text-emerald-950 dark:text-emerald-100'
-                    : (selectedBatch && selectedSubject)
-                    ? 'border-primary/50 bg-primary/5 shadow-xs ring-2 ring-primary/20'
-                    : 'border-border/50 opacity-50 bg-muted/20'
-                }`}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">Step 3: Date Range</span>
-                    {(startDate && endDate) ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    ) : (selectedBatch && selectedSubject) ? (
-                      <Badge className="text-[10px] px-1.5 py-0 h-4 bg-primary text-primary-foreground font-medium">Final Step</Badge>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground">Locked</span>
-                    )}
-                  </div>
-                  <p className="text-xs font-semibold truncate">
-                    {(startDate && endDate) ? (startDate === endDate ? formatDateToDDMMYYYY(startDate) : `${formatDateToDDMMYYYY(startDate)} - ${formatDateToDDMMYYYY(endDate)}`) : "Select Date Range"}
-                  </p>
-                </div>
-
-              </div>
-
-              {/* Dynamic instruction text */}
-              <p className="text-xs text-primary font-medium mt-4">
-                {!selectedBatch && "👉 Please pick a Batch in the dropdown above to start."}
-                {selectedBatch && !selectedSubject && "👉 Great! Now select the Subject for this batch."}
-                {selectedBatch && selectedSubject && (!startDate || !endDate) && "👉 Almost done! Now select a Date Range to load student attendance."}
+              <p className="max-w-md text-xs text-muted-foreground">
+                Please select Batch, Subject, and Date Range from the filters above to view attendance records and analytics.
               </p>
             </div>
           ) : (
             <>
               {/* Visual Analytics Charts Container */}
-              <div className={`p-4 sm:p-5 rounded-2xl border ${
-                theme === 'dark' ? 'bg-card/70 border-border' : 'bg-slate-50/70 border-slate-200'
-              }`}>
+              <div className="p-4 sm:p-5 rounded-2xl border bg-card border-border">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
-                <h3 className="text-sm font-bold tracking-tight flex items-center gap-2 text-foreground">
+                <h3 className="text-sm font-semibold tracking-tight flex items-center gap-2 text-foreground">
                   <BarChart2 className="w-4 h-4 text-primary" />
                   Visual Attendance Analytics
                 </h3>
@@ -2201,25 +2041,24 @@ const AttendanceRecords = () => {
                       <YAxis yAxisId="left" domain={[0, 100]} unit="%" tick={{ fontSize: 11 }} />
                       <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
                       <Tooltip
+                        wrapperStyle={{ zIndex: 50 }}
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
                             return (
-                              <div className={`p-3 rounded-xl border shadow-xl text-xs space-y-1 ${
-                                theme === 'dark' ? 'bg-slate-900 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
-                              }`}>
-                                <p className="font-bold border-b pb-1 text-primary">{data.subject_name}</p>
+                              <div className="p-2.5 rounded-xl border shadow-xl text-xs space-y-1 bg-popover border-border text-popover-foreground pointer-events-none max-w-[210px] sm:max-w-xs">
+                                <p className="font-semibold border-b pb-1 text-primary">{data.subject_name}</p>
                                 <p className="text-[11px] text-muted-foreground">Code: {data.subject_code || "--"}</p>
-                                <div className="pt-1 space-y-0.5">
-                                  <div className="flex justify-between gap-4 font-semibold text-emerald-600 dark:text-emerald-400">
+                                <div className="pt-1 space-y-0.5 text-[11px]">
+                                  <div className="flex justify-between gap-3 font-semibold text-emerald-600 dark:text-emerald-400">
                                     <span>Attendance Rate:</span>
                                     <span>{data.percentage}%</span>
                                   </div>
-                                  <div className="flex justify-between gap-4 text-blue-600 dark:text-blue-400">
+                                  <div className="flex justify-between gap-3 text-blue-600 dark:text-blue-400">
                                     <span>Classes Taken:</span>
                                     <span>{data.sessions}</span>
                                   </div>
-                                  <div className="flex justify-between gap-4 text-muted-foreground">
+                                  <div className="flex justify-between gap-3 text-muted-foreground">
                                     <span>Present / Absent:</span>
                                     <span>{data.present} / {data.absent}</span>
                                   </div>
@@ -2248,7 +2087,7 @@ const AttendanceRecords = () => {
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={timelineAnalytics} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                    <AreaChart data={timelineAnalytics} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
                       <defs>
                         <linearGradient id="attendanceGradient" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
@@ -2259,24 +2098,23 @@ const AttendanceRecords = () => {
                       <XAxis dataKey="displayDate" tick={{ fontSize: 11 }} />
                       <YAxis domain={[0, 100]} unit="%" tick={{ fontSize: 11 }} />
                       <Tooltip
+                        wrapperStyle={{ zIndex: 50 }}
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
                             return (
-                              <div className={`p-3 rounded-xl border shadow-xl text-xs space-y-1 ${
-                                theme === 'dark' ? 'bg-slate-900 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
-                              }`}>
-                                <p className="font-bold border-b pb-1 text-primary">{data.displayDate}</p>
-                                <div className="pt-1 space-y-0.5">
-                                  <div className="flex justify-between gap-4 font-semibold text-emerald-600 dark:text-emerald-400">
+                              <div className="p-2.5 rounded-xl border shadow-xl text-xs space-y-1 bg-popover border-border text-popover-foreground pointer-events-none max-w-[210px] sm:max-w-xs">
+                                <p className="font-semibold border-b pb-1 text-primary">{data.displayDate}</p>
+                                <div className="pt-1 space-y-0.5 text-[11px]">
+                                  <div className="flex justify-between gap-3 font-semibold text-emerald-600 dark:text-emerald-400">
                                     <span>Turnout:</span>
                                     <span>{data.percentage}%</span>
                                   </div>
-                                  <div className="flex justify-between gap-4 text-muted-foreground">
+                                  <div className="flex justify-between gap-3 text-muted-foreground">
                                     <span>Present:</span>
                                     <span>{data.present} students</span>
                                   </div>
-                                  <div className="flex justify-between gap-4 text-rose-500">
+                                  <div className="flex justify-between gap-3 text-rose-500">
                                     <span>Absent:</span>
                                     <span>{data.absent} students</span>
                                   </div>
@@ -2322,13 +2160,12 @@ const AttendanceRecords = () => {
                         ))}
                       </Pie>
                       <Tooltip
+                        wrapperStyle={{ zIndex: 50 }}
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
                             return (
-                              <div className={`p-2 rounded-lg border text-xs shadow-md ${
-                                theme === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'
-                              }`}>
+                              <div className="p-2 rounded-lg border text-xs shadow-md bg-popover border-border text-popover-foreground pointer-events-none">
                                 <span className="font-semibold">{data.name}: </span>
                                 <span>{data.value}</span>
                               </div>
@@ -2386,9 +2223,7 @@ const AttendanceRecords = () => {
               {error}
             </div>
           ) : consolidatedRecords.length === 0 ? (
-            <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl ${
-              theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
-            }`}>
+            <div className="flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl border-border bg-muted/20 text-muted-foreground">
               <div className="p-4 rounded-full bg-primary/10 text-primary mb-3">
                 <CheckCircle className="w-10 h-10 opacity-80" />
               </div>
@@ -2400,9 +2235,9 @@ const AttendanceRecords = () => {
           ) : (
             /* CONSOLIDATED VIEW TABLE */
             <div className="border rounded-xl overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto visible-table-scrollbar pb-1">
                 <Table>
-                  <TableHeader className={theme === 'dark' ? 'bg-muted/70' : 'bg-slate-100'}>
+                  <TableHeader className="bg-muted/50">
                     <TableRow>
                       <TableHead className="text-xs font-semibold">Duration / Dates</TableHead>
                       <TableHead className="text-xs font-semibold">Subject</TableHead>
@@ -2783,7 +2618,7 @@ const AttendanceRecords = () => {
                 /* VIEW 1: CLEAN CONSOLIDATED STUDENT SUMMARY TABLE WITH PAGINATION */
                 <div className="space-y-3">
                   <div className="border rounded-xl overflow-hidden bg-card/50 shadow-xs">
-                    <div className="overflow-x-auto custom-scrollbar">
+                    <div className="overflow-x-auto visible-table-scrollbar pb-1">
                       <Table className="min-w-[620px] w-full">
                         <TableHeader className={theme === 'dark' ? 'bg-slate-900/90' : 'bg-slate-100/90'}>
                           <TableRow>

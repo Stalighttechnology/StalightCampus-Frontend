@@ -250,12 +250,12 @@ const HODAttendanceRecords = () => {
 
   // Mandatory Filter Condition: Semester, Section, Subject, AND Date Filter MUST be chosen
   const isFilterChosen = Boolean(
-    selectedSemester && selectedSection && selectedSubject && selectedSubject !== "all" && startDate
+    selectedSemester && selectedSection && selectedSubject && startDate
   );
 
   // 3. Fetch Student Attendance Register strictly when mandatory filters are selected
   const fetchRecords = useCallback(async () => {
-    if (!selectedSemester || !selectedSection || !selectedSubject || selectedSubject === "all" || !startDate) {
+    if (!selectedSemester || !selectedSection || !selectedSubject || !startDate) {
       setStudents([]);
       setSummaryStats(null);
       setFacultyInfo(null);
@@ -272,7 +272,7 @@ const HODAttendanceRecords = () => {
         semester_id: selectedSemester,
         section_id: selectedSection,
         batch_id: selectedBatch !== "all" ? selectedBatch : undefined,
-        subject_id: selectedSubject,
+        subject_id: selectedSubject !== "all" ? selectedSubject : undefined,
         start_date: format(startDate, "yyyy-MM-dd"),
         end_date: format(effectiveEndDate, "yyyy-MM-dd"),
         search: debouncedSearch.trim() || undefined
@@ -402,46 +402,142 @@ const HODAttendanceRecords = () => {
     }
 
     const branchName = filterMeta?.branch?.name || "Branch";
-    const subjectTitle = facultyInfo?.subject_name
-      ? `${facultyInfo.subject_name}${facultyInfo.subject_code ? ` (${facultyInfo.subject_code})` : ""}`
-      : "Subject Attendance";
-    const assignedFaculty = facultyInfo?.assigned_faculty_name || "Not Assigned";
-    const markedByFaculty = facultyInfo?.marked_by_faculty_name || "None";
+    const semObj = filterMeta?.semesters.find(s => String(s.id) === selectedSemester);
+    const semName = semObj ? `Sem ${semObj.number}` : selectedSemester ? `Sem ${selectedSemester}` : "--";
+    const secObj = availableSections.find(s => String(s.id) === selectedSection);
+    const secName = secObj ? `Section ${secObj.name}` : selectedSection ? `Section ${selectedSection}` : "--";
+    const batchName = selectedBatch && selectedBatch !== "all" ? (filterMeta?.batches.find(b => String(b.id) === selectedBatch)?.name || selectedBatch) : "All Batches";
+    const subjObj = availableSubjects.find(s => String(s.id) === selectedSubject);
+    const subjectTitle = selectedSubject === "all"
+      ? "All Subjects"
+      : (facultyInfo?.subject_name
+          ? `${facultyInfo.subject_name}${facultyInfo.subject_code ? ` (${facultyInfo.subject_code})` : ""}`
+          : subjObj ? `${subjObj.name} (${subjObj.subject_code})` : "Subject Attendance");
+    const dateRangeStr = startDate && endDate
+      ? `${format(startDate, "dd-MM-yyyy")} to ${format(endDate, "dd-MM-yyyy")}`
+      : startDate ? `From ${format(startDate, "dd-MM-yyyy")}` : "All Dates";
 
-    const exportRows = students.map((s, index) => ({
-      "Sl No": index + 1,
-      "Student Name": s.name,
-      "USN / Roll No": s.usn,
-      "Batch": s.batch || "--",
-      "Semester": s.semester ? `Sem ${s.semester}` : "--",
-      "Section": s.section || "--",
-      "Subject": subjectTitle,
-      "Assigned Faculty": assignedFaculty,
-      "Marked By Faculty": markedByFaculty,
-      "Classes Conducted": s.conducted_classes,
-      "Classes Attended (Present)": s.attended_classes,
-      "Classes Absent": s.absent_classes,
-      "Attendance %": `${s.attendance_percentage}%`,
-      "Eligibility Status": s.status
+    const isAllSubjects = selectedSubject === "all";
+    const allSubjMeta = facultyInfo?.all_subjects || availableSubjects.map(s => ({
+      id: s.id,
+      name: s.name,
+      code: s.subject_code || '',
+      full_name: s.subject_code ? `${s.name} (${s.subject_code})` : s.name
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(exportRows);
-    worksheet["!cols"] = [
-      { wch: 8 },  // Sl No
-      { wch: 28 }, // Student Name
-      { wch: 18 }, // USN
-      { wch: 14 }, // Batch
-      { wch: 12 }, // Semester
-      { wch: 10 }, // Section
-      { wch: 26 }, // Subject
-      { wch: 24 }, // Assigned Faculty
-      { wch: 24 }, // Marked By Faculty
-      { wch: 18 }, // Classes Conducted
-      { wch: 22 }, // Classes Attended
-      { wch: 16 }, // Classes Absent
-      { wch: 16 }, // Attendance %
-      { wch: 18 }  // Status
+    let tableHeaders: string[] = [];
+    if (isAllSubjects) {
+      tableHeaders = [
+        "Sl No",
+        "Student Name",
+        "USN / Roll No",
+        "Batch",
+        "Semester",
+        "Section",
+        ...allSubjMeta.map(sub => sub.code || sub.name),
+        "Total Conducted",
+        "Total Attended (Present)",
+        "Total Absent",
+        "Overall Attendance %",
+        "Overall Eligibility Status"
+      ];
+    } else {
+      tableHeaders = [
+        "Sl No",
+        "Student Name",
+        "USN / Roll No",
+        "Batch",
+        "Semester",
+        "Section",
+        "Subject",
+        "Classes Conducted",
+        "Classes Attended (Present)",
+        "Classes Absent",
+        "Attendance %",
+        "Eligibility Status"
+      ];
+    }
+
+    const headerRows: any[][] = [
+      ["STALIGHT CAMPUS - STUDENT ATTENDANCE REGISTER"],
+      [],
+      ["Department / Branch:", branchName, "Academic Batch:", batchName, "Semester:", semName],
+      ["Section:", secName, "Subject / Course:", subjectTitle, "Date Range:", dateRangeStr],
+      [],
+      tableHeaders
     ];
+
+    const dataRows = students.map((s, index) => {
+      if (isAllSubjects) {
+        const subjValues = allSubjMeta.map(subMeta => {
+          const match = s.subject_breakdown?.find(sb => sb.subject_id === subMeta.id || sb.short_name === subMeta.code || sb.subject_name === subMeta.name);
+          if (!match) return "No Classes";
+          return match.conducted_classes > 0 ? `${match.attendance_percentage}%` : "No Classes";
+        });
+        return [
+          index + 1,
+          s.name,
+          s.usn || "--",
+          s.batch || "--",
+          s.semester ? `Sem ${s.semester}` : "--",
+          s.section || "--",
+          ...subjValues,
+          s.conducted_classes,
+          s.attended_classes,
+          s.absent_classes,
+          `${s.attendance_percentage}%`,
+          s.status
+        ];
+      } else {
+        return [
+          index + 1,
+          s.name,
+          s.usn || "--",
+          s.batch || "--",
+          s.semester ? `Sem ${s.semester}` : "--",
+          s.section || "--",
+          s.subject || s.subject_name || subjectTitle,
+          s.conducted_classes,
+          s.attended_classes,
+          s.absent_classes,
+          `${s.attendance_percentage}%`,
+          s.status
+        ];
+      }
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows]);
+    if (isAllSubjects) {
+      worksheet["!cols"] = [
+        { wch: 8 },  // Sl No
+        { wch: 28 }, // Student Name
+        { wch: 18 }, // USN
+        { wch: 14 }, // Batch
+        { wch: 12 }, // Semester
+        { wch: 10 }, // Section
+        ...allSubjMeta.map(() => ({ wch: 18 })), // Each subject %
+        { wch: 18 }, // Total Conducted
+        { wch: 22 }, // Total Attended
+        { wch: 16 }, // Total Absent
+        { wch: 18 }, // Overall %
+        { wch: 20 }  // Overall Status
+      ];
+    } else {
+      worksheet["!cols"] = [
+        { wch: 8 },  // Sl No
+        { wch: 28 }, // Student Name
+        { wch: 18 }, // USN
+        { wch: 14 }, // Batch
+        { wch: 12 }, // Semester
+        { wch: 10 }, // Section
+        { wch: 32 }, // Subject
+        { wch: 18 }, // Classes Conducted
+        { wch: 22 }, // Classes Attended
+        { wch: 16 }, // Classes Absent
+        { wch: 16 }, // Attendance %
+        { wch: 18 }  // Status
+      ];
+    }
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Student Attendance");
@@ -450,7 +546,7 @@ const HODAttendanceRecords = () => {
       ? `${format(startDate, "yyyy-MM-dd")}_to_${format(endDate, "yyyy-MM-dd")}`
       : format(new Date(), "yyyy-MM-dd");
     const safeBranch = branchName.replace(/[^a-zA-Z0-9_-]/g, "_");
-    const safeSubject = (facultyInfo?.subject_code || facultyInfo?.subject_name || "Subject").replace(/[^a-zA-Z0-9_-]/g, "_");
+    const safeSubject = selectedSubject === "all" ? "All_Subjects" : (facultyInfo?.subject_code || facultyInfo?.subject_name || "Subject").replace(/[^a-zA-Z0-9_-]/g, "_");
     XLSX.writeFile(
       workbook,
       `HOD_${safeBranch}_${safeSubject}_Attendance_${dateFilterStr}.xlsx`
@@ -1261,10 +1357,91 @@ const HODAttendanceRecords = () => {
     const safeUsn = (selectedStudentForTimeline.usn || "USN").replace(/[^a-zA-Z0-9_-]/g, "_");
     const filename = `Attendance_Timeline_${safeName}_${safeUsn}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
 
-    doc.save(filename);
+  };
+
+  const handleExportStudentTimelineExcel = () => {
+    if (!selectedStudentForTimeline) {
+      toast({ variant: "destructive", title: "Export Failed", description: "No student selected for timeline export." });
+      return;
+    }
+
+    const s = selectedStudentForTimeline;
+    const branchName = filterMeta?.branch?.name || "Department";
+    const semObj = filterMeta?.semesters.find(st => String(st.id) === selectedSemester);
+    const semName = semObj ? `Sem ${semObj.number}` : selectedSemester ? `Sem ${selectedSemester}` : "--";
+    const secObj = availableSections.find(st => String(st.id) === selectedSection);
+    const secName = secObj ? `Section ${secObj.name}` : selectedSection ? `Section ${selectedSection}` : "--";
+    const dateRangeStr = startDate && endDate
+      ? `${format(startDate, "dd-MM-yyyy")} to ${format(endDate, "dd-MM-yyyy")}`
+      : startDate ? `From ${format(startDate, "dd-MM-yyyy")}` : "All Dates";
+
+    const headerRows: any[][] = [
+      ["STALIGHT CAMPUS - STUDENT ATTENDANCE TIMELINE RECORD"],
+      [],
+      ["Student Name:", s.name, "USN / Roll No:", s.usn || "--", "Department:", branchName],
+      ["Semester:", s.semester ? `Sem ${s.semester}` : semName, "Section:", s.section || secName, "Batch:", s.batch || "--"],
+      ["Total Conducted:", s.conducted_classes, "Total Attended:", s.attended_classes, "Overall %:", `${s.attendance_percentage}%`, "Status:", s.status],
+      ["Date Range Filter:", dateRangeStr],
+      []
+    ];
+
+    let breakdownRows: any[][] = [];
+    if (s.subject_breakdown && s.subject_breakdown.length > 0) {
+      breakdownRows = [
+        ["SUBJECT-WISE ATTENDANCE BREAKDOWN"],
+        ["Subject Code", "Subject Name", "Conducted Classes", "Attended Classes", "Absent Classes", "Attendance %", "Status"],
+        ...s.subject_breakdown.map(sb => [
+          sb.subject_code || "--",
+          sb.subject_name,
+          sb.conducted_classes,
+          sb.attended_classes,
+          sb.absent_classes,
+          sb.conducted_classes > 0 ? `${sb.attendance_percentage}%` : "No Classes",
+          sb.status
+        ]),
+        []
+      ];
+    }
+
+    const sessionRows: any[][] = [
+      ["CHRONOLOGICAL SESSION HISTORY LOG"],
+      ["Session #", "Date", "Day", "Section", "Subject", "Marked By Faculty", "Student Status"],
+      ...sessionDateList.map((ses, idx) => {
+        const st = s.session_status?.[ses.id] || s.session_status?.[String(ses.id)];
+        const statusStr = st === "present" ? "Present" : st === "absent" ? "Absent" : "Not Marked";
+        return [
+          idx + 1,
+          ses.formatted_date || ses.date,
+          ses.day_of_week || "--",
+          ses.section || s.section || "--",
+          ses.subject || "--",
+          ses.faculty_name || "--",
+          statusStr
+        ];
+      })
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet([...headerRows, ...breakdownRows, ...sessionRows]);
+    worksheet["!cols"] = [
+      { wch: 14 },
+      { wch: 34 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 16 },
+      { wch: 25 },
+      { wch: 18 }
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Student Timeline");
+
+    const safeName = (s.name || "Student").replace(/[^a-zA-Z0-9_-]/g, "_");
+    const safeUsn = (s.usn || "USN").replace(/[^a-zA-Z0-9_-]/g, "_");
+    XLSX.writeFile(workbook, `Timeline_${safeName}_${safeUsn}.xlsx`);
+
     toast({
-      title: "PDF Exported Successfully",
-      description: `Student attendance timeline exported for ${selectedStudentForTimeline.name}.`
+      title: "Timeline Exported",
+      description: `Exported timeline record for ${s.name} to Excel.`
     });
   };
 
@@ -1411,484 +1588,7 @@ const HODAttendanceRecords = () => {
       id="hod-attendance-records-container"
       className="w-full max-w-none mx-auto space-y-4 sm:space-y-6"
     >
-      {/* Department Attendance Intelligence Hub Card */}
-      <Card
-        className={cn(
-          "w-full shadow-sm overflow-hidden transition-all duration-300",
-          theme === "dark" ? "bg-card border border-border" : "bg-white border border-gray-200"
-        )}
-      >
-        <CardHeader className="p-4 sm:p-5 pb-3 border-b border-border/50 bg-muted/20">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="p-2 rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
-                  <BarChart3 className="w-5 h-5" />
-                </div>
-                <CardTitle className="text-lg sm:text-xl font-semibold tracking-tight">
-                  Attendance Intelligence &amp; Overview
-                </CardTitle>
-                {filterMeta?.branch && (
-                  <Badge variant="outline" className="text-xs font-medium border-primary/30 text-primary">
-                    {filterMeta.branch.name}
-                  </Badge>
-                )}
-                <Badge variant="secondary" className="text-[11px] font-medium">
-                  {displayStats.avgAttendance >= 75 ? "🟢 Department On Track" : "🟡 Attendance Review Required"}
-                </Badge>
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Actionable batch &amp; semester turn-out benchmarks compared against the university 75% threshold.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 flex-wrap self-start lg:self-auto">
-              {/* Cards vs Chart View Switcher */}
-              <div className="inline-flex rounded-xl border bg-muted/40 p-1 shadow-xs">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAnalyticsTab("cards");
-                    setIsAnalyticsExpanded(true);
-                  }}
-                  className={cn(
-                    "px-3 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
-                    analyticsTab === "cards"
-                      ? "bg-primary text-primary-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>Performance Cards</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAnalyticsTab("chart");
-                    setIsAnalyticsExpanded(true);
-                  }}
-                  className={cn(
-                    "px-3 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
-                    analyticsTab === "chart"
-                      ? "bg-primary text-primary-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <BarChart3 className="w-3.5 h-3.5" />
-                  <span>Benchmark Chart</span>
-                </button>
-              </div>
-
-              {/* Dimension Switcher: Batch-wise vs Semester-wise */}
-              <div className="inline-flex rounded-xl border bg-muted/40 p-1 shadow-xs">
-                <button
-                  type="button"
-                  onClick={() => setChartView("batch")}
-                  className={cn(
-                    "px-3 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
-                    chartView === "batch"
-                      ? "bg-background text-foreground shadow-xs font-semibold"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <GraduationCap className="w-3.5 h-3.5" />
-                  <span>Batches</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setChartView("semester")}
-                  className={cn(
-                    "px-3 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5",
-                    chartView === "semester"
-                      ? "bg-background text-foreground shadow-xs font-semibold"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>Semesters</span>
-                </button>
-              </div>
-
-              {/* Minimize / Expand Toggle */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsAnalyticsExpanded(!isAnalyticsExpanded)}
-                className="h-8 px-2.5 text-xs font-medium flex items-center gap-1 border-border/80"
-                title={isAnalyticsExpanded ? "Collapse Analytics Panel" : "Expand Analytics Panel"}
-              >
-                {isAnalyticsExpanded ? (
-                  <>
-                    <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="hidden sm:inline">Hide</span>
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-primary font-semibold">Show Analytics</span>
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-
-        {!isAnalyticsExpanded ? (
-          /* Slim Collapsed Executive Banner */
-          <CardContent className="p-3 bg-muted/10 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-1.5 font-semibold">
-                <div
-                  className={cn(
-                    "w-2.5 h-2.5 rounded-full",
-                    displayStats.avgAttendance >= 75 ? "bg-emerald-500" : "bg-amber-500"
-                  )}
-                />
-                <span>
-                  Dept Benchmark: <strong>{displayStats.avgAttendance}%</strong>
-                </span>
-                <span className="text-muted-foreground font-normal">(Target: 75%)</span>
-              </div>
-              <span className="text-muted-foreground hidden sm:inline">•</span>
-              <span className="hidden sm:inline">
-                <strong>{displayStats.totalSessions}</strong> Sessions Conducted
-              </span>
-              <span className="text-muted-foreground">•</span>
-              <span
-                className={cn(
-                  "font-semibold",
-                  hodAnalyticsSummary.satisfactoryCount === hodAnalyticsSummary.totalUnits
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : "text-amber-600 dark:text-amber-400"
-                )}
-              >
-                {hodAnalyticsSummary.satisfactoryCount} of {hodAnalyticsSummary.totalUnits}{" "}
-                {chartView === "batch" ? "Batches" : "Semesters"} Compliant (≥75%)
-              </span>
-              {hodAnalyticsSummary.topUnit && (
-                <>
-                  <span className="text-muted-foreground hidden md:inline">•</span>
-                  <span className="hidden md:inline">
-                    Top Score: <strong>{hodAnalyticsSummary.topUnit.name}</strong> ({hodAnalyticsSummary.topUnit.attendance}%)
-                  </span>
-                </>
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsAnalyticsExpanded(true)}
-              className="h-7 text-xs text-primary font-semibold hover:bg-primary/10 gap-1"
-            >
-              <span>Expand Details</span>
-              <ChevronDown className="w-3.5 h-3.5" />
-            </Button>
-          </CardContent>
-        ) : (
-          /* Full Expanded Analytics */
-          <CardContent className="p-4 sm:p-6 space-y-5">
-
-            {/* View Mode 1: Interactive Performance Cards (Default & Highly Actionable) */}
-
-            {analyticsTab === "cards" ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                      <GraduationCap className="w-4 h-4 text-primary" />
-                      <span>{chartView === "batch" ? "Academic Batch Turnout Cards" : "Semester Turnout Cards"}</span>
-                    </h3>
-                    <p className="text-[11px] text-muted-foreground">
-                      Click &ldquo;Filter Records&rdquo; on any card to immediately filter the table below for that cohort.
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="text-[11px] text-muted-foreground hidden sm:inline-flex">
-                    Target: 75% Attendance
-                  </Badge>
-                </div>
-
-                {currentChartData.length === 0 ? (
-                  <div className="p-8 text-center text-xs text-muted-foreground border border-dashed rounded-xl">
-                    No active {chartView === "batch" ? "batch" : "semester"} attendance recorded yet.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
-                    {currentChartData.map((item) => {
-                      const isSelected =
-                        chartView === "batch"
-                          ? String(selectedBatch) === String(item.id)
-                          : String(selectedSemester) === String(item.id);
-                      const isCompliant = item.attendance >= 75;
-                      const isWarning = item.attendance >= 60 && item.attendance < 75;
-
-                      return (
-                        <div
-                          key={item.id}
-                          className={cn(
-                            "p-4 rounded-xl border transition-all duration-200 flex flex-col justify-between gap-3.5 shadow-xs h-full",
-                            isSelected
-                              ? "border-primary ring-2 ring-primary/25 bg-primary/[0.04]"
-                              : theme === "dark"
-                              ? "bg-slate-900/40 border-slate-800/80 hover:border-slate-700 hover:shadow-sm"
-                              : "bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm"
-                          )}
-                        >
-                          <div className="flex items-start justify-between gap-2.5">
-                            <div className="space-y-1 min-w-0">
-                              <div className="font-semibold text-sm text-foreground flex items-center gap-1.5 flex-wrap">
-                                <span className="truncate">{item.name}</span>
-                                {isSelected && (
-                                  <Badge className="text-[9px] px-1.5 py-0 bg-primary text-primary-foreground font-semibold shrink-0">
-                                    Active
-                                  </Badge>
-                                )}
-                              </div>
-                              <span className="text-[11px] text-muted-foreground block">
-                                {item.sessions} recorded session{item.sessions === 1 ? "" : "s"}
-                              </span>
-                            </div>
-                            <div
-                              className={cn(
-                                "text-sm font-extrabold px-2.5 py-1 rounded-lg shrink-0",
-                                isCompliant
-                                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
-                                  : isWarning
-                                  ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
-                                  : "bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30"
-                              )}
-                            >
-                              {item.attendance}%
-                            </div>
-                          </div>
-
-                          {/* Linear progress bar with 75% university target marker */}
-                          <div className="space-y-1.5">
-                            <div className="relative w-full bg-muted/80 h-2 rounded-full overflow-hidden">
-                              <div
-                                className={cn(
-                                  "h-full rounded-full transition-all duration-500",
-                                  isCompliant ? "bg-emerald-500" : isWarning ? "bg-amber-500" : "bg-rose-500"
-                                )}
-                                style={{ width: `${Math.min(100, Math.max(0, item.attendance))}%` }}
-                              />
-                              <div
-                                className="absolute top-0 bottom-0 w-0.5 bg-slate-600 dark:bg-slate-300 z-10 opacity-75"
-                                style={{ left: "75%" }}
-                                title="75% University Requirement"
-                              />
-                            </div>
-                            <div className="flex justify-between items-center text-[10px] text-muted-foreground font-medium">
-                              <span>Benchmark Target: 75%</span>
-                              <span
-                                className={cn(
-                                  "font-semibold",
-                                  isCompliant
-                                    ? "text-emerald-600 dark:text-emerald-400"
-                                    : isWarning
-                                    ? "text-amber-600 dark:text-amber-400"
-                                    : "text-rose-600 dark:text-rose-400"
-                                )}
-                              >
-                                {isCompliant ? "Target Met (≥75%)" : "Under Target (<75%)"}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Card Footer */}
-                          <div className="pt-2.5 border-t border-border/50 flex items-center justify-between gap-2 mt-auto">
-                            <div className="text-[11px] text-muted-foreground font-medium">
-                              Turnout: <strong className="text-foreground">{item.attendance}%</strong>
-                            </div>
-                            <Button
-                              variant={isSelected ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => {
-                                if (chartView === "batch") {
-                                  const next = isSelected ? "all" : String(item.id);
-                                  handleBatchChange(next);
-                                  toast({
-                                    title: isSelected ? "Batch Filter Cleared" : "Batch Filter Applied",
-                                    description: isSelected ? "Showing all batches" : `Filtering records for ${item.name}`
-                                  });
-                                } else {
-                                  const next = isSelected ? "" : String(item.id);
-                                  handleSemesterChange(next);
-                                  toast({
-                                    title: isSelected ? "Semester Filter Cleared" : "Semester Filter Applied",
-                                    description: isSelected ? "Cleared semester filter" : `Filtering records for ${item.name}`
-                                  });
-                                }
-                              }}
-                              className={cn(
-                                "h-7 px-2.5 text-xs font-semibold gap-1.5 rounded-lg transition-all",
-                                isSelected ? "shadow-xs" : "hover:border-primary/50"
-                              )}
-                            >
-                              <Filter className="w-3 h-3" />
-                              <span>{isSelected ? "Clear Filter" : "Filter Records"}</span>
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* View Mode 2: Benchmark Graph */
-              <div className="w-full space-y-4">
-                <div className="w-full h-56 sm:h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={currentChartData}
-                      margin={{ top: 24, right: 24, left: -12, bottom: 12 }}
-                      barCategoryGap={currentChartData.length <= 3 ? "35%" : currentChartData.length <= 6 ? "22%" : "12%"}
-                    >
-                      <defs>
-                        <linearGradient id="emeraldGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#10b981" stopOpacity={0.95} />
-                          <stop offset="100%" stopColor="#059669" stopOpacity={0.75} />
-                        </linearGradient>
-                        <linearGradient id="amberGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.95} />
-                          <stop offset="100%" stopColor="#d97706" stopOpacity={0.75} />
-                        </linearGradient>
-                        <linearGradient id="roseGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.95} />
-                          <stop offset="100%" stopColor="#e11d48" stopOpacity={0.75} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke={theme === "dark" ? "#334155" : "#f1f5f9"}
-                        opacity={0.8}
-                      />
-                      <XAxis
-                        dataKey="name"
-                        stroke={theme === "dark" ? "#cbd5e1" : "#475569"}
-                        fontSize={12}
-                        fontWeight={600}
-                        tickLine={false}
-                        axisLine={{ stroke: theme === "dark" ? "#334155" : "#cbd5e1" }}
-                        interval={0}
-                      />
-                      <YAxis
-                        domain={[0, 100]}
-                        ticks={[0, 25, 50, 75, 100]}
-                        stroke={theme === "dark" ? "#94a3b8" : "#64748b"}
-                        fontSize={11}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(v) => `${v}%`}
-                      />
-                      <ReferenceLine
-                        y={75}
-                        stroke="#10b981"
-                        strokeDasharray="4 4"
-                        strokeWidth={1.5}
-                        label={{
-                          value: "Target: 75%",
-                          position: "insideTopRight",
-                          fill: "#10b981",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          offset: 6
-                        }}
-                      />
-                      <RechartsTooltip
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const d = payload[0].payload;
-                            const isGood = d.attendance >= 75;
-                            const isWarning = d.attendance >= 50 && d.attendance < 75;
-                            return (
-                              <div className="bg-popover/95 backdrop-blur-sm p-3 rounded-xl border border-border shadow-xl space-y-1.5 min-w-[170px]">
-                                <div className="flex items-center justify-between gap-2 pb-1 border-b border-border/60">
-                                  <div className="font-semibold text-xs text-foreground truncate max-w-[120px]">
-                                    {d.name}
-                                  </div>
-                                  <span
-                                    className={cn(
-                                      "px-2 py-0.5 rounded-md text-xs font-semibold shrink-0",
-                                      isGood
-                                        ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
-                                        : isWarning
-                                        ? "bg-amber-500/20 text-amber-600 dark:text-amber-400"
-                                        : "bg-rose-500/20 text-rose-600 dark:text-rose-400"
-                                    )}
-                                  >
-                                    {d.attendance}%
-                                  </span>
-                                </div>
-                                <div className="text-[11px] space-y-1 text-muted-foreground pt-0.5">
-                                  <div className="flex justify-between">
-                                    <span>Total Sessions:</span>
-                                    <strong className="text-foreground">{d.sessions}</strong>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Present Marks:</span>
-                                    <strong className="text-emerald-600 dark:text-emerald-400">{d.present}</strong>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Absent Marks:</span>
-                                    <strong className="text-rose-600 dark:text-rose-400">{d.absent}</strong>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                      <Bar
-                        dataKey="attendance"
-                        radius={[8, 8, 2, 2]}
-                        maxBarSize={currentChartData.length <= 3 ? 68 : currentChartData.length <= 6 ? 50 : 38}
-                        className="cursor-pointer transition-all"
-                      >
-                        <LabelList
-                          dataKey="attendance"
-                          position="top"
-                          formatter={(val: any) => `${val}%`}
-                          fill={theme === "dark" ? "#e2e8f0" : "#1e293b"}
-                          fontSize={12}
-                          fontWeight={700}
-                          offset={6}
-                        />
-                        {currentChartData.map((entry, idx) => {
-                          const isSelected =
-                            chartView === "batch"
-                              ? selectedBatch === String(entry.id)
-                              : selectedSemester === String(entry.id);
-                          const gradFill =
-                            entry.attendance >= 75
-                              ? "url(#emeraldGrad)"
-                              : entry.attendance >= 50
-                              ? "url(#amberGrad)"
-                              : "url(#roseGrad)";
-                          return (
-                            <Cell
-                              key={`cell-${idx}`}
-                              fill={gradFill}
-                              opacity={isSelected ? 1 : 0.88}
-                              stroke={isSelected ? "#6366f1" : "transparent"}
-                              strokeWidth={isSelected ? 3 : 0}
-                            />
-                          );
-                        })}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        )}
-      </Card>
-
-      {/* 3. Main Attendance Records Management Card (Matching LowAttendance.tsx container and design) */}
-      {/* 3. Main Attendance Records Management Card */}
+      {/* Main Attendance Records Management Card */}
       <Card
         className={cn(
           "w-full shadow-sm overflow-hidden",
@@ -1924,15 +1624,6 @@ const HODAttendanceRecords = () => {
                 <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Export Excel</span>
               </Button>
-              <Button
-                onClick={handleExportPDF}
-                disabled={loading || students.length === 0}
-                variant="outline"
-                className="text-rose-600 dark:text-rose-400 border-rose-500/30 hover:bg-rose-50 dark:hover:bg-rose-950/40 shadow-sm transition-all duration-200 items-center justify-center gap-2 h-10 px-4 text-sm font-semibold"
-              >
-                <FileText className="w-4 h-4 text-rose-500 dark:text-rose-400" />
-                <span>Export PDF</span>
-              </Button>
             </div>
 
             {/* Mobile Export Buttons */}
@@ -1946,16 +1637,6 @@ const HODAttendanceRecords = () => {
                 title="Export Excel"
               >
                 <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              </Button>
-              <Button
-                onClick={handleExportPDF}
-                disabled={loading || students.length === 0}
-                size="icon"
-                variant="outline"
-                className="h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
-                title="Export PDF"
-              >
-                <FileText className="w-4 h-4 text-rose-500" />
               </Button>
             </div>
           </CardHeader>
@@ -2134,11 +1815,14 @@ const HODAttendanceRecords = () => {
                         No subjects available
                       </div>
                     ) : (
-                      availableSubjects.map((sub) => (
-                        <SelectItem key={sub.id} value={String(sub.id)}>
-                          {sub.name} ({sub.subject_code})
-                        </SelectItem>
-                      ))
+                      <>
+                        <SelectItem value="all">All Subjects</SelectItem>
+                        {availableSubjects.map((sub) => (
+                          <SelectItem key={sub.id} value={String(sub.id)}>
+                            {sub.name} ({sub.subject_code})
+                          </SelectItem>
+                        ))}
+                      </>
                     )}
                   </SelectContent>
                 </Select>
@@ -2174,67 +1858,7 @@ const HODAttendanceRecords = () => {
                     collisionPadding={16}
                     className="w-auto p-0 z-50 rounded-xl border shadow-lg overflow-hidden bg-popover"
                   >
-                    {/* Compact Quick Select Presets Bar */}
-                    <div className="px-2.5 py-1.5 border-b border-border/60 bg-muted/25 flex items-center gap-1 flex-wrap">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-6 text-[11px] px-2 rounded-md font-medium"
-                        onClick={() => applyDatePreset("semester")}
-                      >
-                        Semester
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-6 text-[11px] px-2 rounded-md font-medium"
-                        onClick={() => applyDatePreset("month")}
-                      >
-                        This Month
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-6 text-[11px] px-2 rounded-md font-medium"
-                        onClick={() => applyDatePreset("30days")}
-                      >
-                        30 Days
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-6 text-[11px] px-2 rounded-md font-medium"
-                        onClick={() => applyDatePreset("week")}
-                      >
-                        7 Days
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-6 text-[11px] px-2 rounded-md font-medium"
-                        onClick={() => applyDatePreset("today")}
-                      >
-                        Today
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-6 text-[11px] px-2 rounded-md font-medium"
-                        onClick={() => applyDatePreset("yesterday")}
-                      >
-                        Yesterday
-                      </Button>
-                      {(startDate || endDate) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 text-[11px] px-1.5 rounded-md text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 ml-auto"
-                          onClick={() => applyDatePreset("all")}
-                        >
-                          Clear
-                        </Button>
-                      )}
-                    </div>
+                    {/* Date Range Calendar Picker */}
 
                     {/* Compact Calendar */}
                     <div className="p-1.5 flex justify-center">
@@ -2327,13 +1951,13 @@ const HODAttendanceRecords = () => {
                   variant="default"
                   size="sm"
                   onClick={() => {
-                    if (!selectedSemester || !selectedSection || !selectedSubject || selectedSubject === "all" || !startDate) {
+                    if (!selectedSemester || !selectedSection || !selectedSubject || !startDate) {
                       toast({
                         variant: "destructive",
                         title: "Selection Required",
                         description: `Please choose ${
                           getInstitutionType() === "school" ? "class" : "semester"
-                        }, section, one subject, and date range first.`
+                        }, section, subject, and date range first.`
                       });
                       return;
                     }
@@ -2458,7 +2082,7 @@ const HODAttendanceRecords = () => {
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-sm sm:text-base text-foreground">
-                        {facultyInfo?.subject_name || availableSubjects.find((s) => String(s.id) === selectedSubject)?.name || "Subject Attendance"}
+                        {facultyInfo?.subject_name || (selectedSubject === "all" ? "All Subjects" : availableSubjects.find((s) => String(s.id) === selectedSubject)?.name) || "Subject Attendance"}
                       </span>
                       {(facultyInfo?.subject_code || availableSubjects.find((s) => String(s.id) === selectedSubject)?.subject_code) && (
                         <Badge variant="outline" className="text-xs font-mono font-semibold bg-background/80 border-primary/30">
@@ -2482,6 +2106,18 @@ const HODAttendanceRecords = () => {
                           : "All Batches"}
                       </span>
                     </div>
+
+                    {/* Included Subjects List when All Subjects is selected */}
+                    {selectedSubject === "all" && (facultyInfo?.all_subjects?.length || availableSubjects.length) > 0 && (
+                      <div className="mt-2.5 flex items-center gap-1.5 flex-wrap pt-2 border-t border-border/40">
+                        <span className="text-xs font-semibold text-primary">Included Subjects ({facultyInfo?.all_subjects?.length || availableSubjects.length}):</span>
+                        {(facultyInfo?.all_subjects || availableSubjects).map((subj: any) => (
+                          <Badge key={subj.id} variant="outline" className="text-[11px] font-medium bg-background/90 border-primary/30 text-foreground shadow-2xs">
+                            {subj.full_name || (subj.code ? `${subj.name} (${subj.code})` : subj.name)}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -2618,12 +2254,62 @@ const HODAttendanceRecords = () => {
                                 {s.usn}
                               </span>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap">
+                            <TableCell className="min-w-[200px]">
                               <div className="text-xs font-medium text-foreground">
                                 Sem {s.semester ?? "--"} - Sec {s.section ?? "--"}
                               </div>
+                              {s.subject_breakdown && s.subject_breakdown.length > 0 ? (
+                                (() => {
+                                  const activeSubjs = s.subject_breakdown.filter((sb) => sb.conducted_classes > 0);
+                                  const inactiveCount = s.subject_breakdown.length - activeSubjs.length;
+
+                                  return (
+                                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5 max-w-md">
+                                      {activeSubjs.length > 0 ? (
+                                        activeSubjs.map((sb, sbIdx) => {
+                                          const sbBadge =
+                                            sb.status === "Eligible"
+                                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                                              : sb.status === "Warning"
+                                              ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                                              : "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30";
+                                          return (
+                                            <span
+                                              key={sbIdx}
+                                              className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border shadow-2xs", sbBadge)}
+                                              title={`${sb.full_name}: ${sb.attended_classes}/${sb.conducted_classes} attended (${sb.status})`}
+                                            >
+                                              <span className="mr-1 opacity-90">{sb.short_name}:</span>
+                                              <span className="font-extrabold">{sb.attendance_percentage}%</span>
+                                            </span>
+                                          );
+                                        })
+                                      ) : (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20">
+                                          No active sessions yet
+                                        </span>
+                                      )}
+
+                                      {inactiveCount > 0 && (
+                                        <span
+                                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border bg-muted/80 text-muted-foreground border-border/70"
+                                          title={`${inactiveCount} subjects have 0 sessions conducted so far.`}
+                                        >
+                                          +{inactiveCount} (No Classes)
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })()
+                              ) : (
+                                s.subject && (
+                                  <div className="text-[11px] font-semibold text-primary mt-0.5 max-w-[220px] truncate" title={s.subject}>
+                                    {s.subject}
+                                  </div>
+                                )
+                              )}
                               {s.batch && (
-                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal mt-0.5">
+                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal mt-1 block w-max">
                                   Batch: {s.batch}
                                 </Badge>
                               )}
@@ -3059,12 +2745,12 @@ const HODAttendanceRecords = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleExportStudentTimelinePDF}
-                  className="h-8 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 shrink-0"
-                  title="Export Student Timeline to PDF"
+                  onClick={handleExportStudentTimelineExcel}
+                  className="h-8 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 shrink-0"
+                  title="Export Student Timeline to Excel"
                 >
-                  <FileText className="w-3.5 h-3.5 text-rose-600" />
-                  <span className="hidden sm:inline">Export PDF</span>
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Export Excel</span>
                 </Button>
               </div>
             </div>
@@ -3091,6 +2777,48 @@ const HODAttendanceRecords = () => {
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
             {selectedStudentForTimeline && (
               <>
+                {/* Subject-wise Attendance Breakdown Grid in All Subjects mode */}
+                {selectedSubject === "all" && selectedStudentForTimeline.subject_breakdown && selectedStudentForTimeline.subject_breakdown.length > 0 && (
+                  <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-xs space-y-2.5">
+                    <div className="text-xs font-semibold text-foreground flex items-center justify-between border-b border-border/50 pb-2">
+                      <span className="flex items-center gap-1.5 text-primary">
+                        <BookOpen className="w-4 h-4" />
+                        Subject-wise Attendance Breakdown
+                      </span>
+                      <span className="text-[11px] text-muted-foreground font-medium">
+                        {selectedStudentForTimeline.subject_breakdown.length} Subjects Registered
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {selectedStudentForTimeline.subject_breakdown.map((sb, sbIdx) => {
+                        const statusClass =
+                          sb.status === "Eligible"
+                            ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                            : sb.status === "Warning"
+                            ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                            : sb.status === "No Classes"
+                            ? "bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/30"
+                            : "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30";
+                        return (
+                          <div key={sbIdx} className="p-2.5 rounded-lg bg-muted/30 border border-border/50 flex items-center justify-between text-xs">
+                            <div className="min-w-0 pr-2">
+                              <div className="font-semibold text-foreground truncate" title={sb.full_name || sb.subject_name}>
+                                {sb.full_name || sb.subject_name}
+                              </div>
+                              <div className="text-[11px] text-muted-foreground mt-0.5 font-medium">
+                                Attended: <span className="text-foreground font-semibold">{sb.attended_classes}</span> / {sb.conducted_classes} classes
+                              </div>
+                            </div>
+                            <Badge variant="outline" className={cn("text-[11px] font-semibold shrink-0 px-2 py-0.5", statusClass)}>
+                              {sb.conducted_classes > 0 ? `${sb.attendance_percentage}%` : "No Classes"}
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* 3 Metric cards */}
                 <div className="grid grid-cols-3 gap-2.5 text-center">
                   <div className="p-3 rounded-xl bg-card border border-border/70 shadow-xs">
@@ -3147,15 +2875,20 @@ const HODAttendanceRecords = () => {
                                 #{idx + 1}
                               </span>
                               <div className="min-w-0">
-                                <div className="font-semibold text-foreground flex items-center gap-2">
+                                <div className="font-semibold text-foreground flex items-center gap-2 flex-wrap">
                                   <span>{ses.formatted_date || ses.date}</span>
                                   {ses.day_of_week && (
                                     <span className="text-[10px] font-normal text-muted-foreground bg-muted/70 px-1.5 py-0.5 rounded">
                                       {ses.day_of_week}
                                     </span>
                                   )}
+                                  {ses.subject && (
+                                    <Badge variant="outline" className="text-[10px] font-semibold text-primary border-primary/30 bg-primary/5">
+                                      {ses.subject}
+                                    </Badge>
+                                  )}
                                 </div>
-                                <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                                <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5 flex-wrap">
                                   <span>Sec {ses.section || selectedStudentForTimeline.section || "--"}</span>
                                   {ses.faculty_name && (
                                     <>

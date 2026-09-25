@@ -3084,6 +3084,13 @@ export const getHODAttendanceFilters = async (): Promise<HODAttendanceFiltersRes
   }
 };
 
+export interface SubjectMeta {
+  id: string | number;
+  name: string;
+  code: string;
+  full_name: string;
+}
+
 export interface FacultyAttendanceInfo {
   assigned_faculty: string[];
   assigned_faculty_name: string;
@@ -3092,6 +3099,7 @@ export interface FacultyAttendanceInfo {
   subject_name?: string | null;
   subject_code?: string | null;
   subject_type?: string | null;
+  all_subjects?: SubjectMeta[];
 }
 
 export interface AttendanceSessionItem {
@@ -3106,20 +3114,37 @@ export interface AttendanceSessionItem {
   absent_count?: number;
 }
 
+export interface SubjectAttendanceItem {
+  subject_id: number;
+  subject_name: string;
+  subject_code?: string;
+  short_name?: string;
+  full_name?: string;
+  conducted_classes: number;
+  attended_classes: number;
+  absent_classes: number;
+  attendance_percentage: number;
+  status: "Eligible" | "Warning" | "Shortage" | "No Classes";
+}
+
 export interface StudentAttendanceSummaryItem {
-  id: number;
+  id: number | string;
   name: string;
   usn: string;
   batch?: string;
   section?: string;
   semester?: number | string;
   branch?: string;
+  subject?: string;
+  subject_name?: string;
+  subject_code?: string;
   conducted_classes: number;
   attended_classes: number;
   absent_classes: number;
   attendance_percentage: number;
   status: "Eligible" | "Warning" | "Shortage" | "No Classes";
   session_status?: Record<number | string, "present" | "absent">;
+  subject_breakdown?: SubjectAttendanceItem[];
 }
 
 export interface StudentAttendanceSummaryResponse {
