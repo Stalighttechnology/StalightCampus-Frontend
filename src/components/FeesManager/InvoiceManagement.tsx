@@ -1,5 +1,6 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useState, useEffect, useCallback } from 'react';
+import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import {
   FileText,
   Download,
@@ -30,6 +33,7 @@ import {
   LayoutGrid,
   MousePointer2,
   Loader2,
+  Calendar as CalendarIcon,
   CheckCircle2 as CheckIcon } from
 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
@@ -133,7 +137,8 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
     amount: '',
     mode: 'cash',
     transactionId: '',
-    note: ''
+    note: '',
+    paymentDate: format(new Date(), 'yyyy-MM-dd')
   });
 
   // Group by Student toggle state
@@ -418,7 +423,8 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
         amount: paymentForm.amount,
         mode: paymentForm.mode,
         transaction_id: paymentForm.transactionId,
-        note: paymentForm.note
+        note: paymentForm.note,
+        payment_date: paymentForm.paymentDate
       });
 
       if (!res.success) {
@@ -426,7 +432,7 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
       }
 
       setIsPaymentDialogOpen(false);
-      setPaymentForm({ amount: '', mode: 'cash', transactionId: '', note: '' });
+      setPaymentForm({ amount: '', mode: 'cash', transactionId: '', note: '', paymentDate: format(new Date(), 'yyyy-MM-dd') });
       fetchInvoices(invoicesMeta?.page || 1);
       fetchStats();
       showSuccessAlert('Success!', 'Payment recorded successfully!');
@@ -442,7 +448,8 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
       amount: (inv.pending_amount_cents / 100).toString(),
       mode: 'cash',
       transactionId: '',
-      note: ''
+      note: '',
+      paymentDate: format(new Date(), 'yyyy-MM-dd')
     });
     setIsPaymentDialogOpen(true);
   };
@@ -1215,45 +1222,56 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
 
       {/* Record Payment Dialog */}
       <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent className="sm:max-w-md w-[90vw] border-none shadow-2xl p-6 bg-card rounded-3xl">
-          <DialogHeader className="space-y-1">
-            <DialogTitle className="text-xl font-semibold flex items-center gap-2 text-foreground">
-              <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-lg">
-                <IndianRupee className="h-5 w-5 text-green-600 dark:text-green-400" />
+        <DialogContent className="sm:max-w-lg w-[92vw] border border-border/60 shadow-2xl p-6 sm:p-7 bg-card rounded-2xl sm:rounded-3xl">
+          <DialogHeader className="space-y-1 pb-1">
+            <DialogTitle className="text-xl font-semibold flex items-center gap-2.5 text-foreground">
+              <div className="bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 p-2.5 rounded-xl">
+                <IndianRupee className="h-5 w-5" />
               </div>
-              Record Payment
+              <div>
+                <span>Record Payment</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">Enter transaction details to update invoice balance</p>
+              </div>
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleRecordPayment} className="space-y-5 pt-4">
-            <div className="space-y-2">
-              <Label className="text-[13px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Target Student</Label>
+          <form onSubmit={handleRecordPayment} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">Target Student</Label>
               <Input
-                value={selectedInvoice?.student.name}
+                value={selectedInvoice?.student.name || ''}
                 disabled
-                className="bg-muted/30 border-none font-semibold text-foreground h-11" />
-              
+                className="bg-muted/40 border border-border/40 font-medium text-foreground h-11 rounded-xl" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[13px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Amount (₹)</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+              <div className="space-y-1.5">
+                <div className="h-5 flex items-center ml-1">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Amount (₹) <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                </div>
                 <Input
                   type="number"
                   step="0.01"
                   required
-                  className="h-11 border-border/50 focus:ring-green-500/20"
+                  placeholder="0.00"
+                  className="h-11 rounded-xl border-border/60 focus:ring-emerald-500/20"
                   value={paymentForm.amount}
                   onChange={(e) => setPaymentForm((p) => ({ ...p, amount: e.target.value }))} />
-                
               </div>
-              <div className="space-y-2">
-                <Label className="text-[13px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Mode</Label>
+
+              <div className="space-y-1.5">
+                <div className="h-5 flex items-center ml-1">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Mode <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                </div>
                 <Select value={paymentForm.mode} onValueChange={(val) => setPaymentForm((p) => ({ ...p, mode: val }))}>
-                  <SelectTrigger className="h-11 border-border/50">
+                  <SelectTrigger className="h-11 rounded-xl border-border/60">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-border/50">
+                  <SelectContent className="rounded-xl border-border/60">
                     <SelectItem value="cash">Cash</SelectItem>
                     <SelectItem value="cheque">Cheque</SelectItem>
                     <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
@@ -1265,18 +1283,66 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-[13px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Reference / Transaction ID</Label>
-              <Input
-                placeholder="e.g. Cheque # or Bank Ref"
-                className="h-11 border-border/50"
-                value={paymentForm.transactionId}
-                onChange={(e) => setPaymentForm((p) => ({ ...p, transactionId: e.target.value }))} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+              <div className="space-y-1.5">
+                <div className="h-5 flex items-center ml-1">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Date of Payment <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal h-11 border-border/60 bg-background hover:bg-muted/50 rounded-xl px-3 text-sm flex items-center",
+                        !paymentForm.paymentDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span className="truncate">
+                        {paymentForm.paymentDate ? (
+                          format(new Date(paymentForm.paymentDate + 'T00:00:00'), "dd MMM yyyy")
+                        ) : (
+                          <span>Pick date</span>
+                        )}
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-[100] shadow-2xl border-border/60 rounded-2xl" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={paymentForm.paymentDate ? new Date(paymentForm.paymentDate + 'T00:00:00') : undefined}
+                      onSelect={(date) =>
+                        setPaymentForm((p) => ({
+                          ...p,
+                          paymentDate: date ? format(date, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd")
+                        }))
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="h-5 flex items-center ml-1">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
+                    Ref / Transaction ID
+                  </Label>
+                </div>
+                <Input
+                  placeholder="e.g. Cheque # or Bank Ref"
+                  className="h-11 rounded-xl border-border/60"
+                  value={paymentForm.transactionId}
+                  onChange={(e) => setPaymentForm((p) => ({ ...p, transactionId: e.target.value }))} />
+              </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between ml-1">
-                <Label className="text-[13px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Custom Note / Remarks {paymentForm.mode === 'other' ? <span className="text-red-500 font-bold">*</span> : <span className="text-muted-foreground/60 text-[11px] normal-case font-normal">(Optional)</span>}
                 </Label>
                 {paymentForm.mode === 'other' && (
@@ -1287,27 +1353,25 @@ const InvoiceManagement: React.FC<InvoiceManagementProps> = ({ isReadOnly = fals
               </div>
               <Textarea
                 placeholder={paymentForm.mode === 'other' ? "Describe payment details, authorization, or custom mode..." : "Enter any internal note or remarks for this payment..."}
-                className={`min-h-[70px] resize-none border-border/50 text-sm ${paymentForm.mode === 'other' ? 'border-amber-500/40 focus:ring-amber-500/20' : ''}`}
+                className={`min-h-[75px] resize-none rounded-xl border-border/60 text-sm ${paymentForm.mode === 'other' ? 'border-amber-500/40 focus:ring-amber-500/20' : ''}`}
                 value={paymentForm.note}
                 required={paymentForm.mode === 'other'}
                 onChange={(e) => setPaymentForm((p) => ({ ...p, note: e.target.value }))}
               />
             </div>
 
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-3 pt-3">
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 h-11 text-xs font-semibold uppercase tracking-widest rounded-xl"
+                className="flex-1 h-11 text-xs font-semibold uppercase tracking-wider rounded-xl border-border/60 hover:bg-muted"
                 onClick={() => setIsPaymentDialogOpen(false)}>
-                
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="flex-[1.5] h-11 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold uppercase tracking-widest rounded-xl shadow-lg shadow-green-500/20"
+                className="flex-[1.5] h-11 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-500/20 transition-all"
                 disabled={isSubmittingPayment}>
-                
                 {isSubmittingPayment ? "Recording..." : "Record Payment"}
               </Button>
             </div>
