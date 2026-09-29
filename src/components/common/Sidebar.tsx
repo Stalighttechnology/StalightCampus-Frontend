@@ -48,7 +48,7 @@ import {
   CalendarCheck, Megaphone, ListTodo, RefreshCcw, FileQuestion, PieChart,
   Clock, LineChart, List, Activity, MonitorPlay, BookCopy, PenTool, DoorOpen,
   UtensilsCrossed, ClipboardSignature, Ticket, BusFront, Map, Navigation, History, Library, Repeat, FileCode, CheckCircle2, TrendingUp, ArrowLeftRight, Link, QrCode, Boxes,
-  ShoppingCart, Wrench, Layers, MapPin, Building2
+  ShoppingCart, Wrench, Layers, MapPin, Building2, Package, Gift
 } from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
 import {
@@ -502,6 +502,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "alumni-directory": <GraduationCap size={20} />,
       "external-links": <Link size={20} />,
       "college-details": <Building2 size={20} />,
+      "issued-items": <Package size={20} />,
+      "my-issued-items": <Gift size={20} />,
     };
     return iconMap[page] || <LayoutDashboard size={20} />;
   };
@@ -597,6 +599,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Alumni Directory", page: "alumni-directory" },
       { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "College-Issued Items", page: "issued-items" },
       { name: "Inventory Management", page: "inventory" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "My Salary & Payroll", page: "my-payroll" },
@@ -625,6 +628,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "My Salary & Payroll", page: "my-payroll" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "College-Issued Items", page: "issued-items" },
       { name: "Inventory Management", page: "inventory" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
@@ -685,6 +689,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Apply Leave", page: "apply-leave" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Staff Tasks", page: "staff-tasks" },
+      { name: "College-Issued Items", page: "issued-items" },
       { name: "Campus Assets & Support", page: "inventory" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "Reimbursements & Claims", page: "reimbursements" },
@@ -707,6 +712,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Library", page: "library" },
       { name: "Hostel Details", page: "student-hostel-details" },
       { name: "Transportation", page: "transportation" },
+      { name: "My Issued Items", page: "my-issued-items" },
       { name: "Leaves", page: "leave-request" },
       { name: "Calendar", page: "holiday-calendar" },
       { name: "Profile", page: "profile" },
@@ -883,6 +889,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
     counsellor: [
       { name: "Dashboard", page: "admission-dashboard" },
+      { name: "College-Issued Items", page: "issued-items" },
       { name: "Announcements", page: "announcements" },
       { name: "Enquiries", page: "admission-enquiries" },
       { name: "Apply Leave", page: "apply-leave" },

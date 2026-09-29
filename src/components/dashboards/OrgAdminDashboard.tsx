@@ -35,6 +35,7 @@ import StaffTaskTracker from "../common/StaffTaskTracker";
 import ComplianceReports from "../admin/ComplianceReports";
 import { InventoryHub } from "../inventory/InventoryHub";
 import CollegeDetailsPage from "../college_details/CollegeDetailsPage";
+import CollegeIssuedItemsPage from "../issued_items/CollegeIssuedItemsPage";
 
 interface OrgAdminDashboardProps {
   user: any;
@@ -129,6 +130,8 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
         return <StaffTaskTracker />;
       case "compliance-reports":
         return <ComplianceReports />;
+      case "issued-items":
+        return <CollegeIssuedItemsPage userRole="org_admin" readOnly={true} />;
       case "inventory":
         return <InventoryHub role="org_admin" />;
       case "external-links":

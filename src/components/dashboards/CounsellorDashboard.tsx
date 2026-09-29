@@ -16,6 +16,7 @@ import { TutorialController } from "../../onboarding/components/TutorialControll
 import AnnouncementManagement from "../admin/AnnouncementManagement";
 import DesktopOnly from "../common/DesktopOnly";
 import { useIsDesktop } from "../../hooks/use-desktop";
+import CollegeIssuedItemsPage from "../issued_items/CollegeIssuedItemsPage";
 
 interface DashboardProps {
   user: any;
@@ -46,6 +47,8 @@ const CounsellorDashboard = ({ user }: DashboardProps) => {
         return <AdmissionDashboard />;
       case "announcements":
         return <AnnouncementManagement />;
+      case "issued-items":
+        return <CollegeIssuedItemsPage userRole="counsellor" readOnly={false} />;
       case "admission-enquiries":
         return isDesktop ? (
           <LeadPipeline />

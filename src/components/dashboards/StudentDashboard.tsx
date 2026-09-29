@@ -31,6 +31,7 @@ const StudentFees = lazy(() => import("../student/StudentFees"));
 const StudentTransportPage = lazy(() => import("../student/StudentTransportPage"));
 const StudentLibraryPage = lazy(() => import("../student/StudentLibraryPage"));
 const ClassSchedule = lazy(() => import("../student/ClassSchedule"));
+const MyIssuedItems = lazy(() => import("../student/MyIssuedItems"));
 import PaymentSuccess from "../common/PaymentSuccess";
 import PaymentCancel from "../common/PaymentCancel";
 import Revaluation from "../common/Revaluation";
@@ -159,6 +160,8 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
         return <StudentTransportPage readOnly={false} />;
       case "library":
         return <StudentLibraryPage />;
+      case "my-issued-items":
+        return <MyIssuedItems />;
       case "class-schedule":
         return <ClassSchedule user={user} setError={setError} />;
       default:

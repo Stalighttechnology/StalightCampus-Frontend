@@ -36,6 +36,7 @@ import ComplianceReports from "../admin/ComplianceReports";
 import Reports from "../FeesManager/Reports";
 import { InventoryHub } from "../inventory/InventoryHub";
 import CollegeDetailsPage from "../college_details/CollegeDetailsPage";
+import CollegeIssuedItemsPage from "../issued_items/CollegeIssuedItemsPage";
 
 interface DeanUser {
   username: string;
@@ -82,6 +83,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'qp-approvals': 'qp-approvals',
     'compliance-reports': 'compliance-reports',
     'external-links': 'external-links',
+    'issued-items': 'issued-items',
   };
   return pathMap[lastPart] || lastPart || 'dashboard';
 };
@@ -167,6 +169,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <StaffTaskTracker />;
       case "compliance-reports":
         return <ComplianceReports />;
+      case "issued-items":
+        return <CollegeIssuedItemsPage userRole="dean" readOnly={true} />;
       case "inventory":
         return <InventoryHub role="dean" />;
       case "external-links":
