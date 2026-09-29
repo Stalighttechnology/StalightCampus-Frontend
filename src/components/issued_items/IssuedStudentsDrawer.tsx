@@ -20,11 +20,19 @@ import {
 import {
   fetchIssuedStudents,
   markStudentsIssued,
+  updateStudentIssuedRecordStatus,
   StudentIssuedItemRecord,
   PaginatedResponse,
 } from "../../utils/college_issued_items_api";
 import { StudentIssueHistoryModal } from "./StudentIssueHistoryModal";
 import { useToast } from "../../hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "../ui/dropdown-menu";
 import {
   Users,
   Search,
@@ -36,6 +44,8 @@ import {
   Loader2,
   Filter,
   UserCheck,
+  AlertCircle,
+  ChevronDown,
 } from "lucide-react";
 
 interface IssuedStudentsDrawerProps {
@@ -85,19 +95,38 @@ export const IssuedStudentsDrawer: React.FC<IssuedStudentsDrawerProps> = ({
   } | null>(null);
 
   const loadStudents = useCallback(
-    async (page: number) => {
+    async (
+      page: number,
+      filterOverrides?: {
+        search?: string;
+        issue_status?: string;
+        confirmation_status?: string;
+      }
+    ) => {
       if (!itemId) return;
       setIsLoading(true);
       try {
+        const activeSearch =
+          filterOverrides?.search !== undefined ? filterOverrides.search : search;
+        const activeIssueStatus =
+          filterOverrides?.issue_status !== undefined
+            ? filterOverrides.issue_status
+            : issueStatusFilter;
+        const activeConfirmation =
+          filterOverrides?.confirmation_status !== undefined
+            ? filterOverrides.confirmation_status
+            : confirmationFilter;
+
         const res = await fetchIssuedStudents(itemId, {
           page,
           page_size: 10,
-          search: search.trim() || undefined,
-          issue_status: issueStatusFilter !== "ALL" ? issueStatusFilter : undefined,
-          confirmation_status: confirmationFilter !== "ALL" ? confirmationFilter : undefined,
+          search: activeSearch.trim() || undefined,
+          issue_status: activeIssueStatus !== "ALL" ? activeIssueStatus : undefined,
+          confirmation_status:
+            activeConfirmation !== "ALL" ? activeConfirmation : undefined,
         });
         setData(res);
-        setCurrentPage(page);
+        setCurrentPage(res.page || page);
         setSelectedRecordIds([]);
       } catch (err: any) {
         toast({
@@ -121,11 +150,11 @@ export const IssuedStudentsDrawer: React.FC<IssuedStudentsDrawerProps> = ({
       setIssueStatusFilter("ALL");
       setConfirmationFilter("ALL");
     }
-  }, [isOpen, itemId, loadStudents]);
+  }, [isOpen, itemId]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadStudents(1);
+    loadStudents(1, { search });
   };
 
   const toggleSelectRecord = (id: number) => {
@@ -165,6 +194,33 @@ export const IssuedStudentsDrawer: React.FC<IssuedStudentsDrawerProps> = ({
       toast({
         title: "Action Failed",
         description: err.message || "Failed to mark as issued.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleUpdateConfirmation = async (
+    recordId: number,
+    studentName: string,
+    confirmationStatus: "CONFIRMED" | "NOT_RECEIVED" | "PENDING"
+  ) => {
+    setIsProcessing(true);
+    try {
+      const res = await updateStudentIssuedRecordStatus(recordId, {
+        confirmation_status: confirmationStatus,
+      });
+      toast({
+        title: "Status Updated",
+        description: res.message || `Updated status for ${studentName}.`,
+      });
+      loadStudents(currentPage);
+      if (onStatusUpdated) onStatusUpdated();
+    } catch (err: any) {
+      toast({
+        title: "Update Failed",
+        description: err.message || "Failed to update confirmation status.",
         variant: "destructive",
       });
     } finally {
@@ -242,7 +298,7 @@ export const IssuedStudentsDrawer: React.FC<IssuedStudentsDrawerProps> = ({
                 value={issueStatusFilter}
                 onValueChange={(val) => {
                   setIssueStatusFilter(val);
-                  loadStudents(1);
+                  loadStudents(1, { issue_status: val });
                 }}
               >
                 <SelectTrigger className="h-9 w-[130px] text-xs">
@@ -259,7 +315,7 @@ export const IssuedStudentsDrawer: React.FC<IssuedStudentsDrawerProps> = ({
                 value={confirmationFilter}
                 onValueChange={(val) => {
                   setConfirmationFilter(val);
-                  loadStudents(1);
+                  loadStudents(1, { confirmation_status: val });
                 }}
               >
                 <SelectTrigger className="h-9 w-[150px] text-xs">
@@ -267,8 +323,8 @@ export const IssuedStudentsDrawer: React.FC<IssuedStudentsDrawerProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">All Confirmations</SelectItem>
-                  <SelectItem value="PENDING">Pending Conf.</SelectItem>
-                  <SelectItem value="CONFIRMED">Student Confirmed</SelectItem>
+                  <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                  <SelectItem value="PENDING">Pending Conf. / Not Confirmed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -307,7 +363,6 @@ export const IssuedStudentsDrawer: React.FC<IssuedStudentsDrawerProps> = ({
                           />
                         </th>
                       )}
-                      <th className="py-3 px-3 w-12 text-center">#</th>
                       <th className="py-3 px-3">Student Details</th>
                       <th className="py-3 px-3">Class / Section</th>
                       <th className="py-3 px-3">Issue Status</th>
@@ -316,8 +371,7 @@ export const IssuedStudentsDrawer: React.FC<IssuedStudentsDrawerProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {data.results.map((rec, idx) => {
-                      const rowNumber = (currentPage - 1) * 10 + idx + 1;
+                    {data.results.map((rec) => {
                       const isPending = rec.issue_status === "PENDING";
                       const isChecked = selectedRecordIds.includes(rec.id);
 
@@ -337,9 +391,6 @@ export const IssuedStudentsDrawer: React.FC<IssuedStudentsDrawerProps> = ({
                               />
                             </td>
                           )}
-                          <td className="py-3 px-3 text-center text-muted-foreground font-mono text-xs">
-                            {rowNumber}
-                          </td>
                           <td className="py-3 px-3">
                             <div className="font-bold text-foreground">{rec.student_name}</div>
                             <div className="text-xs font-mono text-muted-foreground">
@@ -403,13 +454,29 @@ export const IssuedStudentsDrawer: React.FC<IssuedStudentsDrawerProps> = ({
                                   </div>
                                 )}
                               </div>
-                            ) : (
+                            ) : rec.confirmation_status === "NOT_RECEIVED" ? (
+                              <Badge
+                                variant="outline"
+                                className="text-rose-600 dark:text-rose-400 border-rose-300 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 text-xs"
+                              >
+                                <AlertCircle className="w-3 h-3 mr-1" />
+                                Not Received
+                              </Badge>
+                            ) : rec.issue_status === "ISSUED" ? (
                               <Badge
                                 variant="outline"
                                 className="text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 text-xs"
                               >
                                 <Clock className="w-3 h-3 mr-1" />
-                                Pending Receipt
+                                Pending Confirmation
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                className="text-muted-foreground text-xs"
+                              >
+                                <Clock className="w-3 h-3 mr-1" />
+                                Not Received
                               </Badge>
                             )}
                           </td>
@@ -425,10 +492,57 @@ export const IssuedStudentsDrawer: React.FC<IssuedStudentsDrawerProps> = ({
                                 Mark Issued
                               </Button>
                             )}
+
+                            {!readOnly && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2 text-xs border-border shadow-none inline-flex items-center gap-1"
+                                    disabled={isProcessing}
+                                  >
+                                    <span>Status</span>
+                                    <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleUpdateConfirmation(rec.id, rec.student_name, "CONFIRMED")
+                                    }
+                                    className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span>Mark Confirmed (Received)</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleUpdateConfirmation(rec.id, rec.student_name, "NOT_RECEIVED")
+                                    }
+                                    className="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <AlertCircle className="w-3.5 h-3.5" />
+                                    <span>Mark Not Received</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleUpdateConfirmation(rec.id, rec.student_name, "PENDING")
+                                    }
+                                    className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <Clock className="w-3.5 h-3.5" />
+                                    <span>Reset to Pending</span>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 px-2 text-xs text-primary hover:bg-primary/10 flex items-center gap-1"
+                              className="h-7 px-2 text-xs text-primary hover:bg-primary/10 inline-flex items-center gap-1"
                               onClick={() =>
                                 handleOpenHistory(rec.student_id, rec.student_name, rec.usn)
                               }
@@ -494,6 +608,11 @@ export const IssuedStudentsDrawer: React.FC<IssuedStudentsDrawerProps> = ({
         studentId={selectedStudentForHistory?.id || null}
         studentName={selectedStudentForHistory?.name}
         usn={selectedStudentForHistory?.usn}
+        readOnly={readOnly}
+        onStatusUpdated={() => {
+          loadStudents(currentPage);
+          if (onStatusUpdated) onStatusUpdated();
+        }}
       />
     </>
   );

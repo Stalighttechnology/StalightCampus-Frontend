@@ -10,9 +10,18 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import {
   fetchStudentIssueHistory,
+  updateStudentIssuedRecordStatus,
   StudentHistoryRecord,
   PaginatedResponse,
 } from "../../utils/college_issued_items_api";
+import { useToast } from "../../hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "../ui/dropdown-menu";
 import {
   History,
   CheckCircle2,
@@ -22,6 +31,9 @@ import {
   User,
   Loader2,
   FileText,
+  AlertCircle,
+  ChevronDown,
+  CheckCheck,
 } from "lucide-react";
 
 interface StudentIssueHistoryModalProps {
@@ -30,6 +42,8 @@ interface StudentIssueHistoryModalProps {
   studentId: number | null;
   studentName?: string;
   usn?: string;
+  readOnly?: boolean;
+  onStatusUpdated?: () => void;
 }
 
 export const StudentIssueHistoryModal: React.FC<StudentIssueHistoryModalProps> = ({
@@ -38,7 +52,10 @@ export const StudentIssueHistoryModal: React.FC<StudentIssueHistoryModalProps> =
   studentId,
   studentName,
   usn,
+  readOnly = false,
+  onStatusUpdated,
 }) => {
+  const { toast } = useToast();
   const [data, setData] = useState<PaginatedResponse<StudentHistoryRecord> | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,6 +79,37 @@ export const StudentIssueHistoryModal: React.FC<StudentIssueHistoryModalProps> =
       console.error("Error loading student issue history:", err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
+
+  const handleUpdateConfirmation = async (
+    recordId: number,
+    itemTitle: string,
+    confirmationStatus: "CONFIRMED" | "NOT_RECEIVED" | "PENDING"
+  ) => {
+    setUpdatingId(recordId);
+    try {
+      const res = await updateStudentIssuedRecordStatus(recordId, {
+        confirmation_status: confirmationStatus,
+      });
+      toast({
+        title: "Status Updated",
+        description: res.message || `Updated confirmation status for "${itemTitle}".`,
+      });
+      if (studentId) {
+        await loadHistory(studentId, currentPage);
+      }
+      if (onStatusUpdated) onStatusUpdated();
+    } catch (err: any) {
+      toast({
+        title: "Update Failed",
+        description: err.message || "Failed to update confirmation status.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -154,11 +202,14 @@ export const StudentIssueHistoryModal: React.FC<StudentIssueHistoryModalProps> =
                       <th className="py-3 px-3">Issue Date</th>
                       <th className="py-3 px-3">Status</th>
                       <th className="py-3 px-3">Student Confirmation</th>
+                      {!readOnly && <th className="py-3 px-3 text-right">Actions</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {data.results.map((rec, idx) => {
                       const rowNumber = (currentPage - 1) * 10 + idx + 1;
+                      const isUpdatingThis = updatingId === rec.id;
+
                       return (
                         <tr key={rec.id} className="hover:bg-muted/30 transition-colors">
                           <td className="py-3 px-3 text-center text-muted-foreground font-mono text-xs">
@@ -199,7 +250,7 @@ export const StudentIssueHistoryModal: React.FC<StudentIssueHistoryModalProps> =
                             ) : (
                               <Badge variant="outline" className="text-muted-foreground text-xs">
                                 <Clock className="w-3 h-3 mr-1" />
-                                Pending
+                                Pending Handover
                               </Badge>
                             )}
                             {rec.issued_at && (
@@ -230,13 +281,80 @@ export const StudentIssueHistoryModal: React.FC<StudentIssueHistoryModalProps> =
                                   </div>
                                 )}
                               </div>
-                            ) : (
+                            ) : rec.confirmation_status === "NOT_RECEIVED" ? (
+                              <Badge
+                                variant="outline"
+                                className="text-rose-600 dark:text-rose-400 border-rose-300 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 text-xs"
+                              >
+                                <AlertCircle className="w-3 h-3 mr-1" />
+                                Not Received
+                              </Badge>
+                            ) : rec.issue_status === "ISSUED" ? (
                               <Badge variant="outline" className="text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 text-xs">
                                 <Clock className="w-3 h-3 mr-1" />
-                                Pending Receipt
+                                Pending Confirmation
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-muted-foreground text-xs">
+                                <Clock className="w-3 h-3 mr-1" />
+                                Not Received
                               </Badge>
                             )}
                           </td>
+
+                          {!readOnly && (
+                            <td className="py-3 px-3 text-right whitespace-nowrap">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 text-xs px-2.5 flex items-center gap-1 border-border shadow-none"
+                                    disabled={isUpdatingThis}
+                                  >
+                                    {isUpdatingThis ? (
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <span>Change Status</span>
+                                        <ChevronDown className="w-3 h-3 ml-0.5 text-muted-foreground" />
+                                      </>
+                                    )}
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleUpdateConfirmation(rec.id, rec.item_title, "CONFIRMED")
+                                    }
+                                    className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span>Mark Confirmed (Received)</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleUpdateConfirmation(rec.id, rec.item_title, "NOT_RECEIVED")
+                                    }
+                                    className="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <AlertCircle className="w-3.5 h-3.5" />
+                                    <span>Mark Not Received</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleUpdateConfirmation(rec.id, rec.item_title, "PENDING")
+                                    }
+                                    className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <Clock className="w-3.5 h-3.5" />
+                                    <span>Reset to Pending</span>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          )}
                         </tr>
                       );
                     })}

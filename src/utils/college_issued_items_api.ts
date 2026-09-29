@@ -30,8 +30,8 @@ export interface AcademicHierarchyResponse {
 export interface FilterOptionsResponse {
   batches: TargetEntity[];
   branches: TargetEntity[];
-  semesters: TargetEntity[];
-  sections: TargetEntity[];
+  semesters?: TargetEntity[];
+  sections?: TargetEntity[];
   categories: { id: string; label: string }[];
 }
 
@@ -97,7 +97,7 @@ export interface StudentIssuedItemRecord {
   issue_status: "PENDING" | "ISSUED";
   issued_at?: string | null;
   issued_by_name?: string | null;
-  confirmation_status: "PENDING" | "CONFIRMED";
+  confirmation_status: "PENDING" | "CONFIRMED" | "NOT_RECEIVED";
   confirmed_at?: string | null;
   remarks?: string;
 }
@@ -115,7 +115,7 @@ export interface StudentHistoryRecord {
   issue_status: "PENDING" | "ISSUED";
   issued_at?: string | null;
   issued_by_name?: string | null;
-  confirmation_status: "PENDING" | "CONFIRMED";
+  confirmation_status: "PENDING" | "CONFIRMED" | "NOT_RECEIVED";
   confirmed_at?: string | null;
   remarks?: string;
 }
@@ -310,5 +310,26 @@ export const confirmStudentItemReceipt = async (
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to update receipt status");
+  return data;
+};
+
+export const updateStudentIssuedRecordStatus = async (
+  recordId: number,
+  payload: {
+    confirmation_status?: "CONFIRMED" | "NOT_RECEIVED" | "PENDING";
+    issue_status?: "ISSUED" | "PENDING";
+    remarks?: string;
+  }
+): Promise<{ success: boolean; message: string; record: any }> => {
+  const res = await fetchWithTokenRefresh(
+    `${API_BASE_URL}/api/college-issued-items/student-record/${recordId}/update-status/`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to update record status");
   return data;
 };

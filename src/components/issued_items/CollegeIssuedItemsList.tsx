@@ -293,7 +293,7 @@ export const CollegeIssuedItemsList: React.FC<CollegeIssuedItemsListProps> = ({
         <Card className="border border-border shadow-sm rounded-xl overflow-hidden bg-card/80 backdrop-blur hover:border-amber-400/40 transition-colors">
           <CardContent className="p-4 space-y-1">
             <div className="flex items-center justify-between text-muted-foreground">
-              <span className="text-xs font-semibold uppercase tracking-wider">Pending Receipt</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">Pending Confirmation</span>
               <Clock className="w-4 h-4 text-amber-500" />
             </div>
             <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">

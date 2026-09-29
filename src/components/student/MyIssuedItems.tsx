@@ -41,6 +41,7 @@ import {
   Wrench,
   GraduationCap,
   CheckCheck,
+  AlertCircle,
 } from "lucide-react";
 
 const getCategoryBadge = (category: string) => {
@@ -166,21 +167,16 @@ export const MyIssuedItems: React.FC = () => {
   });
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4 space-y-6 pb-12">
-      {/* Announcement-Style Header Banner */}
+    <div className="space-y-6 pb-12">
+      {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-purple-600 flex items-center justify-center text-white shadow-md shadow-primary/20 shrink-0">
-            <Gift className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-              My Issued Items
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-              View items and materials provided by the college or government, and confirm receipt.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            My Issued Items
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            View items and materials provided by the college or government, and confirm receipt.
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -357,34 +353,61 @@ export const MyIssuedItems: React.FC = () => {
                                   })}
                                 </span>
                               )}
-                              <button
-                                type="button"
-                                disabled={isProcessing}
-                                onClick={() => handleUpdateReceiptStatus(rec.id, rec.item_title, "NOT_RECEIVED")}
-                                className="text-[10px] text-muted-foreground hover:text-destructive underline transition-colors cursor-pointer mt-0.5"
-                              >
-                                Mark Not Received
-                              </button>
                             </div>
-                          ) : (
-                            <div className="flex items-center justify-center gap-1.5">
+                          ) : rec.confirmation_status === "NOT_RECEIVED" ? (
+                            <div className="flex flex-col items-center gap-1.5">
+                              <Badge
+                                variant="outline"
+                                className="text-rose-600 dark:text-rose-400 border-rose-300 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 text-xs py-0.5 px-2 font-medium"
+                              >
+                                <AlertCircle className="w-3 h-3 mr-1" />
+                                Not Received
+                              </Badge>
                               <Button
                                 size="sm"
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm h-8 px-3 flex items-center gap-1.5 rounded-lg transition-all"
+                                variant="outline"
+                                className="h-7 text-[11px] px-2.5 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 flex items-center gap-1"
                                 disabled={isProcessing}
                                 onClick={() => handleUpdateReceiptStatus(rec.id, rec.item_title, "CONFIRMED")}
                               >
                                 {isProcessing ? (
-                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  <Loader2 className="w-3 h-3 animate-spin" />
                                 ) : (
-                                  <CheckCheck className="w-3.5 h-3.5" />
+                                  <CheckCheck className="w-3 h-3" />
                                 )}
-                                Received
+                                Mark Received
                               </Button>
-                              <Badge variant="outline" className="text-muted-foreground border-border text-xs py-1 px-2">
-                                <Clock className="w-3 h-3 mr-1 text-amber-500" />
-                                Not Received
-                              </Badge>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center gap-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <Button
+                                  size="sm"
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm h-8 px-3 flex items-center gap-1.5 rounded-lg transition-all"
+                                  disabled={isProcessing}
+                                  onClick={() => handleUpdateReceiptStatus(rec.id, rec.item_title, "CONFIRMED")}
+                                >
+                                  {isProcessing ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <CheckCheck className="w-3.5 h-3.5" />
+                                  )}
+                                  Received
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 font-medium text-xs h-8 px-2.5 rounded-lg transition-all"
+                                  disabled={isProcessing}
+                                  onClick={() => handleUpdateReceiptStatus(rec.id, rec.item_title, "NOT_RECEIVED")}
+                                >
+                                  Not Received
+                                </Button>
+                              </div>
+                              <span className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 font-medium">
+                                <Clock className="w-3 h-3" />
+                                Pending Confirmation
+                              </span>
                             </div>
                           )}
                         </TableCell>
