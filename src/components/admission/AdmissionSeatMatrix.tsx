@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
-import { Loader2, Plus, Edit, Users, BookOpen, Award, FileText, Printer, ExternalLink } from 'lucide-react';
+import { Loader2, Plus, Edit, Users, BookOpen, Award, FileText, Printer, ExternalLink, User, CheckCircle2, AlertCircle } from 'lucide-react';
 import { SkeletonCard } from '../ui/skeleton';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -33,6 +33,9 @@ export default function AdmissionSeatMatrix() {
   const [formBranchId, setFormBranchId] = useState('');
   const [formBatchId, setFormBatchId] = useState('');
   const [formTotalCapacity, setFormTotalCapacity] = useState('60');
+  const [formFilledSeats, setFormFilledSeats] = useState('0');
+  const [formMaleSeats, setFormMaleSeats] = useState('0');
+  const [formFemaleSeats, setFormFemaleSeats] = useState('0');
   const [formMeritQuota, setFormMeritQuota] = useState('0');
   const [formMgmtQuota, setFormMgmtQuota] = useState('0');
 
@@ -81,6 +84,9 @@ export default function AdmissionSeatMatrix() {
     setFormBranchId('');
     setFormBatchId('');
     setFormTotalCapacity('60');
+    setFormFilledSeats('0');
+    setFormMaleSeats('0');
+    setFormFemaleSeats('0');
     setFormMeritQuota('0');
     setFormMgmtQuota('0');
     setModalOpen(true);
@@ -91,6 +97,9 @@ export default function AdmissionSeatMatrix() {
     setFormBranchId(String(matrix.branch));
     setFormBatchId(matrix.batch ? String(matrix.batch) : '');
     setFormTotalCapacity(String(matrix.total_capacity));
+    setFormFilledSeats(String(matrix.filled_seats ?? 0));
+    setFormMaleSeats(String(matrix.male_count ?? matrix.male_seats ?? 0));
+    setFormFemaleSeats(String(matrix.female_count ?? matrix.female_seats ?? 0));
     setFormMeritQuota(String(matrix.merit_quota));
     setFormMgmtQuota(String(matrix.management_quota));
     setModalOpen(true);
@@ -101,12 +110,47 @@ export default function AdmissionSeatMatrix() {
       toast.error('Please select both a Branch and a Batch.');
       return;
     }
+    const totalCap = Math.max(0, parseInt(formTotalCapacity) || 0);
+    const filled = Math.max(0, parseInt(formFilledSeats) || 0);
+    const male = Math.max(0, parseInt(formMaleSeats) || 0);
+    const female = Math.max(0, parseInt(formFemaleSeats) || 0);
+    const merit = Math.max(0, parseInt(formMeritQuota) || 0);
+    const mgmt = Math.max(0, parseInt(formMgmtQuota) || 0);
+
+    if (totalCap <= 0) {
+      toast.error('Total Intake must be greater than 0.');
+      return;
+    }
+
+    if (filled > totalCap) {
+      toast.error(`Enrolled seats (${filled}) cannot exceed Total Intake (${totalCap}).`);
+      return;
+    }
+
+    if (male + female > totalCap) {
+      toast.error(`Male (${male}) + Female (${female}) candidates cannot exceed Total Intake (${totalCap}).`);
+      return;
+    }
+
+    if (filled > 0 && male + female > filled) {
+      toast.error(`Total Male (${male}) + Female (${female}) candidates cannot exceed Enrolled seats (${filled}).`);
+      return;
+    }
+
+    if (merit + mgmt > totalCap) {
+      toast.error(`Sum of Merit Quota (${merit}) and Mgmt Quota (${mgmt}) cannot exceed Total Intake (${totalCap}).`);
+      return;
+    }
+
     const payload = {
       branch: Number(formBranchId),
       batch: Number(formBatchId),
-      total_capacity: Number(formTotalCapacity) || 60,
-      merit_quota: Number(formMeritQuota) || 0,
-      management_quota: Number(formMgmtQuota) || 0,
+      total_capacity: totalCap,
+      filled_seats: filled,
+      male_seats: male,
+      female_seats: female,
+      merit_quota: merit,
+      management_quota: mgmt,
     };
 
     setIsSaving(true);
@@ -131,7 +175,8 @@ export default function AdmissionSeatMatrix() {
         fetchSeatMatrix();
       } else {
         const err = await response.json();
-        toast.error(err.detail || err.non_field_errors?.[0] || 'Failed to save. A record for this Branch + Batch may already exist.');
+        const msg = err.non_field_errors?.[0] || err.detail || err.filled_seats?.[0] || err.total_capacity?.[0] || 'Failed to save seat allocation.';
+        toast.error(msg);
       }
     } catch (err) {
       toast.error('An error occurred.');
@@ -296,22 +341,38 @@ export default function AdmissionSeatMatrix() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                      <div className="p-3 bg-card rounded-lg text-center border">
-                        <p className="text-xs text-muted-foreground uppercase mb-1 font-semibold">Total Intake</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 mb-4">
+                      <div className="p-3 bg-card rounded-lg text-center border shadow-2xs">
+                        <p className="text-[11px] text-muted-foreground uppercase mb-1 font-semibold">Total Intake</p>
                         <p className="text-2xl font-bold text-foreground">{matrix.total_capacity}</p>
                       </div>
-                      <div className={`p-3 rounded-lg text-center border ${isFull ? 'bg-red-500/10 border-red-500/20' : 'bg-primary/10 border-primary/20'}`}>
-                        <p className={`text-xs uppercase font-bold mb-1 ${isFull ? 'text-red-500' : 'text-primary'}`}>Enrolled</p>
+                      <div className={`p-3 rounded-lg text-center border shadow-2xs ${isFull ? 'bg-red-500/10 border-red-500/20' : 'bg-primary/10 border-primary/20'}`}>
+                        <p className={`text-[11px] uppercase font-bold mb-1 ${isFull ? 'text-red-500' : 'text-primary'}`}>Enrolled</p>
                         <p className={`text-2xl font-bold ${isFull ? 'text-red-500' : 'text-primary'}`}>{matrix.filled_seats}</p>
                       </div>
-                      <div className="p-3 bg-card rounded-lg text-center border">
-                        <p className="text-xs text-muted-foreground uppercase mb-1 font-semibold flex items-center justify-center gap-1"><Award size={10} /> Merit Quota</p>
-                        <p className="text-xl font-bold text-foreground">{matrix.merit_quota}</p>
+                      <div className={`p-3 rounded-lg text-center border shadow-2xs ${remaining > 0 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-neutral-100 dark:bg-neutral-800/40 text-muted-foreground'}`}>
+                        <p className="text-[11px] uppercase font-bold mb-1">Available</p>
+                        <p className="text-2xl font-bold">{Math.max(0, remaining)}</p>
                       </div>
-                      <div className="p-3 bg-card rounded-lg text-center border">
-                        <p className="text-xs text-muted-foreground uppercase mb-1 font-semibold flex items-center justify-center gap-1"><Users size={10} /> Mgmt Quota</p>
-                        <p className="text-xl font-bold text-foreground">{matrix.management_quota}</p>
+                      <div className="p-3 bg-blue-50/50 dark:bg-blue-950/30 rounded-lg text-center border border-blue-200/70 dark:border-blue-800/50 shadow-2xs">
+                        <p className="text-[11px] text-blue-600 dark:text-blue-400 uppercase mb-1 font-semibold flex items-center justify-center gap-1">
+                          <User size={11} className="shrink-0" /> Male
+                        </p>
+                        <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{matrix.male_count ?? 0}</p>
+                      </div>
+                      <div className="p-3 bg-rose-50/50 dark:bg-rose-950/30 rounded-lg text-center border border-rose-200/70 dark:border-rose-800/50 shadow-2xs">
+                        <p className="text-[11px] text-rose-600 dark:text-rose-400 uppercase mb-1 font-semibold flex items-center justify-center gap-1">
+                          <User size={11} className="shrink-0" /> Female
+                        </p>
+                        <p className="text-2xl font-bold text-rose-700 dark:text-rose-300">{matrix.female_count ?? 0}</p>
+                      </div>
+                      <div className="p-3 bg-card rounded-lg text-center border shadow-2xs">
+                        <p className="text-[11px] text-muted-foreground uppercase mb-1 font-semibold flex items-center justify-center gap-1"><Award size={11} /> Merit Quota</p>
+                        <p className="text-2xl font-bold text-foreground">{matrix.merit_quota}</p>
+                      </div>
+                      <div className="p-3 bg-card rounded-lg text-center border shadow-2xs">
+                        <p className="text-[11px] text-muted-foreground uppercase mb-1 font-semibold flex items-center justify-center gap-1"><Users size={11} /> Mgmt Quota</p>
+                        <p className="text-2xl font-bold text-foreground">{matrix.management_quota}</p>
                       </div>
                     </div>
 
@@ -328,7 +389,7 @@ export default function AdmissionSeatMatrix() {
                         />
                       </div>
                       <p className="text-xs text-muted-foreground text-right">
-                        {isFull ? <span className="text-red-500 font-medium">No seats remaining</span> : `${remaining} seat${remaining !== 1 ? 's' : ''} remaining`}
+                        {isFull ? <span className="text-red-500 font-medium">No seats remaining</span> : `${remaining} seat${remaining !== 1 ? 's' : ''} available`}
                       </p>
                     </div>
                   </div>
@@ -341,7 +402,7 @@ export default function AdmissionSeatMatrix() {
 
       {/* Allocate / Edit Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingId ? 'Edit Seat Allocation' : 'Allocate Seats'}</DialogTitle>
           </DialogHeader>
@@ -368,10 +429,73 @@ export default function AdmissionSeatMatrix() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+
+            {/* Quick Summary Banner */}
+            {(() => {
+              const liveTotal = Math.max(0, parseInt(formTotalCapacity) || 0);
+              const liveFilled = Math.max(0, parseInt(formFilledSeats) || 0);
+              const liveMale = Math.max(0, parseInt(formMaleSeats) || 0);
+              const liveFemale = Math.max(0, parseInt(formFemaleSeats) || 0);
+              const liveMerit = Math.max(0, parseInt(formMeritQuota) || 0);
+              const liveMgmt = Math.max(0, parseInt(formMgmtQuota) || 0);
+              const liveRemaining = Math.max(0, liveTotal - liveFilled);
+              const isGenderExceeded = (liveMale + liveFemale) > (liveFilled > 0 ? liveFilled : liveTotal);
+              const isIntakeExceeded = liveFilled > liveTotal;
+              const isQuotaExceeded = (liveMerit + liveMgmt) > liveTotal;
+
+              return (
+                <>
+                  <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50 border text-xs">
+                    <span className="text-muted-foreground font-medium">Calculated Available Seats:</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">{liveRemaining} / {liveTotal}</span>
+                  </div>
+
+                  {(isIntakeExceeded || isGenderExceeded || isQuotaExceeded) && (
+                    <div className="p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs space-y-1 flex flex-col">
+                      {isIntakeExceeded && (
+                        <div className="flex items-center gap-1.5 font-medium">
+                          <AlertCircle size={13} className="shrink-0" />
+                          Enrolled seats ({liveFilled}) exceed Total Intake ({liveTotal}).
+                        </div>
+                      )}
+                      {isGenderExceeded && (
+                        <div className="flex items-center gap-1.5 font-medium">
+                          <AlertCircle size={13} className="shrink-0" />
+                          Male ({liveMale}) + Female ({liveFemale}) = {liveMale + liveFemale} exceeds {liveFilled > 0 ? `Enrolled seats (${liveFilled})` : `Total Intake (${liveTotal})`}.
+                        </div>
+                      )}
+                      {isQuotaExceeded && (
+                        <div className="flex items-center gap-1.5 font-medium">
+                          <AlertCircle size={13} className="shrink-0" />
+                          Merit ({liveMerit}) + Mgmt ({liveMgmt}) Quota exceeds Total Intake ({liveTotal}).
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="space-y-2">
                 <Label>Total Intake *</Label>
-                <Input type="number" min={0} value={formTotalCapacity} onChange={e => setFormTotalCapacity(e.target.value)} placeholder="60" />
+                <Input type="number" min={1} value={formTotalCapacity} onChange={e => setFormTotalCapacity(e.target.value)} placeholder="60" />
+              </div>
+              <div className="space-y-2">
+                <Label>Enrolled Seats</Label>
+                <Input type="number" min={0} value={formFilledSeats} onChange={e => setFormFilledSeats(e.target.value)} placeholder="0" />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1 text-blue-700 dark:text-blue-400 font-medium">
+                  <User size={13} className="shrink-0" /> Male Candidates
+                </Label>
+                <Input type="number" min={0} value={formMaleSeats} onChange={e => setFormMaleSeats(e.target.value)} placeholder="0" />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1 text-rose-700 dark:text-rose-400 font-medium">
+                  <User size={13} className="shrink-0" /> Female Candidates
+                </Label>
+                <Input type="number" min={0} value={formFemaleSeats} onChange={e => setFormFemaleSeats(e.target.value)} placeholder="0" />
               </div>
               <div className="space-y-2">
                 <Label>Merit Quota</Label>
@@ -382,7 +506,7 @@ export default function AdmissionSeatMatrix() {
                 <Input type="number" min={0} value={formMgmtQuota} onChange={e => setFormMgmtQuota(e.target.value)} placeholder="0" />
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">The "Enrolled" count is auto-tracked when students are enrolled via the Applications tab.</p>
+            <p className="text-xs text-muted-foreground">The "Enrolled", "Male", and "Female" counts are auto-tracked during student enrollment and can also be adjusted within valid seat limits.</p>
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setModalOpen(false)} disabled={isSaving}>Cancel</Button>
