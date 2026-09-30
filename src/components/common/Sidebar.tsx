@@ -124,7 +124,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     const roleLower = (role || '').toLowerCase();
     const isNonTeachingRole = user?.role === 'security' || user?.role === 'group_d' || roleLower === 'security' || roleLower === 'group_d';
     const isStudentOrParent = roleLower === 'student' || roleLower === 'parent';
-    const canHaveSubstituteRequests = !isStudentOrParent && !isNonTeachingRole;
+    const canHaveSubstituteRequests = (roleLower === 'teacher' || roleLower === 'faculty') && !isNonTeachingRole;
     const canApproveLeaves = !isNonTeachingRole && ['hod', 'dean', 'principal', 'org_admin', 'superadmin', 'admin', 'coe', 'teacher', 'faculty', 'hms', 'hms_admin', 'transport_admin'].includes(roleLower);
 
     if (canHaveSubstituteRequests || canApproveLeaves) {
@@ -348,6 +348,14 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     if (role === "student" && page === "leave-request" && ["leave", "leave-status"].includes(activePage)) {
       return true;
     }
+    if (role === "field_visitor") {
+      if ((page === "new-visit" || page === "dashboard") && (activePage === "dashboard" || activePage === "new-visit" || !activePage)) {
+        return true;
+      }
+      if (page === "profile" && (activePage === "profile" || activePage === "officer-profile")) {
+        return true;
+      }
+    }
     return false;
   };
 
@@ -504,6 +512,10 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "college-details": <Building2 size={20} />,
       "issued-items": <Package size={20} />,
       "my-issued-items": <Gift size={20} />,
+      "field-visits": <ClipboardList size={20} />,
+      "new-visit": <ClipboardList size={20} />,
+      "visit-history": <FileText size={20} />,
+      "school-database": <Building2 size={20} />,
     };
     return iconMap[page] || <LayoutDashboard size={20} />;
   };
@@ -562,6 +574,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "My Attendance", page: "my-attendance" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Reports", page: "reports" },
+      { name: "School Inspections / Field Reports", page: "field-visits" },
       { name: "College Profile & Report Card", page: "college-details" },
       { name: "Finance", page: "finance" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
@@ -902,6 +915,11 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Hostel Details", page: "student-hostel-details" },
       { name: "Profile", page: "profile" },
     ],
+    field_visitor: [
+      { name: "Record School Visit", page: "new-visit" },
+      { name: "Inspection History", page: "visit-history" },
+      { name: "Officer Profile", page: "profile" },
+    ],
   };
 
   const branchName = (user?.branch_name || user?.branch || '').toString().toLowerCase();
@@ -1003,7 +1021,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   // Programmatically inject External Links right before the Profile item for all roles
   Object.keys(menuItems).forEach((key) => {
-    if (key === 'student' || key === 'outside_student' || key === 'parent') return;
+    if (key === 'student' || key === 'outside_student' || key === 'parent' || key === 'field_visitor') return;
     if (menuItems[key] && !menuItems[key].some(item => item.page === 'external-links')) {
       const profileIndex = menuItems[key].findIndex(item => item.page.includes('profile'));
       if (profileIndex !== -1) {
@@ -1016,6 +1034,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   if (menuItems['parent']) {
     menuItems['parent'] = menuItems['parent'].filter(item => item.page !== 'external-links');
+  }
+  if (menuItems['field_visitor']) {
+    menuItems['field_visitor'] = menuItems['field_visitor'].filter(item => item.page !== 'external-links' && item.page !== 'school-database');
   }
 
   // Automatically scroll active sidebar item into view

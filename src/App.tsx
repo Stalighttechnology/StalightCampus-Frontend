@@ -44,6 +44,7 @@ const LibraryAdminDashboard = lazy(() => import("./components/dashboards/Library
 const AdmissionManagerDashboard = lazy(() => import("./components/dashboards/AdmissionManagerDashboard"));
 const CounsellorDashboard = lazy(() => import("./components/dashboards/CounsellorDashboard"));
 const InventoryManagerDashboard = lazy(() => import("./components/dashboards/InventoryManagerDashboard"));
+const FieldVisitorDashboard = lazy(() => import("./components/dashboards/FieldVisitorDashboard"));
 const AdmissionLanding = lazy(() => import("./components/public/AdmissionLanding"));
 const ApplicationWizard = lazy(() => import("./components/public/ApplicationWizard"));
 const Onboarding = lazy(() => import("./components/common/Onboarding"));
@@ -164,7 +165,8 @@ const AppContent = () => {
       "/library-admin",
       "/admission-manager",
       "/inventory-admin",
-      "/inventory-manager"
+      "/inventory-manager",
+      "/field-visitor"
     ];
     return topDashboards.includes(p);
   };
@@ -748,6 +750,16 @@ const AppContent = () => {
             <ProtectedRoute allowedRoles={["inventory_manager", "org_admin", "admin", "principal"]}>
               <>
                 <InventoryManagerDashboard user={userData} setPage={() => { }} />
+                {shouldShowFloatingAssistant() && <FloatingAssistant />}
+              </>
+            </ProtectedRoute>
+          } />
+
+          {/* Field Visitor routes */}
+          <Route path="/field-visitor/*" element={
+            <ProtectedRoute allowedRoles={["field_visitor"]}>
+              <>
+                <FieldVisitorDashboard user={userData} setPage={() => { }} />
                 {shouldShowFloatingAssistant() && <FloatingAssistant />}
               </>
             </ProtectedRoute>

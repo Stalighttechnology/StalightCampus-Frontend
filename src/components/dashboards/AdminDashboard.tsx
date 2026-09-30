@@ -42,6 +42,7 @@ import HODSemesterMonitor from "../hod/HODSemesterMonitor";
 import { InventoryHub } from "../inventory/InventoryHub";
 import CollegeDetailsPage from "../college_details/CollegeDetailsPage";
 import CollegeIssuedItemsPage from "../issued_items/CollegeIssuedItemsPage";
+import { PrincipalFieldVisitsView } from "../admin/PrincipalFieldVisitsView";
 
 import {
   Users,
@@ -123,6 +124,9 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
 
       case "college-details":
         return <CollegeDetailsPage userRole={user?.role || "principal"} />;
+
+      case "field-visits":
+        return <PrincipalFieldVisitsView />;
 
       case "enroll-user":
         return (

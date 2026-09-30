@@ -59,17 +59,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const navigate = useNavigate();
   const mainContentRef = useRef<HTMLElement>(null);
 
-  // Lock document viewport and scroll when library admin dashboard is active to prevent double scrolling
+  // Lock document viewport and scroll when any dashboard is active to prevent double scrolling and trailing whitespace
   useEffect(() => {
-    if (role === 'library_admin') {
-      document.documentElement.classList.add("dashboard-active");
-      document.body.classList.add("dashboard-active");
-    }
+    document.documentElement.classList.add("dashboard-active");
+    document.body.classList.add("dashboard-active");
     return () => {
       document.documentElement.classList.remove("dashboard-active");
       document.body.classList.remove("dashboard-active");
     };
-  }, [role]);
+  }, []);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -229,7 +227,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       join(" ");
   };
 
-  const isNoAnimation = role === 'admin' || role === 'principal' || role === 'org_admin' || role === 'hms' || role === 'warden' || role === 'transport_admin' || role === 'driver' || role === 'library_admin' || user?.role === 'security' || user?.role === 'group_d';
+  const isNoAnimation = role === 'admin' || role === 'principal' || role === 'org_admin' || role === 'hms' || role === 'warden' || role === 'transport_admin' || role === 'driver' || role === 'library_admin' || role === 'field_visitor' || user?.role === 'security' || user?.role === 'group_d';
 
   return (
     <motion.div
