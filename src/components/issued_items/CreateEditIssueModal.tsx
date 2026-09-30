@@ -36,6 +36,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../ui/popover";
+import { Calendar } from "../ui/calendar";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
   Loader2,
@@ -48,6 +50,7 @@ import {
   AlertCircle,
   HelpCircle,
   ChevronDown,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 
 interface CreateEditIssueModalProps {
@@ -73,10 +76,20 @@ export const CreateEditIssueModal: React.FC<CreateEditIssueModalProps> = ({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("UNIFORM");
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState<number | string>(1);
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [academicYear, setAcademicYear] = useState("");
   const [remarks, setRemarks] = useState("");
+
+  const parseDateString = (dateStr: string) => {
+    if (!dateStr) return undefined;
+    const parts = dateStr.split("-").map(Number);
+    if (parts.length === 3) {
+      return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+    return undefined;
+  };
 
   // Row-Based Target Allocation State
   const [targetGroups, setTargetGroups] = useState<TargetGroupPayload[]>([
@@ -271,12 +284,14 @@ export const CreateEditIssueModal: React.FC<CreateEditIssueModalProps> = ({
 
     setIsSubmitting(true);
     try {
+      const parsedQuantity = Math.max(1, parseInt(String(quantity), 10) || 1);
+
       if (editItem) {
         await updateIssuedItem(editItem.id, {
           title,
           description,
           category,
-          quantity,
+          quantity: parsedQuantity,
           issue_date: issueDate,
           academic_year: academicYear,
           remarks,
@@ -296,7 +311,7 @@ export const CreateEditIssueModal: React.FC<CreateEditIssueModalProps> = ({
           title,
           description,
           category,
-          quantity,
+          quantity: parsedQuantity,
           issue_date: issueDate,
           academic_year: academicYear,
           remarks,
@@ -385,9 +400,25 @@ export const CreateEditIssueModal: React.FC<CreateEditIssueModalProps> = ({
                 id="quantity"
                 type="number"
                 min="1"
+                placeholder="1"
                 value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                className="h-10 text-sm"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "") {
+                    setQuantity("");
+                  } else {
+                    const num = parseInt(val, 10);
+                    if (!isNaN(num)) {
+                      setQuantity(num);
+                    }
+                  }
+                }}
+                onBlur={() => {
+                  if (quantity === "" || Number(quantity) < 1) {
+                    setQuantity(1);
+                  }
+                }}
+                className="h-10 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
 
@@ -395,13 +426,42 @@ export const CreateEditIssueModal: React.FC<CreateEditIssueModalProps> = ({
               <Label htmlFor="issue-date" className="font-semibold text-sm">
                 Issue / Distribution Date
               </Label>
-              <Input
-                id="issue-date"
-                type="date"
-                value={issueDate}
-                onChange={(e) => setIssueDate(e.target.value)}
-                className="h-10 text-sm"
-              />
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="issue-date"
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal h-10 text-sm bg-background border-input",
+                      !issueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    {issueDate ? (
+                      (() => {
+                        const parsed = parseDateString(issueDate);
+                        return parsed ? format(parsed, "dd-MM-yyyy") : issueDate;
+                      })()
+                    ) : (
+                      <span className="text-muted-foreground">Select date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-popover text-popover-foreground border-border shadow-lg z-[9999]" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={parseDateString(issueDate)}
+                    onSelect={(date) => {
+                      if (date) {
+                        setIssueDate(format(date, "yyyy-MM-dd"));
+                      }
+                      setCalendarOpen(false);
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
