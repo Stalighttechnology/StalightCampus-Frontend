@@ -129,17 +129,17 @@ export function hodTransform(step: any, isMobile: boolean): any[] | null {
       {
         ...step,
         target: '#low-attendance-stats-cards',
-        title: 'Low Attendance Overview',
+        title: 'Low Attendance & Performance Overview',
         content:
-          'Quickly see Total Students, how many have Low Attendance, and the Average Attendance percentage for the selected section.',
+          'Quickly see Total Students, count of students below threshold, and the Average Attendance/Performance percentage for the selected section.',
         placement: isMobile ? ('bottom' as const) : ('top' as const),
       },
       {
         ...step,
         target: '#low-attendance-dashboard-header',
-        title: 'Low Attendance Management',
+        title: 'Low Attendance & Performance Management',
         content:
-          'Identify students below the attendance threshold. Use the filters to select a semester and section, then export a PDF report or notify students directly.',
+          'Identify students below the attendance or marks thresholds. Use the filters to select a semester and section, view subject breakdowns, export PDF reports, or notify students directly.',
         placement: isMobile ? ('bottom' as const) : ('top' as const),
       },
     ];

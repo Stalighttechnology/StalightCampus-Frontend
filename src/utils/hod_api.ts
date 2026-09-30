@@ -1293,7 +1293,7 @@ filters: {semester_id?: string;section_id?: string;subject_id?: string;threshold
 
 export const getLowAttendanceStudents = async (
 branch_id?: string,
-filters: {semester_id?: string;section_id?: string;subject_id?: string;threshold?: number;page?: number;page_size?: number;} = {})
+filters: {batch_id?: string;semester_id?: string;section_id?: string;subject_id?: string;threshold?: number;page?: number;page_size?: number;} = {})
 : Promise<{
   success: boolean;
   message?: string;
@@ -1314,6 +1314,7 @@ filters: {semester_id?: string;section_id?: string;subject_id?: string;threshold
       section: string | null;
       batch: string | null;
       subject: string;
+      subjects_breakdown?: Array<{ name: string; avg: number; total?: number; present?: number }>;
       recently_notified: boolean;
     }>;
     stats?: {
@@ -1330,6 +1331,7 @@ filters: {semester_id?: string;section_id?: string;subject_id?: string;threshold
   try {
     const params: Record<string, string> = {};
     if (branch_id) params.branch_id = branch_id;
+    if (filters.batch_id) params.batch_id = filters.batch_id;
     if (filters.semester_id) params.semester_id = filters.semester_id;
     if (filters.section_id) params.section_id = filters.section_id;
     if (filters.subject_id) params.subject_id = filters.subject_id;
@@ -1346,6 +1348,68 @@ filters: {semester_id?: string;section_id?: string;subject_id?: string;threshold
     return handleApiError(error, (error as any).response);
   }
 };
+
+export const getLowPerformanceStudents = async (
+branch_id?: string,
+filters: {batch_id?: string;semester_id?: string;section_id?: string;subject_id?: string;threshold?: number;page?: number;page_size?: number;} = {})
+: Promise<{
+  success: boolean;
+  message?: string;
+  count?: number;
+  total_pages?: number;
+  current_page?: number;
+  next?: string | null;
+  previous?: string | null;
+  data?: {
+    students: Array<{
+      student_id: string;
+      usn: string;
+      name: string;
+      attendance_percentage: number | string;
+      performance_percentage: number | string;
+      total_sessions: number;
+      present_sessions: number;
+      semester: number | null;
+      section: string | null;
+      batch: string | null;
+      subject: string;
+      subjects_breakdown?: Array<{ name: string; avg: number }>;
+      recently_notified: boolean;
+    }>;
+    stats?: {
+      total_students: number;
+      low_attendance_count?: number;
+      low_performance_count: number;
+      avg_attendance?: number;
+      avg_performance: number;
+    };
+  };
+  results?: {
+    students: Array<any>;
+    stats: any;
+  }
+}> => {
+  try {
+    const params: Record<string, string> = {};
+    if (branch_id) params.branch_id = branch_id;
+    if (filters.batch_id) params.batch_id = filters.batch_id;
+    if (filters.semester_id) params.semester_id = filters.semester_id;
+    if (filters.section_id) params.section_id = filters.section_id;
+    if (filters.subject_id) params.subject_id = filters.subject_id;
+    if (filters.threshold) params.threshold = filters.threshold.toString();
+    if (filters.page) params.page = filters.page.toString();
+    if (filters.page_size) params.page_size = filters.page_size.toString();
+    const query = new URLSearchParams(params).toString();
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/low-performance/${query ? '?' + query : ''}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
+    });
+    return await response.json();
+  } catch (error: unknown) {
+    return handleApiError(error, (error as any).response);
+  }
+};
+
 
 export const getAttendanceBootstrap = async (
 branch_id?: string,

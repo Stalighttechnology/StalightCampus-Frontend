@@ -144,9 +144,9 @@ export const hodTour: Step[] = [
   },
   {
     target: '#sidebar-low-attendance',
-    title: 'Low Attendance',
+    title: 'Low Attendance & Performance',
     content:
-      "Identify students with attendance below the required threshold and take corrective action.",
+      "Identify students with attendance or academic scores below the required thresholds and take corrective action.",
     placement: 'right' as const,
     disableBeacon: false,
     route: '/hod/low-attendance',
