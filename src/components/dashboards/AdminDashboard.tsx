@@ -43,6 +43,7 @@ import { InventoryHub } from "../inventory/InventoryHub";
 import CollegeDetailsPage from "../college_details/CollegeDetailsPage";
 import CollegeIssuedItemsPage from "../issued_items/CollegeIssuedItemsPage";
 import { PrincipalFieldVisitsView } from "../admin/PrincipalFieldVisitsView";
+import LowAttendance from "../hod/LowAttendance";
 
 import {
   Users,
@@ -198,6 +199,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <AdminAttendanceRecords />
+          </div>);
+
+      case "low-attendance":
+        return (
+          <div>
+            <LowAttendance setError={setError} />
           </div>);
 
       case "faculty-attendance":
