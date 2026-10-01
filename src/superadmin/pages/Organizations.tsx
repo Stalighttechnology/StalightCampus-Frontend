@@ -4,7 +4,7 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
-import { Search, MoreVertical, Building2, Trash2, Edit, Eye, Layers } from "lucide-react";
+import { Search, MoreVertical, Building2, Trash2, Edit, Eye, EyeOff, Layers, Lock, AlertCircle } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import {
@@ -54,6 +54,9 @@ const Organizations = () => {
 
   // Action states
   const [deleteOrg, setDeleteOrg] = useState<any>(null);
+  const [deletePassword, setDeletePassword] = useState<string>("");
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [deleteError, setDeleteError] = useState<string>("");
   const [planOrg, setPlanOrg] = useState<any>(null);
   const [newPlan, setNewPlan] = useState<string>("");
   const [actionLoading, setActionLoading] = useState(false);
@@ -98,25 +101,49 @@ const Organizations = () => {
     fetchOrgs();
   }, []);
 
+  const openDeleteModal = (org: any) => {
+    setDeleteOrg(org);
+    setDeletePassword("");
+    setShowDeletePassword(false);
+    setDeleteError("");
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteOrg(null);
+    setDeletePassword("");
+    setShowDeletePassword(false);
+    setDeleteError("");
+  };
+
   const handleDelete = async () => {
     if (!deleteOrg) return;
+    if (!deletePassword.trim()) {
+      setDeleteError("Please enter the confirmation password.");
+      return;
+    }
+
+    setDeleteError("");
     setActionLoading(true);
     try {
       const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/organizations/${deleteOrg.id}/`, {
         method: 'DELETE',
         headers: {
+          "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
-        }
+        },
+        body: JSON.stringify({
+          password: deletePassword.trim()
+        })
       });
       if (response.ok) {
         setOrgs(orgs.filter((o) => o.id !== deleteOrg.id));
-        setDeleteOrg(null);
+        closeDeleteModal();
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete organization');
+        setDeleteError(errorData.error || 'Failed to delete organization');
       }
     } catch (error) {
-      alert('Error deleting organization');
+      setDeleteError('An error occurred while deleting organization.');
     } finally {
       setActionLoading(false);
     }
@@ -350,10 +377,9 @@ const Organizations = () => {
                               <Layers className="w-4 h-4 mr-2 text-teal-500" /> Manage Modules
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                          className={`${org.name === "Stalight HQ" ? "text-gray-400 cursor-not-allowed" : "text-red-600 focus:text-red-600"}`}
-                          onClick={() => org.name !== "Stalight HQ" && setDeleteOrg(org)}
-                          disabled={org.name === "Stalight HQ"}>
-                          
+                              className={`${org.name === "Stalight HQ" ? "text-gray-400 cursor-not-allowed" : "text-red-600 focus:text-red-600"}`}
+                              onClick={() => org.name !== "Stalight HQ" && openDeleteModal(org)}
+                              disabled={org.name === "Stalight HQ"}>
                               <Trash2 className="w-4 h-4 mr-2" /> Delete Organization
                               {org.name === "Stalight HQ" && <span className="text-xs ml-auto">(System Org)</span>}
                             </DropdownMenuItem>
@@ -369,28 +395,78 @@ const Organizations = () => {
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteOrg} onOpenChange={(open) => !open && setDeleteOrg(null)}>
-        <AlertDialogContent>
+      {/* Delete Confirmation Dialog with Password Verification */}
+      <AlertDialog open={!!deleteOrg} onOpenChange={(open) => !open && closeDeleteModal()}>
+        <AlertDialogContent className="sm:max-w-[480px]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the organization
-              <span className="font-bold text-foreground"> {deleteOrg?.name} </span>
-              and remove all of its associated data, users, and records from our servers.
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <Trash2 className="h-5 w-5 shrink-0" />
+              <span>Delete Organization</span>
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-left space-y-2 pt-1 text-sm text-muted-foreground">
+              <div>
+                This action is <span className="font-semibold text-foreground">permanent and cannot be undone</span>.
+                This will delete <span className="font-bold text-foreground font-mono">{deleteOrg?.name}</span> and all associated databases, user accounts, and tenant records.
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
+
+          <div className="space-y-3 py-2 text-left">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                <span>Enter Confirmation Password:</span>
+              </label>
+              <div className="relative">
+                <Input
+                  type={showDeletePassword ? "text" : "password"}
+                  placeholder="Enter confirmation password..."
+                  value={deletePassword}
+                  onChange={(e) => {
+                    setDeletePassword(e.target.value);
+                    if (deleteError) setDeleteError("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && deletePassword.trim() && !actionLoading) {
+                      e.preventDefault();
+                      handleDelete();
+                    }
+                  }}
+                  disabled={actionLoading}
+                  className="pr-10 text-sm h-10 bg-background"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowDeletePassword(!showDeletePassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5"
+                  tabIndex={-1}
+                >
+                  {showDeletePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {deleteError && (
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-xs animate-in fade-in duration-200">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{deleteError}</span>
+              </div>
+            )}
+          </div>
+
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel onClick={closeDeleteModal} disabled={actionLoading}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
                 handleDelete();
               }}
-              className="bg-red-600 hover:bg-red-700"
-              disabled={actionLoading}>
-              
-              {actionLoading ? "Deleting..." : "Delete Organization"}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold"
+              disabled={actionLoading || !deletePassword.trim()}>
+              {actionLoading ? "Verifying & Deleting..." : "Delete Organization"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
