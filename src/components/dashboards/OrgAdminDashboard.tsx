@@ -36,6 +36,7 @@ import ComplianceReports from "../admin/ComplianceReports";
 import { InventoryHub } from "../inventory/InventoryHub";
 import CollegeDetailsPage from "../college_details/CollegeDetailsPage";
 import CollegeIssuedItemsPage from "../issued_items/CollegeIssuedItemsPage";
+import SportsWellnessPage from "../sports_wellness/SportsWellnessPage";
 
 interface OrgAdminDashboardProps {
   user: any;
@@ -132,6 +133,8 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
         return <ComplianceReports />;
       case "issued-items":
         return <CollegeIssuedItemsPage userRole="org_admin" readOnly={true} />;
+      case "sports-wellness":
+        return <SportsWellnessPage userRole="org_admin" readOnly={true} />;
       case "inventory":
         return <InventoryHub role="org_admin" />;
       case "external-links":

@@ -44,6 +44,7 @@ import CollegeDetailsPage from "../college_details/CollegeDetailsPage";
 import CollegeIssuedItemsPage from "../issued_items/CollegeIssuedItemsPage";
 import { PrincipalFieldVisitsView } from "../admin/PrincipalFieldVisitsView";
 import LowAttendance from "../hod/LowAttendance";
+import SportsWellnessPage from "../sports_wellness/SportsWellnessPage";
 
 import {
   Users,
@@ -248,6 +249,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <CollegeIssuedItemsPage userRole="principal" readOnly={true} />
+          </div>);
+
+      case "sports-wellness":
+        return (
+          <div>
+            <SportsWellnessPage userRole="principal" readOnly={true} />
           </div>);
 
 

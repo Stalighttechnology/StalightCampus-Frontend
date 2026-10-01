@@ -17,6 +17,7 @@ import AnnouncementManagement from "../admin/AnnouncementManagement";
 import DesktopOnly from "../common/DesktopOnly";
 import { useIsDesktop } from "../../hooks/use-desktop";
 import CollegeIssuedItemsPage from "../issued_items/CollegeIssuedItemsPage";
+import SportsWellnessPage from "../sports_wellness/SportsWellnessPage";
 
 interface DashboardProps {
   user: any;
@@ -49,6 +50,8 @@ const CounsellorDashboard = ({ user }: DashboardProps) => {
         return <AnnouncementManagement />;
       case "issued-items":
         return <CollegeIssuedItemsPage userRole="counsellor" readOnly={false} />;
+      case "sports-wellness":
+        return <SportsWellnessPage userRole="counsellor" readOnly={false} />;
       case "admission-enquiries":
         return isDesktop ? (
           <LeadPipeline />

@@ -37,6 +37,7 @@ import Reports from "../FeesManager/Reports";
 import { InventoryHub } from "../inventory/InventoryHub";
 import CollegeDetailsPage from "../college_details/CollegeDetailsPage";
 import CollegeIssuedItemsPage from "../issued_items/CollegeIssuedItemsPage";
+import SportsWellnessPage from "../sports_wellness/SportsWellnessPage";
 
 interface DeanUser {
   username: string;
@@ -84,6 +85,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'compliance-reports': 'compliance-reports',
     'external-links': 'external-links',
     'issued-items': 'issued-items',
+    'sports-wellness': 'sports-wellness',
   };
   return pathMap[lastPart] || lastPart || 'dashboard';
 };
@@ -171,6 +173,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <ComplianceReports />;
       case "issued-items":
         return <CollegeIssuedItemsPage userRole="dean" readOnly={true} />;
+      case "sports-wellness":
+        return <SportsWellnessPage userRole="dean" readOnly={true} />;
       case "inventory":
         return <InventoryHub role="dean" />;
       case "external-links":
