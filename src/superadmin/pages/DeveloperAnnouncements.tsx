@@ -8,6 +8,16 @@ import {
   Search, Send, Calendar as CalendarIcon, Inbox, Trash2, ShieldCheck
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -72,6 +82,8 @@ const DeveloperAnnouncements = () => {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
   const [sending, setSending] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Token helper — supports both superadmin and regular tokens
   const getToken = async (): Promise<string | null> => {
@@ -184,23 +196,27 @@ const DeveloperAnnouncements = () => {
   };
 
   // Delete (own announcements)
-  const deleteAnnouncement = async (id: number) => {
-    if (!confirm("Delete this announcement?")) return;
+  const confirmDeleteAnnouncement = async () => {
+    if (!deleteTargetId) return;
     try {
+      setDeleting(true);
       const token = await getToken();
       if (!token) return;
-      const res = await fetch(`${API_BASE_URL}/api/announcements/${id}/`, {
+      const res = await fetch(`${API_BASE_URL}/api/announcements/${deleteTargetId}/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok || res.status === 204) {
-        setMyAnnouncements((prev) => prev.filter((a) => a.id !== id));
+        setMyAnnouncements((prev) => prev.filter((a) => a.id !== deleteTargetId));
         toast({ title: "Deleted", description: "Announcement removed." });
+        setDeleteTargetId(null);
       } else {
         toast({ variant: "destructive", title: "Delete failed" });
       }
     } catch {
       toast({ variant: "destructive", title: "Network error" });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -280,7 +296,7 @@ const DeveloperAnnouncements = () => {
           <span className={`text-[10px] px-2 py-0.5 rounded-full border uppercase ${priorityStyle(ann.priority)}`}>{ann.priority}</span>
           {!isReceived && (
             <button
-              onClick={() => deleteAnnouncement(ann.id)}
+              onClick={() => setDeleteTargetId(ann.id)}
               className="text-red-400 hover:text-red-600 transition-colors p-1 rounded hover:bg-red-500/10"
               title="Delete announcement"
             >
@@ -500,6 +516,31 @@ const DeveloperAnnouncements = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Delete Announcement Alert Dialog */}
+      <AlertDialog open={!!deleteTargetId} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Announcement?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this announcement? This action cannot be undone and will remove it from all recipients' feeds.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDeleteAnnouncement();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting..." : "Delete Announcement"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

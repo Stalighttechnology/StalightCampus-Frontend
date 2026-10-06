@@ -5,11 +5,24 @@ import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/ca
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "../../utils/sweetalert";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Save } from "lucide-react";
 
 export const AppVersionControlCard = () => {
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const { toast } = useToast();
   const [config, setConfig] = useState({
     android_latest_version: "",
     android_minimum_version: "",
@@ -56,30 +69,27 @@ export const AppVersionControlCard = () => {
     return 0;
   };
 
-  const handleSave = async () => {
+  const handleValidateAndPrompt = () => {
     // Validate semantic versions
     if (compareVersions(config.android_minimum_version, config.android_latest_version) > 0) {
-      return showErrorAlert("Validation Error", "Android Minimum version cannot be greater than Latest version");
+      toast({ title: "Validation Error", description: "Android Minimum version cannot be greater than Latest version", variant: "destructive" });
+      return;
     }
     if (compareVersions(config.ios_minimum_version, config.ios_latest_version) > 0) {
-      return showErrorAlert("Validation Error", "iOS Minimum version cannot be greater than Latest version");
+      toast({ title: "Validation Error", description: "iOS Minimum version cannot be greater than Latest version", variant: "destructive" });
+      return;
     }
     if (compareVersions(config.web_minimum_version, config.web_latest_version) > 0) {
-      return showErrorAlert("Validation Error", "Web Minimum version cannot be greater than Latest version");
-    }
-
-    const confirmResult = await showConfirmAlert(
-      "Confirm Version Settings",
-      `Are you sure you want to enforce these versions?\n\nAndroid: ${config.android_latest_version} (Min: ${config.android_minimum_version})\niOS: ${config.ios_latest_version} (Min: ${config.ios_minimum_version})\nWeb: ${config.web_latest_version} (Min: ${config.web_minimum_version})`,
-      "Yes, Save changes",
-      "warning"
-    );
-
-    if (!confirmResult.isConfirmed) {
+      toast({ title: "Validation Error", description: "Web Minimum version cannot be greater than Latest version", variant: "destructive" });
       return;
     }
 
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmSave = async () => {
     try {
+      setSaving(true);
       const res = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/superadmin/app-version/`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -87,13 +97,16 @@ export const AppVersionControlCard = () => {
       });
 
       if (res.ok) {
-        showSuccessAlert("Success", "App version settings saved successfully!");
+        toast({ title: "Success", description: "App version settings saved successfully!" });
+        setConfirmOpen(false);
       } else {
-        showErrorAlert("Error", "Failed to save version settings.");
+        toast({ title: "Error", description: "Failed to save version settings.", variant: "destructive" });
       }
     } catch (error) {
       console.error("Save error", error);
-      showErrorAlert("Error", "An unexpected error occurred.");
+      toast({ title: "Error", description: "An unexpected error occurred.", variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -106,7 +119,7 @@ export const AppVersionControlCard = () => {
       <CardHeader className="bg-primary/5 pb-4 border-b">
         <CardTitle className="text-xl flex items-center justify-between">
           <span>App Version Control</span>
-          <Button onClick={handleSave} size="sm" className="gap-2">
+          <Button onClick={handleValidateAndPrompt} size="sm" className="gap-2" disabled={saving}>
             <Save size={16} /> Save Version Settings
           </Button>
         </CardTitle>
@@ -167,6 +180,36 @@ export const AppVersionControlCard = () => {
         </div>
 
       </CardContent>
+
+      {/* Confirm Version Save Dialog */}
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Version Settings</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2 text-sm">
+              <p>Are you sure you want to enforce these versions across all client platforms?</p>
+              <div className="p-3 bg-muted/40 rounded border space-y-1 font-mono text-xs">
+                <div>Android: {config.android_latest_version} (Min: {config.android_minimum_version})</div>
+                <div>iOS: {config.ios_latest_version} (Min: {config.ios_minimum_version})</div>
+                <div>Web: {config.web_latest_version} (Min: {config.web_minimum_version})</div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={saving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmSave();
+              }}
+              disabled={saving}
+              className="bg-primary text-primary-foreground"
+            >
+              {saving ? "Saving..." : "Yes, Save changes"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

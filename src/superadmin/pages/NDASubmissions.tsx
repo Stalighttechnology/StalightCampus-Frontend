@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../../components/ui/card";
-import { Download, Search, FileText, ChevronLeft, ChevronRight, Trash2, CheckCircle } from "lucide-react";
+import { Download, Search, FileText, ChevronLeft, ChevronRight, Trash2, CheckCircle, Pencil, Save, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { useTheme } from "../../context/ThemeContext";
 import { API_BASE_URL } from "@/utils/config";
 import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
@@ -26,6 +27,11 @@ const NDASubmissions = () => {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [approvingId, setApprovingId] = useState<number | null>(null);
+
+  // Edit modal state
+  const [editingSubmission, setEditingSubmission] = useState<any | null>(null);
+  const [editFormData, setEditFormData] = useState<any>({});
+  const [editLoading, setEditLoading] = useState(false);
 
   const { theme } = useTheme();
   const { toast } = useToast();
@@ -77,6 +83,69 @@ const NDASubmissions = () => {
   const handleTabChange = (tab: 'approved' | 'pending') => {
     setActiveTab(tab);
     setPage(1);
+  };
+
+  const handleEditOpen = (sub: any) => {
+    setEditingSubmission(sub);
+    setEditFormData({
+      full_name: sub.full_name || '',
+      role: sub.role || 'EMPLOYEE',
+      department: sub.department || '',
+      designation: sub.designation || '',
+      employee_intern_id: sub.employee_intern_id || '',
+      date_of_joining: sub.date_of_joining || '',
+      personal_email: sub.personal_email || '',
+      phone: sub.phone || '',
+      address: sub.address || '',
+      emergency_contact: sub.emergency_contact || '',
+      pre_existing_ip: sub.pre_existing_ip || '',
+    });
+  };
+
+  const handleEditChange = (field: string, value: string) => {
+    setEditFormData((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  const handleEditSave = async () => {
+    if (!editingSubmission) return;
+    setEditLoading(true);
+    try {
+      const response = await fetchWithSuperadminTokenRefresh(
+        `${API_BASE_URL}/api/superadmin/nda-submissions/${editingSubmission.id}/update/`,
+        {
+          method: 'PUT',
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
+          },
+          body: JSON.stringify(editFormData)
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        // Update item in current list
+        setSubmissions(submissions.map(s => s.id === editingSubmission.id ? { ...s, ...data.submission } : s));
+        toast({
+          title: "Success",
+          description: "NDA submission details updated successfully!",
+        });
+        setEditingSubmission(null);
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to update submission details",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred while updating the record",
+        variant: "destructive",
+      });
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const handleApprove = async (id: number) => {
@@ -259,6 +328,15 @@ const NDASubmissions = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 h-8 w-8" 
+                            title="Edit Submission"
+                            onClick={() => handleEditOpen(sub)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
                           {activeTab === 'pending' ? (
                             <Button
                               onClick={() => handleApprove(sub.id)}
@@ -337,6 +415,201 @@ const NDASubmissions = () => {
           </CardFooter>
         )}
       </Card>
+
+      {/* Edit Submission Dialog */}
+      <Dialog open={!!editingSubmission} onOpenChange={(open) => !open && setEditingSubmission(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+              <Pencil className="w-5 h-5 text-indigo-600" />
+              Edit NDA Submission Details
+            </DialogTitle>
+            <DialogDescription>
+              Update candidate information and details before approving or re-generating documents.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* 2-column grid for Personal & Role */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Full Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  value={editFormData.full_name || ''}
+                  onChange={(e) => handleEditChange('full_name', e.target.value)}
+                  placeholder="e.g., Gc Likith"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Role <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  value={editFormData.role || 'EMPLOYEE'}
+                  onChange={(e) => handleEditChange('role', e.target.value)}
+                >
+                  <option value="EMPLOYEE">Employee</option>
+                  <option value="INTERN">Intern</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Employee / Intern ID
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  value={editFormData.employee_intern_id || ''}
+                  onChange={(e) => handleEditChange('employee_intern_id', e.target.value)}
+                  placeholder="e.g., EMP-1004"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Department <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  value={editFormData.department || ''}
+                  onChange={(e) => handleEditChange('department', e.target.value)}
+                  placeholder="e.g., Computer Science Engineering"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Designation <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  value={editFormData.designation || ''}
+                  onChange={(e) => handleEditChange('designation', e.target.value)}
+                  placeholder="e.g., Software Developer (Intern)"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Date of Joining <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  value={editFormData.date_of_joining || ''}
+                  onChange={(e) => handleEditChange('date_of_joining', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Personal Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  value={editFormData.personal_email || ''}
+                  onChange={(e) => handleEditChange('personal_email', e.target.value)}
+                  placeholder="e.g., candidate@gmail.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Phone Number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  value={editFormData.phone || ''}
+                  onChange={(e) => handleEditChange('phone', e.target.value)}
+                  placeholder="e.g., +91 9876543210"
+                />
+              </div>
+            </div>
+
+            {/* Emergency Contact & Address */}
+            <div className="space-y-3 pt-2 border-t border-border/50">
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Emergency Contact <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  value={editFormData.emergency_contact || ''}
+                  onChange={(e) => handleEditChange('emergency_contact', e.target.value)}
+                  placeholder="e.g., Parent/Guardian Name - +91 9988776655"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Residential Address <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-y"
+                  rows={2}
+                  value={editFormData.address || ''}
+                  onChange={(e) => handleEditChange('address', e.target.value)}
+                  placeholder="Complete residential address"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Pre-Existing Intellectual Property (Annexure A)
+                </label>
+                <textarea
+                  className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-y"
+                  rows={2}
+                  value={editFormData.pre_existing_ip || ''}
+                  onChange={(e) => handleEditChange('pre_existing_ip', e.target.value)}
+                  placeholder="None declared, or list prior inventions/projects"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/50">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setEditingSubmission(null)}
+              disabled={editLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleEditSave}
+              disabled={editLoading}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5"
+            >
+              {editLoading ? (
+                <>
+                  <span className="w-3.5 h-3.5 border border-white border-t-transparent rounded-full animate-spin"></span>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>

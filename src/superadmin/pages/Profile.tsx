@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { Mail, Bell, Save, CheckCircle, AlertCircle, Loader2, Shield, UserCircle2 } from "lucide-react";
-import Swal from "sweetalert2";
+import { useToast } from "@/components/ui/use-toast";
 import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +20,7 @@ interface ProfileData {
 
 const SuperAdminProfile: React.FC = () => {
   const { theme } = useTheme();
+  const { toast } = useToast();
   const dark = theme === "dark";
 
   const [loading, setLoading] = useState(true);
@@ -105,20 +106,27 @@ const SuperAdminProfile: React.FC = () => {
         setSaved(true);
         setTimeout(() => setSaved(false), 3500);
 
-        Swal.fire({
-          icon: "success",
+        toast({
           title: "Profile Saved",
-          html: email
-            ? `Ticket alerts will go to <b>${email}</b>`
+          description: email
+            ? `Ticket alerts will go to ${email}`
             : "Ticket email notifications disabled.",
-          timer: 2500,
-          showConfirmButton: false,
         });
       } else {
         setError(data.message || "Failed to save. Try again.");
+        toast({
+          title: "Error",
+          description: data.message || "Failed to save. Try again.",
+          variant: "destructive"
+        });
       }
     } catch {
       setError("Network error. Please try again.");
+      toast({
+        title: "Error",
+        description: "Network error. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setSaving(false);
     }

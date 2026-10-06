@@ -11,6 +11,16 @@ import { manageOfficeLocation } from '@/utils/admin_api';
 import { toast } from 'sonner';
 import { useTheme } from '../../context/ThemeContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Skeleton, SkeletonList } from '@/components/ui/skeleton';
 
 interface CampusLocation {
@@ -36,6 +46,8 @@ const CampusLocationManager: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingLocation, setEditingLocation] = useState<CampusLocation | null>(null);
+  const [locationToDelete, setLocationToDelete] = useState<CampusLocation | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [showForm, setShowForm] = useState(false);
     
   // Form state
@@ -173,19 +185,27 @@ const CampusLocationManager: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (location: CampusLocation) => {
-    if (!confirm(`Are you sure you want to delete "${location.name}"?`)) return;
+  const handleDelete = (location: CampusLocation) => {
+    setLocationToDelete(location);
+  };
+
+  const confirmDeleteLocation = async () => {
+    if (!locationToDelete) return;
 
     try {
-      const response = await manageOfficeLocation(undefined, location.id, 'DELETE');
+      setDeleting(true);
+      const response = await manageOfficeLocation(undefined, locationToDelete.id, 'DELETE');
       if (response.success) {
         toast.success('Campus location deleted successfully');
+        setLocationToDelete(null);
         loadLocations();
       } else {
         toast.error(response.message || 'Failed to delete campus location');
       }
     } catch (error) {
       toast.error('Failed to delete campus location');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -435,8 +455,33 @@ const CampusLocationManager: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </div>);
 
+      {/* Delete Location Alert Dialog */}
+      <AlertDialog open={!!locationToDelete} onOpenChange={(open) => !open && setLocationToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Campus Location?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>"{locationToDelete?.name}"</strong>? This will remove geofencing configurations for this location.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDeleteLocation();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting..." : "Delete Location"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
 };
 
 export default CampusLocationManager;
