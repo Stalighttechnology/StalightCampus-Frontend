@@ -3,6 +3,9 @@ import { motion } from "framer-motion";
 import { ListTodo, Activity, User, LogOut, ChevronLeft, ChevronRight, CalendarCheck, Megaphone, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 
+import { API_BASE_URL } from "@/utils/config";
+import { fetchWithSuperadminTokenRefresh } from "../utils/authService";
+
 interface Props {
   collapsed: boolean;
   setCollapsed: (val: boolean) => void;
@@ -22,6 +25,29 @@ const Sidebar = ({ collapsed, setCollapsed, setIsAuthenticated }: Props) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [chatUnread, setChatUnread] = useState(0);
+  const [isIntern, setIsIntern] = useState<boolean>(() => localStorage.getItem("developer_is_intern") === "true");
+
+  useEffect(() => {
+    const checkInternStatus = async () => {
+      try {
+        const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/developer/profile/`);
+        if (response.ok) {
+          const data = await response.json();
+          const profile = data.profile || {};
+          const internDetected = 
+            profile.is_intern === true || 
+            profile.role === 'INTERN' || 
+            (typeof profile.designation === 'string' && profile.designation.toLowerCase().includes('intern'));
+          setIsIntern(internDetected);
+          localStorage.setItem("developer_is_intern", internDetected ? "true" : "false");
+        }
+      } catch (err) {
+        console.error("Failed to check developer role status", err);
+      }
+    };
+
+    checkInternStatus();
+  }, []);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -36,9 +62,14 @@ const Sidebar = ({ collapsed, setCollapsed, setIsAuthenticated }: Props) => {
     localStorage.removeItem("superadmin_token");
     localStorage.removeItem("superadmin_refresh");
     localStorage.removeItem("superadmin_role");
+    localStorage.removeItem("developer_is_intern");
     setIsAuthenticated(false);
     window.location.href = "/stalightcampus/developer";
   };
+
+  const visibleMenuItems = isIntern 
+    ? MENU_ITEMS.filter((item) => item.id !== "monitoring") 
+    : MENU_ITEMS;
 
   return (
     <motion.div
@@ -70,7 +101,7 @@ const Sidebar = ({ collapsed, setCollapsed, setIsAuthenticated }: Props) => {
           {!collapsed ? "Main Menu" : "..."}
         </div>
         
-        {MENU_ITEMS.map((item) => {
+        {visibleMenuItems.map((item) => {
           const isActive = location.pathname.includes(`/developer/${item.id}`);
           return (
             <Link

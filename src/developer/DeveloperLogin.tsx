@@ -42,6 +42,7 @@ const DeveloperLogin = ({ setIsAuthenticated }: Props) => {
         localStorage.setItem("superadmin_token", data.access);
         localStorage.setItem("superadmin_refresh", data.refresh);
         localStorage.setItem("superadmin_role", data.role);
+        localStorage.setItem("developer_is_intern", data.is_intern ? "true" : "false");
 
         setIsAuthenticated(true);
         navigate("/stalightcampus/developer/assigned-issues");

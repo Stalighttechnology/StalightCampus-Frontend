@@ -113,7 +113,14 @@ const DeveloperDashboard = ({ setIsAuthenticated }: Props) => {
             <Routes>
                 <Route path="/" element={<Navigate to="assigned-issues" replace />} />
                 <Route path="assigned-issues" element={<AssignedIssues />} />
-                <Route path="monitoring" element={<HQMonitor />} />
+                <Route 
+                  path="monitoring" 
+                  element={
+                    localStorage.getItem("developer_is_intern") === "true" 
+                      ? <Navigate to="assigned-issues" replace /> 
+                      : <HQMonitor />
+                  } 
+                />
                 <Route path="attendance" element={<DeveloperAttendance />} />
                 <Route path="announcements" element={<DeveloperAnnouncements />} />
                 <Route path="chat" element={<DeveloperChatPage />} />
