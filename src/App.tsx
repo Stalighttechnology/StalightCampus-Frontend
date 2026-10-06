@@ -62,6 +62,7 @@ const SyncAccessRestricted = lazy(() => import("./components/common/SyncAccessRe
 const AccountDeletion = lazy(() => import("./components/legal/AccountDeletion"));
 const NDAConsentPortal = lazy(() => import("./nda_consent/components/NDAConsentPortal").then(module => ({ default: module.NDAConsentPortal })));
 const PublicVendorQuote = lazy(() => import("./components/inventory/procurement/PublicVendorQuote").then(module => ({ default: module.PublicVendorQuote })));
+const VerifyOffer = lazy(() => import("./components/public/VerifyOffer"));
 
 import { WardenProvider } from "./context/WardenContext";
 import { HMSProvider } from "./context/HMSContext";
@@ -356,6 +357,20 @@ const AppContent = () => {
           <Route path="/results/view/:token" element={
             <>
               <ResultsView />
+              {shouldShowFloatingAssistant() && <FloatingAssistant />}
+            </>
+          } />
+
+          {/* Public Offer Letter Verification & Verification Alias */}
+          <Route path="/verify-offer/:offerId" element={
+            <>
+              <VerifyOffer />
+              {shouldShowFloatingAssistant() && <FloatingAssistant />}
+            </>
+          } />
+          <Route path="/verify/:offerId" element={
+            <>
+              <VerifyOffer />
               {shouldShowFloatingAssistant() && <FloatingAssistant />}
             </>
           } />
