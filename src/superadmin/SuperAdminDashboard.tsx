@@ -8,6 +8,7 @@ import Billing from "./pages/Billing";
 import Subscriptions from "./pages/Subscriptions";
 import UserAnalytics from "./pages/UserAnalytics";
 import Support from "./pages/Support";
+import Meetings from "./pages/Meetings";
 import Monitoring from "./pages/Monitoring";
 import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
@@ -155,6 +156,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
               <Route path="coupons" element={<Coupons />} />
               <Route path="users" element={<UserAnalytics />} />
               <Route path="support" element={<Support />} />
+              <Route path="meetings" element={<Meetings />} />
               <Route path="enroll-developer" element={<EnrollDeveloper />} />
               <Route path="monitoring" element={<Monitoring />} />
               <Route path="popups" element={<Popups />} />

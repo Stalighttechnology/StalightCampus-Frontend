@@ -19,7 +19,8 @@ import {
   MessageSquare,
   Mail,
   Megaphone,
-  Briefcase
+  Briefcase,
+  Calendar
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useTheme } from "../context/ThemeContext";
@@ -49,6 +50,7 @@ const allMenuItems = [
   { id: "subscriptions", label: "Subscriptions", icon: <Clock size={20} /> },
   { id: "coupons", label: "Coupons", icon: <Tag size={20} /> },
   { id: "users", label: "User Analytics", icon: <Users size={20} /> },
+  { id: "meetings", label: "Meeting Schedules", icon: <Calendar size={20} /> },
   { id: "support", label: "Support Panel", icon: <LifeBuoy size={20} /> },
   { id: "enroll-developer", label: "Enroll Developer", icon: <Users size={20} /> },
   { id: "office-locations", label: "Office Locations", icon: <Building2 size={20} /> },
