@@ -181,8 +181,8 @@ const groupFlatQuestionsByPart = (flatQuestions: FlatQuestion[]) => {
 const calculateFlatTotalMarks = (flatQuestions: FlatQuestion[]) => {
   if (!flatQuestions || flatQuestions.length === 0) return 0;
 
-  const mainQuestions: Array<{ partName: string; mainNum: string; maxMarks: number; isOr: boolean }> = [];
-  const seenMap = new Map<string, { partName: string; mainNum: string; maxMarks: number; isOr: boolean }>();
+  const partsMap = new Map<string, Array<{ mainNum: string; maxMarks: number; isOr: boolean }>>();
+  const seenMap = new Map<string, { mainNum: string; maxMarks: number; isOr: boolean }>();
 
   flatQuestions.forEach((q, idx) => {
     const partName = q.partName || 'PART-A';
@@ -195,9 +195,12 @@ const calculateFlatTotalMarks = (flatQuestions: FlatQuestion[]) => {
 
     const key = `${partName}_${mainNum}`;
     if (!seenMap.has(key)) {
-      const obj = { partName, mainNum, maxMarks: marks, isOr };
+      const obj = { mainNum, maxMarks: marks, isOr };
       seenMap.set(key, obj);
-      mainQuestions.push(obj);
+      if (!partsMap.has(partName)) {
+        partsMap.set(partName, []);
+      }
+      partsMap.get(partName)!.push(obj);
     } else {
       const existing = seenMap.get(key)!;
       existing.maxMarks += marks;
@@ -205,20 +208,23 @@ const calculateFlatTotalMarks = (flatQuestions: FlatQuestion[]) => {
     }
   });
 
-  let calculatedTotal = 0;
-  let prevMarks = 0;
-
-  mainQuestions.forEach((mq, i) => {
-    if (mq.isOr && i > 0) {
-      calculatedTotal = calculatedTotal - prevMarks + Math.max(prevMarks, mq.maxMarks);
-      prevMarks = Math.max(prevMarks, mq.maxMarks);
-    } else {
-      calculatedTotal += mq.maxMarks;
-      prevMarks = mq.maxMarks;
-    }
+  let grandTotal = 0;
+  partsMap.forEach((mainQuestions) => {
+    let partTotal = 0;
+    let prevMarks = 0;
+    mainQuestions.forEach((mq, i) => {
+      if (mq.isOr && i > 0) {
+        partTotal = partTotal - prevMarks + Math.max(prevMarks, mq.maxMarks);
+        prevMarks = Math.max(prevMarks, mq.maxMarks);
+      } else {
+        partTotal += mq.maxMarks;
+        prevMarks = mq.maxMarks;
+      }
+    });
+    grandTotal += partTotal;
   });
 
-  return calculatedTotal;
+  return Number.isInteger(grandTotal) ? grandTotal : parseFloat(grandTotal.toFixed(2));
 };
 
 interface QPPending {

@@ -200,6 +200,73 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
     setFormData((prev) => (prev ? { ...prev, [field]: value } : null));
   };
 
+  const handleNumberChange = (field: keyof CollegeDetailsData, rawValue: string) => {
+    if (rawValue === "") {
+      handleInputChange(field, "" as any);
+    } else {
+      const parsed = parseInt(rawValue, 10);
+      handleInputChange(field, isNaN(parsed) ? ("" as any) : parsed);
+    }
+  };
+
+  const getNumberDisplayValue = (val: any) => {
+    if (val === undefined || val === null || val === "" || val === 0) return "";
+    return val;
+  };
+
+  const cleanFormDataBeforeSave = (data: CollegeDetailsData): CollegeDetailsData => {
+    const cleaned: any = { ...data };
+    const numericKeys: (keyof CollegeDetailsData)[] = [
+      "no_of_building_blocks",
+      "pucca_building_blocks",
+      "total_classrooms",
+      "classrooms_in_good_condition",
+      "smart_classrooms_count",
+      "seminar_halls_count",
+      "computing_labs_count",
+      "engineering_labs_count",
+      "library_total_books",
+      "library_total_titles",
+      "library_seating_capacity",
+      "toilets_boys_functional",
+      "toilets_girls_functional",
+      "drinking_water_available",
+      "ro_plants_count",
+      "boys_hostel_capacity",
+      "girls_hostel_capacity",
+      "desktop_count",
+      "gpu_server_count",
+      "projector_count",
+      "digiboard_count",
+      "cctv_cameras_count",
+      "instructional_days",
+      "total_complaints_received",
+      "complaints_resolved",
+      "no_of_teachers",
+      "professors_count",
+      "assoc_professors_count",
+      "asst_professors_count",
+      "phd_faculty_count",
+      "faculty_vacancies",
+      "faculty_shortage",
+      "academic_blocks_count",
+      "centers_of_excellence_count",
+      "central_library_books_count",
+      "central_library_journals_count",
+      "nba_accredited_programs_count",
+      "total_laboratories_count",
+      "placement_mous_count",
+      "patents_published_count"
+    ];
+
+    for (const k of numericKeys) {
+      if (cleaned[k] === "" || cleaned[k] === undefined || cleaned[k] === null) {
+        cleaned[k] = 0;
+      }
+    }
+    return cleaned;
+  };
+
   // Word Count Helper
   const countWords = (text?: string): number => {
     if (!text) return 0;
@@ -207,106 +274,110 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
     return trimmed ? trimmed.split(/\s+/).length : 0;
   };
 
-  // Comprehensive Field Validation Suite
-  const validateForm = (): { valid: boolean; tab?: string; errors: string[] } => {
+  // Comprehensive Field Validation Suite (Global & Per-Section)
+  const validateSection = (sectionKey?: string): { valid: boolean; errors: string[] } => {
     if (!formData) return { valid: false, errors: ["No form data loaded"] };
     const errors: string[] = [];
-    let firstErrorTab: string | undefined = undefined;
 
     // 1. Profile Validations
-    if (!formData.college_name?.trim()) {
-      errors.push("College / Institutional Name is required");
-      if (!firstErrorTab) firstErrorTab = "profile";
-    }
-    if (!formData.college_code?.trim()) {
-      errors.push("College Code is required");
-      if (!firstErrorTab) firstErrorTab = "profile";
-    }
-    if (!formData.aishe_code?.trim()) {
-      errors.push("AISHE Code is required (e.g. C-45892)");
-      if (!firstErrorTab) firstErrorTab = "profile";
-    }
-    if (!formData.state?.trim()) {
-      errors.push("State selection is required");
-      if (!firstErrorTab) firstErrorTab = "profile";
-    }
-    if (!formData.educational_district?.trim()) {
-      errors.push("Educational District is required");
-      if (!firstErrorTab) firstErrorTab = "profile";
-    }
-    if (!formData.school_address?.trim()) {
-      errors.push("Full Campus Address is required");
-      if (!firstErrorTab) firstErrorTab = "profile";
-    } else if (countWords(formData.school_address) > 50) {
-      errors.push(`Campus Address must not exceed 50 words (currently ${countWords(formData.school_address)} words)`);
-      if (!firstErrorTab) firstErrorTab = "profile";
-    }
-    if (!formData.pincode?.trim()) {
-      errors.push("Pincode is required");
-      if (!firstErrorTab) firstErrorTab = "profile";
-    } else if (!/^\d{6}$/.test(formData.pincode.trim())) {
-      errors.push("Pincode must be exactly 6 digits (e.g. 560100)");
-      if (!firstErrorTab) firstErrorTab = "profile";
-    }
-    if (!formData.official_email?.trim()) {
-      errors.push("Official Email is required");
-      if (!firstErrorTab) firstErrorTab = "profile";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.official_email.trim())) {
-      errors.push("Official Email format is invalid (e.g. principal@college.edu.in)");
-      if (!firstErrorTab) firstErrorTab = "profile";
-    }
-    if (!formData.official_phone?.trim()) {
-      errors.push("Official Phone number is required");
-      if (!firstErrorTab) firstErrorTab = "profile";
-    }
-    if (!formData.principal_name?.trim()) {
-      errors.push("Principal / Head of Institution Name is required");
-      if (!firstErrorTab) firstErrorTab = "profile";
+    if (!sectionKey || sectionKey === "profile") {
+      if (!formData.college_name?.trim()) {
+        errors.push("College / Institutional Name is required");
+      }
+      if (!formData.college_code?.trim()) {
+        errors.push("College Code is required");
+      }
+      if (!formData.aishe_code?.trim()) {
+        errors.push("AISHE Code is required (e.g. C-45892)");
+      }
+      if (!formData.state?.trim()) {
+        errors.push("State selection is required");
+      }
+      if (!formData.educational_district?.trim()) {
+        errors.push("Educational District is required");
+      }
+      if (!formData.school_address?.trim()) {
+        errors.push("Full Campus Address is required");
+      } else if (countWords(formData.school_address) > 50) {
+        errors.push(`Campus Address must not exceed 50 words (currently ${countWords(formData.school_address)} words)`);
+      }
+      if (!formData.pincode?.trim()) {
+        errors.push("Pincode is required");
+      } else if (!/^\d{6}$/.test(formData.pincode.trim())) {
+        errors.push("Pincode must be exactly 6 digits (e.g. 560100)");
+      }
+      if (!formData.official_email?.trim()) {
+        errors.push("Official Email is required");
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.official_email.trim())) {
+        errors.push("Official Email format is invalid (e.g. principal@college.edu.in)");
+      }
+      if (!formData.official_phone?.trim()) {
+        errors.push("Official Phone number is required");
+      }
+      if (!formData.principal_name?.trim()) {
+        errors.push("Principal / Head of Institution Name is required");
+      }
     }
 
     // 2. Accreditation Validations
-    if (!formData.year_of_establishment?.trim()) {
-      errors.push("Year of Establishment is required");
-      if (!firstErrorTab) firstErrorTab = "recognition";
-    }
-    if (!formData.affiliated_university?.trim()) {
-      errors.push("Affiliated University is required");
-      if (!firstErrorTab) firstErrorTab = "recognition";
-    }
-    if (!formData.aicte_approval_status?.trim()) {
-      errors.push("AICTE Approval Status is required");
-      if (!firstErrorTab) firstErrorTab = "recognition";
+    if (!sectionKey || sectionKey === "recognition") {
+      if (!formData.year_of_establishment?.trim()) {
+        errors.push("Year of Establishment is required");
+      }
+      if (!formData.affiliated_university?.trim()) {
+        errors.push("Affiliated University is required");
+      }
+      if (!formData.aicte_approval_status?.trim()) {
+        errors.push("AICTE Approval Status is required");
+      }
     }
 
     // 3. Infrastructure Validations
-    if (formData.total_classrooms < 0) {
-      errors.push("Total Classrooms cannot be negative");
-      if (!firstErrorTab) firstErrorTab = "infrastructure";
-    }
-    if (formData.no_of_teachers < 0) {
-      errors.push("Total Teaching Faculty cannot be negative");
-      if (!firstErrorTab) firstErrorTab = "infrastructure";
+    if (!sectionKey || sectionKey === "infrastructure") {
+      if (formData.total_classrooms < 0) {
+        errors.push("Total Classrooms cannot be negative");
+      }
+      if (formData.no_of_teachers < 0) {
+        errors.push("Total Teaching Faculty cannot be negative");
+      }
     }
 
     // 4. Inspection & Regulatory Validations
-    if (!formData.fire_safety_certificate?.trim()) {
-      errors.push("Fire Safety Certificate status is required");
-      if (!firstErrorTab) firstErrorTab = "inspection";
-    }
-    if (!formData.building_occupancy_certificate?.trim()) {
-      errors.push("Building Occupancy Certificate status is required");
-      if (!firstErrorTab) firstErrorTab = "inspection";
-    }
-    if (!formData.structural_stability_certificate?.trim()) {
-      errors.push("Structural Stability Certificate status is required");
-      if (!firstErrorTab) firstErrorTab = "inspection";
+    if (!sectionKey || sectionKey === "inspection") {
+      if (!formData.fire_safety_certificate?.trim()) {
+        errors.push("Fire Safety Certificate status is required");
+      }
+      if (!formData.building_occupancy_certificate?.trim()) {
+        errors.push("Building Occupancy Certificate status is required");
+      }
+      if (!formData.structural_stability_certificate?.trim()) {
+        errors.push("Structural Stability Certificate status is required");
+      }
     }
 
     return {
       valid: errors.length === 0,
-      tab: firstErrorTab,
       errors
     };
+  };
+
+  const validateForm = (): { valid: boolean; tab?: string; errors: string[] } => {
+    if (!formData) return { valid: false, errors: ["No form data loaded"] };
+    
+    // Check in order of tabs
+    const profileVal = validateSection("profile");
+    if (!profileVal.valid) return { valid: false, tab: "profile", errors: profileVal.errors };
+
+    const recVal = validateSection("recognition");
+    if (!recVal.valid) return { valid: false, tab: "recognition", errors: recVal.errors };
+
+    const infraVal = validateSection("infrastructure");
+    if (!infraVal.valid) return { valid: false, tab: "infrastructure", errors: infraVal.errors };
+
+    const inspVal = validateSection("inspection");
+    if (!inspVal.valid) return { valid: false, tab: "inspection", errors: inspVal.errors };
+
+    return { valid: true, errors: [] };
   };
 
   const handleSave = async () => {
@@ -325,7 +396,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
     }
 
     setIsSaving(true);
-    const res = await updateCollegeDetails(formData, orgId);
+    const cleanedPayload = cleanFormDataBeforeSave(formData);
+    const res = await updateCollegeDetails(cleanedPayload, orgId);
     if (res.success) {
       toast({
         title: "Changes Saved Successfully",
@@ -339,6 +411,81 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
       });
     }
     setIsSaving(false);
+  };
+
+  const handleSaveSection = async (sectionKey: string, sectionTitle: string) => {
+    if (!formData) return;
+    const validation = validateSection(sectionKey);
+    if (!validation.valid) {
+      toast({
+        variant: "destructive",
+        title: `Please Complete Required Fields in ${sectionTitle}`,
+        description: validation.errors.slice(0, 3).join(" • ") + (validation.errors.length > 3 ? ` (+${validation.errors.length - 3} more)` : "")
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    const cleanedPayload = cleanFormDataBeforeSave(formData);
+    const res = await updateCollegeDetails(cleanedPayload, orgId);
+    if (res.success) {
+      toast({
+        title: `${sectionTitle} Saved Successfully`,
+        description: `Your updates to ${sectionTitle.toLowerCase()} have been saved.`
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: `Error saving ${sectionTitle.toLowerCase()}`,
+        description: res.error || "An unexpected error occurred."
+      });
+    }
+    setIsSaving(false);
+  };
+
+  const renderSectionSaveFooter = (tabKey: string, sectionTitle: string, nextTabKey?: string) => {
+    return (
+      <CardFooter className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-6 bg-muted/20 border-t border-border/80 rounded-b-xl sm:rounded-b-2xl mt-6">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+          <span>Save your progress in <strong>{sectionTitle}</strong></span>
+        </div>
+        <div className="flex items-center gap-2.5 sm:self-auto self-end">
+          {nextTabKey && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs h-9 gap-1 text-muted-foreground hover:text-foreground"
+              onClick={() => handleTabChange(nextTabKey)}
+            >
+              Next Section
+              <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground min-w-[150px] text-xs sm:text-sm h-9 shadow-sm"
+            onClick={() => handleSaveSection(tabKey, sectionTitle)}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5 shrink-0" />
+                <span>Save {sectionTitle}</span>
+              </>
+            )}
+          </Button>
+        </div>
+      </CardFooter>
+    );
   };
 
   // Upload handler with strict 1 MB maximum limit
@@ -988,6 +1135,7 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 )}
               </div>
             </CardContent>
+            {renderSectionSaveFooter("profile", "Profile Details", "recognition")}
           </Card>
         </TabsContent>
 
@@ -1134,6 +1282,7 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 </Select>
               </div>
             </CardContent>
+            {renderSectionSaveFooter("recognition", "Accreditation Details", "infrastructure")}
           </Card>
         </TabsContent>
 
@@ -1173,8 +1322,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.no_of_building_blocks || 0}
-                  onChange={(e) => handleInputChange("no_of_building_blocks", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.no_of_building_blocks)}
+                  onChange={(e) => handleNumberChange("no_of_building_blocks", e.target.value)}
                   placeholder="e.g. 6 Blocks"
                 />
                 {renderInlineUploader("building_photos", "Building Blocks")}
@@ -1184,8 +1333,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.pucca_building_blocks || 0}
-                  onChange={(e) => handleInputChange("pucca_building_blocks", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.pucca_building_blocks)}
+                  onChange={(e) => handleNumberChange("pucca_building_blocks", e.target.value)}
                   placeholder="e.g. 6 Pucca Blocks"
                 />
               </div>
@@ -1208,8 +1357,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.total_classrooms || 0}
-                  onChange={(e) => handleInputChange("total_classrooms", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.total_classrooms)}
+                  onChange={(e) => handleNumberChange("total_classrooms", e.target.value)}
                   placeholder="Total Classrooms"
                 />
               </div>
@@ -1218,8 +1367,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.classrooms_in_good_condition || 0}
-                  onChange={(e) => handleInputChange("classrooms_in_good_condition", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.classrooms_in_good_condition)}
+                  onChange={(e) => handleNumberChange("classrooms_in_good_condition", e.target.value)}
                   placeholder="In Good Condition"
                 />
               </div>
@@ -1228,8 +1377,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.smart_classrooms_count || 0}
-                  onChange={(e) => handleInputChange("smart_classrooms_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.smart_classrooms_count)}
+                  onChange={(e) => handleNumberChange("smart_classrooms_count", e.target.value)}
                   placeholder="Smart / ICT Classrooms"
                 />
               </div>
@@ -1238,8 +1387,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.seminar_halls_count || 0}
-                  onChange={(e) => handleInputChange("seminar_halls_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.seminar_halls_count)}
+                  onChange={(e) => handleNumberChange("seminar_halls_count", e.target.value)}
                   placeholder="Seminar / Conference Halls"
                 />
               </div>
@@ -1248,8 +1397,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.computing_labs_count || 0}
-                  onChange={(e) => handleInputChange("computing_labs_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.computing_labs_count)}
+                  onChange={(e) => handleNumberChange("computing_labs_count", e.target.value)}
                   placeholder="Computer Labs"
                 />
                 {renderInlineUploader("lab_photos", "Computing Labs")}
@@ -1259,8 +1408,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.engineering_labs_count || 0}
-                  onChange={(e) => handleInputChange("engineering_labs_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.engineering_labs_count)}
+                  onChange={(e) => handleNumberChange("engineering_labs_count", e.target.value)}
                   placeholder="Engineering Labs"
                 />
                 {renderInlineUploader("lab_photos", "Engineering Labs")}
@@ -1282,8 +1431,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.library_total_books || 0}
-                  onChange={(e) => handleInputChange("library_total_books", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.library_total_books)}
+                  onChange={(e) => handleNumberChange("library_total_books", e.target.value)}
                   placeholder="e.g. 45000 Books"
                 />
                 {renderInlineUploader("library_photos", "Central Library")}
@@ -1293,8 +1442,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.library_total_titles || 0}
-                  onChange={(e) => handleInputChange("library_total_titles", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.library_total_titles)}
+                  onChange={(e) => handleNumberChange("library_total_titles", e.target.value)}
                   placeholder="e.g. 12000 Titles"
                 />
               </div>
@@ -1303,8 +1452,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.library_seating_capacity || 0}
-                  onChange={(e) => handleInputChange("library_seating_capacity", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.library_seating_capacity)}
+                  onChange={(e) => handleNumberChange("library_seating_capacity", e.target.value)}
                   placeholder="e.g. 250 Seats"
                 />
               </div>
@@ -1325,8 +1474,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.toilets_boys_functional || 0}
-                  onChange={(e) => handleInputChange("toilets_boys_functional", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.toilets_boys_functional)}
+                  onChange={(e) => handleNumberChange("toilets_boys_functional", e.target.value)}
                   placeholder="Boys Toilets Count"
                 />
               </div>
@@ -1335,8 +1484,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.toilets_girls_functional || 0}
-                  onChange={(e) => handleInputChange("toilets_girls_functional", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.toilets_girls_functional)}
+                  onChange={(e) => handleNumberChange("toilets_girls_functional", e.target.value)}
                   placeholder="Girls Toilets Count"
                 />
               </div>
@@ -1361,8 +1510,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.drinking_water_available || 0}
-                  onChange={(e) => handleInputChange("drinking_water_available", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.drinking_water_available)}
+                  onChange={(e) => handleNumberChange("drinking_water_available", e.target.value)}
                   placeholder="Water Taps / Coolers"
                 />
               </div>
@@ -1371,8 +1520,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.ro_plants_count || 0}
-                  onChange={(e) => handleInputChange("ro_plants_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.ro_plants_count)}
+                  onChange={(e) => handleNumberChange("ro_plants_count", e.target.value)}
                   placeholder="e.g. 3 RO Plants"
                 />
               </div>
@@ -1409,8 +1558,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.boys_hostel_capacity || 0}
-                  onChange={(e) => handleInputChange("boys_hostel_capacity", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.boys_hostel_capacity)}
+                  onChange={(e) => handleNumberChange("boys_hostel_capacity", e.target.value)}
                   placeholder="e.g. 350 Beds"
                 />
                 {renderInlineUploader("hostel_photos", "Boys Hostel")}
@@ -1420,8 +1569,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.girls_hostel_capacity || 0}
-                  onChange={(e) => handleInputChange("girls_hostel_capacity", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.girls_hostel_capacity)}
+                  onChange={(e) => handleNumberChange("girls_hostel_capacity", e.target.value)}
                   placeholder="e.g. 250 Beds"
                 />
                 {renderInlineUploader("hostel_photos", "Girls Hostel")}
@@ -1436,6 +1585,7 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 {renderInlineUploader("sports_photos", "Sports Facilities")}
               </div>
             </CardContent>
+            {renderSectionSaveFooter("infrastructure", "Infrastructure Details", "digital")}
           </Card>
         </TabsContent>
 
@@ -1466,8 +1616,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.desktop_count || 0}
-                  onChange={(e) => handleInputChange("desktop_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.desktop_count)}
+                  onChange={(e) => handleNumberChange("desktop_count", e.target.value)}
                   placeholder="e.g. 650"
                 />
               </div>
@@ -1477,8 +1627,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.gpu_server_count || 0}
-                  onChange={(e) => handleInputChange("gpu_server_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.gpu_server_count)}
+                  onChange={(e) => handleNumberChange("gpu_server_count", e.target.value)}
                   placeholder="e.g. 4"
                 />
               </div>
@@ -1488,8 +1638,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.projector_count || 0}
-                  onChange={(e) => handleInputChange("projector_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.projector_count)}
+                  onChange={(e) => handleNumberChange("projector_count", e.target.value)}
                   placeholder="e.g. 45"
                 />
               </div>
@@ -1499,8 +1649,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.digiboard_count || 0}
-                  onChange={(e) => handleInputChange("digiboard_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.digiboard_count)}
+                  onChange={(e) => handleNumberChange("digiboard_count", e.target.value)}
                   placeholder="e.g. 20"
                 />
               </div>
@@ -1510,8 +1660,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.cctv_cameras_count || 0}
-                  onChange={(e) => handleInputChange("cctv_cameras_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.cctv_cameras_count)}
+                  onChange={(e) => handleNumberChange("cctv_cameras_count", e.target.value)}
                   placeholder="e.g. 160"
                 />
               </div>
@@ -1534,6 +1684,7 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 />
               </div>
             </CardContent>
+            {renderSectionSaveFooter("digital", "Digital & IT Details", "governance")}
           </Card>
         </TabsContent>
 
@@ -1634,8 +1785,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Label className="text-xs">Instructional Days per Academic Year</Label>
                 <Input
                   type="number"
-                  value={formData.instructional_days || 180}
-                  onChange={(e) => handleInputChange("instructional_days", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.instructional_days)}
+                  onChange={(e) => handleNumberChange("instructional_days", e.target.value)}
                   placeholder="e.g. 180"
                 />
               </div>
@@ -1644,8 +1795,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Label className="text-xs">Total Complaints Received (Yearly)</Label>
                 <Input
                   type="number"
-                  value={formData.total_complaints_received || 0}
-                  onChange={(e) => handleInputChange("total_complaints_received", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.total_complaints_received)}
+                  onChange={(e) => handleNumberChange("total_complaints_received", e.target.value)}
                   placeholder="e.g. 15"
                 />
               </div>
@@ -1654,12 +1805,13 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Label className="text-xs">Complaints Successfully Resolved</Label>
                 <Input
                   type="number"
-                  value={formData.complaints_resolved || 0}
-                  onChange={(e) => handleInputChange("complaints_resolved", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.complaints_resolved)}
+                  onChange={(e) => handleNumberChange("complaints_resolved", e.target.value)}
                   placeholder="e.g. 14"
                 />
               </div>
             </CardContent>
+            {renderSectionSaveFooter("governance", "Governance Details", "achievements")}
           </Card>
         </TabsContent>
 
@@ -2062,6 +2214,7 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 );
               })()}
             </CardContent>
+            {renderSectionSaveFooter("achievements", "Achievements Catalog", "inspection")}
           </Card>
         </TabsContent>
 
@@ -2084,8 +2237,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   className="h-8 mt-1 font-bold text-sm"
-                  value={formData.no_of_teachers || 0}
-                  onChange={(e) => handleInputChange("no_of_teachers", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.no_of_teachers)}
+                  onChange={(e) => handleNumberChange("no_of_teachers", e.target.value)}
                 />
               </div>
               <div className="p-3 bg-muted/40 rounded-xl border border-border/40">
@@ -2093,8 +2246,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   className="h-8 mt-1 font-bold text-sm"
-                  value={formData.professors_count || 0}
-                  onChange={(e) => handleInputChange("professors_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.professors_count)}
+                  onChange={(e) => handleNumberChange("professors_count", e.target.value)}
                 />
               </div>
               <div className="p-3 bg-muted/40 rounded-xl border border-border/40">
@@ -2102,8 +2255,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   className="h-8 mt-1 font-bold text-sm"
-                  value={formData.assoc_professors_count || 0}
-                  onChange={(e) => handleInputChange("assoc_professors_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.assoc_professors_count)}
+                  onChange={(e) => handleNumberChange("assoc_professors_count", e.target.value)}
                 />
               </div>
               <div className="p-3 bg-muted/40 rounded-xl border border-border/40">
@@ -2111,8 +2264,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   className="h-8 mt-1 font-bold text-sm"
-                  value={formData.asst_professors_count || 0}
-                  onChange={(e) => handleInputChange("asst_professors_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.asst_professors_count)}
+                  onChange={(e) => handleNumberChange("asst_professors_count", e.target.value)}
                 />
               </div>
               <div className="p-3 bg-muted/40 rounded-xl border border-border/40">
@@ -2120,8 +2273,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   className="h-8 mt-1 font-bold text-sm"
-                  value={formData.phd_faculty_count || 0}
-                  onChange={(e) => handleInputChange("phd_faculty_count", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.phd_faculty_count)}
+                  onChange={(e) => handleNumberChange("phd_faculty_count", e.target.value)}
                 />
               </div>
               <div className="p-3 bg-muted/40 rounded-xl border border-border/40">
@@ -2137,8 +2290,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   className="h-8 mt-1 font-bold text-sm border-amber-200 focus-visible:ring-amber-500"
-                  value={formData.faculty_vacancies || 0}
-                  onChange={(e) => handleInputChange("faculty_vacancies", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.faculty_vacancies)}
+                  onChange={(e) => handleNumberChange("faculty_vacancies", e.target.value)}
                 />
               </div>
               <div className="p-3 bg-muted/40 rounded-xl border border-border/40">
@@ -2146,8 +2299,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   className="h-8 mt-1 font-bold text-sm border-red-200 focus-visible:ring-red-500"
-                  value={formData.faculty_shortage || 0}
-                  onChange={(e) => handleInputChange("faculty_shortage", Number(e.target.value))}
+                  value={getNumberDisplayValue(formData.faculty_shortage)}
+                  onChange={(e) => handleNumberChange("faculty_shortage", e.target.value)}
                 />
               </div>
             </CardContent>
@@ -2204,16 +2357,16 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                           <Input
                             type="number"
                             className="h-8 text-xs"
-                            value={row.boys}
-                            onChange={(e) => handleUpdateBranchRow(idx, "boys", Number(e.target.value))}
+                            value={getNumberDisplayValue(row.boys)}
+                            onChange={(e) => handleUpdateBranchRow(idx, "boys", e.target.value === "" ? "" : (parseInt(e.target.value, 10) || 0))}
                           />
                         </td>
                         <td className="p-2">
                           <Input
                             type="number"
                             className="h-8 text-xs"
-                            value={row.girls}
-                            onChange={(e) => handleUpdateBranchRow(idx, "girls", Number(e.target.value))}
+                            value={getNumberDisplayValue(row.girls)}
+                            onChange={(e) => handleUpdateBranchRow(idx, "girls", e.target.value === "" ? "" : (parseInt(e.target.value, 10) || 0))}
                           />
                         </td>
                         <td className="p-2 font-bold text-sm">
@@ -2235,6 +2388,7 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 </table>
               </div>
             </CardContent>
+            {renderSectionSaveFooter("faculty-students", "Enrollment Matrix", "fee-structure")}
           </Card>
         </TabsContent>
 
@@ -2315,6 +2469,7 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 </table>
               </div>
             </CardContent>
+            {renderSectionSaveFooter("fee-structure", "Fee Structure", "inspection")}
           </Card>
         </TabsContent>
 
@@ -2525,8 +2680,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.placement_mous_count ?? 0}
-                  onChange={(e) => handleInputChange("placement_mous_count", parseInt(e.target.value) || 0)}
+                  value={getNumberDisplayValue(formData.placement_mous_count)}
+                  onChange={(e) => handleNumberChange("placement_mous_count", e.target.value)}
                   placeholder="e.g. 15"
                 />
               </div>
@@ -2611,8 +2766,8 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 <Input
                   type="number"
                   min="0"
-                  value={formData.patents_published_count ?? 0}
-                  onChange={(e) => handleInputChange("patents_published_count", parseInt(e.target.value) || 0)}
+                  value={getNumberDisplayValue(formData.patents_published_count)}
+                  onChange={(e) => handleNumberChange("patents_published_count", e.target.value)}
                   placeholder="e.g. 6"
                 />
               </div>
@@ -2700,6 +2855,7 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                 </div>
               </div>
             </CardContent>
+            {renderSectionSaveFooter("inspection", "Inspection & Safety Details")}
           </Card>
         </TabsContent>
 

@@ -752,52 +752,50 @@ const UploadQP = () => {
   };
 
   const updateQuestion = (id: string, field: keyof QuestionRow, value: string) => {
+    if (field === 'maxMarks' && value !== "") {
+      if (!/^\d*(\.\d*)?$/.test(value)) {
+        return;
+      }
+      const num = parseFloat(value);
+      if (!isNaN(num) && num > 100) {
+        return;
+      }
+    }
     setQuestions((prev) => prev.map((q) => q.id === id ? { ...q, [field]: value } : q));
   };
 
   const calculateQPMaxMarks = (questionsList: any[]): number => {
     if (!questionsList || questionsList.length === 0) return 0;
 
-    const mainQuestions: Array<{ partName: string; mainNum: string; maxMarks: number; isOr: boolean }> = [];
-    const seenMap = new Map<string, { partName: string; mainNum: string; maxMarks: number; isOr: boolean }>();
+    const partsMap = new Map<string, Array<{ mainNum: string; maxMarks: number; isOr: boolean }>>();
+    const seenMap = new Map<string, { mainNum: string; maxMarks: number; isOr: boolean }>();
 
     questionsList.forEach((q, idx) => {
-      if (Array.isArray(q.subparts) && q.subparts.length > 0) {
-        const partName = q.part_name || q.partName || 'PART-A';
-        const isOr = Boolean(q.is_or || q.isOr);
-        const rawNum = String(q.question_number || q.questionNumber || q.number || (idx + 1));
-        const cleanNum = rawNum.replace(/^[Qq]\.?\s*/, '').trim();
-        const match = cleanNum.match(/^(\d+)/);
-        const mainNum = match ? match[1] : (cleanNum || String(idx + 1));
-        const subpartsSum = q.subparts.reduce((sum: number, s: any) => {
-          const m = parseFloat(String(s.max_marks ?? s.maxMarks ?? 0));
-          return sum + (isNaN(m) ? 0 : m);
-        }, 0);
-        const key = `${partName}_${mainNum}`;
-        if (!seenMap.has(key)) {
-          const obj = { partName, mainNum, maxMarks: subpartsSum, isOr };
-          seenMap.set(key, obj);
-          mainQuestions.push(obj);
-        } else {
-          seenMap.get(key)!.maxMarks += subpartsSum;
-          if (isOr) seenMap.get(key)!.isOr = true;
-        }
-        return;
-      }
-
       const partName = q.part_name || q.partName || 'PART-A';
       const isOr = Boolean(q.is_or || q.isOr);
       const rawNum = String(q.question_number || q.questionNumber || q.number || (idx + 1));
       const cleanNum = rawNum.replace(/^[Qq]\.?\s*/, '').trim();
       const match = cleanNum.match(/^(\d+)/);
       const mainNum = match ? match[1] : (cleanNum || String(idx + 1));
-      const marks = parseFloat(String(q.max_marks ?? q.maxMarks ?? 0)) || 0;
+
+      let marks = 0;
+      if (Array.isArray(q.subparts) && q.subparts.length > 0) {
+        marks = q.subparts.reduce((sum: number, s: any) => {
+          const m = parseFloat(String(s.max_marks ?? s.maxMarks ?? 0));
+          return sum + (isNaN(m) ? 0 : m);
+        }, 0);
+      } else {
+        marks = parseFloat(String(q.max_marks ?? q.maxMarks ?? 0)) || 0;
+      }
 
       const key = `${partName}_${mainNum}`;
       if (!seenMap.has(key)) {
-        const obj = { partName, mainNum, maxMarks: marks, isOr };
+        const obj = { mainNum, maxMarks: marks, isOr };
         seenMap.set(key, obj);
-        mainQuestions.push(obj);
+        if (!partsMap.has(partName)) {
+          partsMap.set(partName, []);
+        }
+        partsMap.get(partName)!.push(obj);
       } else {
         const existing = seenMap.get(key)!;
         existing.maxMarks += marks;
@@ -805,20 +803,23 @@ const UploadQP = () => {
       }
     });
 
-    let calculatedTotal = 0;
-    let prevMarks = 0;
-
-    mainQuestions.forEach((mq, i) => {
-      if (mq.isOr && i > 0) {
-        calculatedTotal = calculatedTotal - prevMarks + Math.max(prevMarks, mq.maxMarks);
-        prevMarks = Math.max(prevMarks, mq.maxMarks);
-      } else {
-        calculatedTotal += mq.maxMarks;
-        prevMarks = mq.maxMarks;
-      }
+    let grandTotal = 0;
+    partsMap.forEach((mainQuestions) => {
+      let partTotal = 0;
+      let prevMarks = 0;
+      mainQuestions.forEach((mq, i) => {
+        if (mq.isOr && i > 0) {
+          partTotal = partTotal - prevMarks + Math.max(prevMarks, mq.maxMarks);
+          prevMarks = Math.max(prevMarks, mq.maxMarks);
+        } else {
+          partTotal += mq.maxMarks;
+          prevMarks = mq.maxMarks;
+        }
+      });
+      grandTotal += partTotal;
     });
 
-    return calculatedTotal;
+    return Number.isInteger(grandTotal) ? grandTotal : parseFloat(grandTotal.toFixed(2));
   };
   const totalMarks = calculateQPMaxMarks(questions);
 
@@ -842,7 +843,7 @@ const UploadQP = () => {
         {
           subpart_label: '',
           content: q.content,
-          max_marks: Number.parseInt(q.maxMarks || '0', 10) || 0
+          max_marks: Number.parseFloat(q.maxMarks || '0') || 0
         }
       ]
     }));

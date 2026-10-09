@@ -181,8 +181,8 @@ const normalizeMarks = (value: string): string => {
 };
 
 const validateMarks = (marks: string, total: string): boolean => {
-  const marksNum = parseInt(marks, 10);
-  const totalNum = parseInt(total, 10);
+  const marksNum = parseFloat(marks);
+  const totalNum = parseFloat(total);
 
   return (
     !isNaN(marksNum) &&
@@ -194,11 +194,11 @@ const validateMarks = (marks: string, total: string): boolean => {
 
 // New validation function for max marks
 const validateMaxMarks = (maxMarks: string): boolean => {
-  const maxMarksNum = parseInt(maxMarks, 10);
+  const maxMarksNum = parseFloat(maxMarks);
   return (
     !isNaN(maxMarksNum) &&
     maxMarksNum > 0 &&
-    maxMarksNum <= 10);
+    maxMarksNum <= 100);
 
 };
 
@@ -636,18 +636,15 @@ const UploadMarks = () => {
   };
 
   const updateQuestion = (id: string, field: "number" | "content" | "maxMarks" | "co" | "bloomsLevel", value: string) => {
-    // Only allow numeric input for max marks
+    // Allow numeric and decimal input for max marks
     if (field === "maxMarks" && value !== "") {
-      // Check if the value is a valid number
-      if (!/^\d*$/.test(value)) {
-        // Don't update if it's not a valid number
+      if (!/^\d*(\.\d*)?$/.test(value)) {
         return;
       }
 
-      // Validate max marks range (1-10)
-      const maxMarksNum = parseInt(value, 10);
-      if (maxMarksNum > 10) {
-        // Don't update if greater than 10
+      // Validate max marks range (0.1-100)
+      const maxMarksNum = parseFloat(value);
+      if (!isNaN(maxMarksNum) && maxMarksNum > 100) {
         return;
       }
     }
@@ -777,16 +774,20 @@ const UploadMarks = () => {
 
   const saveQuestionFormat = async () => {
     // Validate that all questions have max marks
-    const isValid = questions.every((q) =>
-      q.number.trim() !== "" &&
-      q.maxMarks.trim() !== "" &&
-      parseInt(q.maxMarks) > 0 &&
-      parseInt(q.maxMarks) <= 10
-    );
+    const isValid = questions.every((q) => {
+      const val = parseFloat(q.maxMarks);
+      return (
+        q.number.trim() !== "" &&
+        q.maxMarks.trim() !== "" &&
+        !isNaN(val) &&
+        val > 0 &&
+        val <= 100
+      );
+    });
 
     if (!isValid) {
       // Show error message
-      setErrorMessage("Please ensure all questions have valid numbers and max marks (1-10)");
+      setErrorMessage("Please ensure all questions have valid numbers and max marks (0.1-100)");
       return;
     }
 
@@ -820,7 +821,7 @@ const UploadMarks = () => {
       groupedQuestions[mainQ].subparts.push({
         subpart_label: q.number.slice(1),
         content: q.content,
-        max_marks: parseInt(q.maxMarks)
+        max_marks: parseFloat(q.maxMarks)
       });
     });
 
@@ -1089,46 +1090,35 @@ const UploadMarks = () => {
   const calculateQPMaxMarks = (questionsList: any[]): number => {
     if (!questionsList || questionsList.length === 0) return 0;
 
-    const mainQuestions: Array<{ partName: string; mainNum: string; maxMarks: number; isOr: boolean }> = [];
-    const seenMap = new Map<string, { partName: string; mainNum: string; maxMarks: number; isOr: boolean }>();
+    const partsMap = new Map<string, Array<{ mainNum: string; maxMarks: number; isOr: boolean }>>();
+    const seenMap = new Map<string, { mainNum: string; maxMarks: number; isOr: boolean }>();
 
     questionsList.forEach((q, idx) => {
-      if (Array.isArray(q.subparts) && q.subparts.length > 0) {
-        const partName = q.part_name || q.partName || 'PART-A';
-        const isOr = Boolean(q.is_or || q.isOr);
-        const rawNum = String(q.question_number || q.questionNumber || q.number || (idx + 1));
-        const cleanNum = rawNum.replace(/^[Qq]\.?\s*/, '').trim();
-        const match = cleanNum.match(/^(\d+)/);
-        const mainNum = match ? match[1] : (cleanNum || String(idx + 1));
-        const subpartsSum = q.subparts.reduce((sum: number, s: any) => {
-          const m = parseFloat(String(s.max_marks ?? s.maxMarks ?? 0));
-          return sum + (isNaN(m) ? 0 : m);
-        }, 0);
-        const key = `${partName}_${mainNum}`;
-        if (!seenMap.has(key)) {
-          const obj = { partName, mainNum, maxMarks: subpartsSum, isOr };
-          seenMap.set(key, obj);
-          mainQuestions.push(obj);
-        } else {
-          seenMap.get(key)!.maxMarks += subpartsSum;
-          if (isOr) seenMap.get(key)!.isOr = true;
-        }
-        return;
-      }
-
       const partName = q.part_name || q.partName || 'PART-A';
       const isOr = Boolean(q.is_or || q.isOr);
       const rawNum = String(q.question_number || q.questionNumber || q.number || (idx + 1));
       const cleanNum = rawNum.replace(/^[Qq]\.?\s*/, '').trim();
       const match = cleanNum.match(/^(\d+)/);
       const mainNum = match ? match[1] : (cleanNum || String(idx + 1));
-      const marks = parseFloat(String(q.max_marks ?? q.maxMarks ?? 0)) || 0;
+
+      let marks = 0;
+      if (Array.isArray(q.subparts) && q.subparts.length > 0) {
+        marks = q.subparts.reduce((sum: number, s: any) => {
+          const m = parseFloat(String(s.max_marks ?? s.maxMarks ?? 0));
+          return sum + (isNaN(m) ? 0 : m);
+        }, 0);
+      } else {
+        marks = parseFloat(String(q.max_marks ?? q.maxMarks ?? 0)) || 0;
+      }
 
       const key = `${partName}_${mainNum}`;
       if (!seenMap.has(key)) {
-        const obj = { partName, mainNum, maxMarks: marks, isOr };
+        const obj = { mainNum, maxMarks: marks, isOr };
         seenMap.set(key, obj);
-        mainQuestions.push(obj);
+        if (!partsMap.has(partName)) {
+          partsMap.set(partName, []);
+        }
+        partsMap.get(partName)!.push(obj);
       } else {
         const existing = seenMap.get(key)!;
         existing.maxMarks += marks;
@@ -1136,20 +1126,23 @@ const UploadMarks = () => {
       }
     });
 
-    let calculatedTotal = 0;
-    let prevMarks = 0;
-
-    mainQuestions.forEach((mq, i) => {
-      if (mq.isOr && i > 0) {
-        calculatedTotal = calculatedTotal - prevMarks + Math.max(prevMarks, mq.maxMarks);
-        prevMarks = Math.max(prevMarks, mq.maxMarks);
-      } else {
-        calculatedTotal += mq.maxMarks;
-        prevMarks = mq.maxMarks;
-      }
+    let grandTotal = 0;
+    partsMap.forEach((mainQuestions) => {
+      let partTotal = 0;
+      let prevMarks = 0;
+      mainQuestions.forEach((mq, i) => {
+        if (mq.isOr && i > 0) {
+          partTotal = partTotal - prevMarks + Math.max(prevMarks, mq.maxMarks);
+          prevMarks = Math.max(prevMarks, mq.maxMarks);
+        } else {
+          partTotal += mq.maxMarks;
+          prevMarks = mq.maxMarks;
+        }
+      });
+      grandTotal += partTotal;
     });
 
-    return calculatedTotal;
+    return Number.isInteger(grandTotal) ? grandTotal : parseFloat(grandTotal.toFixed(2));
   };
 
   const calculateStudentTotalFromMarks = (
@@ -1162,13 +1155,8 @@ const UploadMarks = () => {
     const hasAnyMark = Object.values(marksRecord).some(v => v !== undefined && v !== "" && v !== null);
     if (!hasAnyMark) return "";
 
-    const mainQuestions: Array<{
-      partName: string;
-      mainNum: string;
-      isOr: boolean;
-      subpartNumbers: string[];
-    }> = [];
-    const seenMap = new Map<string, { partName: string; mainNum: string; isOr: boolean; subpartNumbers: string[] }>();
+    const partsMap = new Map<string, Array<{ mainNum: string; isOr: boolean; subpartNumbers: string[] }>>();
+    const seenMap = new Map<string, { mainNum: string; isOr: boolean; subpartNumbers: string[] }>();
 
     questionsList.forEach((q, idx) => {
       const partName = q.part_name || q.partName || 'PART-A';
@@ -1181,9 +1169,12 @@ const UploadMarks = () => {
 
       const key = `${partName}_${mainNum}`;
       if (!seenMap.has(key)) {
-        const obj = { partName, mainNum, isOr, subpartNumbers: [qNumKey] };
+        const obj = { mainNum, isOr, subpartNumbers: [qNumKey] };
         seenMap.set(key, obj);
-        mainQuestions.push(obj);
+        if (!partsMap.has(partName)) {
+          partsMap.set(partName, []);
+        }
+        partsMap.get(partName)!.push(obj);
       } else {
         const existing = seenMap.get(key)!;
         if (!existing.subpartNumbers.includes(qNumKey)) {
@@ -1193,32 +1184,35 @@ const UploadMarks = () => {
       }
     });
 
-    const mainScores = mainQuestions.map((mq) => {
-      let sum = 0;
-      let attempted = false;
-      mq.subpartNumbers.forEach((num) => {
-        const val = marksRecord[num];
-        if (val !== undefined && val !== "" && val !== null) {
-          attempted = true;
-          const parsed = parseFloat(String(val));
-          if (!isNaN(parsed)) sum += parsed;
+    let totalObtained = 0;
+    partsMap.forEach((mainQuestions) => {
+      const mainScores = mainQuestions.map((mq) => {
+        let sum = 0;
+        let attempted = false;
+        mq.subpartNumbers.forEach((num) => {
+          const val = marksRecord[num];
+          if (val !== undefined && val !== "" && val !== null) {
+            attempted = true;
+            const parsed = parseFloat(String(val));
+            if (!isNaN(parsed)) sum += parsed;
+          }
+        });
+        return { ...mq, score: sum, attempted };
+      });
+
+      let partTotal = 0;
+      let prevScore = 0;
+      mainScores.forEach((mq, i) => {
+        if (mq.isOr && i > 0) {
+          const best = Math.max(prevScore, mq.score);
+          partTotal = partTotal - prevScore + best;
+          prevScore = best;
+        } else {
+          partTotal += mq.score;
+          prevScore = mq.score;
         }
       });
-      return { ...mq, score: sum, attempted };
-    });
-
-    let totalObtained = 0;
-    let prevScore = 0;
-
-    mainScores.forEach((mq, i) => {
-      if (mq.isOr && i > 0) {
-        const best = Math.max(prevScore, mq.score);
-        totalObtained = totalObtained - prevScore + best;
-        prevScore = best;
-      } else {
-        totalObtained += mq.score;
-        prevScore = mq.score;
-      }
+      totalObtained += partTotal;
     });
 
     const finalTotal = qpMaxMarks > 0 ? Math.min(totalObtained, qpMaxMarks) : totalObtained;
@@ -1988,6 +1982,7 @@ const UploadMarks = () => {
                                       <td className="px-2 py-1 text-center">
                                         <Input
                                           type="number"
+                                          step="any"
                                           className="w-16 text-center mx-auto"
                                           placeholder="Marks"
                                           value={studentMarks[student.id]?.[question.number] || ""}
