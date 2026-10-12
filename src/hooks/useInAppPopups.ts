@@ -1,8 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchWithTokenRefresh } from '../utils/authService';
 import { API_ENDPOINT } from '../utils/config';
-import { CURRENT_TOUR_VERSION } from '../onboarding/constants/tutorialConfig';
-import { getUserScopedSeenKey } from '../onboarding/constants/tutorialKeys';
 import { useAuth } from '../context/AuthContext';
 
 export interface InAppPopupData {
@@ -19,6 +17,8 @@ export interface InAppPopupData {
 export function useInAppPopups() {
   const [activePopup, setActivePopup] = useState<InAppPopupData | null>(null);
   const fetchedUserRef = useRef<string | null>(null);
+  const lastFetchTimeRef = useRef<number>(0);
+  const isFetchingRef = useRef<boolean>(false);
 
   const getUserKey = () => {
     try {
@@ -34,59 +34,114 @@ export function useInAppPopups() {
 
   const { isAuthenticated, user: authUser } = useAuth();
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
+  const fetchPopups = useCallback(async (force = false) => {
+    // Don't fetch if not authenticated or user data isn't loaded yet
+    if (!isAuthenticated || !authUser) {
+      fetchedUserRef.current = null;
+      return;
+    }
 
-    const fetchPopups = async () => {
-      // Don't fetch if not authenticated or user data isn't fully loaded yet
-      if (!isAuthenticated || !authUser) return;
+    const currentUserId = String(authUser.id || authUser.user_id);
+    const now = Date.now();
 
-      const currentUserId = String(authUser.id || authUser.user_id);
-      if (fetchedUserRef.current === currentUserId) return;
+    // Prevent concurrent requests
+    if (isFetchingRef.current) return;
+
+    // Deduplicate: If already fetched for this user within cooldown (30s) and not forced, skip
+    if (!force && fetchedUserRef.current === currentUserId && (now - lastFetchTimeRef.current < 30000)) {
+      return;
+    }
+
+    // Check if an onboarding tour is actively open on screen right now.
+    // If Joyride or tour modal is visible, defer fetch so we don't cover it.
+    const isTourActiveOnScreen = Boolean(
+      document.querySelector('.react-joyride__overlay') ||
+      document.querySelector('[data-tour-modal]') ||
+      document.querySelector('.react-joyride')
+    );
+
+    if (isTourActiveOnScreen) {
+      setTimeout(() => fetchPopups(force), 3000);
+      return;
+    }
+
+    isFetchingRef.current = true;
+
+    try {
       fetchedUserRef.current = currentUserId;
+      lastFetchTimeRef.current = now;
 
-      try {
-        const userStr = sessionStorage.getItem("user");
-        const user = userStr ? JSON.parse(userStr) : null;
-        const userId = user?.id || user?.user_id || null;
-        const role = sessionStorage.getItem("role") || localStorage.getItem("role") || "";
-        
-        const userScopedSeenKey = getUserScopedSeenKey(userId, CURRENT_TOUR_VERSION);
-        const hasSeenTour = localStorage.getItem(userScopedSeenKey) === 'true';
-        const legacyCompleted = localStorage.getItem(`tutorial_${role.toLowerCase()}_completed`) === 'true';
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/core/popups/`);
+      if (!response.ok) return;
 
-        // If the user hasn't completed the tour guide, wait and retry.
-        // This completely prevents the popup from clashing with the onboarding tour.
-        if (!hasSeenTour && !legacyCompleted) {
-          timer = setTimeout(fetchPopups, 3000);
-          return;
+      const popups: InAppPopupData[] = await response.json();
+      const userKeySuffix = getUserKey();
+
+      // Find the first popup (highest priority due to backend ordering)
+      // that the user hasn't seen the current version of.
+      let foundPopup: InAppPopupData | null = null;
+      for (const popup of popups) {
+        const storedVersion = localStorage.getItem(`popup_version_${popup.id}${userKeySuffix}`);
+        if (storedVersion !== String(popup.version)) {
+          foundPopup = popup;
+          break; // Show only one at a time
         }
+      }
 
-        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/core/popups/`);
-        if (!response.ok) return;
+      setActivePopup(foundPopup);
+    } catch (error) {
+      console.error("Failed to fetch popups:", error);
+    } finally {
+      isFetchingRef.current = false;
+    }
+  }, [isAuthenticated, authUser]);
 
-        const popups: InAppPopupData[] = await response.json();
-        
-        const userKeySuffix = getUserKey();
-        
-        // Find the first popup (highest priority due to backend ordering)
-        // that the user hasn't seen the current version of.
-        for (const popup of popups) {
-          const storedVersion = localStorage.getItem(`popup_version_${popup.id}${userKeySuffix}`);
-          if (storedVersion !== String(popup.version)) {
-            setActivePopup(popup);
-            break; // Show only one at a time
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch popups:", error);
+  useEffect(() => {
+    if (!isAuthenticated || !authUser) {
+      fetchedUserRef.current = null;
+      setActivePopup(null);
+      return;
+    }
+
+    // Initial fetch when user/auth is ready
+    fetchPopups(true);
+
+    // Event 1: Same-window popup updates (e.g. admin actions)
+    const handlePopupRefresh = () => {
+      fetchPopups(true);
+    };
+    window.addEventListener('popup_refresh', handlePopupRefresh);
+
+    // Event 2: Cross-tab popup updates via storage event
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'stalight_popup_updated_at') {
+        fetchPopups(true);
       }
     };
+    window.addEventListener('storage', handleStorageChange);
 
-    fetchPopups();
+    // Event 3: Tab switching / focus — re-check if cooldown has passed
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchPopups(false);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
 
-    return () => clearTimeout(timer);
-  }, [isAuthenticated, authUser]);
+    // Event 4: Periodic background check (every 5 minutes)
+    const interval = setInterval(() => {
+      fetchPopups(false);
+    }, 5 * 60 * 1000);
+
+    return () => {
+      window.removeEventListener('popup_refresh', handlePopupRefresh);
+      window.removeEventListener('storage', handleStorageChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+      clearInterval(interval);
+    };
+  }, [isAuthenticated, authUser, fetchPopups]);
 
   const dismissPopup = () => {
     if (activePopup) {

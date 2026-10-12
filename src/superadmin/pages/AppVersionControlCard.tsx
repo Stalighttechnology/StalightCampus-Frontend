@@ -98,6 +98,8 @@ export const AppVersionControlCard = () => {
 
       if (res.ok) {
         toast({ title: "Success", description: "App version settings saved successfully!" });
+        // Dispatch instant event to update local apps without waiting for polling/cooldown
+        window.dispatchEvent(new CustomEvent('app_version_update', { detail: config }));
         setConfirmOpen(false);
       } else {
         toast({ title: "Error", description: "Failed to save version settings.", variant: "destructive" });

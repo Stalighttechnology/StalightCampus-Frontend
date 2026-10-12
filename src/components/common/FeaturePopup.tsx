@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { X, Zap, Wrench, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useInAppPopups } from '../../hooks/useInAppPopups';
+import { API_BASE_URL } from '../../utils/config';
+
+const resolveMediaUrl = (url?: string | null): string | null => {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('data:')) {
+    return url;
+  }
+  if (url.startsWith('/')) {
+    return `${API_BASE_URL}${url}`;
+  }
+  return `${API_BASE_URL}/${url}`;
+};
 
 export const FeaturePopup: React.FC = () => {
   const { activePopup, dismissPopup } = useInAppPopups();
@@ -85,15 +97,22 @@ export const FeaturePopup: React.FC = () => {
           <X className="w-5 h-5" />
         </button>
 
-        {/* Image Header with dynamic gradient overlay */}
+        {/* Image Header - Supports both wide banners and full flyers without forced cropping */}
         {activePopup.image && (
-          <div className="relative w-full h-48 sm:h-56 bg-muted">
+          <div className="relative w-full max-h-[300px] sm:max-h-[380px] bg-muted/60 overflow-hidden flex items-center justify-center">
+            {/* Ambient blurred backdrop for letterboxed / vertical flyers */}
             <img
-              src={activePopup.image}
-              alt={activePopup.title}
-              className="w-full h-full object-cover"
+              src={resolveMediaUrl(activePopup.image) || activePopup.image}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-cover blur-xl opacity-35 scale-125 select-none pointer-events-none"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+            {/* Full unclipped image */}
+            <img
+              src={resolveMediaUrl(activePopup.image) || activePopup.image}
+              alt={activePopup.title}
+              className="relative z-10 w-full max-h-[300px] sm:max-h-[380px] object-contain transition-transform duration-500 hover:scale-[1.02]"
+            />
           </div>
         )}
 

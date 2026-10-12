@@ -71,12 +71,31 @@ export const useVersionControl = () => {
   }, []);
 
   useEffect(() => {
-    // Shared fetch function
-    const checkVersion = async () => {
+    // Shared fetch function with 10-minute cooldown
+    const checkVersion = async (force: boolean = false) => {
+      // Cooldown check (10 minutes = 600,000 ms)
+      const now = Date.now();
+      const COOLDOWN_MS = 10 * 60 * 1000;
+      const lastCheckStr = sessionStorage.getItem("stalight_version_last_check");
+      const lastCheckTime = lastCheckStr ? parseInt(lastCheckStr, 10) : 0;
+
+      if (!force && (now - lastCheckTime) < COOLDOWN_MS) {
+        // Use cached config if available
+        const cachedConfig = sessionStorage.getItem("stalight_version_config");
+        if (cachedConfig) {
+          try {
+            handleVersionConfig(JSON.parse(cachedConfig));
+            return;
+          } catch {}
+        }
+      }
+
       try {
         const response = await fetch(`${API_ENDPOINT}/public/app-version/`);
         if (response.ok) {
           const config = await response.json();
+          sessionStorage.setItem("stalight_version_last_check", String(now));
+          sessionStorage.setItem("stalight_version_config", JSON.stringify(config));
           handleVersionConfig(config);
         }
       } catch (err) {
@@ -85,25 +104,30 @@ export const useVersionControl = () => {
     };
 
     // Initial check on mount
-    checkVersion();
+    checkVersion(false);
 
-    // Re-check when app returns to foreground (native)
+    // Re-check when app returns to foreground (native) with cooldown
     let appStateListener: any = null;
     if (Capacitor.isNativePlatform()) {
       App.addListener('appStateChange', ({ isActive }) => {
-        if (isActive) checkVersion();
+        if (isActive) checkVersion(false);
       }).then(listener => { appStateListener = listener; });
     }
 
-    // Re-check when browser tab becomes visible (web)
+    // Re-check when browser tab becomes visible (web) with cooldown
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') checkVersion();
+      if (document.visibilityState === 'visible') checkVersion(false);
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
     const handleAppVersionUpdate = (e: any) => {
       if (e.detail) {
+        sessionStorage.setItem("stalight_version_config", JSON.stringify(e.detail));
+        sessionStorage.setItem("stalight_version_last_check", String(Date.now()));
         handleVersionConfig(e.detail as VersionConfig);
+      } else {
+        // Force immediate check when triggered externally
+        checkVersion(true);
       }
     };
 
