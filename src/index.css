@@ -1113,25 +1113,74 @@ body.tutorial-active aside {
   }
 }
 
-.animate-gemini-burst {
-  animation: gemini-burst-spin 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+@keyframes badge-auto-cycle {
+  0%, 15% {
+    max-width: 0px;
+    opacity: 0;
+    transform: translateX(18px) scale(0.92);
+    pointer-events: none;
+    margin-right: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+  25%, 70% {
+    max-width: 170px;
+    opacity: 1;
+    transform: translateX(0px) scale(1);
+    pointer-events: auto;
+    margin-right: 0.75rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  80%, 100% {
+    max-width: 0px;
+    opacity: 0;
+    transform: translateX(18px) scale(0.92);
+    pointer-events: none;
+    margin-right: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+}
+
+@keyframes gemini-auto-spin-cycle {
+  0%, 15% {
+    transform: rotate(0deg) scale(1);
+  }
+  22% {
+    transform: rotate(180deg) scale(1.12);
+  }
+  28%, 70% {
+    transform: rotate(360deg) scale(1);
+  }
+  78% {
+    transform: rotate(540deg) scale(1.12);
+  }
+  85%, 100% {
+    transform: rotate(720deg) scale(1);
+  }
+}
+
+.animate-badge-auto-cycle {
+  animation: badge-auto-cycle 8s cubic-bezier(0.34, 1.3, 0.64, 1) infinite;
+}
+
+.animate-gemini-auto-spin {
+  animation: gemini-auto-spin-cycle 8s cubic-bezier(0.34, 1.3, 0.64, 1) infinite;
 }
 
 @keyframes gemini-window-enter {
   0% {
     opacity: 0;
-    transform: scale(0.65) translate3d(25px, 35px, 0);
-    filter: blur(8px);
+    transform: scale(0.4) translate3d(20px, 20px, 0);
   }
-  60% {
-    opacity: 0.95;
-    transform: scale(1.02) translate3d(-2px, -3px, 0);
-    filter: blur(0px);
+  70% {
+    opacity: 1;
+    transform: scale(1.015) translate3d(0, 0, 0);
   }
   100% {
     opacity: 1;
     transform: scale(1) translate3d(0, 0, 0);
-    filter: blur(0px);
   }
 }
 
@@ -1139,22 +1188,22 @@ body.tutorial-active aside {
   0% {
     opacity: 1;
     transform: scale(1) translate3d(0, 0, 0);
-    filter: blur(0px);
   }
   100% {
     opacity: 0;
-    transform: scale(0.6) translate3d(30px, 40px, 0);
-    filter: blur(10px);
+    transform: scale(0.4) translate3d(20px, 20px, 0);
   }
 }
 
 .gemini-chat-window-enter {
-  animation: gemini-window-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: gemini-window-enter 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transform-origin: bottom right;
+  will-change: transform, opacity;
 }
 
 .gemini-chat-window-exit {
-  animation: gemini-window-exit 0.38s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+  animation: gemini-window-exit 0.24s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   transform-origin: bottom right;
   pointer-events: none;
+  will-change: transform, opacity;
 }

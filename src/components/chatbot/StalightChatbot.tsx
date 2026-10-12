@@ -7,16 +7,16 @@ import { useVoiceAssistant } from "./useVoiceAssistant";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { API_BASE_URL } from "@/utils/config";
 
-// Clean, exact navbar and key page topics
+// Relevant ERP application recommendations and quick query topics
 const PAGE_PROMPTS = [
   "Department risk analysis",
   "Attendance summary",
   "Outstanding fees",
   "Pending internal marks",
-  "Stalight Campus",
-  "Stalight Sync",
-  "Pricing & Plans",
-  "About Stalight",
+  "Fee defaulters",
+  "Campus handbook rules",
+  "Exam assessment status",
+  "Class timetable",
 ];
 
 const INITIAL_GREETING = "Hello! I am Stalight Intelligence. How can I assist you with your authorized campus records, attendance, fees, or academics today?";
@@ -81,33 +81,27 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
     lang: "en-IN",
   });
 
-  // Auto-navigate background to matched page cleanly based on user intent
+  // Auto-navigate background to matched ERP portal screens cleanly based on user intent
   const handleAutoNavigation = useCallback((text: string) => {
     const lower = text.toLowerCase();
 
-    // Specific product/feature pages first
-    if (lower.includes("pricing") || lower.includes("price") || lower.includes("cost") || lower.includes("access plan") || lower.includes("pricing & plans") || lower.includes("/stalight-campus-access")) {
-      navigate("/Stalight-Campus-Access");
+    if (lower.includes("attendance") || lower.includes("absent") || lower.includes("present") || lower.includes("classes")) {
+      navigate("/hod-attendance");
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (lower.includes("sync") || lower.includes("sink") || lower.includes("/stalight-sync")) {
-      navigate("/Stalight-Sync");
+    } else if (lower.includes("fee") || lower.includes("invoice") || lower.includes("payment") || lower.includes("defaulter")) {
+      navigate("/invoices");
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (lower.includes("campus") || lower.includes("erp") || lower.includes("slide campus") || lower.includes("astrolog") || lower.includes("starlight campus") || lower.includes("/stalight-campus")) {
-      navigate("/Stalight-Campus");
+    } else if (lower.includes("exam") || lower.includes("mark") || lower.includes("cie") || lower.includes("grade")) {
+      navigate("/exams");
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (lower.includes("it service") || lower.includes("cloud") || lower.includes("/it-services") || lower.includes("/services")) {
-      navigate("/it-services");
+    } else if (lower.includes("timetable") || lower.includes("schedule") || lower.includes("routine")) {
+      navigate("/class-schedule");
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (lower.includes("software development") || lower.includes("custom software") || lower.includes("/software-development") || lower.includes("/products")) {
-      navigate("/software-development");
+    } else if (lower.includes("student") || lower.includes("usn") || lower.includes("profile")) {
+      navigate("/scan-student-info");
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (lower.includes("career") || lower.includes("training") || lower.includes("internship") || lower.includes("skill development") || lower.includes("/skill-development")) {
-      navigate("/skill-development");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } 
-    // Generic company info last
-    else if ((lower.includes("about") && !lower.includes("how about") && !lower.includes("what about")) || lower.includes("leadership") || lower.includes("headquarters") || lower.includes("team") || lower.includes("company") || lower.includes("/about")) {
-      navigate("/about");
+    } else if (lower.includes("announcement") || lower.includes("notice") || lower.includes("circular")) {
+      navigate("/announcements");
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [navigate]);
@@ -318,12 +312,12 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
     }
   };
 
-  // Smooth Gemini-style open transition with spinning effect
+  // Smooth Gemini-style open transition without laggy artificial delay
   const handleOpenWithSpin = useCallback((isVoice: boolean = false) => {
-    setIsSpinning(true);
     setIsClosing(false);
+    setIsSpinning(true);
+    setIsOpen(true);
     setTimeout(() => {
-      setIsOpen(true);
       setIsSpinning(false);
       if (isVoice) {
         isVoiceModeRef.current = true;
@@ -332,7 +326,7 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
     }, 280);
   }, [startVoiceInteraction]);
 
-  // Smooth Gemini-style close transition with spinning effect
+  // Smooth Gemini-style close transition matching 240ms exit animation
   const handleCloseWithSpin = useCallback(() => {
     stopAll();
     setIsClosing(true);
@@ -341,7 +335,7 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
       setIsOpen(false);
       setIsClosing(false);
       setIsSpinning(false);
-    }, 360);
+    }, 240);
   }, [stopAll]);
 
   // Handler for floating "Hey Stalight" badge click
@@ -365,17 +359,17 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
         <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 transition-all duration-300 ${
           isClosing ? "opacity-100 scale-100" : isOpen ? "opacity-0 pointer-events-none scale-90" : "opacity-100 scale-100"
         }`}>
-          {/* Hey Stalight Voice Badge Trigger */}
+          {/* Hey Stalight Voice Badge Trigger with Auto-Cycling Gemini Hide & Reveal */}
           <button
             onClick={handleHeyStalightBadgeClick}
             title="Start voice interaction with Hey Stalight"
-            className="group hidden sm:flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/95 backdrop-blur-2xl border border-slate-200/90 text-xs font-semibold text-slate-700 shadow-[0_10px_25px_rgba(0,0,0,0.08)] hover:border-purple-300 hover:shadow-[0_12px_30px_rgba(168,85,247,0.2)] transition-all transform hover:-translate-y-0.5 cursor-pointer"
+            className="group hidden sm:flex items-center gap-2.5 py-2 rounded-full bg-white/95 backdrop-blur-2xl border border-slate-200/90 text-xs font-semibold text-slate-700 shadow-[0_10px_25px_rgba(0,0,0,0.08)] hover:border-purple-300 hover:shadow-[0_12px_30px_rgba(168,85,247,0.2)] transition-shadow overflow-hidden whitespace-nowrap animate-badge-auto-cycle cursor-pointer"
           >
-            <span className="relative flex h-2 w-2">
+            <span className="relative flex h-2 w-2 flex-shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-gradient-to-tr from-pink-500 via-purple-600 to-blue-600" />
             </span>
-            <span className="bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 bg-clip-text text-transparent font-extrabold tracking-tight group-hover:from-pink-600 group-hover:to-purple-700 transition-all">
+            <span className="bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 bg-clip-text text-transparent font-extrabold tracking-tight group-hover:from-pink-600 group-hover:to-purple-700 transition-all flex-shrink-0">
               Hey Stalight
             </span>
           </button>
@@ -403,12 +397,16 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
                 <StalightLogoAvatar size={34} />
               </div>
               <div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <h3 className="text-[15px] font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600">
                     Stalight
                   </h3>
                   <span className="px-2 py-0.5 text-[10px] font-bold bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border border-purple-200/80 rounded-full shadow-sm">
                     Intelligence
+                  </span>
+                  <span className="px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase bg-amber-50 text-amber-700 border border-amber-200/90 rounded-full shadow-sm flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    Test Mode
                   </span>
                 </div>
               </div>

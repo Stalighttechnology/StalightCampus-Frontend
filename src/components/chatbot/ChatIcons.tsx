@@ -58,8 +58,8 @@ export const SiriOrbGlow: React.FC<{ size?: number; active?: boolean; isSpinning
       <img
         src="/stalight-ai-logo.webp"
         alt="Stalight AI"
-        className={`w-full h-full object-contain filter drop-shadow-[0_2px_5px_rgba(37,99,235,0.25)] transition-transform duration-500 ${
-          isSpinning ? "animate-gemini-burst" : "group-hover:scale-110"
+        className={`w-full h-full object-contain filter drop-shadow-[0_2px_5px_rgba(37,99,235,0.25)] transition-transform duration-500 animate-gemini-auto-spin ${
+          isSpinning ? "scale-115" : "group-hover:scale-110"
         }`}
       />
     </div>
