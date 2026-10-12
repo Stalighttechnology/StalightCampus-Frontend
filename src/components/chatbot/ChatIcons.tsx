@@ -26,9 +26,10 @@ export const StalightLogoAvatar: React.FC<{ size?: number; className?: string }>
   </div>
 );
 
-export const SiriOrbGlow: React.FC<{ size?: number; active?: boolean }> = ({
+export const SiriOrbGlow: React.FC<{ size?: number; active?: boolean; isSpinning?: boolean }> = ({
   size = 56,
   active = false,
+  isSpinning = false,
 }) => (
   <div
     style={{ width: size, height: size }}
@@ -36,8 +37,12 @@ export const SiriOrbGlow: React.FC<{ size?: number; active?: boolean }> = ({
   >
     {/* Subtle & Elegant Gemini Chromatic Aurora Rim */}
     <div
-      className={`absolute -inset-1 rounded-full blur-[6px] transition-all duration-500 animate-gemini-spin ${
-        active ? "opacity-90 scale-110 animate-gemini-spin-fast" : "opacity-35 group-hover:opacity-75 group-hover:scale-105"
+      className={`absolute -inset-1 rounded-full blur-[6px] transition-all duration-500 ${
+        isSpinning
+          ? "opacity-100 scale-125 animate-gemini-spin-fast blur-[8px]"
+          : active
+          ? "opacity-90 scale-110 animate-gemini-spin-fast"
+          : "opacity-35 group-hover:opacity-85 group-hover:scale-105 animate-gemini-spin"
       }`}
       style={{
         background:
@@ -46,14 +51,16 @@ export const SiriOrbGlow: React.FC<{ size?: number; active?: boolean }> = ({
     />
 
     {/* Crisp Pure White Apple-Style Frosted Disc */}
-    <div className="absolute inset-0 rounded-full bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04)] transition-all duration-300 group-hover:shadow-[0_8px_25px_rgba(37,99,235,0.18)] group-hover:border-blue-300/80" />
+    <div className={`absolute inset-0 rounded-full bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04)] transition-all duration-300 group-hover:shadow-[0_8px_25px_rgba(37,99,235,0.18)] group-hover:border-blue-300/80 ${isSpinning ? "scale-95 border-purple-400" : ""}`} />
 
-    {/* Crisp Centered Star Logo with Subtle Hover Sparkle */}
+    {/* Crisp Centered Star Logo with Gemini Spin Effect */}
     <div className="relative w-full h-full rounded-full p-2.5 flex items-center justify-center z-10">
       <img
         src="/stalight-ai-logo.webp"
         alt="Stalight AI"
-        className="w-full h-full object-contain filter drop-shadow-[0_2px_5px_rgba(37,99,235,0.25)] group-hover:scale-110 transition-transform duration-300"
+        className={`w-full h-full object-contain filter drop-shadow-[0_2px_5px_rgba(37,99,235,0.25)] transition-transform duration-500 ${
+          isSpinning ? "animate-gemini-burst" : "group-hover:scale-110"
+        }`}
       />
     </div>
   </div>

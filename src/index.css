@@ -1090,7 +1090,7 @@ body.tutorial-active aside {
 }
 
 .animate-gemini-spin-fast {
-  animation: gemini-spin 3s linear infinite;
+  animation: gemini-spin 1.8s linear infinite;
 }
 
 .animate-gemini-pulse {
@@ -1099,4 +1099,62 @@ body.tutorial-active aside {
 
 .animate-gemini-star {
   animation: gemini-float-star 3.5s ease-in-out infinite;
+}
+
+@keyframes gemini-burst-spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(270deg) scale(1.18);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.animate-gemini-burst {
+  animation: gemini-burst-spin 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes gemini-window-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.65) translate3d(25px, 35px, 0);
+    filter: blur(8px);
+  }
+  60% {
+    opacity: 0.95;
+    transform: scale(1.02) translate3d(-2px, -3px, 0);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes gemini-window-exit {
+  0% {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.6) translate3d(30px, 40px, 0);
+    filter: blur(10px);
+  }
+}
+
+.gemini-chat-window-enter {
+  animation: gemini-window-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: bottom right;
+}
+
+.gemini-chat-window-exit {
+  animation: gemini-window-exit 0.38s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+  transform-origin: bottom right;
+  pointer-events: none;
 }

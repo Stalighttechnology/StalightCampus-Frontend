@@ -27,6 +27,8 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
 }) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [isClosing, setIsClosing] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -316,23 +318,53 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
     }
   };
 
-  // Handler for floating "Hey Stalight" badge click (Triggers voice flow: Mm-hmm? -> Mic -> Live STT -> Auto send)
+  // Smooth Gemini-style open transition with spinning effect
+  const handleOpenWithSpin = useCallback((isVoice: boolean = false) => {
+    setIsSpinning(true);
+    setIsClosing(false);
+    setTimeout(() => {
+      setIsOpen(true);
+      setIsSpinning(false);
+      if (isVoice) {
+        isVoiceModeRef.current = true;
+        startVoiceInteraction();
+      }
+    }, 280);
+  }, [startVoiceInteraction]);
+
+  // Smooth Gemini-style close transition with spinning effect
+  const handleCloseWithSpin = useCallback(() => {
+    stopAll();
+    setIsClosing(true);
+    setIsSpinning(true);
+    setTimeout(() => {
+      setIsOpen(false);
+      setIsClosing(false);
+      setIsSpinning(false);
+    }, 360);
+  }, [stopAll]);
+
+  // Handler for floating "Hey Stalight" badge click
   const handleHeyStalightBadgeClick = () => {
-    setIsOpen(true);
-    isVoiceModeRef.current = true;
-    startVoiceInteraction();
+    handleOpenWithSpin(true);
   };
 
-  // Handler for circular launcher logo click (Opens text chat only)
+  // Handler for circular launcher logo click
   const handleLauncherIconClick = () => {
-    setIsOpen(true);
+    if (isOpen) {
+      handleCloseWithSpin();
+    } else {
+      handleOpenWithSpin(false);
+    }
   };
 
   return (
     <div className="stalight-chatbot-root font-sans text-slate-900">
       {/* Floating Apple-Style Light Frosted Launcher Button */}
-      {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 animate-in fade-in duration-300">
+      {(!isOpen || isClosing) && (
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 transition-all duration-300 ${
+          isClosing ? "opacity-100 scale-100" : isOpen ? "opacity-0 pointer-events-none scale-90" : "opacity-100 scale-100"
+        }`}>
           {/* Hey Stalight Voice Badge Trigger */}
           <button
             onClick={handleHeyStalightBadgeClick}
@@ -348,24 +380,28 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
             </span>
           </button>
 
-          {/* Launcher Circular Orb Logo Button (Opens Chat Text Mode Only) */}
+          {/* Launcher Circular Orb Logo Button with Gemini Spin */}
           <button
             onClick={handleLauncherIconClick}
             aria-label="Open Stalight Intelligence"
             className="transform hover:scale-105 active:scale-95 transition-transform duration-200 cursor-pointer"
           >
-            <SiriOrbGlow size={56} />
+            <SiriOrbGlow size={56} isSpinning={isSpinning} />
           </button>
         </div>
       )}
 
-      {/* Main Apple Light Glass Window */}
+      {/* Main Apple Light Glass Window with Smooth Gemini Enter/Exit */}
       {isOpen && (
-        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[420px] h-[600px] max-h-[calc(100vh-3rem)] flex flex-col rounded-[28px] backdrop-blur-3xl bg-white/95 border border-slate-200/90 shadow-[0_25px_80px_rgba(0,0,0,0.12),0_0_30px_rgba(37,99,235,0.08)] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[420px] h-[600px] max-h-[calc(100vh-3rem)] flex flex-col rounded-[28px] backdrop-blur-3xl bg-white/95 border border-slate-200/90 shadow-[0_25px_80px_rgba(0,0,0,0.12),0_0_30px_rgba(37,99,235,0.08)] overflow-hidden ${
+          isClosing ? "gemini-chat-window-exit" : "gemini-chat-window-enter"
+        }`}>
           {/* Apple Light Glass Header */}
           <div className="flex items-center justify-between px-5 py-3.5 bg-white/80 backdrop-blur-xl border-b border-slate-200/80">
             <div className="flex items-center gap-3">
-              <StalightLogoAvatar size={34} />
+              <div className={isClosing ? "animate-gemini-burst" : ""}>
+                <StalightLogoAvatar size={34} />
+              </div>
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="text-[15px] font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600">
@@ -389,14 +425,11 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
               )}
 
               <button
-                onClick={() => {
-                  stopAll();
-                  setIsOpen(false);
-                }}
+                onClick={handleCloseWithSpin}
                 title="Close"
-                className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer group"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
