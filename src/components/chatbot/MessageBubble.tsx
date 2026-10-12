@@ -75,8 +75,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionC
 
   // Helper to parse inline markdown (bolding, Markdown links, external URLs, internal routes, emails)
   const parseInlineFormatting = (line: string) => {
-    // Strip any raw (Page: ...) or [Page: ...] or Page: /... tags
+    // Strip any raw (Page: ...) or [Page: ...] or Page: /... tags, clean stray triple asterisks
     const cleanLine = line
+      .replace(/\*{3,}/g, "")
       .replace(/\s*\((?:Page|page):\s*[^)]+\)/gi, "")
       .replace(/\s*\[(?:Page|page):\s*[^\]]+\]/gi, "")
       .replace(/\s*(?:Page|page):\s*\/[a-zA-Z0-9_\-\/]+/gi, "");
@@ -271,12 +272,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionC
         );
       }
 
-      // 3. Nested Bullet points with labels: "* **Target**: Value" or "- **Target**: Value" or "* Target: Value"
+      // 3. Nested Bullet points with labels: "- **Target**: Value" or "- **Target:** Value" or "- Target: Value"
       if ((trimmed.startsWith("* ") || trimmed.startsWith("- ")) && trimmed.includes(":")) {
         const withoutBullet = trimmed.substring(2).trim();
-        const colonIdx = withoutBullet.indexOf(":");
-        const labelPart = withoutBullet.substring(0, colonIdx).replace(/\*\*/g, "").trim();
-        const valPart = withoutBullet.substring(colonIdx + 1).trim();
+        let labelPart = "";
+        let valPart = "";
+
+        const boldColonMatch = withoutBullet.match(/^\*\*([^*]+?)(?::\*\*|\*\*:)\s*(.*)$/);
+        if (boldColonMatch) {
+          labelPart = boldColonMatch[1].trim();
+          valPart = boldColonMatch[2].replace(/^\*+/, "").replace(/\*+$/, "").trim();
+        } else {
+          const colonIdx = withoutBullet.indexOf(":");
+          labelPart = withoutBullet.substring(0, colonIdx).replace(/\*\*/g, "").trim();
+          valPart = withoutBullet.substring(colonIdx + 1).replace(/^\*+/, "").replace(/\*+$/, "").trim();
+        }
 
         return (
           <div key={idx} className="my-1 pl-3 text-[11.5px] leading-relaxed text-left flex items-start gap-1.5">
@@ -302,7 +312,16 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionC
         );
       }
 
-      // 5. Normal text paragraph
+      // 5. Suppress redundant text lines that just echo technical raw routes (since action card is rendered below)
+      if (
+        trimmed.toLowerCase().includes("directly at /") ||
+        trimmed.toLowerCase().includes("directly at [/") ||
+        (trimmed.toLowerCase().startsWith("open ") && (trimmed.includes("/admin") || trimmed.includes("/hod") || trimmed.includes("/faculty")))
+      ) {
+        return null;
+      }
+
+      // 6. Normal text paragraph
       return (
         <p key={idx} className="my-0.5 leading-relaxed text-slate-800 text-left text-[11.5px]">
           {parseInlineFormatting(line)}
@@ -554,6 +573,26 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionC
                       >
                         Open Invoices
                       </button>
+                    </div>
+                  );
+                }
+                if (card.type === 'link_action' || card.type === 'navigation_card') {
+                  return (
+                    <div key={cIdx} className="rounded-xl border border-slate-200/90 bg-white p-3 shadow-xs text-[11px]">
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <div>
+                          <span className="font-bold text-slate-900 text-xs block">{card.title}</span>
+                          {card.subtitle && <span className="text-[10px] text-slate-500">{card.subtitle}</span>}
+                        </div>
+                      </div>
+                      {card.link && (
+                        <button
+                          onClick={() => handleInternalNav(card.link)}
+                          className="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-[11px] font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+                        >
+                          <span>{card.link_text || "Open Page →"}</span>
+                        </button>
+                      )}
                     </div>
                   );
                 }

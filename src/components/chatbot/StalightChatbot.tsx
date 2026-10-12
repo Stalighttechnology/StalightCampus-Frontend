@@ -7,17 +7,540 @@ import { useVoiceAssistant } from "./useVoiceAssistant";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { API_BASE_URL } from "@/utils/config";
 
-// Relevant ERP application recommendations and quick query topics
-const PAGE_PROMPTS = [
-  "Department risk analysis",
+// Role-specific recommendations matching actual dashboard sidebar pages
+const ROLE_PAGE_PROMPTS: Record<string, string[]> = {
+  student: [
+    "Check my attendance",
+    "View internal marks",
+    "Class schedule & timetable",
+    "Check pending fees",
+    "Download study materials",
+    "Submit leave request",
+    "Hostel room & mess details",
+    "View campus announcements",
+  ],
+  parent: [
+    "Student attendance percentage",
+    "Semester internal marks",
+    "Outstanding tuition fees",
+    "Class timetable",
+    "Campus notices & circulars",
+    "Hostel accommodation status",
+    "College holiday calendar",
+  ],
+  faculty: [
+    "Take today's attendance",
+    "Upload internal marks",
+    "Check my timetable",
+    "Student leave applications",
+    "Upload study material",
+    "Apply for staff leave",
+    "My salary & payroll",
+    "Schedule mentoring session",
+  ],
+  teacher: [
+    "Take today's attendance",
+    "Upload internal marks",
+    "Check my timetable",
+    "Student leave applications",
+    "Upload study material",
+    "Apply for staff leave",
+    "My salary & payroll",
+    "Schedule mentoring session",
+  ],
+  hod: [
+    "Department attendance summary",
+    "Faculty teaching timetable",
+    "Pending staff leave approvals",
+    "Question paper approvals",
+    "Low attendance alert list",
+    "Course syllabus monitor",
+    "Schedule department meeting",
+    "Department inventory status",
+  ],
+  principal: [
+    "Campus attendance records",
+    "Department risk analysis",
+    "Faculty leave requests",
+    "Question paper approvals",
+    "College profile & report card",
+    "Financial collection summary",
+    "Staff task tracker",
+    "Campus inspections & visits",
+  ],
+  admin: [
+    "Campus attendance records",
+    "Faculty assignments",
+    "Staff enrollment & users",
+    "Question paper approvals",
+    "College report card",
+    "Leave approvals",
+    "Campus announcements",
+    "Billing & plan overview",
+  ],
+  org_admin: [
+    "Multi-branch dashboard",
+    "Institutional fee collection",
+    "Overall student attendance",
+    "Staff user directory",
+    "Exam assessments",
+    "Campus asset monitoring",
+    "Billing & subscription",
+  ],
+  fees_manager: [
+    "Outstanding fees summary",
+    "Recent student invoices",
+    "Payment transactions log",
+    "Fee defaulters list",
+    "Payroll management",
+    "Payment gateway settings",
+    "Apply for leave",
+  ],
+  coe: [
+    "Examination timetable",
+    "Question paper approvals",
+    "Publish exam results",
+    "Revaluation applications",
+    "Makeup exam requests",
+    "Course statistics report",
+    "Fee settings for exams",
+  ],
+  dean: [
+    "Academic examination status",
+    "Question paper approvals",
+    "Faculty attendance overview",
+    "Department compliance reports",
+    "Staff leave requests",
+    "Campus monitoring",
+  ],
+  hms: [
+    "Hostel occupancy & rooms",
+    "Student hostel admissions",
+    "Today's mess food menu",
+    "Student complaint issues",
+    "Visitor gate logs",
+    "Warden leave requests",
+  ],
+  warden: [
+    "Hostel resident list",
+    "Student gate pass requests",
+    "Today's meal schedule",
+    "Hostel complaints & issues",
+    "Night visitor logs",
+    "Apply for leave",
+  ],
+  transport_admin: [
+    "Campus bus fleet status",
+    "Driver duty assignments",
+    "Bus routes & pick-up stops",
+    "Live GPS vehicle tracking",
+    "Transport complaints log",
+    "Driver leave management",
+  ],
+  driver: [
+    "My trip history",
+    "Assigned bus route & stops",
+    "Report vehicle complaint",
+    "My attendance record",
+    "Apply for driver leave",
+    "My salary slips",
+  ],
+  library_admin: [
+    "Book catalog & search",
+    "Active book circulations",
+    "Overdue library fines",
+    "Library staff tasks",
+    "Apply for staff leave",
+    "My attendance records",
+  ],
+  admission_manager: [
+    "Lead enquiries pipeline",
+    "New student applications",
+    "Course seat matrix status",
+    "Counsellor team allocations",
+    "Admission fee payments",
+    "Campus portal builder",
+  ],
+  counsellor: [
+    "Prospective student leads",
+    "Admission enquiry status",
+    "Campus announcements",
+    "My attendance records",
+    "Apply for leave",
+  ],
+  inventory_manager: [
+    "Asset directory & inventory",
+    "Procurement purchase requests",
+    "Vendor quotations",
+    "Maintenance & repair tickets",
+    "Block & location allocations",
+  ],
+  field_visitor: [
+    "Record school inspection visit",
+    "Field visit history",
+    "Officer profile",
+  ],
+};
+
+const DEFAULT_PROMPTS = [
   "Attendance summary",
   "Outstanding fees",
-  "Pending internal marks",
-  "Fee defaulters",
-  "Campus handbook rules",
-  "Exam assessment status",
   "Class timetable",
+  "Exam schedule",
+  "Campus announcements",
+  "Handbook rules",
 ];
+
+// Resolves the exact page route based on current user role and intent
+const resolveRoleBasedPath = (role: string, intent: string): string => {
+  const r = (role || "").toLowerCase();
+
+  switch (intent) {
+    case "staff_tasks":
+      if (r === "faculty" || r === "teacher") return "/faculty/staff-tasks";
+      if (r === "hod") return "/hod/staff-tasks";
+      if (r === "fees_manager") return "/fees-manager/staff-tasks";
+      if (r === "transport_admin") return "/transport-admin/staff-tasks";
+      if (r === "library_admin") return "/library-admin/staff-tasks";
+      if (r === "admission_manager") return "/admission-manager/staff-tasks";
+      if (r === "coe") return "/coe/staff-tasks";
+      if (r === "dean") return "/dean/staff-tasks";
+      if (r === "hms") return "/hms/staff-tasks";
+      if (r === "org_admin") return "/org-admin/staff-tasks";
+      return "/admin/staff-tasks";
+
+    case "field_visits":
+      if (r === "field_visitor") return "/field-visitor/visit-history";
+      return "/admin/field-visits";
+
+    case "college_details":
+      if (r === "org_admin") return "/org-admin/college-details";
+      if (r === "dean") return "/dean/college-details";
+      return "/admin/college-details";
+
+    case "qp_approvals":
+      if (r === "hod") return "/hod/qp-approvals";
+      if (r === "coe") return "/coe/qp-approvals";
+      if (r === "dean") return "/dean/qp-approvals";
+      if (r === "faculty" || r === "teacher") return "/faculty/upload-qp";
+      return "/admin/qp-approvals";
+
+    case "timetable_config":
+      if (r === "hod") return "/hod/timetable";
+      return "/admin/timetable-config";
+
+    case "branches":
+      if (r === "org_admin") return "/org-admin/branches";
+      return "/admin/branches";
+
+    case "batches":
+      if (r === "org_admin") return "/org-admin/batches";
+      return "/admin/batches";
+
+    case "users":
+      if (r === "org_admin") return "/org-admin/users";
+      if (r === "hod") return "/hod/students";
+      return "/admin/users";
+
+    case "enroll_user":
+      if (r === "org_admin") return "/org-admin/enroll-user";
+      if (r === "dean") return "/dean/enroll-user";
+      return "/admin/enroll-user";
+
+    case "bulk_upload":
+      return "/admin/bulk-upload";
+
+    case "teacher_assignments":
+      if (r === "hod") return "/hod/faculty-assignments";
+      return "/admin/teacher-assignments";
+
+    case "syllabus_monitor":
+      if (r === "student" || r === "parent") return "/student-syllabus";
+      if (r === "faculty" || r === "teacher") return "/faculty/syllabus-status";
+      if (r === "hod") return "/hod/syllabus-monitor";
+      return "/admin/syllabus-monitor";
+
+    case "student_transfer":
+      return "/admin/student-transfer";
+
+    case "co_attainment":
+      if (r === "hod") return "/hod/co-attainment";
+      if (r === "faculty" || r === "teacher") return "/faculty/co-attainment";
+      if (r === "coe") return "/coe/co-attainment";
+      if (r === "dean") return "/dean/co-attainment";
+      return "/admin/co-attainment";
+
+    case "issued_items":
+      if (r === "student") return "/my-issued-items";
+      if (r === "counsellor") return "/counsellor/issued-items";
+      if (r === "org_admin") return "/org-admin/issued-items";
+      return "/admin/issued-items";
+
+    case "sports_wellness":
+      if (r === "counsellor") return "/counsellor/sports-wellness";
+      if (r === "org_admin") return "/org-admin/sports-wellness";
+      return "/admin/sports-wellness";
+
+    case "campus_locations":
+      if (r === "org_admin") return "/org-admin/campus-locations";
+      if (r === "dean") return "/dean/campus-locations";
+      return "/admin/campus-locations";
+
+    case "campus_monitoring":
+      if (r === "org_admin") return "/org-admin/campus-monitoring";
+      return "/admin/campus-monitoring";
+
+    case "scan_student":
+      if (r === "org_admin") return "/org-admin/scan-student-info";
+      if (r === "hod") return "/hod/scan-student-info";
+      if (r === "faculty" || r === "teacher") return "/faculty/scan-student-info";
+      if (r === "coe") return "/coe/scan-student-info";
+      if (r === "dean") return "/dean/scan-student-info";
+      return "/admin/scan-student-info";
+
+    case "alumni_directory":
+      if (r === "org_admin") return "/org-admin/alumni-directory";
+      if (r === "hod") return "/hod/alumni-directory";
+      if (r === "dean") return "/dean/alumni-directory";
+      return "/admin/alumni-directory";
+
+    case "billing":
+      if (r === "org_admin") return "/org-admin/billing";
+      if (r === "dean") return "/dean/billing";
+      return "/admin/billing";
+
+    case "schedule_meeting":
+      if (r === "faculty" || r === "teacher") return "/faculty/schedule-meeting";
+      if (r === "hod") return "/hod/schedule-meeting";
+      if (r === "fees_manager") return "/fees-manager/schedule-meeting";
+      if (r === "transport_admin") return "/transport-admin/schedule-meeting";
+      if (r === "library_admin") return "/library-admin/schedule-meeting";
+      if (r === "admission_manager") return "/admission-manager/schedule-meeting";
+      if (r === "coe") return "/coe/schedule-meeting";
+      if (r === "dean") return "/dean/schedule-meeting";
+      if (r === "hms") return "/hms/schedule-meeting";
+      if (r === "warden") return "/warden/schedule-meeting";
+      if (r === "org_admin") return "/org-admin/schedule-meeting";
+      return "/admin/schedule-meeting";
+
+    case "reports":
+      if (r === "fees_manager") return "/fees-manager/reports";
+      if (r === "dean") return "/dean/reports";
+      if (r === "org_admin") return "/org-admin/reports";
+      return "/admin/reports";
+
+    case "attendance":
+      if (r === "student" || r === "parent") return "/attendance";
+      if (r === "faculty" || r === "teacher") return "/faculty/take-attendance";
+      if (r === "hod") return "/hod/attendance-records";
+      if (r === "fees_manager") return "/fees-manager/my-attendance";
+      if (r === "transport_admin") return "/transport-admin/my-attendance";
+      if (r === "library_admin") return "/library-admin/my-attendance";
+      if (r === "admission_manager") return "/admission-manager/my-attendance";
+      if (r === "driver") return "/driver/my-attendance";
+      if (r === "warden") return "/warden/my-attendance";
+      if (r === "hms") return "/hms/my-attendance";
+      if (r === "dean") return "/dean/faculty-attendance";
+      if (r === "admin" || r === "principal") return "/admin/faculty-attendance";
+      if (r === "org_admin") return "/org-admin/attendance";
+      return "/attendance";
+
+    case "my_attendance":
+      if (r === "faculty" || r === "teacher") return "/faculty/faculty-attendance";
+      if (r === "hod") return "/hod/my-attendance";
+      if (r === "fees_manager") return "/fees-manager/my-attendance";
+      if (r === "transport_admin") return "/transport-admin/my-attendance";
+      if (r === "library_admin") return "/library-admin/my-attendance";
+      if (r === "admission_manager") return "/admission-manager/my-attendance";
+      if (r === "driver") return "/driver/my-attendance";
+      if (r === "warden") return "/warden/my-attendance";
+      if (r === "hms") return "/hms/my-attendance";
+      if (r === "coe") return "/coe/my-attendance";
+      if (r === "dean") return "/dean/my-attendance";
+      if (r === "admin" || r === "principal") return "/admin/my-attendance";
+      return "/my-attendance";
+
+    case "low_attendance":
+      if (r === "hod") return "/hod/low-attendance";
+      if (r === "org_admin") return "/org-admin/low-attendance";
+      return "/admin/low-attendance";
+
+    case "attendance_records":
+      if (r === "hod") return "/hod/attendance-records";
+      if (r === "faculty" || r === "teacher") return "/faculty/attendance-records";
+      return "/admin/attendance-records";
+
+    case "fees":
+      if (r === "student" || r === "parent") return "/fees";
+      if (r === "fees_manager") return "/fees-manager/invoices";
+      if (r === "org_admin") return "/org-admin/invoices";
+      if (r === "admin" || r === "principal") return "/admin/finance";
+      if (r === "dean") return "/dean/finance";
+      if (r === "admission_manager") return "/admission-manager/admission-fees";
+      if (r === "coe") return "/coe/fee-settings";
+      return "/fees";
+
+    case "invoices":
+      if (r === "fees_manager") return "/fees-manager/invoices";
+      if (r === "org_admin") return "/org-admin/invoices";
+      return "/invoices";
+
+    case "timetable":
+      if (r === "student" || r === "parent") return "/timetable";
+      if (r === "faculty" || r === "teacher") return "/faculty/timetable";
+      if (r === "hod") return "/hod/timetable";
+      if (r === "admin" || r === "principal") return "/admin/timetable";
+      return "/timetable";
+
+    case "class_schedule":
+      if (r === "student" || r === "parent") return "/class-schedule";
+      if (r === "faculty" || r === "teacher") return "/faculty/schedule-class";
+      return "/class-schedule";
+
+    case "marks":
+      if (r === "student" || r === "parent") return "/marks";
+      if (r === "faculty" || r === "teacher") return "/faculty/upload-marks";
+      if (r === "hod") return "/hod/marks";
+      if (r === "coe") return "/coe/publish-results";
+      return "/marks";
+
+    case "exams":
+      if (r === "student" || r === "parent") return "/marks";
+      if (r === "faculty" || r === "teacher") return "/faculty/exam-applications";
+      if (r === "hod") return "/hod/exam-applications";
+      if (r === "coe") return "/coe/exam-scheduling";
+      if (r === "dean") return "/dean/exams";
+      if (r === "org_admin") return "/org-admin/exams";
+      return "/exams";
+
+    case "revaluation":
+      if (r === "student") return "/revaluation";
+      if (r === "coe") return "/coe/revaluation-requests";
+      return "/revaluation";
+
+    case "makeupexam":
+      if (r === "student") return "/makeupexam";
+      if (r === "coe") return "/coe/makeup-requests";
+      return "/makeupexam";
+
+    case "leave":
+      if (r === "student") return "/leave-request";
+      if (r === "faculty" || r === "teacher") return "/faculty/apply-leave";
+      if (r === "hod") return "/hod/apply-leaves";
+      if (r === "admin" || r === "principal") return "/admin/apply-leave";
+      if (r === "fees_manager") return "/fees-manager/leave";
+      if (r === "transport_admin") return "/transport-admin/apply-leave";
+      if (r === "driver") return "/driver/apply-leave";
+      if (r === "library_admin") return "/library-admin/apply-leave";
+      if (r === "admission_manager") return "/admission-manager/apply-leave";
+      if (r === "warden") return "/warden/apply-leave";
+      if (r === "hms") return "/hms/apply-leave";
+      if (r === "dean") return "/dean/apply-leave";
+      return "/apply-leave";
+
+    case "leave_approvals":
+      if (r === "faculty" || r === "teacher") return "/faculty/student-leave";
+      if (r === "hod") return "/hod/leaves";
+      if (r === "admin" || r === "principal") return "/admin/hod-leaves";
+      if (r === "dean") return "/dean/admin-leaves";
+      if (r === "warden") return "/warden/gate-passes";
+      if (r === "hms") return "/hms/manage-warden-leaves";
+      if (r === "transport_admin") return "/transport-admin/manage-leaves";
+      return "/leaves";
+
+    case "announcements":
+      if (r === "student" || r === "parent") return "/announcements";
+      if (r === "faculty" || r === "teacher") return "/faculty/faculty-announcement-management";
+      if (r === "hod") return "/hod/hod-announcement-management";
+      if (r === "fees_manager") return "/fees-manager/announcement-management";
+      if (r === "transport_admin") return "/transport-admin/announcement-management";
+      if (r === "driver") return "/driver/announcements";
+      if (r === "library_admin") return "/library-admin/announcements";
+      if (r === "admission_manager") return "/admission-manager/announcements";
+      if (r === "warden") return "/warden/announcement-management";
+      if (r === "hms") return "/hms/announcement-management";
+      if (r === "admin" || r === "principal" || r === "org_admin" || r === "coe" || r === "dean") return "/admin/announcement-management";
+      return "/announcements";
+
+    case "study_materials":
+      if (r === "student") return "/student-study-material";
+      if (r === "faculty" || r === "teacher") return "/faculty/study-materials";
+      if (r === "hod") return "/hod/study-materials";
+      return "/study-materials";
+
+    case "assignments":
+      if (r === "student") return "/student-assignment";
+      if (r === "faculty" || r === "teacher") return "/faculty/faculty-assignments";
+      if (r === "hod") return "/hod/faculty-assignments";
+      return "/assignments";
+
+    case "hostel":
+      if (r === "student" || r === "parent" || r === "outside_student") return "/student-hostel-details";
+      if (r === "warden") return "/warden/residents";
+      if (r === "hms") return "/hms/hostels";
+      return "/student-hostel-details";
+
+    case "transport":
+      if (r === "student" || r === "parent") return "/transportation";
+      if (r === "transport_admin") return "/transport-admin/transport-buses";
+      if (r === "driver") return "/driver/driver-history";
+      return "/transportation";
+
+    case "library":
+      if (r === "student") return "/library";
+      if (r === "library_admin") return "/library-admin/library-books";
+      return "/library";
+
+    case "admission":
+      if (r === "admission_manager" || r === "counsellor") return "/admission-manager/admission-enquiries";
+      return "/admission-dashboard";
+
+    case "payroll":
+      if (r === "fees_manager") return "/fees-manager/payroll";
+      if (r === "faculty" || r === "teacher") return "/faculty/my-payroll";
+      if (r === "hod") return "/hod/my-payroll";
+      if (r === "transport_admin") return "/transport-admin/my-payroll";
+      if (r === "driver") return "/driver/my-payroll";
+      if (r === "library_admin") return "/library-admin/my-payroll";
+      if (r === "admission_manager") return "/admission-manager/my-payroll";
+      if (r === "warden") return "/warden/my-payroll";
+      if (r === "hms") return "/hms/my-payroll";
+      if (r === "dean") return "/dean/my-payroll";
+      if (r === "coe") return "/coe/my-payroll";
+      if (r === "admin" || r === "principal") return "/admin/my-payroll";
+      if (r === "org_admin") return "/org-admin/my-payroll";
+      return "/my-payroll";
+
+    case "reimbursements":
+      if (r === "hod") return "/hod/reimbursements";
+      if (r === "coe") return "/coe/reimbursements";
+      if (r === "hms") return "/hms/reimbursements";
+      if (r === "warden") return "/warden/reimbursements";
+      if (r === "transport_admin") return "/transport-admin/reimbursements";
+      if (r === "driver") return "/driver/reimbursements";
+      if (r === "library_admin") return "/library-admin/reimbursements";
+      return "/faculty/reimbursements";
+
+    case "calendar":
+      return "/holiday-calendar";
+
+    case "inventory":
+      if (r === "inventory_manager") return "/inventory-manager/inventory-items";
+      if (r === "hod") return "/hod/inventory";
+      if (r === "admin" || r === "principal" || r === "org_admin" || r === "dean") return "/admin/inventory";
+      return "/inventory";
+
+    case "profile":
+      if (r === "faculty" || r === "teacher") return "/faculty/faculty-profile";
+      if (r === "hod") return "/hod/hod-profile";
+      if (r === "student") return "/profile";
+      if (r === "field_visitor") return "/field-visitor/profile";
+      return "/profile";
+
+    default:
+      return "/dashboard";
+  }
+};
 
 const INITIAL_GREETING = "Hello! I am Stalight Intelligence. How can I assist you with your authorized campus records, attendance, fees, or academics today?";
 
@@ -34,6 +557,30 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
   const isVoiceModeRef = useRef<boolean>(false);
+
+  // Read authenticated user role dynamically for role-based recommendations and routing
+  const getUserRole = useCallback((): string => {
+    try {
+      const storedRole = sessionStorage.getItem("role") || localStorage.getItem("role");
+      if (storedRole) return storedRole.toLowerCase();
+
+      const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        if (u.role) return String(u.role).toLowerCase();
+      }
+    } catch {}
+    return "student";
+  }, []);
+
+  const [activeRole, setActiveRole] = useState<string>(getUserRole());
+
+  useEffect(() => {
+    setActiveRole(getUserRole());
+  }, [getUserRole, isOpen]);
+
+  // Dynamic recommendations matching active role's dashboard sidebar
+  const currentPrompts = ROLE_PAGE_PROMPTS[activeRole] || DEFAULT_PROMPTS;
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -81,30 +628,170 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
     lang: "en-IN",
   });
 
-  // Auto-navigate background to matched ERP portal screens cleanly based on user intent
+  // Auto-navigate background to the user's role-authorized dashboard screen based on topic
   const handleAutoNavigation = useCallback((text: string) => {
     const lower = text.toLowerCase();
+    const role = getUserRole();
+    let targetPath = "";
 
-    if (lower.includes("attendance") || lower.includes("absent") || lower.includes("present") || lower.includes("classes")) {
-      navigate("/hod-attendance");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (lower.includes("fee") || lower.includes("invoice") || lower.includes("payment") || lower.includes("defaulter")) {
-      navigate("/invoices");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (lower.includes("exam") || lower.includes("mark") || lower.includes("cie") || lower.includes("grade")) {
-      navigate("/exams");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (lower.includes("timetable") || lower.includes("schedule") || lower.includes("routine")) {
-      navigate("/class-schedule");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (lower.includes("student") || lower.includes("usn") || lower.includes("profile")) {
-      navigate("/scan-student-info");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (lower.includes("announcement") || lower.includes("notice") || lower.includes("circular")) {
-      navigate("/announcements");
+    // 1. Staff Tasks / Task Tracker
+    if (lower.includes("task") || lower.includes("todo") || lower.includes("to-do") || lower.includes("delegat")) {
+      targetPath = resolveRoleBasedPath(role, "staff_tasks");
+    }
+    // 2. Field visits / Inspections / School Visits
+    else if (lower.includes("inspection") || lower.includes("field report") || lower.includes("field visit") || lower.includes("school inspection") || lower.includes("school visit")) {
+      targetPath = resolveRoleBasedPath(role, "field_visits");
+    }
+    // 3. College Details / Profile & Report card
+    else if (lower.includes("college details") || lower.includes("college profile") || lower.includes("report card") || lower.includes("institution profile")) {
+      targetPath = resolveRoleBasedPath(role, "college_details");
+    }
+    // 4. Question Paper Approvals / Upload QP
+    else if (lower.includes("question paper") || lower.includes("qp approval") || lower.includes("upload qp") || lower.includes("qp")) {
+      targetPath = resolveRoleBasedPath(role, "qp_approvals");
+    }
+    // 5. Workflow Configuration / Timetable settings
+    else if (lower.includes("workflow") || lower.includes("timetable config") || lower.includes("timetable setting")) {
+      targetPath = resolveRoleBasedPath(role, "timetable_config");
+    }
+    // 6. Batches & Branches
+    else if (lower.includes("branch") || lower.includes("department list")) {
+      targetPath = resolveRoleBasedPath(role, "branches");
+    } else if (lower.includes("batch")) {
+      targetPath = resolveRoleBasedPath(role, "batches");
+    }
+    // 7. Users / Staff Enrollment / Bulk upload
+    else if (lower.includes("bulk upload")) {
+      targetPath = resolveRoleBasedPath(role, "bulk_upload");
+    } else if (lower.includes("enroll staff") || lower.includes("enroll user") || lower.includes("enrollment")) {
+      targetPath = resolveRoleBasedPath(role, "enroll_user");
+    } else if (lower.includes("user management") || lower.includes("users list") || lower.includes("all users")) {
+      targetPath = resolveRoleBasedPath(role, "users");
+    }
+    // 8. Teacher Assignments / Transfer
+    else if (lower.includes("teacher assignment") || lower.includes("faculty assignment")) {
+      targetPath = resolveRoleBasedPath(role, "teacher_assignments");
+    } else if (lower.includes("branch transfer") || lower.includes("student transfer")) {
+      targetPath = resolveRoleBasedPath(role, "student_transfer");
+    }
+    // 9. Syllabus & CO/PO Attainment
+    else if (lower.includes("co/po") || lower.includes("attainment") || lower.includes("co attainment")) {
+      targetPath = resolveRoleBasedPath(role, "co_attainment");
+    } else if (lower.includes("syllabus monitor") || lower.includes("syllabus status") || lower.includes("syllabus")) {
+      targetPath = resolveRoleBasedPath(role, "syllabus_monitor");
+    }
+    // 10. Issued items & Sports/Wellness
+    else if (lower.includes("issued item") || lower.includes("college-issued")) {
+      targetPath = resolveRoleBasedPath(role, "issued_items");
+    } else if (lower.includes("sport") || lower.includes("wellness") || lower.includes("gym")) {
+      targetPath = resolveRoleBasedPath(role, "sports_wellness");
+    }
+    // 11. Campus locations & Monitoring
+    else if (lower.includes("campus location") || lower.includes("geofence") || lower.includes("geo-fence")) {
+      targetPath = resolveRoleBasedPath(role, "campus_locations");
+    } else if (lower.includes("campus monitoring") || lower.includes("cctv") || lower.includes("surveillance")) {
+      targetPath = resolveRoleBasedPath(role, "campus_monitoring");
+    }
+    // 12. Student scanner & Alumni
+    else if (lower.includes("scan student") || lower.includes("scan for student") || lower.includes("qr scan") || lower.includes("student scanner")) {
+      targetPath = resolveRoleBasedPath(role, "scan_student");
+    } else if (lower.includes("alumni") || lower.includes("graduates")) {
+      targetPath = resolveRoleBasedPath(role, "alumni_directory");
+    }
+    // 13. Billing & Plans
+    else if (lower.includes("billing") || lower.includes("subscription") || lower.includes("plans")) {
+      targetPath = resolveRoleBasedPath(role, "billing");
+    }
+    // 14. Schedule Meeting
+    else if (lower.includes("schedule meeting") || lower.includes("calendar meeting") || lower.includes("book meeting") || lower.includes("meet")) {
+      targetPath = resolveRoleBasedPath(role, "schedule_meeting");
+    }
+    // 15. Reimbursements & Claims
+    else if (lower.includes("reimbursement") || lower.includes("claim") || lower.includes("allowance")) {
+      targetPath = resolveRoleBasedPath(role, "reimbursements");
+    }
+    // 16. Attendance & Low Attendance
+    else if (lower.includes("attendance") || lower.includes("absent") || lower.includes("present") || lower.includes("shortage")) {
+      if (lower.includes("low attendance") || lower.includes("defaulter attendance")) {
+        targetPath = resolveRoleBasedPath(role, "low_attendance");
+      } else if (lower.includes("my attendance") || lower.includes("staff attendance") || lower.includes("faculty attendance")) {
+        targetPath = resolveRoleBasedPath(role, "my_attendance");
+      } else if (lower.includes("record") || lower.includes("history")) {
+        targetPath = resolveRoleBasedPath(role, "attendance_records");
+      } else {
+        targetPath = resolveRoleBasedPath(role, "attendance");
+      }
+    }
+    // 17. Fees, Invoices & Reports
+    else if (lower.includes("fee") || lower.includes("invoice") || lower.includes("payment") || lower.includes("defaulter") || lower.includes("dues")) {
+      if (lower.includes("invoice")) {
+        targetPath = resolveRoleBasedPath(role, "invoices");
+      } else {
+        targetPath = resolveRoleBasedPath(role, "fees");
+      }
+    } else if (lower.includes("report") || lower.includes("analytics")) {
+      targetPath = resolveRoleBasedPath(role, "reports");
+    }
+    // 18. Marks & Academic Performance
+    else if (lower.includes("mark") || lower.includes("cie") || lower.includes("internal") || lower.includes("grade") || lower.includes("score")) {
+      targetPath = resolveRoleBasedPath(role, "marks");
+    }
+    // 19. Exams
+    else if (lower.includes("exam") || lower.includes("see") || lower.includes("assessment")) {
+      targetPath = resolveRoleBasedPath(role, "exams");
+    } else if (lower.includes("revaluation") || lower.includes("reval")) {
+      targetPath = resolveRoleBasedPath(role, "revaluation");
+    } else if (lower.includes("makeup") || lower.includes("make-up")) {
+      targetPath = resolveRoleBasedPath(role, "makeupexam");
+    }
+    // 20. Timetable & Schedule
+    else if (lower.includes("timetable") || lower.includes("routine") || lower.includes("time table")) {
+      targetPath = resolveRoleBasedPath(role, "timetable");
+    } else if (lower.includes("schedule") || lower.includes("class timing") || lower.includes("mentoring")) {
+      targetPath = resolveRoleBasedPath(role, "class_schedule");
+    }
+    // 21. Leaves & Calendar
+    else if (lower.includes("leave") || lower.includes("holiday") || lower.includes("vacation")) {
+      if (lower.includes("approve") || lower.includes("manage") || lower.includes("student leave") || lower.includes("staff leave") || lower.includes("request")) {
+        targetPath = resolveRoleBasedPath(role, "leave_approvals");
+      } else if (lower.includes("calendar")) {
+        targetPath = resolveRoleBasedPath(role, "calendar");
+      } else {
+        targetPath = resolveRoleBasedPath(role, "leave");
+      }
+    }
+    // 22. Announcements
+    else if (lower.includes("announcement") || lower.includes("circular") || lower.includes("notice") || lower.includes("broadcast")) {
+      targetPath = resolveRoleBasedPath(role, "announcements");
+    }
+    // 23. Study materials & Assignments
+    else if (lower.includes("study material") || lower.includes("notes") || lower.includes("lecture")) {
+      targetPath = resolveRoleBasedPath(role, "study_materials");
+    } else if (lower.includes("assignment") || lower.includes("homework")) {
+      targetPath = resolveRoleBasedPath(role, "assignments");
+    }
+    // 24. Hostel, Transport, Library, Admissions
+    else if (lower.includes("hostel") || lower.includes("mess") || lower.includes("menu") || lower.includes("room") || lower.includes("gate pass")) {
+      targetPath = resolveRoleBasedPath(role, "hostel");
+    } else if (lower.includes("bus") || lower.includes("transport") || lower.includes("route") || lower.includes("driver") || lower.includes("trip")) {
+      targetPath = resolveRoleBasedPath(role, "transport");
+    } else if (lower.includes("library") || lower.includes("book") || lower.includes("circulation") || lower.includes("fine")) {
+      targetPath = resolveRoleBasedPath(role, "library");
+    } else if (lower.includes("lead") || lower.includes("admission") || lower.includes("enquiry") || lower.includes("seat matrix") || lower.includes("counsellor")) {
+      targetPath = resolveRoleBasedPath(role, "admission");
+    } else if (lower.includes("payroll") || lower.includes("salary") || lower.includes("pay slip") || lower.includes("compensation")) {
+      targetPath = resolveRoleBasedPath(role, "payroll");
+    } else if (lower.includes("inventory") || lower.includes("procurement") || lower.includes("asset") || lower.includes("ticket")) {
+      targetPath = resolveRoleBasedPath(role, "inventory");
+    } else if (lower.includes("profile") || lower.includes("account") || lower.includes("settings")) {
+      targetPath = resolveRoleBasedPath(role, "profile");
+    }
+
+    if (targetPath) {
+      navigate(targetPath);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [navigate]);
+  }, [navigate, getUserRole]);
 
   // Direct internal navigation handler from message links
   const handleDirectNavigation = useCallback((path: string) => {
@@ -468,9 +1155,9 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Clean Page-Level Suggestions Bar */}
+          {/* Clean Role-Aware Suggestions Bar matching sidebar pages */}
           <div className="px-3.5 py-2 bg-slate-50/80 border-t border-slate-200/80 flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {PAGE_PROMPTS.map((prompt, idx) => (
+            {currentPrompts.map((prompt, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSendMessage(prompt)}
