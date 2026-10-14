@@ -229,6 +229,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [selectedAlternateFaculties, setSelectedAlternateFaculties] = useState<string[]>([]);
   const [colleagueSearchQuery, setColleagueSearchQuery] = useState<string>('');
   const [availableColleagues, setAvailableColleagues] = useState<ColleagueOption[]>([]);
+  const [knownColleagues, setKnownColleagues] = useState<ColleagueOption[]>([]);
+  const [knownRenominateColleagues, setKnownRenominateColleagues] = useState<ColleagueOption[]>([]);
   const [colleaguesLoading, setColleaguesLoading] = useState<boolean>(false);
   const [permissionDate, setPermissionDate] = useState<Date | undefined>();
 
@@ -368,11 +370,17 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     setColleaguesLoading(true);
     getAvailableColleagues({
       role: targetRole,
-      branch_id: selectedSubstituteBranch || undefined
+      branch_id: (selectedSubstituteBranch && selectedSubstituteBranch !== 'all') ? selectedSubstituteBranch : undefined
     })
       .then((res) => {
         if (res.success && Array.isArray(res.data)) {
           setAvailableColleagues(res.data);
+          setKnownColleagues((prev) => {
+            const map = new Map<string, ColleagueOption>();
+            prev.forEach((c) => map.set(c.id.toString(), c));
+            res.data!.forEach((c) => map.set(c.id.toString(), c));
+            return Array.from(map.values());
+          });
         } else {
           setAvailableColleagues([]);
         }
@@ -399,11 +407,17 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     setRenominateColleaguesLoading(true);
     getAvailableColleagues({
       role: renominateRole,
-      branch_id: renominateBranch || undefined
+      branch_id: (renominateBranch && renominateBranch !== 'all') ? renominateBranch : undefined
     })
       .then((res) => {
         if (res.success && Array.isArray(res.data)) {
           setRenominateColleagues(res.data);
+          setKnownRenominateColleagues((prev) => {
+            const map = new Map<string, ColleagueOption>();
+            prev.forEach((c) => map.set(c.id.toString(), c));
+            res.data!.forEach((c) => map.set(c.id.toString(), c));
+            return Array.from(map.values());
+          });
         } else {
           setRenominateColleagues([]);
         }
@@ -688,6 +702,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     setRenominateBranch('');
     setNewColleagueId('');
     setRenominateColleagueIds([]);
+    setKnownRenominateColleagues([]);
     setRenominateSearchQuery('');
     setRenominateColleagues([]);
   };
@@ -708,6 +723,12 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       .then((res) => {
         if (res.success && res.data) {
           setRenominateColleagues(res.data);
+          setKnownRenominateColleagues((prev) => {
+            const map = new Map<string, ColleagueOption>();
+            prev.forEach((c) => map.set(c.id.toString(), c));
+            res.data.forEach((c: ColleagueOption) => map.set(c.id.toString(), c));
+            return Array.from(map.values());
+          });
         } else {
           setRenominateColleagues([]);
         }
@@ -743,7 +764,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           color: theme === 'dark' ? '#ffffff' : '#000000'
         });
 
-        const pool = renominateColleagues.length > 0 ? renominateColleagues : availableColleagues;
+        const pool = knownRenominateColleagues.length > 0
+          ? knownRenominateColleagues
+          : (renominateColleagues.length > 0 ? renominateColleagues : (knownColleagues.length > 0 ? knownColleagues : availableColleagues));
         const newColleaguesObj = pool.filter(c => targetIds.includes(String(c.id)));
         const newNames = newColleaguesObj.length > 0 ? newColleaguesObj.map(c => c.name).join(', ') : 'Nominated Colleague(s)';
 
@@ -1127,10 +1150,16 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         ? format(dateRange!.from!, 'MMM dd, yyyy')
         : `${format(dateRange!.from!, 'MMM dd, yyyy')} to ${format(dateRange!.to!, 'MMM dd, yyyy')}`);
 
-    const selectedSubstituteObjs = availableColleagues.filter(c =>
-      selectedAlternateFaculties.includes(c.id.toString()) ||
-      (selectedAlternateFaculty && selectedAlternateFaculty !== 'none' && c.id.toString() === selectedAlternateFaculty)
-    );
+    const pool = knownColleagues.length > 0 ? knownColleagues : availableColleagues;
+    const selectedSubstituteObjs = selectedAlternateFaculties.map((idStr) => {
+      const found = pool.find((c) => c.id.toString() === idStr) || availableColleagues.find((c) => c.id.toString() === idStr);
+      return found || {
+        id: parseInt(idStr),
+        name: `Colleague #${idStr}`,
+        role: targetRole,
+        username: ''
+      };
+    });
 
     const getColleagueLabel = (c: ColleagueOption) => {
       const parts: string[] = [];
@@ -1208,6 +1237,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         setTargetRole('');
         setSelectedSubstituteBranch('');
         setSelectedAlternateFaculty('');
+        setSelectedAlternateFaculties([]);
+        setKnownColleagues([]);
         setInitialDocFile(null);
 
         window.dispatchEvent(new CustomEvent('leaves-updated'));
@@ -2340,8 +2371,6 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         value={selectedSubstituteBranch || undefined}
                         onValueChange={(val) => {
                           setSelectedSubstituteBranch(val);
-                          setSelectedAlternateFaculty('');
-                          setSelectedAlternateFaculties([]);
                           setColleagueSearchQuery('');
                         }}
                       >
@@ -2427,6 +2456,15 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         );
 
                         const toggleColleague = (idStr: string) => {
+                          const found = availableColleagues.find((c) => c.id.toString() === idStr) || knownColleagues.find((c) => c.id.toString() === idStr);
+                          if (found) {
+                            setKnownColleagues((prev) => {
+                              if (!prev.some((c) => c.id.toString() === idStr)) {
+                                return [...prev, found];
+                              }
+                              return prev;
+                            });
+                          }
                           setSelectedAlternateFaculties((prev) => {
                             const next = prev.includes(idStr)
                               ? prev.filter((item) => item !== idStr)
@@ -2442,7 +2480,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             {selectedAlternateFaculties.length > 0 && (
                               <div className="flex flex-wrap gap-1.5 pb-2 border-b border-border/60">
                                 {selectedAlternateFaculties.map((idStr) => {
-                                  const col = availableColleagues.find((c) => c.id.toString() === idStr);
+                                  const col = knownColleagues.find((c) => c.id.toString() === idStr) || availableColleagues.find((c) => c.id.toString() === idStr);
+                                  const displayName = col
+                                    ? (col.branch_name ? `${col.name.replace(/\s*\([^)]*\)\s*$/, '')} (${col.branch_name})` : col.name)
+                                    : `Colleague #${idStr}`;
                                   return (
                                     <span
                                       key={idStr}
@@ -2453,7 +2494,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                       }`}
                                     >
                                       <UserCheck className="w-3.5 h-3.5 text-primary shrink-0" />
-                                      <span className="truncate max-w-[180px]">{col ? col.name : `Colleague #${idStr}`}</span>
+                                      <span className="truncate max-w-[220px]" title={col?.name || displayName}>
+                                        {displayName}
+                                      </span>
                                       <button
                                         type="button"
                                         onClick={() => toggleColleague(idStr)}
@@ -2489,29 +2532,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   </button>
                                 )}
                               </div>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  const allFilteredIds = filteredColleagues.map((c) => c.id.toString());
-                                  const allSelected = allFilteredIds.length > 0 && allFilteredIds.every((id) => selectedAlternateFaculties.includes(id));
-                                  if (allSelected) {
-                                    const next = selectedAlternateFaculties.filter((id) => !allFilteredIds.includes(id));
-                                    setSelectedAlternateFaculties(next);
-                                    setSelectedAlternateFaculty(next[0] || '');
-                                  } else {
-                                    const next = Array.from(new Set([...selectedAlternateFaculties, ...allFilteredIds]));
-                                    setSelectedAlternateFaculties(next);
-                                    setSelectedAlternateFaculty(next[0] || '');
-                                  }
-                                }}
-                                className="h-8 text-xs px-2.5 font-medium shrink-0"
-                              >
-                                {filteredColleagues.length > 0 && filteredColleagues.every((c) => selectedAlternateFaculties.includes(c.id.toString()))
-                                  ? 'Deselect All'
-                                  : 'Select All'}
-                              </Button>
+
                               {selectedAlternateFaculties.length > 0 && (
                                 <Button
                                   type="button"
@@ -2523,7 +2544,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   }}
                                   className="h-8 text-xs px-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 shrink-0"
                                 >
-                                  Clear
+                                  Clear All
                                 </Button>
                               )}
                             </div>
@@ -3528,6 +3549,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                         setRenominateBranch('');
                                         setNewColleagueId('');
                                         setRenominateColleagueIds([]);
+                                        setKnownRenominateColleagues([]);
+                                        setRenominateSearchQuery('');
                                       }}
                                     >
                                       <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
@@ -3566,8 +3589,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                         value={renominateBranch || undefined}
                                         onValueChange={(val) => {
                                           setRenominateBranch(val);
-                                          setNewColleagueId('');
-                                          setRenominateColleagueIds([]);
+                                          setRenominateSearchQuery('');
                                         }}
                                       >
                                         <SelectTrigger className={`h-8 text-xs ${theme === 'dark' ? 'bg-card border-border' : 'bg-white'}`}>
@@ -3626,16 +3648,21 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                       }
 
                                       const validRenomPool = renominateColleagues.filter(c => c.username !== user?.username);
-
-                                      if (validRenomPool.length === 0) {
-                                        return (
-                                          <div className="text-[11px] text-muted-foreground p-2 rounded border bg-muted/20">
-                                            No colleagues found for this role/branch
-                                          </div>
-                                        );
-                                      }
+                                      const filteredRenomPool = validRenomPool.filter(c =>
+                                        c.name.toLowerCase().includes(renominateSearchQuery.toLowerCase()) ||
+                                        (c.username && c.username.toLowerCase().includes(renominateSearchQuery.toLowerCase()))
+                                      );
 
                                       const toggleRenomColleague = (idStr: string) => {
+                                        const found = renominateColleagues.find((c) => c.id.toString() === idStr) || knownRenominateColleagues.find((c) => c.id.toString() === idStr);
+                                        if (found) {
+                                          setKnownRenominateColleagues((prev) => {
+                                            if (!prev.some((c) => c.id.toString() === idStr)) {
+                                              return [...prev, found];
+                                            }
+                                            return prev;
+                                          });
+                                        }
                                         setRenominateColleagueIds(prev => {
                                           const next = prev.includes(idStr)
                                             ? prev.filter(x => x !== idStr)
@@ -3647,25 +3674,104 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                                       return (
                                         <div className="space-y-2">
-                                          <div className={`max-h-36 overflow-y-auto rounded border divide-y ${theme === 'dark' ? 'bg-background border-border divide-border' : 'bg-white border-gray-200 divide-gray-100'}`}>
-                                            {validRenomPool.map((c) => {
-                                              const isChecked = renominateColleagueIds.includes(String(c.id));
-                                              return (
-                                                <label
-                                                  key={c.id}
-                                                  className={`flex items-center gap-2 p-2 cursor-pointer text-xs transition-colors hover:bg-muted/40 ${
-                                                    isChecked ? (theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5 font-medium') : ''
-                                                  }`}
+                                          {/* Selected colleagues chips/badges */}
+                                          {renominateColleagueIds.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5 pb-1.5 border-b border-border/60">
+                                              {renominateColleagueIds.map((idStr) => {
+                                                const col = knownRenominateColleagues.find((c) => c.id.toString() === idStr) || renominateColleagues.find((c) => c.id.toString() === idStr);
+                                                const displayName = col
+                                                  ? (col.branch_name ? `${col.name.replace(/\s*\([^)]*\)\s*$/, '')} (${col.branch_name})` : col.name)
+                                                  : `Colleague #${idStr}`;
+                                                return (
+                                                  <span
+                                                    key={idStr}
+                                                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium border shadow-2xs transition-all ${
+                                                      theme === 'dark'
+                                                        ? 'bg-primary/20 text-primary-foreground border-primary/30 text-sky-200'
+                                                        : 'bg-primary/10 text-primary border-primary/20'
+                                                    }`}
+                                                  >
+                                                    <UserCheck className="w-3 h-3 text-primary shrink-0" />
+                                                    <span className="truncate max-w-[170px]" title={col?.name || displayName}>
+                                                      {displayName}
+                                                    </span>
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => toggleRenomColleague(idStr)}
+                                                      className="ml-0.5 hover:opacity-80 rounded-full p-0.5 transition cursor-pointer"
+                                                      title="Remove"
+                                                    >
+                                                      <X className="w-2.5 h-2.5" />
+                                                    </button>
+                                                  </span>
+                                                );
+                                              })}
+                                            </div>
+                                          )}
+
+                                          {/* Search & Clear All */}
+                                          <div className="flex items-center gap-1.5">
+                                            <div className="relative flex-1">
+                                              <Search className="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                              <Input
+                                                type="text"
+                                                placeholder="Search colleague..."
+                                                value={renominateSearchQuery}
+                                                onChange={(e) => setRenominateSearchQuery(e.target.value)}
+                                                className={`h-7 pl-7 text-[11px] ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}
+                                              />
+                                              {renominateSearchQuery && (
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setRenominateSearchQuery('')}
+                                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                                 >
-                                                  <Checkbox
-                                                    checked={isChecked}
-                                                    onCheckedChange={() => toggleRenomColleague(String(c.id))}
-                                                    className="shrink-0"
-                                                  />
-                                                  <span className="truncate flex-1 text-foreground">{c.name}</span>
-                                                </label>
-                                              );
-                                            })}
+                                                  <X className="w-2.5 h-2.5" />
+                                                </button>
+                                              )}
+                                            </div>
+                                            {renominateColleagueIds.length > 0 && (
+                                              <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                  setRenominateColleagueIds([]);
+                                                  setNewColleagueId('');
+                                                }}
+                                                className="h-7 text-[11px] px-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 shrink-0"
+                                              >
+                                                Clear All
+                                              </Button>
+                                            )}
+                                          </div>
+
+                                          {/* Checkbox List */}
+                                          <div className={`max-h-36 overflow-y-auto rounded border divide-y ${theme === 'dark' ? 'bg-background border-border divide-border' : 'bg-white border-gray-200 divide-gray-100'}`}>
+                                            {filteredRenomPool.length === 0 ? (
+                                              <div className="p-2 text-center text-[11px] text-muted-foreground">
+                                                {validRenomPool.length === 0 ? 'No colleagues found for this role/branch' : `No colleagues match "${renominateSearchQuery}"`}
+                                              </div>
+                                            ) : (
+                                              filteredRenomPool.map((c) => {
+                                                const isChecked = renominateColleagueIds.includes(String(c.id));
+                                                return (
+                                                  <label
+                                                    key={c.id}
+                                                    className={`flex items-center gap-2 p-2 cursor-pointer text-xs transition-colors hover:bg-muted/40 ${
+                                                      isChecked ? (theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5 font-medium') : ''
+                                                    }`}
+                                                  >
+                                                    <Checkbox
+                                                      checked={isChecked}
+                                                      onCheckedChange={() => toggleRenomColleague(String(c.id))}
+                                                      className="shrink-0"
+                                                    />
+                                                    <span className="truncate flex-1 text-foreground">{c.name}</span>
+                                                  </label>
+                                                );
+                                              })
+                                            )}
                                           </div>
                                         </div>
                                       );
