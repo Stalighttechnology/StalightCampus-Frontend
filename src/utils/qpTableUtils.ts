@@ -33,8 +33,7 @@ export const cleanPromptText = (text: string): string => {
   return text
     .replace(/<br\s*\/?>/gi, '')
     .replace(/<\/?p>/gi, '')
-    .replace(/&nbsp;/gi, ' ')
-    .trim();
+    .replace(/&nbsp;/gi, ' ');
 };
 
 /**
@@ -54,7 +53,7 @@ export const extractQPBlocks = (htmlContent: string): QPContentBlock[] => {
 
   const flushText = () => {
     const cleaned = cleanPromptText(pendingText);
-    if (cleaned) {
+    if (cleaned !== '') {
       blocks.push({
         id: 'b-' + Math.random().toString(36).substring(2, 9),
         type: 'text',
@@ -66,7 +65,7 @@ export const extractQPBlocks = (htmlContent: string): QPContentBlock[] => {
 
   const processNode = (node: Node) => {
     if (node.nodeType === Node.TEXT_NODE) {
-      pendingText += (node.textContent || '') + ' ';
+      pendingText += (node.textContent || '');
       return;
     }
 
@@ -75,7 +74,7 @@ export const extractQPBlocks = (htmlContent: string): QPContentBlock[] => {
       const tagName = el.tagName.toUpperCase();
 
       if (tagName === 'BR') {
-        pendingText += ' ';
+        flushText();
         return;
       }
 
@@ -113,8 +112,11 @@ export const extractQPBlocks = (htmlContent: string): QPContentBlock[] => {
       // Check if element is an equation
       const isEquation =
         el.classList.contains('qp-equation') ||
-        el.getAttribute('style')?.includes('inline-flex') ||
-        el.getAttribute('data-type') === 'equation';
+        el.getAttribute('data-type') === 'equation' ||
+        tagName === 'MATH' ||
+        el.classList.contains('math') ||
+        el.classList.contains('katex') ||
+        el.classList.contains('MathJax');
 
       if (isEquation) {
         flushText();
@@ -140,7 +142,7 @@ export const extractQPBlocks = (htmlContent: string): QPContentBlock[] => {
 
       // If this element contains nested tables, equations, images, or placeholders, traverse its children
       const hasNested =
-        el.querySelector('table, .qp-equation, span[style*="inline-flex"], div[style*="inline-flex"], img, .qp-image, .qp-text-placeholder') !== null;
+        el.querySelector('table, .qp-equation, [data-type="equation"], math, img, .qp-image, .qp-text-placeholder') !== null;
 
       if (hasNested) {
         Array.from(el.childNodes).forEach(child => processNode(child));
@@ -148,7 +150,7 @@ export const extractQPBlocks = (htmlContent: string): QPContentBlock[] => {
       }
 
       // Otherwise it is normal text element (<p>, <span>, <b>, etc.)
-      pendingText += (el.textContent || '') + ' ';
+      pendingText += (el.textContent || '');
     }
   };
 
@@ -186,12 +188,12 @@ export const serializeQPContentBlocks = (blocks: QPContentBlock[]): string => {
   return blocks
     .map(b => {
       if (b.type === 'text') {
-        const cleaned = cleanPromptText(b.content);
-        if (!cleaned) {
+        const textVal = b.content ?? '';
+        if (textVal === '') {
           // Preserve empty text block representation so it remains editable after reload/reparse
           return '<span class="qp-text-placeholder"></span>';
         }
-        return cleaned;
+        return cleanPromptText(textVal);
       }
       if (b.type === 'equation') {
         if (!b.content || !b.content.trim()) return '';

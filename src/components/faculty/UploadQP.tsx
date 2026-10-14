@@ -385,9 +385,9 @@ const UploadQP = () => {
       if (!selected.batch_id || !selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber) return;
       // default template to show when no saved QP exists
       const defaultTemplate: QuestionRow[] = [
-        { id: '1a', number: '1a', content: 'Question 1a', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply', partName: 'PART-A', isOr: false },
-        { id: '1b', number: '1b', content: 'Question 1b', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply', partName: 'PART-A', isOr: false },
-        { id: '1c', number: '1c', content: 'Question 1c', maxMarks: '6', co: 'CO1', bloomsLevel: 'Remember', partName: 'PART-A', isOr: false }];
+        { id: `1a_${Date.now()}_1`, number: '1a', content: 'Question 1a', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply', partName: 'PART-A', isOr: false },
+        { id: `1b_${Date.now()}_2`, number: '1b', content: 'Question 1b', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply', partName: 'PART-A', isOr: false },
+        { id: `1c_${Date.now()}_3`, number: '1c', content: 'Question 1c', maxMarks: '6', co: 'CO1', bloomsLevel: 'Remember', partName: 'PART-A', isOr: false }];
 
       try {
         setLoading(true);
@@ -402,8 +402,12 @@ const UploadQP = () => {
         }
 
         if (res?.success && Array.isArray(res?.data) && res.data.length > 0) {
-          // prefer exact match on subject+test_type+set_number
-          const qp = res.data.find((q: QuestionPaper) => q.subject === selected.subject_id && q.test_type === selected.testType && q.set_number === selected.setNumber);
+          // prefer exact match on subject+test_type+set_number with string/trim normalization
+          const qp = res.data.find((q: QuestionPaper) =>
+            String(q.subject) === String(selected.subject_id) &&
+            String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase() &&
+            String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase()
+          );
           if (qp) {
             // build flat question rows from nested questions/subparts
             const rows = buildQuestionRowsFromQP(qp);
@@ -425,19 +429,23 @@ const UploadQP = () => {
             setQuestions(defaultTemplate);
             setQpId(null);
             setCurrentQPMeta(null);
-              setExamDate('');
-              setExamTime('');
+            setExamDate('');
+            setExamTime('');
           }
         } else {
           // no saved QP — use default template for this selection
           setQuestions(defaultTemplate);
           setQpId(null);
           setCurrentQPMeta(null);
-              setExamDate('');
-              setExamTime('');
+          setExamDate('');
+          setExamTime('');
         }
       } catch (err) {
-
+        setQuestions(defaultTemplate);
+        setQpId(null);
+        setCurrentQPMeta(null);
+        setExamDate('');
+        setExamTime('');
       } finally {
         setLoading(false);
       }
@@ -899,11 +907,9 @@ const UploadQP = () => {
       if (res?.success && Array.isArray(res.data)) {
         // Find exact match on Subject, Test Type, Set Number
         return res.data.find((q: QuestionPaper) =>
-          q.subject === selected.subject_id &&
-          q.test_type === selected.testType &&
-          q.set_number === selected.setNumber &&
-          q.semester === selected.semester_id &&
-          q.section === selected.section_id
+          String(q.subject) === String(selected.subject_id) &&
+          String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase() &&
+          String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase()
         ) || null;
       }
     } catch (err) {
@@ -1134,6 +1140,9 @@ const UploadQP = () => {
                   <label htmlFor="subject-select" className="text-sm">Subject</label>
                   <Select value={selected.subject_id ? String(selected.subject_id) : undefined} onValueChange={(v) => {
                     const subjIdNum = Number(v);
+                    setQuestions([]);
+                    setQpId(null);
+                    setCurrentQPMeta(null);
                     const filteredBySubject = assignments.filter((a) => a.subject_id === subjIdNum);
                     const branches = Array.from(new Map(filteredBySubject.filter((a) => a.branch_id).map((a) => [a.branch_id, { id: a.branch_id, name: a.branch }])).values());
                     const autoBranchId = branches.length === 1 ? branches[0].id : undefined;
@@ -1163,6 +1172,9 @@ const UploadQP = () => {
                   <label htmlFor="branch-select" className="text-sm">{translateTerminology("Branch")}</label>
                   <Select value={selected.branch_id ? String(selected.branch_id) : undefined} onValueChange={(v) => {
                     const branchId = Number(v);
+                    setQuestions([]);
+                    setQpId(null);
+                    setCurrentQPMeta(null);
                     setSelected((s) => ({ ...s, branch_id: branchId }));
                     setTimeout(() => setIsTestTypeOpen(true), 150);
                   }} disabled={!selected.subject_id} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
@@ -1183,7 +1195,11 @@ const UploadQP = () => {
                 <div>
                   <label htmlFor="test-type-select" className="text-sm">Test Type</label>
                   <Select value={selected.testType} onValueChange={(v) => {
-                    setSelected((s) => ({ ...s, testType: String(v) }));
+                    const newTest = String(v);
+                    setQuestions([]);
+                    setQpId(null);
+                    setCurrentQPMeta(null);
+                    setSelected((s) => ({ ...s, testType: newTest }));
                     setTimeout(() => setIsSetNumberOpen(true), 150);
                   }} disabled={!selected.branch_id} open={isTestTypeOpen} onOpenChange={setIsTestTypeOpen}>
                     <SelectTrigger className="w-full" disabled={!selected.branch_id}>
@@ -1202,7 +1218,13 @@ const UploadQP = () => {
                 </div>
                 <div>
                   <label htmlFor="set-number-select" className="text-sm">Set Number</label>
-                  <Select value={selected.setNumber} onValueChange={(v) => setSelected((s) => ({ ...s, setNumber: String(v) }))} disabled={!selected.testType} open={isSetNumberOpen} onOpenChange={setIsSetNumberOpen}>
+                  <Select value={selected.setNumber} onValueChange={(v) => {
+                    const newSet = String(v);
+                    setQuestions([]);
+                    setQpId(null);
+                    setCurrentQPMeta(null);
+                    setSelected((s) => ({ ...s, setNumber: newSet }));
+                  }} disabled={!selected.testType} open={isSetNumberOpen} onOpenChange={setIsSetNumberOpen}>
                     <SelectTrigger className="w-full" disabled={!selected.testType}>
                       <SelectValue placeholder="Select Set Number" />
                     </SelectTrigger>
@@ -1503,6 +1525,118 @@ const UploadQP = () => {
                                                             >
                                                               <TableIcon size={14} />
                                                             </Button>
+
+                                                            <Button
+                                                              type="button"
+                                                              variant="ghost"
+                                                              size="sm"
+                                                              disabled={uploadingId !== null}
+                                                              className="h-7 w-7 p-0 hover:bg-primary/10 hover:text-primary text-muted-foreground transition-colors"
+                                                              title="Add Diagram / Image"
+                                                              onClick={() => {
+                                                                const MySwal = withReactContent(Swal);
+                                                                MySwal.fire({
+                                                                  title: 'Add Diagram / Image',
+                                                                  text: 'Select how you want to add a diagram/image to this question',
+                                                                  icon: 'question',
+                                                                  showCancelButton: true,
+                                                                  showDenyButton: true,
+                                                                  confirmButtonColor: 'hsl(var(--primary))',
+                                                                  denyButtonColor: '#0ea5e9',
+                                                                  cancelButtonColor: '#6c757d',
+                                                                  confirmButtonText: 'Upload Local Image',
+                                                                  denyButtonText: 'Draw Diagram',
+                                                                  cancelButtonText: 'Cancel'
+                                                                }).then((result) => {
+                                                                  if (result.isConfirmed) {
+                                                                    const fileInput = document.getElementById(`diagram-upload-${q.id}`);
+                                                                    if (fileInput) (fileInput as HTMLInputElement).click();
+                                                                  } else if (result.isDenied) {
+                                                                    MySwal.fire({
+                                                                      title: 'Draw Diagram',
+                                                                      text: 'Where would you like to draw?',
+                                                                      icon: 'question',
+                                                                      showCancelButton: true,
+                                                                      showDenyButton: true,
+                                                                      confirmButtonColor: '#0ea5e9',
+                                                                      denyButtonColor: '#8b5cf6',
+                                                                      confirmButtonText: 'Draw on this Computer',
+                                                                      denyButtonText: 'Draw on Phone (Touch)',
+                                                                      cancelButtonText: 'Cancel'
+                                                                    }).then((drawResult) => {
+                                                                      if (drawResult.isConfirmed) {
+                                                                        setDrawingQuestionId(q.id);
+                                                                        setIsDrawingOpen(true);
+                                                                      } else if (drawResult.isDenied) {
+                                                                        setDrawingQuestionId(q.id);
+                                                                        setMobileSyncId(crypto.randomUUID());
+                                                                      }
+                                                                    });
+                                                                  }
+                                                                });
+                                                              }}
+                                                            >
+                                                              {uploadingId === q.id ? (
+                                                                <Loader2 size={14} className="animate-spin text-primary" />
+                                                              ) : (
+                                                                <ImageIcon size={14} />
+                                                              )}
+                                                            </Button>
+                                                            <input
+                                                              id={`diagram-upload-${q.id}`}
+                                                              type="file"
+                                                              accept="image/*"
+                                                              className="hidden"
+                                                              onChange={async (e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (!file) return;
+                                                                if (!file.type.startsWith('image/')) {
+                                                                  toast({
+                                                                    title: "Invalid File Type",
+                                                                    description: "Only image files are allowed. Please select an image (PNG, JPG, etc.).",
+                                                                    variant: "destructive"
+                                                                  });
+                                                                  e.target.value = '';
+                                                                  return;
+                                                                }
+                                                                if (file.size > 2 * 1024 * 1024) {
+                                                                  toast({
+                                                                    title: "File Too Large",
+                                                                    description: "The selected image must be less than 2MB in size.",
+                                                                    variant: "destructive"
+                                                                  });
+                                                                  e.target.value = '';
+                                                                  return;
+                                                                }
+                                                                setUploadingId(q.id);
+                                                                try {
+                                                                  const fileUrl = await performR2Upload(file, 'question_papers');
+                                                                  if (fileUrl) {
+                                                                    const imageHtml = `<br/><img src="${fileUrl}" style="max-width: 100%; max-height: 250px; display: block; margin: 10px 0; border-radius: 6px; border: 1px solid #e2e8f0;" />`;
+                                                                    updateQuestion(q.id, 'content', (q.content || '') + imageHtml);
+                                                                    toast({
+                                                                      title: "Diagram Uploaded",
+                                                                      description: "Diagram has been uploaded and inserted into the question content."
+                                                                    });
+                                                                  } else {
+                                                                    toast({
+                                                                      title: "Upload Failed",
+                                                                      description: "Failed to upload diagram. Please try again.",
+                                                                      variant: "destructive"
+                                                                    });
+                                                                  }
+                                                                } catch (err) {
+                                                                  toast({
+                                                                    title: "Upload Error",
+                                                                    description: "An error occurred during upload.",
+                                                                    variant: "destructive"
+                                                                  });
+                                                                } finally {
+                                                                  setUploadingId(null);
+                                                                  e.target.value = '';
+                                                                }
+                                                              }}
+                                                            />
 
                                                             <Button
                                                               type="button"
@@ -1850,6 +1984,56 @@ const UploadQP = () => {
                                                       }}
                                                     >
                                                       <TableIcon className="w-3 h-3 text-primary" /> Add for Box
+                                                    </Button>
+                                                    <Button
+                                                      type="button"
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground gap-1 border border-dashed border-border/80 hover:border-primary/50"
+                                                      onClick={() => {
+                                                        const MySwal = withReactContent(Swal);
+                                                        MySwal.fire({
+                                                          title: 'Add Diagram / Image',
+                                                          text: 'Select how you want to add a diagram/image to this question',
+                                                          icon: 'question',
+                                                          showCancelButton: true,
+                                                          showDenyButton: true,
+                                                          confirmButtonColor: 'hsl(var(--primary))',
+                                                          denyButtonColor: '#0ea5e9',
+                                                          cancelButtonColor: '#6c757d',
+                                                          confirmButtonText: 'Upload Local Image',
+                                                          denyButtonText: 'Draw Diagram',
+                                                          cancelButtonText: 'Cancel'
+                                                        }).then((result) => {
+                                                          if (result.isConfirmed) {
+                                                            const fileInput = document.getElementById(`diagram-upload-${q.id}`);
+                                                            if (fileInput) (fileInput as HTMLInputElement).click();
+                                                          } else if (result.isDenied) {
+                                                            MySwal.fire({
+                                                              title: 'Draw Diagram',
+                                                              text: 'Where would you like to draw?',
+                                                              icon: 'question',
+                                                              showCancelButton: true,
+                                                              showDenyButton: true,
+                                                              confirmButtonColor: '#0ea5e9',
+                                                              denyButtonColor: '#8b5cf6',
+                                                              confirmButtonText: 'Draw on this Computer',
+                                                              denyButtonText: 'Draw on Phone (Touch)',
+                                                              cancelButtonText: 'Cancel'
+                                                            }).then((drawResult) => {
+                                                              if (drawResult.isConfirmed) {
+                                                                setDrawingQuestionId(q.id);
+                                                                setIsDrawingOpen(true);
+                                                              } else if (drawResult.isDenied) {
+                                                                setDrawingQuestionId(q.id);
+                                                                setMobileSyncId(crypto.randomUUID());
+                                                              }
+                                                            });
+                                                          }
+                                                        });
+                                                      }}
+                                                    >
+                                                      <ImageIcon className="w-3 h-3 text-primary" /> Add for Image
                                                     </Button>
                                                   </div>
                                                 )}
