@@ -128,8 +128,8 @@ export const extractQPBlocks = (htmlContent: string): QPContentBlock[] => {
         return;
       }
 
-      // Check if element is or contains an image
-      const isImage = tagName === 'IMG' || el.classList.contains('qp-image') || el.querySelector('img') !== null;
+      // Check if element is an image directly
+      const isImage = tagName === 'IMG' || el.classList.contains('qp-image');
       if (isImage) {
         flushText();
         blocks.push({
@@ -284,7 +284,7 @@ export const autoParseRawXYText = (text: string): { textPrompt: string; tableDat
     const xValues = match[1].trim().split(/[\s,]+/).filter(Boolean);
     const yValues = match[2].trim().split(/[\s,]+/).filter(Boolean);
 
-    if (xValues.length > 0 && yValues.length > 0) {
+    if (xValues.length >= 3 && yValues.length >= 3 && xValues.length === yValues.length) {
       const colCount = Math.max(xValues.length, yValues.length);
       const rowX = ['X'];
       const rowY = ['Y'];

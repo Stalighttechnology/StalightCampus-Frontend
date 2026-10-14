@@ -1119,6 +1119,9 @@ const UploadQP = () => {
                   <label htmlFor="batch-select" className="text-sm">Batch</label>
                   <Select value={selected.batch_id ? String(selected.batch_id) : undefined} onValueChange={(v) => {
                     const batchId = Number(v);
+                    setQuestions([]);
+                    setQpId(null);
+                    setCurrentQPMeta(null);
                     setSelected((s) => ({ ...s, batch_id: batchId }));
                     setTimeout(() => setIsSubjectOpen(true), 150);
                   }} open={isBatchOpen} onOpenChange={setIsBatchOpen}>
