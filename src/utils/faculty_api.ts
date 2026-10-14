@@ -782,6 +782,7 @@ export interface AlternateDutyRequestItem {
   title?: string;
   alternate_duty_status: string;
   alternate_duty_remarks?: string;
+  overall_leave_status?: string;
   applied_on: string;
 }
 
@@ -1714,6 +1715,22 @@ export const getFacultyLeaveDetails = async (leaveId: string | number): Promise<
     return await res.json();
   } catch (error) {
     return { success: false, message: "Network error" };
+  }
+};
+
+export const cancelFacultyLeaveRequest = async (leaveId: string | number): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/leaves/${leaveId}/cancel/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      credentials: 'include'
+    });
+    return await res.json();
+  } catch (error) {
+    return { success: false, message: "Network error cancelling leave request" };
   }
 };
 

@@ -8,7 +8,7 @@ import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Checkbox } from '../ui/checkbox';
 import { PopoverTrigger, Popover, PopoverContent } from '../ui/popover';
-import { CalendarIcon, UserCheck, Clock, CheckCircle2, XCircle, AlertCircle, Users, ArrowRight, ShieldCheck, Eye, ChevronRight, Check, FileText, Upload, Paperclip, ExternalLink, Image as ImageIcon, X, Search, CheckSquare, Square } from 'lucide-react';
+import { CalendarIcon, UserCheck, Clock, CheckCircle2, XCircle, AlertCircle, Users, ArrowRight, ShieldCheck, Eye, ChevronRight, Check, FileText, Upload, Paperclip, ExternalLink, Image as ImageIcon, X, Search, CheckSquare, Square, Ban } from 'lucide-react';
 import { format, isSameDay } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
@@ -18,6 +18,7 @@ import {
   getApplyLeaveBootstrap,
   getFacultyLeaveRequests,
   getFacultyLeaveDetails,
+  cancelFacultyLeaveRequest,
   getAvailableColleagues,
   getAlternateDutyRequests,
   alternateDutyAction,
@@ -37,7 +38,7 @@ import { CalendarCheck2, Filter } from 'lucide-react';
 
 const MySwal = withReactContent(Swal);
 
-type LeaveStatus = 'Pending' | 'Approved' | 'Rejected';
+type LeaveStatus = 'Pending' | 'Approved' | 'Rejected' | 'Cancelled';
 
 const formatDateDisplay = (dateStr?: string) => {
   if (!dateStr) return '';
@@ -50,7 +51,17 @@ const formatDateDisplay = (dateStr?: string) => {
   }
 };
 
-const getSubstituteStatusBadge = (status: string, currentTheme: string) => {
+const getSubstituteStatusBadge = (status: string, currentTheme: string, leaveStatus?: string) => {
+  if (leaveStatus === 'CANCELLED') {
+    return (
+      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold inline-flex items-center gap-1 ${
+        currentTheme === 'dark' ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-slate-100 text-slate-700 border border-slate-300'
+      }`}>
+        <Ban className="w-3 h-3 text-slate-400" />
+        Leave Cancelled
+      </span>
+    );
+  }
   const norm = (status || 'PENDING').toUpperCase();
   switch (norm) {
     case "PENDING":
@@ -63,6 +74,8 @@ const getSubstituteStatusBadge = (status: string, currentTheme: string) => {
     case "REJECTED":
     case "REJECT":
       return <span className={`px-3 py-1 rounded-full text-xs font-medium ${currentTheme === 'dark' ? 'bg-rose-950/50 text-rose-300 border border-rose-800' : 'bg-rose-100 text-rose-800 border border-rose-200'}`}>Declined</span>;
+    case "SKIPPED":
+      return <span className={`px-3 py-1 rounded-full text-xs font-medium ${currentTheme === 'dark' ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>Not Required</span>;
     default:
       return <span className={`px-3 py-1 rounded-full text-xs font-medium ${currentTheme === 'dark' ? 'bg-gray-800 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>{status}</span>;
   }
@@ -311,9 +324,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [title, setTitle] = useState<string>('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [reason, setReason] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
+  const [filterStatus, setFilterStatus] = useState<'All' | 'Pending' | 'Approved' | 'Rejected' | 'Cancelled'>('All');
   const [filterOpen, setFilterOpen] = useState(false);
   const [viewReason, setViewReason] = useState<string | null>(null);
+  const [cancellingLeaveId, setCancellingLeaveId] = useState<string | number | null>(null);
   const [selectedLeaveForFlow, setSelectedLeaveForFlow] = useState<LeaveRequestDisplay | null>(null);
   const [isRenominating, setIsRenominating] = useState<boolean>(false);
   const [renominateRole, setRenominateRole] = useState<string>('');
@@ -509,7 +523,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           const transformedLeaves: LeaveRequestDisplay[] = rawLeaves.map((leave: any) => {
             const mappedStatus = (leave.status === 'PENDING' ? 'Pending' :
               leave.status === 'APPROVED' ? 'Approved' :
-                leave.status === 'REJECTED' ? 'Rejected' : 'Pending') as LeaveStatus;
+                leave.status === 'REJECTED' ? 'Rejected' :
+                  leave.status === 'CANCELLED' ? 'Cancelled' : 'Pending') as LeaveStatus;
 
             return {
               id: leave.id,
@@ -643,7 +658,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         const d = res.data;
         const mappedStatus = (d.status === 'PENDING' ? 'Pending' :
           d.status === 'APPROVED' ? 'Approved' :
-            d.status === 'REJECTED' ? 'Rejected' : 'Pending') as LeaveStatus;
+            d.status === 'REJECTED' ? 'Rejected' :
+              d.status === 'CANCELLED' ? 'Cancelled' : 'Pending') as LeaveStatus;
 
         setSelectedLeaveForFlow({
           id: d.id,
@@ -823,6 +839,90 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       });
     } finally {
       setRenominatingLoading(false);
+    }
+  };
+
+  const handleCancelLeave = async (leaveId: number | string) => {
+    const result = await MySwal.fire({
+      title: 'Cancel Leave Application?',
+      text: 'Are you sure you want to cancel this leave application? Any pending colleague duty requests will also be cancelled.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Cancel Application',
+      cancelButtonText: 'No, Keep It',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+      color: theme === 'dark' ? '#ffffff' : '#000000'
+    });
+
+    if (!result.isConfirmed) return;
+
+    setCancellingLeaveId(leaveId);
+    try {
+      const res = await cancelFacultyLeaveRequest(leaveId);
+      if (res.success) {
+        await MySwal.fire({
+          title: 'Cancelled',
+          text: res.message || 'Leave application has been cancelled.',
+          icon: 'success',
+          confirmButtonColor: '#10b981',
+          background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: theme === 'dark' ? '#ffffff' : '#000000'
+        });
+
+        // Update local state in leaveList
+        setLeaveList((prev) =>
+          prev.map((l) =>
+            String(l.id) === String(leaveId)
+              ? {
+                  ...l,
+                  status: 'Cancelled' as LeaveStatus,
+                  current_stage: 'cancelled',
+                  alternate_duty_status: 'SKIPPED'
+                }
+              : l
+          )
+        );
+
+        // Update details modal if open
+        setSelectedLeaveForFlow((prev) => {
+          if (prev && String(prev.id) === String(leaveId)) {
+            return {
+              ...prev,
+              status: 'Cancelled' as LeaveStatus,
+              current_stage: 'cancelled',
+              alternate_duty_status: 'SKIPPED'
+            };
+          }
+          return prev;
+        });
+
+        window.dispatchEvent(new CustomEvent('leaves-updated'));
+        fetchLeaveHistory();
+        fetchBootstrapData();
+      } else {
+        await MySwal.fire({
+          title: 'Unable to Cancel',
+          text: res.message || 'Failed to cancel the leave application.',
+          icon: 'error',
+          confirmButtonColor: '#ef4444',
+          background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: theme === 'dark' ? '#ffffff' : '#000000'
+        });
+      }
+    } catch (err: any) {
+      console.error('Error cancelling leave request:', err);
+      await MySwal.fire({
+        title: 'Error',
+        text: 'An unexpected error occurred while cancelling the leave application.',
+        icon: 'error',
+        confirmButtonColor: '#ef4444',
+        background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: theme === 'dark' ? '#ffffff' : '#000000'
+      });
+    } finally {
+      setCancellingLeaveId(null);
     }
   };
 
@@ -1278,6 +1378,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     const status = leave.status;
     const bgClass = status === 'Approved' ? 'text-emerald-700 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800' :
       status === 'Rejected' ? 'text-rose-700 bg-rose-100 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-300 dark:border-rose-800' :
+      status === 'Cancelled' ? 'text-slate-600 bg-slate-100 dark:bg-slate-800/60 dark:text-slate-400 border border-slate-300 dark:border-slate-700' :
         'text-amber-700 bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-300 dark:border-amber-800';
 
     return (
@@ -1289,6 +1390,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         <span className={`px-2.5 py-0.5 text-[11px] font-semibold rounded-full inline-flex items-center justify-center gap-1 transition-transform group-hover:scale-105 ${bgClass} shrink-0 whitespace-nowrap min-w-[86px]`}>
           {status === 'Approved' && <CheckCircle2 className="w-3 h-3" />}
           {status === 'Rejected' && <XCircle className="w-3 h-3" />}
+          {status === 'Cancelled' && <Ban className="w-3 h-3" />}
           {status === 'Pending' && <Clock className="w-3 h-3" />}
           <span>{status}</span>
         </span>
@@ -1649,7 +1751,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                 )}
                               </div>
                             </div>
-                            <div className="shrink-0">{getSubstituteStatusBadge(req.alternate_duty_status, theme)}</div>
+                            <div className="shrink-0">{getSubstituteStatusBadge(req.alternate_duty_status, theme, req.overall_leave_status)}</div>
                           </div>
 
                           <div className="mt-2.5">
@@ -1725,7 +1827,14 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                               )}
                             </div>
 
-                            {req.alternate_duty_status === 'PENDING' ? (
+                            {req.overall_leave_status === 'CANCELLED' ? (
+                              <div className="pt-2 text-center border-t border-border/40">
+                                <span className="text-xs text-muted-foreground italic flex items-center justify-center gap-1">
+                                  <Ban className="w-3.5 h-3.5 text-slate-400" />
+                                  Leave was cancelled by applicant — duty coverage voided.
+                                </span>
+                              </div>
+                            ) : req.alternate_duty_status === 'PENDING' ? (
                               <div className="grid grid-cols-2 gap-2.5 pt-1">
                                 <Button
                                   size="sm"
@@ -1862,12 +1971,14 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                               {/* Status Column */}
                               <td className="py-4 px-3 md:px-4 text-center">
-                                {getSubstituteStatusBadge(req.alternate_duty_status, theme)}
+                                {getSubstituteStatusBadge(req.alternate_duty_status, theme, req.overall_leave_status)}
                               </td>
 
                               {/* Action Column */}
                               <td className="py-4 px-3 md:px-4 text-center">
-                                {req.alternate_duty_status === 'PENDING' ? (
+                                {req.overall_leave_status === 'CANCELLED' ? (
+                                  <span className="text-xs text-muted-foreground italic">Duty Voided</span>
+                                ) : req.alternate_duty_status === 'PENDING' ? (
                                   <div className="flex flex-col md:flex-row justify-center gap-2">
                                     <Button
                                       variant="outline"
@@ -3040,7 +3151,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                             Filter Status
                           </p>
-                          {['All', 'Pending', 'Approved', 'Rejected'].map((status) => (
+                          {['All', 'Pending', 'Approved', 'Rejected', 'Cancelled'].map((status) => (
                             <Button
                               key={status}
                               variant={filterStatus === status ? "default" : "ghost"}
@@ -3136,13 +3247,29 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           )}
 
                           <div className="mt-3 flex flex-col gap-2">
-                            <button
-                              onClick={() => handleOpenLeaveDetails(leave)}
-                              className="w-full text-center text-xs font-medium py-2 px-3 rounded-lg border border-primary/20 text-primary bg-primary/5 hover:bg-primary/10 flex items-center justify-center gap-1.5"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              View Approval Flow & Reason
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleOpenLeaveDetails(leave)}
+                                className="flex-1 text-center text-xs font-medium py-2 px-3 rounded-lg border border-primary/20 text-primary bg-primary/5 hover:bg-primary/10 flex items-center justify-center gap-1.5"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                View Flow & Reason
+                              </button>
+                              {leave.status === 'Pending' && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCancelLeave(leave.id);
+                                  }}
+                                  disabled={cancellingLeaveId === leave.id}
+                                  className="text-center text-xs font-medium py-2 px-3 rounded-lg border border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/50 flex items-center justify-center gap-1.5 shrink-0"
+                                  title="Cancel this pending leave application"
+                                >
+                                  <Ban className="w-3.5 h-3.5" />
+                                  Cancel
+                                </button>
+                              )}
+                            </div>
 
                             {leave.initial_document_url && (
                               <a
@@ -3295,15 +3422,33 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                                 {/* Action */}
                                 <td className="py-3.5 px-3 align-top text-right">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="text-xs h-7 px-2.5 inline-flex items-center justify-center gap-1 ml-auto border-primary/30 text-primary hover:bg-primary/10 shadow-none font-medium whitespace-nowrap"
-                                    onClick={() => handleOpenLeaveDetails(leave)}
-                                  >
-                                    <Eye className="w-3.5 h-3.5" />
-                                    <span>View</span>
-                                  </Button>
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    {leave.status === 'Pending' && (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-[11px] h-7 px-2 inline-flex items-center justify-center gap-1 border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400 bg-rose-50/60 dark:bg-rose-950/20 hover:bg-rose-100 dark:hover:bg-rose-950/50 shadow-none font-medium whitespace-nowrap"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleCancelLeave(leave.id);
+                                        }}
+                                        disabled={cancellingLeaveId === leave.id}
+                                        title="Cancel this pending leave application"
+                                      >
+                                        <Ban className="w-3 h-3" />
+                                        <span>Cancel</span>
+                                      </Button>
+                                    )}
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="text-xs h-7 px-2.5 inline-flex items-center justify-center gap-1 border-primary/30 text-primary hover:bg-primary/10 shadow-none font-medium whitespace-nowrap"
+                                      onClick={() => handleOpenLeaveDetails(leave)}
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                      <span>View</span>
+                                    </Button>
+                                  </div>
                                 </td>
                               </tr>
                             ))
@@ -3392,6 +3537,17 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </div>
                 </div>
 
+                {/* Cancelled Notice Banner */}
+                {selectedLeaveForFlow.status === 'Cancelled' && (
+                  <div className="p-3.5 rounded-xl border border-slate-300 dark:border-slate-800 bg-slate-100/90 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 flex items-center gap-2.5 text-xs">
+                    <Ban className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
+                    <div>
+                      <span className="font-semibold block">Application Cancelled</span>
+                      <span className="text-[11px] text-muted-foreground">This leave request was cancelled by you. Any colleague duty coverage has been cleared and no further approvals will be processed.</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Role-Based Sequential Approval Pipeline Flow */}
                 <div>
                   <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
@@ -3401,40 +3557,53 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                   <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
                     {/* Stage 0: Alternate Colleague Duty */}
-                    {((selectedLeaveForFlow.substitute_assignments && selectedLeaveForFlow.substitute_assignments.length > 0) || selectedLeaveForFlow.alternate_faculty_name) && (
-                      <div className="relative group">
-                        <div className={`absolute -left-6 top-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold ${selectedLeaveForFlow.alternate_duty_status === 'ACCEPTED'
-                          ? 'bg-emerald-500 text-white'
-                          : selectedLeaveForFlow.alternate_duty_status === 'DECLINED'
-                            ? 'bg-rose-500 text-white'
-                            : selectedLeaveForFlow.current_stage === 'alternate_duty'
-                              ? 'bg-amber-500 text-white ring-4 ring-amber-500/20 animate-pulse'
-                              : 'bg-muted text-muted-foreground'
+                    {((selectedLeaveForFlow.substitute_assignments && selectedLeaveForFlow.substitute_assignments.length > 0) || selectedLeaveForFlow.alternate_faculty_name) && (() => {
+                      const isLeaveCancelled = selectedLeaveForFlow.status === 'Cancelled';
+                      const isDutySkipped = selectedLeaveForFlow.alternate_duty_status === 'SKIPPED' || isLeaveCancelled;
+                      const isDutyAccepted = selectedLeaveForFlow.alternate_duty_status === 'ACCEPTED' && !isLeaveCancelled;
+                      const isDutyDeclined = selectedLeaveForFlow.alternate_duty_status === 'DECLINED' && !isLeaveCancelled;
+
+                      return (
+                        <div className="relative group">
+                          <div className={`absolute -left-6 top-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold ${
+                            isDutyAccepted
+                              ? 'bg-emerald-500 text-white'
+                              : isDutyDeclined
+                                ? 'bg-rose-500 text-white'
+                                : isDutySkipped
+                                  ? 'bg-slate-400 text-white dark:bg-slate-700'
+                                  : selectedLeaveForFlow.current_stage === 'alternate_duty'
+                                    ? 'bg-amber-500 text-white ring-4 ring-amber-500/20 animate-pulse'
+                                    : 'bg-muted text-muted-foreground'
                           }`}>
-                          {selectedLeaveForFlow.alternate_duty_status === 'ACCEPTED' ? <Check className="w-3 h-3" /> : '1'}
-                        </div>
-                        <div className={`p-3 rounded-lg border text-xs ${selectedLeaveForFlow.current_stage === 'alternate_duty' && selectedLeaveForFlow.status === 'Pending'
-                          ? 'border-amber-500/50 bg-amber-500/5 shadow-sm'
-                          : theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
-                          }`}>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-semibold text-foreground flex items-center gap-1.5">
-                              <span>Alternate Duty Coverage</span>
-                              {selectedLeaveForFlow.substitute_assignments && selectedLeaveForFlow.substitute_assignments.length > 1 && (
-                                <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-primary/10 text-primary">
-                                  {selectedLeaveForFlow.substitute_assignments.length} Nominees
-                                </span>
-                              )}
-                            </span>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${selectedLeaveForFlow.alternate_duty_status === 'ACCEPTED'
-                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
-                              : selectedLeaveForFlow.alternate_duty_status === 'DECLINED'
-                                ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
-                                : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
-                              }`}>
-                              {selectedLeaveForFlow.alternate_duty_status || 'PENDING'}
-                            </span>
+                            {isDutyAccepted ? <Check className="w-3 h-3" /> : isDutySkipped ? <Ban className="w-2.5 h-2.5" /> : '1'}
                           </div>
+                          <div className={`p-3 rounded-lg border text-xs ${
+                            selectedLeaveForFlow.current_stage === 'alternate_duty' && selectedLeaveForFlow.status === 'Pending'
+                              ? 'border-amber-500/50 bg-amber-500/5 shadow-sm'
+                              : theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
+                          }`}>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-semibold text-foreground flex items-center gap-1.5">
+                                <span>Alternate Duty Coverage</span>
+                                {selectedLeaveForFlow.substitute_assignments && selectedLeaveForFlow.substitute_assignments.length > 1 && (
+                                  <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-primary/10 text-primary">
+                                    {selectedLeaveForFlow.substitute_assignments.length} Nominees
+                                  </span>
+                                )}
+                              </span>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                                isDutyAccepted
+                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                  : isDutyDeclined
+                                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
+                                    : isDutySkipped
+                                      ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                                      : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
+                              }`}>
+                                {isLeaveCancelled ? 'VOIDED / NOT REQUIRED' : isDutySkipped ? 'SKIPPED' : (selectedLeaveForFlow.alternate_duty_status || 'PENDING')}
+                              </span>
+                            </div>
 
                           {/* Render all assigned substitutes */}
                           {selectedLeaveForFlow.substitute_assignments && selectedLeaveForFlow.substitute_assignments.length > 0 ? (
@@ -3802,7 +3971,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                             )}
                           </div>
                         </div>
-                      )}
+                      );
+                    })()}
 
                     {/* Sequential Stages or Auto-Approved 0-Stage Record */}
                     {(() => {
@@ -3878,8 +4048,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           remarks = selectedLeaveForFlow.intermediate_remarks;
                         }
 
-                        const isApproved = statusBadge === 'APPROVED' || statusBadge === 'Approved' || selectedLeaveForFlow.status === 'Approved';
+                        const isLeaveCancelled = selectedLeaveForFlow.status === 'Cancelled';
+                        const isApproved = (statusBadge === 'APPROVED' || statusBadge === 'Approved' || selectedLeaveForFlow.status === 'Approved') && statusBadge !== 'SKIPPED';
                         const isRejected = statusBadge === 'REJECTED' || statusBadge === 'Rejected';
+                        const isSkippedOrCancelled = statusBadge === 'SKIPPED' || statusBadge === 'CANCELLED' || isLeaveCancelled;
 
                         return (
                           <div key={stageKey} className="relative group">
@@ -3887,11 +4059,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                               ? 'bg-emerald-500 text-white'
                               : isRejected
                                 ? 'bg-rose-500 text-white'
-                                : isCurrentStage
-                                  ? 'bg-amber-500 text-white ring-4 ring-amber-500/20 animate-pulse'
-                                  : 'bg-muted text-muted-foreground'
+                                : isSkippedOrCancelled
+                                  ? 'bg-slate-400 text-white dark:bg-slate-700'
+                                  : isCurrentStage
+                                    ? 'bg-amber-500 text-white ring-4 ring-amber-500/20 animate-pulse'
+                                    : 'bg-muted text-muted-foreground'
                               }`}>
-                              {isApproved ? <Check className="w-3 h-3" /> : stageNumber}
+                              {isApproved ? <Check className="w-3 h-3" /> : isSkippedOrCancelled ? <Ban className="w-2.5 h-2.5" /> : stageNumber}
                             </div>
                             <div className={`p-3 rounded-lg border text-xs ${isCurrentStage
                               ? 'border-amber-500/50 bg-amber-500/5 shadow-sm'
@@ -3910,11 +4084,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                                   ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
                                   : isRejected
                                     ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
-                                    : isCurrentStage
-                                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
-                                      : 'bg-muted text-muted-foreground'
+                                    : isSkippedOrCancelled
+                                      ? 'bg-slate-100 text-slate-600 dark:bg-slate-800/60 dark:text-slate-400'
+                                      : isCurrentStage
+                                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
+                                        : 'bg-muted text-muted-foreground'
                                   }`}>
-                                  {isApproved ? 'APPROVED' : isRejected ? 'REJECTED' : 'PENDING'}
+                                  {isApproved ? 'APPROVED' : isRejected ? 'REJECTED' : isSkippedOrCancelled ? 'NOT REQUIRED' : 'PENDING'}
                                 </span>
                               </div>
 
@@ -3996,7 +4172,19 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 )}
 
                 {/* Footer Controls */}
-                <div className="flex justify-end pt-2 border-t border-border">
+                <div className="flex items-center justify-between pt-2 border-t border-border gap-2">
+                  {selectedLeaveForFlow.status === 'Pending' ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCancelLeave(selectedLeaveForFlow.id)}
+                      disabled={cancellingLeaveId === selectedLeaveForFlow.id}
+                      className="text-xs h-8 px-3 font-medium text-rose-600 dark:text-rose-400 border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/60 inline-flex items-center gap-1.5 shadow-none"
+                    >
+                      <Ban className="w-3.5 h-3.5" />
+                      <span>{cancellingLeaveId === selectedLeaveForFlow.id ? 'Cancelling...' : 'Cancel Application'}</span>
+                    </Button>
+                  ) : <div />}
                   <Button
                     variant="outline"
                     onClick={() => setSelectedLeaveForFlow(null)}
