@@ -1,7 +1,7 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useEffect, useState, useRef, Fragment } from "react";
 import { useLocation } from "react-router-dom";
-import { Plus, Trash2, Layers, Loader2, FileDown, Image, Eraser, RotateCcw, Check, X, Undo, Redo, AlertCircle, CalendarIcon, ChevronDown } from "lucide-react";
+import { Plus, Trash2, Layers, Loader2, FileDown, Image, Image as ImageIcon, Eraser, RotateCcw, Check, X, Undo, Redo, AlertCircle, CalendarIcon, ChevronDown, Table as TableIcon, Edit3, Pi } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,11 @@ import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { sanitizeHtml } from "../../utils/sanitize";
 import { QRCodeSVG } from 'qrcode.react';
+import { extractTableFromContent, generateTableHtml, cleanPromptText, combinePromptAndTable, serializeQPContentBlocks, QPContentBlock } from "@/utils/qpTableUtils";
+import { QPNotationsPicker } from "./QPNotationsPicker";
+import { QPBoxTableModal } from "./QPBoxTableModal";
+import { QPQuestionContentEditorModal } from "./QPQuestionContentEditorModal";
+import { QPEquationBuilderModal } from "./QPEquationBuilderModal";
 
 interface QuestionRow {
   id: string;
@@ -274,6 +279,13 @@ const UploadQP = () => {
   const [drawingSubmitting, setDrawingSubmitting] = useState(false);
   const [mobileSyncId, setMobileSyncId] = useState<string | null>(null);
   const mobileSyncInterval = useRef<NodeJS.Timeout | null>(null);
+  const [boxModalQuestionId, setBoxModalQuestionId] = useState<string | null>(null);
+  const [contentModalQuestionId, setContentModalQuestionId] = useState<string | null>(null);
+  const [equationModalQuestionId, setEquationModalQuestionId] = useState<string | null>(null);
+  const [activeTargetBlockIndex, setActiveTargetBlockIndex] = useState<number | null>(null);
+  const [activeEditingBlockIndex, setActiveEditingBlockIndex] = useState<number | null>(null);
+  const [startWithNewBox, setStartWithNewBox] = useState<boolean>(false);
+  const lastActivePromptRef = useRef<{ questionId: string; start: number; end: number } | null>(null);
 
   const [tabValue, setTabValue] = useState('questionFormat');
   const [qpId, setQpId] = useState<number | null>(null);
@@ -709,7 +721,7 @@ const UploadQP = () => {
     };
   }, [mobileSyncId, drawingQuestionId]);
 
-  const addQuestion = () => {
+  const addQuestion = (withBoxTable = false) => {
     const nextId = `${Date.now()}`;
     setQuestions((prev) => {
       let nextNum = 1;
@@ -723,6 +735,11 @@ const UploadQP = () => {
       }
       return [...prev, { id: nextId, number: `${nextNum}a`, content: `Question ${prev.length + 1}`, maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply', partName: lastPart, isOr: false }];
     });
+    if (withBoxTable) {
+      setTimeout(() => {
+        setBoxModalQuestionId(nextId);
+      }, 50);
+    }
   };
 
   const removeQuestionById = (id: string) => {
@@ -1389,124 +1406,458 @@ const UploadQP = () => {
                                       <TableCell className="p-1 sm:p-2 whitespace-nowrap">
                                         <Input value={q.number} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'number', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center border-0 bg-transparent hover:bg-muted/30 focus-visible:ring-1 ring-primary focus-visible:ring-offset-0 px-1 sm:px-3 font-medium" />
                                       </TableCell>
-                                      <TableCell className="p-1 sm:p-2 whitespace-nowrap">
-                                        <div className="flex items-center gap-2">
-                                          <Input value={q.content} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'content', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full border-0 bg-transparent hover:bg-muted/30 focus-visible:ring-1 ring-primary focus-visible:ring-offset-0 px-1 sm:px-3" />
-                                          {!isLocked && (
-                                            <div className="relative">
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                disabled={uploadingId !== null}
-                                                className="h-8 w-8 p-0 hover:bg-muted"
-                                                onClick={() => {
-                                                  const MySwal = withReactContent(Swal);
-                                                  MySwal.fire({
-                                                    title: 'Add Diagram / Image',
-                                                    text: 'Select how you want to add a diagram/image to this question',
-                                                    icon: 'question',
-                                                    showCancelButton: true,
-                                                    showDenyButton: true,
-                                                    confirmButtonColor: 'hsl(var(--primary))',
-                                                    denyButtonColor: '#0ea5e9',
-                                                    cancelButtonColor: '#6c757d',
-                                                    confirmButtonText: 'Upload Local Image',
-                                                    denyButtonText: 'Draw Diagram',
-                                                    cancelButtonText: 'Cancel'
-                                                  }).then((result) => {
-                                                    if (result.isConfirmed) {
-                                                      const fileInput = document.getElementById(`diagram-upload-${q.id}`);
-                                                      if (fileInput) (fileInput as HTMLInputElement).click();
-                                                    } else if (result.isDenied) {
-                                                      MySwal.fire({
-                                                        title: 'Draw Diagram',
-                                                        text: 'Where would you like to draw?',
-                                                        icon: 'question',
-                                                        showCancelButton: true,
-                                                        showDenyButton: true,
-                                                        confirmButtonColor: '#0ea5e9',
-                                                        denyButtonColor: '#8b5cf6',
-                                                        confirmButtonText: 'Draw on this Computer',
-                                                        denyButtonText: 'Draw on Phone (Touch)',
-                                                        cancelButtonText: 'Cancel'
-                                                      }).then((drawResult) => {
-                                                        if (drawResult.isConfirmed) {
-                                                          setDrawingQuestionId(q.id);
-                                                          setIsDrawingOpen(true);
-                                                        } else if (drawResult.isDenied) {
-                                                          setDrawingQuestionId(q.id);
-                                                          setMobileSyncId(crypto.randomUUID());
-                                                        }
-                                                      });
-                                                    }
-                                                  });
-                                                }}
-                                              >
-                                                {uploadingId === q.id ? (
-                                                  <Loader2 size={16} className="animate-spin text-primary" />
-                                                ) : (
-                                                  <Image size={16} className="text-muted-foreground hover:text-primary" />
+                                      <TableCell className="p-1 sm:p-2 min-w-[280px] sm:min-w-[360px] max-w-full lg:max-w-[760px]">
+                                        <div className="flex flex-col gap-2.5 w-full">
+                                          {(() => {
+                                            const ext = extractTableFromContent(q.content || '');
+                                            const blocks = ext.blocks;
+
+                                            return (
+                                              <>
+                                                {blocks.map((block, bIdx) => {
+                                                  if (block.type === 'text') {
+                                                    return (
+                                                      <div
+                                                        key={`block-${q.id}-${bIdx}`}
+                                                        className="flex items-center gap-1.5 w-full rounded-lg border border-border/80 bg-background/60 hover:bg-background focus-within:border-primary focus-within:ring-1 focus-within:ring-primary px-2.5 py-0.5 transition-all"
+                                                      >
+                                                        <Input
+                                                          id={`question-prompt-${q.id}-${bIdx}`}
+                                                          value={block.content}
+                                                          disabled={isLocked}
+                                                          onFocus={(e) => {
+                                                            lastActivePromptRef.current = {
+                                                              questionId: q.id,
+                                                              start: e.target.selectionStart ?? e.target.value.length,
+                                                              end: e.target.selectionEnd ?? e.target.value.length
+                                                            };
+                                                          }}
+                                                          onSelect={(e) => {
+                                                            const target = e.target as HTMLInputElement;
+                                                            lastActivePromptRef.current = {
+                                                              questionId: q.id,
+                                                              start: target.selectionStart ?? target.value.length,
+                                                              end: target.selectionEnd ?? target.value.length
+                                                            };
+                                                          }}
+                                                          onChange={(e) => {
+                                                            const nextBlocks = [...blocks];
+                                                            nextBlocks[bIdx] = { ...nextBlocks[bIdx], content: e.target.value };
+                                                            updateQuestion(q.id, 'content', serializeQPContentBlocks(nextBlocks));
+                                                          }}
+                                                          placeholder={bIdx === 0 ? "Enter question prompt..." : "Enter text in between..."}
+                                                          className="h-8 text-xs sm:text-sm flex-1 min-w-0 border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none font-normal"
+                                                        />
+                                                        {!isLocked && (
+                                                          <div className="flex items-center gap-0.5 shrink-0 pl-1.5 border-l border-border/60">
+                                                            <QPNotationsPicker
+                                                              triggerButtonText=""
+                                                              triggerClassName="h-7 w-7 p-0"
+                                                              onOpenEquationBuilder={() => {
+                                                                setActiveTargetBlockIndex(bIdx);
+                                                                setActiveEditingBlockIndex(null);
+                                                                setEquationModalQuestionId(q.id);
+                                                              }}
+                                                              onInsertSymbol={(sym) => {
+                                                                const nextBlocks = [...blocks];
+                                                                const currentText = nextBlocks[bIdx].content || '';
+                                                                let start = currentText.length;
+                                                                let end = currentText.length;
+                                                                if (lastActivePromptRef.current && lastActivePromptRef.current.questionId === q.id) {
+                                                                  start = lastActivePromptRef.current.start;
+                                                                  end = lastActivePromptRef.current.end;
+                                                                }
+                                                                const newPrompt = currentText.slice(0, start) + sym + currentText.slice(end);
+                                                                nextBlocks[bIdx] = { ...nextBlocks[bIdx], content: newPrompt };
+                                                                updateQuestion(q.id, 'content', serializeQPContentBlocks(nextBlocks));
+                                                              }}
+                                                            />
+
+                                                            <Button
+                                                              type="button"
+                                                              variant="ghost"
+                                                              size="sm"
+                                                              className="h-7 w-7 p-0 hover:bg-primary/10 hover:text-primary transition-colors text-xs font-serif italic font-bold"
+                                                              title="Insert Equation After This Text"
+                                                              onClick={() => {
+                                                                setActiveTargetBlockIndex(bIdx);
+                                                                setActiveEditingBlockIndex(null);
+                                                                setEquationModalQuestionId(q.id);
+                                                              }}
+                                                            >
+                                                              fx
+                                                            </Button>
+
+                                                            <Button
+                                                              type="button"
+                                                              variant="ghost"
+                                                              size="sm"
+                                                              className="h-7 w-7 p-0 hover:bg-primary/10 hover:text-primary text-muted-foreground transition-colors"
+                                                              title="Insert Box Table After This Text"
+                                                              onClick={() => {
+                                                                setActiveTargetBlockIndex(bIdx);
+                                                                setActiveEditingBlockIndex(null);
+                                                                setStartWithNewBox(true);
+                                                                setBoxModalQuestionId(q.id);
+                                                              }}
+                                                            >
+                                                              <TableIcon size={14} />
+                                                            </Button>
+
+                                                            <Button
+                                                              type="button"
+                                                              variant="ghost"
+                                                              size="sm"
+                                                              className="h-7 w-7 p-0 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                                              title="Expand Full Question Editor"
+                                                              onClick={() => setContentModalQuestionId(q.id)}
+                                                            >
+                                                              <Edit3 size={14} />
+                                                            </Button>
+
+                                                            {blocks.length > 1 && (
+                                                              <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-7 w-7 p-0 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                                                                title="Remove this text line"
+                                                                onClick={() => {
+                                                                  const nextBlocks = blocks.filter((_, i) => i !== bIdx);
+                                                                  updateQuestion(q.id, 'content', serializeQPContentBlocks(nextBlocks));
+                                                                }}
+                                                              >
+                                                                <Trash2 size={13} />
+                                                              </Button>
+                                                            )}
+                                                          </div>
+                                                        )}
+                                                      </div>
+                                                    );
+                                                  }
+
+                                                  if (block.type === 'equation') {
+                                                    return (
+                                                      <div
+                                                        key={`block-${q.id}-${bIdx}`}
+                                                        className="rounded-xl border border-primary/25 bg-primary/5 p-2.5 shadow-2xs space-y-2 w-full"
+                                                      >
+                                                        <div className="flex flex-wrap items-center justify-between gap-1.5 text-xs font-semibold text-muted-foreground">
+                                                          <span className="flex items-center gap-1.5 text-primary font-bold">
+                                                            <Pi className="w-3.5 h-3.5" /> Attached Equation
+                                                          </span>
+                                                          {!isLocked && (
+                                                            <div className="flex flex-wrap items-center gap-1">
+                                                              <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-6 text-[11px] px-2 font-semibold text-primary gap-1 border-primary/30 hover:bg-primary/10"
+                                                                title="Enter text after this equation"
+                                                                onClick={() => {
+                                                                  const nextBlocks = [...blocks];
+                                                                  nextBlocks.splice(bIdx + 1, 0, {
+                                                                    id: 'b-' + Math.random().toString(36).substring(2, 9),
+                                                                    type: 'text',
+                                                                    content: ''
+                                                                  });
+                                                                  updateQuestion(q.id, 'content', serializeQPContentBlocks(nextBlocks));
+                                                                }}
+                                                              >
+                                                                <Plus className="w-3 h-3" /> Text
+                                                              </Button>
+                                                              <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-6 text-[11px] px-2 font-semibold text-primary gap-1 border-primary/30 hover:bg-primary/10"
+                                                                title="Add another equation after this"
+                                                                onClick={() => {
+                                                                  setActiveTargetBlockIndex(bIdx);
+                                                                  setActiveEditingBlockIndex(null);
+                                                                  setEquationModalQuestionId(q.id);
+                                                                }}
+                                                              >
+                                                                <Plus className="w-3 h-3" /> Eq
+                                                              </Button>
+                                                              <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-6 text-[11px] px-2 font-semibold gap-1 text-foreground hover:bg-muted"
+                                                                title="Edit Equation in Builder"
+                                                                onClick={() => {
+                                                                  setActiveEditingBlockIndex(bIdx);
+                                                                  setActiveTargetBlockIndex(null);
+                                                                  setEquationModalQuestionId(q.id);
+                                                                }}
+                                                              >
+                                                                <Edit3 className="w-3 h-3" /> Edit
+                                                              </Button>
+                                                              <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-6 w-6 p-0 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                                                                title="Remove Equation"
+                                                                onClick={() => {
+                                                                  const nextBlocks = blocks.filter((_, i) => i !== bIdx);
+                                                                  updateQuestion(q.id, 'content', serializeQPContentBlocks(nextBlocks));
+                                                                  toast({
+                                                                    title: "Equation Removed",
+                                                                    description: `Equation removed from Question ${q.number || ''}.`
+                                                                  });
+                                                                }}
+                                                              >
+                                                                <Trash2 className="w-3 h-3" />
+                                                              </Button>
+                                                            </div>
+                                                          )}
+                                                        </div>
+                                                        <div
+                                                          onClick={() => {
+                                                            if (!isLocked) {
+                                                              setActiveEditingBlockIndex(bIdx);
+                                                              setActiveTargetBlockIndex(null);
+                                                              setEquationModalQuestionId(q.id);
+                                                            }
+                                                          }}
+                                                          className={cn(
+                                                            "overflow-x-auto p-2.5 bg-card rounded-lg border border-border/60 flex justify-center items-center py-2.5 min-h-[44px]",
+                                                            !isLocked && "cursor-pointer hover:border-primary/50 transition-colors"
+                                                          )}
+                                                          title={!isLocked ? "Click to edit equation" : undefined}
+                                                        >
+                                                          <div
+                                                            className="font-serif text-sm sm:text-base text-foreground tracking-wide text-center"
+                                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.content) }}
+                                                          />
+                                                        </div>
+                                                      </div>
+                                                    );
+                                                  }
+
+                                                  if (block.type === 'table') {
+                                                    return (
+                                                      <div
+                                                        key={`block-${q.id}-${bIdx}`}
+                                                        className="rounded-xl border border-border/80 bg-background/80 p-2.5 shadow-2xs space-y-2 w-full"
+                                                      >
+                                                        <div className="flex flex-wrap items-center justify-between gap-1.5 text-xs font-semibold text-muted-foreground">
+                                                          <span className="flex items-center gap-1.5 text-primary font-bold">
+                                                            <TableIcon className="w-3.5 h-3.5" />
+                                                            {`Box Table (${block.tableData?.length || 2}R × ${block.tableData?.[0]?.length || 0}C)`}
+                                                          </span>
+                                                          {!isLocked && (
+                                                            <div className="flex flex-wrap items-center gap-1">
+                                                              <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-6 text-[11px] px-2 font-semibold text-primary gap-1 border-primary/30 hover:bg-primary/10"
+                                                                title="Enter text after this table"
+                                                                onClick={() => {
+                                                                  const nextBlocks = [...blocks];
+                                                                  nextBlocks.splice(bIdx + 1, 0, {
+                                                                    id: 'b-' + Math.random().toString(36).substring(2, 9),
+                                                                    type: 'text',
+                                                                    content: ''
+                                                                  });
+                                                                  updateQuestion(q.id, 'content', serializeQPContentBlocks(nextBlocks));
+                                                                }}
+                                                              >
+                                                                <Plus className="w-3 h-3" /> Text
+                                                              </Button>
+                                                              <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-6 text-[11px] px-2 font-semibold gap-1 text-foreground hover:bg-muted"
+                                                                title="Edit box table"
+                                                                onClick={() => {
+                                                                  setActiveEditingBlockIndex(bIdx);
+                                                                  setActiveTargetBlockIndex(null);
+                                                                  setStartWithNewBox(false);
+                                                                  setBoxModalQuestionId(q.id);
+                                                                }}
+                                                              >
+                                                                <Edit3 className="w-3 h-3" /> Edit Table
+                                                              </Button>
+                                                              <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-6 text-[11px] px-2 font-semibold text-primary gap-1 border-primary/30 hover:bg-primary/10"
+                                                                title="Add another Box Table"
+                                                                onClick={() => {
+                                                                  setActiveTargetBlockIndex(bIdx);
+                                                                  setActiveEditingBlockIndex(null);
+                                                                  setStartWithNewBox(true);
+                                                                  setBoxModalQuestionId(q.id);
+                                                                }}
+                                                              >
+                                                                <Plus className="w-3 h-3" /> Add Box
+                                                              </Button>
+                                                              <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-6 w-6 p-0 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                                                                title="Remove Box Table"
+                                                                onClick={() => {
+                                                                  const nextBlocks = blocks.filter((_, i) => i !== bIdx);
+                                                                  updateQuestion(q.id, 'content', serializeQPContentBlocks(nextBlocks));
+                                                                  toast({
+                                                                    title: "Table Removed",
+                                                                    description: `Box table removed from Question ${q.number || ''}.`
+                                                                  });
+                                                                }}
+                                                              >
+                                                                <Trash2 className="w-3 h-3" />
+                                                              </Button>
+                                                            </div>
+                                                          )}
+                                                        </div>
+                                                        <div
+                                                          onClick={() => {
+                                                            if (!isLocked) {
+                                                              setActiveEditingBlockIndex(bIdx);
+                                                              setActiveTargetBlockIndex(null);
+                                                              setStartWithNewBox(false);
+                                                              setBoxModalQuestionId(q.id);
+                                                            }
+                                                          }}
+                                                          className={cn(
+                                                            "overflow-x-auto p-2 bg-card rounded-lg border border-border/60",
+                                                            !isLocked && "cursor-pointer hover:border-primary/50 transition-colors"
+                                                          )}
+                                                          title={!isLocked ? "Click to edit Box Table" : undefined}
+                                                        >
+                                                          <div
+                                                            className="flex justify-center"
+                                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.content) }}
+                                                          />
+                                                        </div>
+                                                      </div>
+                                                    );
+                                                  }
+
+                                                  if (block.type === 'image') {
+                                                    return (
+                                                      <div
+                                                        key={`block-${q.id}-${bIdx}`}
+                                                        className="rounded-xl border border-border/80 bg-muted/20 p-2.5 shadow-2xs space-y-2 w-full"
+                                                      >
+                                                        <div className="flex flex-wrap items-center justify-between gap-1.5 text-xs font-semibold text-muted-foreground">
+                                                          <span className="flex items-center gap-1.5 text-foreground font-bold">
+                                                            <ImageIcon className="w-3.5 h-3.5" /> Attached Image / Diagram
+                                                          </span>
+                                                          {!isLocked && (
+                                                            <div className="flex flex-wrap items-center gap-1">
+                                                              <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-6 text-[11px] px-2 font-semibold text-primary gap-1 border-primary/30 hover:bg-primary/10"
+                                                                title="Enter text after this image"
+                                                                onClick={() => {
+                                                                  const nextBlocks = [...blocks];
+                                                                  nextBlocks.splice(bIdx + 1, 0, {
+                                                                    id: 'b-' + Math.random().toString(36).substring(2, 9),
+                                                                    type: 'text',
+                                                                    content: ''
+                                                                  });
+                                                                  updateQuestion(q.id, 'content', serializeQPContentBlocks(nextBlocks));
+                                                                }}
+                                                              >
+                                                                <Plus className="w-3 h-3" /> Text
+                                                              </Button>
+                                                              <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-6 w-6 p-0 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                                                                title="Remove Image"
+                                                                onClick={() => {
+                                                                  const nextBlocks = blocks.filter((_, i) => i !== bIdx);
+                                                                  updateQuestion(q.id, 'content', serializeQPContentBlocks(nextBlocks));
+                                                                  toast({
+                                                                    title: "Image Removed",
+                                                                    description: `Image removed from Question ${q.number || ''}.`
+                                                                  });
+                                                                }}
+                                                              >
+                                                                <Trash2 className="w-3 h-3" />
+                                                              </Button>
+                                                            </div>
+                                                          )}
+                                                        </div>
+                                                        <div className="overflow-x-auto p-2 bg-card rounded-lg border border-border/60 flex justify-center items-center py-2 max-h-48">
+                                                          <div
+                                                            className="flex justify-center max-h-44 overflow-hidden [&_img]:max-h-40 [&_img]:w-auto [&_img]:object-contain"
+                                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.content) }}
+                                                         />
+                                                        </div>
+                                                      </div>
+                                                    );
+                                                  }
+
+                                                  return null;
+                                                })}
+
+                                                {/* In-Between / Bottom Add Actions */}
+                                                {!isLocked && (
+                                                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                                    <Button
+                                                      type="button"
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground gap-1 border border-dashed border-border/80 hover:border-primary/50"
+                                                      onClick={() => {
+                                                        const nextBlocks = [...blocks, {
+                                                          id: 'b-' + Math.random().toString(36).substring(2, 9),
+                                                          type: 'text' as const,
+                                                          content: ''
+                                                        }];
+                                                        updateQuestion(q.id, 'content', serializeQPContentBlocks(nextBlocks));
+                                                      }}
+                                                    >
+                                                      <Plus className="w-3 h-3 text-primary" /> Add for Text
+                                                    </Button>
+                                                    <Button
+                                                      type="button"
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground gap-1 border border-dashed border-border/80 hover:border-primary/50"
+                                                      onClick={() => {
+                                                        setActiveTargetBlockIndex(blocks.length - 1);
+                                                        setActiveEditingBlockIndex(null);
+                                                        setEquationModalQuestionId(q.id);
+                                                      }}
+                                                    >
+                                                      <Pi className="w-3 h-3 text-primary" /> Add for Notation
+                                                    </Button>
+                                                    <Button
+                                                      type="button"
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground gap-1 border border-dashed border-border/80 hover:border-primary/50"
+                                                      onClick={() => {
+                                                        setActiveTargetBlockIndex(blocks.length - 1);
+                                                        setActiveEditingBlockIndex(null);
+                                                        setStartWithNewBox(true);
+                                                        setBoxModalQuestionId(q.id);
+                                                      }}
+                                                    >
+                                                      <TableIcon className="w-3 h-3 text-primary" /> Add for Box
+                                                    </Button>
+                                                  </div>
                                                 )}
-                                              </Button>
-                                              <input
-                                                id={`diagram-upload-${q.id}`}
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={async (e) => {
-                                                  const file = e.target.files?.[0];
-                                                  if (!file) return;
-                                                  if (!file.type.startsWith('image/')) {
-                                                    toast({
-                                                      title: "Invalid File Type",
-                                                      description: "Only image files are allowed. Please select an image (PNG, JPG, etc.).",
-                                                      variant: "destructive"
-                                                    });
-                                                    e.target.value = '';
-                                                    return;
-                                                  }
-                                                  if (file.size > 2 * 1024 * 1024) {
-                                                    toast({
-                                                      title: "File Too Large",
-                                                      description: "The selected image must be less than 2MB in size.",
-                                                      variant: "destructive"
-                                                    });
-                                                    e.target.value = '';
-                                                    return;
-                                                  }
-                                                  setUploadingId(q.id);
-                                                  try {
-                                                    const fileUrl = await performR2Upload(file, 'question_papers');
-                                                    if (fileUrl) {
-                                                      const imageHtml = `<br/><img src="${fileUrl}" style="max-width: 100%; max-height: 250px; display: block; margin: 10px 0; border-radius: 6px; border: 1px solid #e2e8f0;" />`;
-                                                      updateQuestion(q.id, 'content', q.content + imageHtml);
-                                                      toast({
-                                                        title: "Diagram Uploaded",
-                                                        description: "Diagram has been uploaded and inserted into the question content."
-                                                      });
-                                                    } else {
-                                                      toast({
-                                                        title: "Upload Failed",
-                                                        description: "Failed to upload diagram. Please try again.",
-                                                        variant: "destructive"
-                                                      });
-                                                    }
-                                                  } catch (err) {
-                                                    toast({
-                                                      title: "Upload Error",
-                                                      description: "An error occurred during upload.",
-                                                      variant: "destructive"
-                                                    });
-                                                  } finally {
-                                                    setUploadingId(null);
-                                                    e.target.value = '';
-                                                  }
-                                                }}
-                                              />
-                                            </div>
-                                          )}
+                                              </>
+                                            );
+                                          })()}
                                         </div>
-                                      </TableCell>
+</TableCell>
                                       <TableCell className="p-1 sm:p-2 whitespace-nowrap">
                                         <Input value={q.maxMarks} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'maxMarks', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3" />
                                       </TableCell>
@@ -1617,7 +1968,7 @@ const UploadQP = () => {
                             {!isLocked && (
                               <div className="flex flex-row justify-between items-center gap-3 mt-6 w-full">
                                 <Button
-                                  onClick={addQuestion}
+                                  onClick={() => addQuestion(false)}
                                   disabled={!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber}
                                   className="bg-primary text-white hover:bg-primary/90 transition-all duration-200 flex-1 sm:flex-none sm:w-auto text-[15px] sm:text-sm px-2 py-1.5 h-8 sm:h-10 sm:px-4 sm:py-2">
                                   <Plus size={12} className="mr-1 sm:mr-2" /> Add Question
@@ -2081,6 +2432,163 @@ const UploadQP = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Box-Type Data Table Modal */}
+      {(() => {
+        const targetQ = questions.find(q => q.id === boxModalQuestionId);
+        if (!targetQ) return null;
+        const ext = extractTableFromContent(targetQ.content || '');
+        return (
+          <QPBoxTableModal
+            isOpen={!!boxModalQuestionId}
+            onClose={() => {
+              setBoxModalQuestionId(null);
+              setStartWithNewBox(false);
+              setActiveEditingBlockIndex(null);
+              setActiveTargetBlockIndex(null);
+            }}
+            initialTableData={
+              activeEditingBlockIndex !== null && ext.blocks[activeEditingBlockIndex]?.type === 'table'
+                ? ext.blocks[activeEditingBlockIndex].tableData
+                : undefined
+            }
+            initialTablesData={undefined}
+            startWithNewBox={startWithNewBox}
+            questionNumber={targetQ.number}
+            onSaveTable={(tableHtml, tableData) => {
+              const nextBlocks = [...ext.blocks];
+              if (activeEditingBlockIndex !== null && nextBlocks[activeEditingBlockIndex]) {
+                nextBlocks[activeEditingBlockIndex] = {
+                  ...nextBlocks[activeEditingBlockIndex],
+                  type: 'table',
+                  content: tableHtml,
+                  tableData
+                };
+              } else if (activeTargetBlockIndex !== null) {
+                nextBlocks.splice(activeTargetBlockIndex + 1, 0, {
+                  id: 'b-' + Math.random().toString(36).substring(2, 9),
+                  type: 'table',
+                  content: tableHtml,
+                  tableData
+                });
+              } else {
+                nextBlocks.push({
+                  id: 'b-' + Math.random().toString(36).substring(2, 9),
+                  type: 'table',
+                  content: tableHtml,
+                  tableData
+                });
+              }
+              const newContent = serializeQPContentBlocks(nextBlocks);
+              updateQuestion(targetQ.id, 'content', newContent);
+              setActiveEditingBlockIndex(null);
+              setActiveTargetBlockIndex(null);
+              setBoxModalQuestionId(null);
+              toast({
+                title: "Box Table Updated",
+                description: `Table for Question ${targetQ.number || ''} saved successfully.`
+              });
+            }}
+            onDeleteTable={() => {
+              const nextBlocks = ext.blocks.filter((_, i) => i !== activeEditingBlockIndex);
+              const newContent = serializeQPContentBlocks(nextBlocks);
+              updateQuestion(targetQ.id, 'content', newContent);
+              setActiveEditingBlockIndex(null);
+              setActiveTargetBlockIndex(null);
+              setBoxModalQuestionId(null);
+              toast({
+                title: "Table Removed",
+                description: `Table removed from Question ${targetQ.number || ''}.`
+              });
+            }}
+          />
+        );
+      })()}
+
+      {/* Full Question Content & Notation Editor Modal */}
+      {(() => {
+        const targetQ = questions.find(q => q.id === contentModalQuestionId);
+        if (!targetQ) return null;
+        return (
+          <QPQuestionContentEditorModal
+            isOpen={!!contentModalQuestionId}
+            onClose={() => setContentModalQuestionId(null)}
+            questionNumber={targetQ.number}
+            initialContent={targetQ.content || ''}
+            onSaveContent={(newContent) => {
+              updateQuestion(targetQ.id, 'content', newContent);
+              setContentModalQuestionId(null);
+              toast({
+                title: "Question Updated",
+                description: `Question ${targetQ.number || ''} content saved.`
+              });
+            }}
+          />
+        );
+      })()}
+
+      {/* Word-Style Equation Builder Modal */}
+      {(() => {
+        const targetQ = questions.find(q => q.id === equationModalQuestionId);
+        if (!targetQ) return null;
+        const ext = extractTableFromContent(targetQ.content || '');
+        const activeBlock = activeEditingBlockIndex !== null ? ext.blocks[activeEditingBlockIndex] : null;
+        const initialText = activeBlock?.type === 'equation'
+          ? (() => {
+              if (activeBlock.equationText) return activeBlock.equationText;
+              const div = document.createElement('div');
+              div.innerHTML = activeBlock.content;
+              return div.textContent?.trim() || activeBlock.content;
+            })()
+          : '';
+        return (
+          <QPEquationBuilderModal
+            isOpen={!!equationModalQuestionId}
+            onClose={() => {
+              setEquationModalQuestionId(null);
+              setActiveEditingBlockIndex(null);
+              setActiveTargetBlockIndex(null);
+            }}
+            questionNumber={targetQ.number}
+            initialText={initialText}
+            onInsertEquation={(eqText) => {
+              const nextBlocks = [...ext.blocks];
+              const eqHtml = `<div class="qp-equation" style="display:inline-flex;align-items:center;vertical-align:middle;margin:4px 0;">${eqText}</div>`;
+              if (activeEditingBlockIndex !== null && nextBlocks[activeEditingBlockIndex]) {
+                nextBlocks[activeEditingBlockIndex] = {
+                  ...nextBlocks[activeEditingBlockIndex],
+                  type: 'equation',
+                  content: eqHtml,
+                  equationText: eqText
+                };
+              } else if (activeTargetBlockIndex !== null) {
+                nextBlocks.splice(activeTargetBlockIndex + 1, 0, {
+                  id: 'b-' + Math.random().toString(36).substring(2, 9),
+                  type: 'equation',
+                  content: eqHtml,
+                  equationText: eqText
+                });
+              } else {
+                nextBlocks.push({
+                  id: 'b-' + Math.random().toString(36).substring(2, 9),
+                  type: 'equation',
+                  content: eqHtml,
+                  equationText: eqText
+                });
+              }
+              const newContent = serializeQPContentBlocks(nextBlocks);
+              updateQuestion(targetQ.id, 'content', newContent);
+              setActiveEditingBlockIndex(null);
+              setActiveTargetBlockIndex(null);
+              setEquationModalQuestionId(null);
+              toast({
+                title: "Equation Attached",
+                description: `Equation added to Question ${targetQ.number || ''} in a dedicated equation box.`
+              });
+            }}
+          />
+        );
+      })()}
     </div>
   );
 
