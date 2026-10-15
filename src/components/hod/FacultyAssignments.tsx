@@ -201,6 +201,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     facultySearch: "",
     facultyPage: 1,
     facultyTotalPages: 1,
+    facultyTotalCount: 0,
     loadingFaculties: false,
     branchId: "",
     filterSemesterId: "",
@@ -409,6 +410,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
             name: `${f.first_name} ${f.last_name || ""}`.trim()
           })),
           facultyTotalPages: facultiesPagination?.total_pages || 1,
+          facultyTotalCount: facultiesPagination?.count || faculties.length,
           selectedBranchForFaculty: "" // Do not auto-select, allow choosing branch
         });
       } catch (err) {
@@ -428,16 +430,16 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     fetchInitialData();
   }, [setError, updateState]);
 
-  // Fetch faculties when branch or search changes
+  // Fetch faculties when branch changes for client-side pagination
   useEffect(() => {
     const fetchFacultiesData = async () => {
       if (!state.selectedBranchForFaculty) {
-        updateState({ faculties: [], facultyTotalPages: 1, facultyPage: 1 });
+        updateState({ faculties: [], facultyPage: 1 });
         return;
       }
       
       // Prevent redundant fetch on initial load since bootstrap already provides this data
-      if (state.isFirstLoad && state.selectedBranchForFaculty === state.branchId && !state.facultySearch) {
+      if (state.isFirstLoad && state.selectedBranchForFaculty === state.branchId) {
         updateState({ isFirstLoad: false });
         return;
       }
@@ -446,39 +448,35 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       try {
         const res = await manageFaculties({
           branch_id: state.selectedBranchForFaculty,
-          search: state.facultySearch,
-          page_size: 1000 // Fetch many for frontend pagination
+          page_size: 200 // Fetch all branch faculties for instant frontend pagination
         });
 
         if (res.success) {
-          const allFaculties = res.data.map((f: any) => ({
+          const allFaculties = (res.data || []).map((f: any) => ({
             ...f,
             name: `${f.first_name} ${f.last_name || ""}`.trim()
           }));
           updateState({
             faculties: allFaculties,
-            facultyPage: 1,
-            facultyTotalPages: Math.ceil(allFaculties.length / 10)
+            facultyPage: 1
           });
         }
       } catch (err) {
-
+        console.error("Failed to fetch faculties:", err);
       } finally {
         updateState({ loadingFaculties: false });
       }
     };
 
     fetchFacultiesData();
-  }, [state.selectedBranchForFaculty, state.facultySearch, updateState]);
+  }, [state.selectedBranchForFaculty, updateState]);
 
-  // Sync local search to state.facultySearch with debounce to avoid excessive re-renders
+  // Reset to page 1 on search
   useEffect(() => {
-    if (localFacultySearch === state.facultySearch) return;
-    const timer = setTimeout(() => {
-      updateState({ facultySearch: localFacultySearch, facultyPage: 1 });
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [localFacultySearch, state.facultySearch, updateState]);
+    if (state.facultyPage !== 1) {
+      updateState({ facultyPage: 1 });
+    }
+  }, [localFacultySearch]);
 
   // Cache for subjects and sections to avoid refetching on optimistic update reverts
   const semesterCache = useRef<{ subjects: Record<string, any[]>; sections: Record<string, any[]> }>({
@@ -942,7 +940,9 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                         if (state.loadingFaculties) {
                           return (
                             <>
-                              <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>
+                              <div className="p-4 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading faculties...
+                              </div>
                               {selected && (
                                 <SelectItem key={selected.id} value={selected.id} className="hidden">
                                   {selected.first_name} {selected.last_name || ""}
@@ -951,12 +951,22 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                             </>
                           );
                         }
+
+                        // Filter by search in frontend
+                        const q = localFacultySearch.trim().toLowerCase();
+                        const filtered = q
+                          ? state.faculties.filter(
+                              (f) =>
+                                `${f.first_name} ${f.last_name || ""}`.toLowerCase().includes(q) ||
+                                (f.username && f.username.toLowerCase().includes(q))
+                            )
+                          : state.faculties;
  
-                        if (state.faculties.length === 0) {
+                        if (filtered.length === 0) {
                           return (
                             <>
                               <SelectItem value="none" disabled className="text-center text-xs text-muted-foreground py-4">
-                                No faculty available
+                                {q ? "No matching faculty found" : "No faculty available"}
                               </SelectItem>
                               {selected && (
                                 <SelectItem key={selected.id} value={selected.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
@@ -966,56 +976,115 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                             </>
                           );
                         }
+
+                        const pageSize = 10;
+                        const totalPages = Math.ceil(filtered.length / pageSize);
+                        const currentPage = Math.min(Math.max(1, state.facultyPage), totalPages);
+                        const startIndex = (currentPage - 1) * pageSize;
+                        const displayed = filtered.slice(startIndex, startIndex + pageSize);
                         
-                        const sliced = state.faculties.slice((state.facultyPage - 1) * 10, state.facultyPage * 10);
-                        const list = [...sliced];
-                        if (selected && !list.some((f) => f.id === selected.id)) {
-                          list.push(selected);
-                        }
-                        
-                        return list.map((faculty) => (
-                          <SelectItem key={faculty.id} value={faculty.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                            {faculty.first_name} {faculty.last_name || ""} {faculty.username ? `(${faculty.username})` : ""}
-                          </SelectItem>
-                        ));
+                        return (
+                          <>
+                            {selected && !displayed.some((f) => f.id === selected.id) && (
+                              <SelectItem key={selected.id} value={selected.id} className="hidden">
+                                {selected.first_name} {selected.last_name || ""}
+                              </SelectItem>
+                            )}
+                            {displayed.map((faculty) => (
+                              <SelectItem key={faculty.id} value={faculty.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                                {faculty.first_name} {faculty.last_name || ""} {faculty.username ? `(${faculty.username})` : ""}
+                              </SelectItem>
+                            ))}
+                          </>
+                        );
                       })()}
                     </div>
-                    {state.facultyTotalPages > 1 &&
-                      <div className={`px-3 py-2 border-t border-border flex items-center justify-between sticky bottom-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
+                    {(() => {
+                      const q = localFacultySearch.trim().toLowerCase();
+                      const filtered = q
+                        ? state.faculties.filter(
+                            (f) =>
+                              `${f.first_name} ${f.last_name || ""}`.toLowerCase().includes(q) ||
+                              (f.username && f.username.toLowerCase().includes(q))
+                          )
+                        : state.faculties;
+                      const pageSize = 10;
+                      const totalPages = Math.ceil(filtered.length / pageSize);
+
+                      if (totalPages <= 1) return null;
+
+                      const currentPage = Math.min(Math.max(1, state.facultyPage), totalPages);
+                      const startCount = (currentPage - 1) * pageSize + 1;
+                      const endCount = Math.min(currentPage * pageSize, filtered.length);
+
+                      return (
+                        <div 
+                          className={`px-3 py-2 border-t border-border flex items-center justify-between sticky bottom-0 z-10 text-xs ${theme === 'dark' ? 'bg-card text-slate-400' : 'bg-white text-slate-500'}`}
+                          onPointerDown={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
-                            if (state.facultyPage > 1) updateState({ facultyPage: state.facultyPage - 1 });
                           }}
-                          disabled={state.facultyPage === 1}
-                          className={`h-8 w-8 p-0 rounded-md transition-all ${theme === 'dark' ? 'hover:bg-primary/20 border-border' : 'hover:bg-primary/10 border-gray-200'}`}>
-                          
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xs font-bold px-2 py-1 rounded ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                            {state.facultyPage}
-                          </span>
-                          <span className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            of {state.facultyTotalPages}
-                          </span>
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                        >
+                          <div className="text-xs font-normal truncate mr-2">
+                            Showing <span className="font-medium text-foreground">{startCount}</span> to{" "}
+                            <span className="font-medium text-foreground">{endCount}</span> of{" "}
+                            <span className="font-medium text-foreground">{filtered.length}</span> faculties
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Button
+                              type="button"
+                              size="sm"
+                              onPointerDown={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (currentPage > 1) {
+                                  updateState({ facultyPage: currentPage - 1 });
+                                }
+                              }}
+                              disabled={currentPage <= 1}
+                              className="bg-primary hover:bg-primary/90 text-white border-primary h-7 px-2.5 text-xs font-medium rounded-md transition-all shadow-sm shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Previous
+                            </Button>
+
+                            <div className="flex items-center justify-center min-w-[1.5rem]">
+                              <span className={`text-xs font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {currentPage}
+                              </span>
+                            </div>
+
+                            <Button
+                              type="button"
+                              size="sm"
+                              onPointerDown={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (currentPage < totalPages) {
+                                  updateState({ facultyPage: currentPage + 1 });
+                                }
+                              }}
+                              disabled={currentPage >= totalPages}
+                              className="bg-primary hover:bg-primary/90 text-white border-primary h-7 px-2.5 text-xs font-medium rounded-md transition-all shadow-sm shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Next
+                            </Button>
+                          </div>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (state.facultyPage < state.facultyTotalPages) updateState({ facultyPage: state.facultyPage + 1 });
-                          }}
-                          disabled={state.facultyPage === state.facultyTotalPages}
-                          className={`h-8 w-8 p-0 rounded-md transition-all ${theme === 'dark' ? 'hover:bg-primary/20 border-border' : 'hover:bg-primary/10 border-gray-200'}`}>
-                          
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      }
+                      );
+                    })()}
                   </SelectContent>
                 </Select>
                 </label>
