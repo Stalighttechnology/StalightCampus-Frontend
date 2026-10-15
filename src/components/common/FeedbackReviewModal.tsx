@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useTheme } from "@/context/ThemeContext";
+import { useAuth } from "@/context/AuthContext";
 import {
   getFacultyFeedbackReviews,
   getHODFeedbackReviews,
@@ -57,6 +58,7 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
 }) => {
   const { theme } = useTheme();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [cycle, setCycle] = useState<number>(initialCycle);
   const [loading, setLoading] = useState<boolean>(false);
@@ -265,6 +267,13 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
   const averageScore = workflow?.average_score || 0.0;
   const questionAverages = workflow?.question_averages || {};
 
+  const userFullName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : '';
+  const resolvedFacultyName = (workflow?.faculty_name && workflow.faculty_name !== "Not Assigned")
+    ? workflow.faculty_name
+    : (facultyName && facultyName !== "Not Assigned"
+      ? facultyName
+      : (isTeacher && userFullName ? userFullName : (workflow?.faculty_name || "Assigned Faculty")));
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className={`w-[95vw] sm:max-w-4xl max-h-[92vh] flex flex-col p-0 rounded-2xl overflow-hidden ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
@@ -274,8 +283,7 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pr-6">
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-primary">
-                  <Star className="w-6 h-6 fill-current text-yellow-500 shrink-0" />
+                <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">
                   {subjectName}
                 </DialogTitle>
                 {subjectCode && <span className="text-xs px-2 py-0.5 rounded-md bg-muted font-mono">{subjectCode}</span>}
@@ -283,7 +291,7 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                 {getStatusBadge(currentStatus)}
               </div>
               <DialogDescription className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
-                <span>Faculty: <strong>{workflow?.faculty_name || facultyName || "Assigned Faculty"}</strong></span>
+                <span>Faculty: <strong>{resolvedFacultyName}</strong></span>
                 <span>•</span>
                 <span>Role View: <strong className="capitalize">{role}</strong></span>
               </DialogDescription>
@@ -425,8 +433,8 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                         rows={3}
                         className="text-xs sm:text-sm resize-none"
                       />
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2.5">
+                        <span className="text-xs text-muted-foreground order-2 sm:order-1">
                           {facultyRemarksInput.length} characters
                         </span>
                         <Button
@@ -434,10 +442,10 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                           size="sm"
                           disabled={submitting}
                           onClick={handleFacultySubmit}
-                          className="gap-1.5 text-xs font-semibold"
+                          className="w-full sm:w-auto gap-1.5 text-xs font-semibold py-2.5 h-auto order-1 sm:order-2 justify-center"
                         >
-                          <Send className="w-3.5 h-3.5" />
-                          Submit Remarks & Forward to HOD
+                          <Send className="w-3.5 h-3.5 shrink-0" />
+                          <span>Submit Remarks & Forward to HOD</span>
                         </Button>
                       </div>
                     </div>
@@ -475,8 +483,8 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                         rows={3}
                         className="text-xs sm:text-sm resize-none"
                       />
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2.5">
+                        <span className="text-xs text-muted-foreground order-2 sm:order-1">
                           {hodRemarksInput.length} characters
                         </span>
                         <Button
@@ -484,10 +492,10 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                           size="sm"
                           disabled={submitting}
                           onClick={handleHODSubmit}
-                          className="gap-1.5 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white"
+                          className="w-full sm:w-auto gap-1.5 text-xs font-semibold py-2.5 h-auto bg-purple-600 hover:bg-purple-700 text-white order-1 sm:order-2 justify-center"
                         >
-                          <Send className="w-3.5 h-3.5" />
-                          Submit Remarks & Forward to Principal
+                          <Send className="w-3.5 h-3.5 shrink-0" />
+                          <span>Submit Remarks & Forward to Principal</span>
                         </Button>
                       </div>
                     </div>
@@ -529,16 +537,19 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                         rows={2}
                         className="text-xs sm:text-sm resize-none"
                       />
-                      <div className="flex justify-end items-center">
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2.5">
+                        <span className="text-xs text-muted-foreground order-2 sm:order-1">
+                          {principalRemarksInput.length} characters
+                        </span>
                         <Button
                           type="button"
                           size="sm"
                           disabled={submitting}
                           onClick={handlePrincipalAcknowledge}
-                          className="gap-1.5 text-xs font-semibold bg-green-600 hover:bg-green-700 text-white"
+                          className="w-full sm:w-auto gap-1.5 text-xs font-semibold py-2.5 h-auto bg-green-600 hover:bg-green-700 text-white order-1 sm:order-2 justify-center"
                         >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Acknowledge & Complete Review
+                          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                          <span>Acknowledge & Complete Review</span>
                         </Button>
                       </div>
                     </div>

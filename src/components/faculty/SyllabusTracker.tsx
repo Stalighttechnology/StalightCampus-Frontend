@@ -1142,6 +1142,7 @@ const SyllabusTracker = () => {
           subjectCode={selectedSurveySubject.subject_code || selectedSubject?.subject_code || ""}
           sectionId={isElective ? null : sectionId}
           sectionName={isElective ? "All Sections (Elective)" : (sections.find(s => s.id === sectionId)?.name || "All")}
+          facultyName={selectedSurveySubject.faculty_name || (selectedSubject as any)?.faculty_name || ""}
           role="teacher"
           onWorkflowUpdated={() => {
             fetchSyllabus();

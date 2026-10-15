@@ -1023,6 +1023,7 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
             subjectCode={selectedSurveySubject.subject_code || ""}
             sectionId={selectedSurveySubject.section_id || null}
             sectionName={selectedSurveySubject.section_name || "All Sections"}
+            facultyName={selectedSurveySubject.faculty_name || ""}
             role={isPrincipalUser ? "principal" : "hod"}
             onWorkflowUpdated={() => fetchMonitorData(false)}
           />
