@@ -649,7 +649,7 @@ const SyllabusTracker = () => {
                         <Skeleton className="h-4 w-3/4" />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-11 pt-2">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pl-11 pt-2">
                       <div className="space-y-1">
                         <Skeleton className="h-3 w-32" />
                         <Skeleton className="h-10 w-full" />
@@ -753,16 +753,16 @@ const SyllabusTracker = () => {
                       >
                         <div className="flex flex-col gap-3">
                           {/* Top Row: Week Header & Covered Meta + Action Buttons */}
-                          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 pb-2 border-b border-border/40">
-                            <div className="flex items-center gap-3 flex-wrap">
-                              <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 ${
+                          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-3 pb-3 border-b border-border/40">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 mt-0.5 ${
                                 edit.is_completed ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
                               }`}>
                                 {w.week}
                               </span>
-                              <div>
-                                <h4 className="font-semibold text-base flex items-center gap-2 flex-wrap">
-                                  Week {w.week}
+                              <div className="min-w-0 flex-1 space-y-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h4 className="font-semibold text-base">Week {w.week}</h4>
                                   {edit.is_completed && (
                                     <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1 font-semibold">
                                       <CheckCircle className="w-3.5 h-3.5" /> Completed
@@ -773,65 +773,62 @@ const SyllabusTracker = () => {
                                       {completedDaysCount}/{totalDaysCount} Days Logged
                                     </span>
                                   )}
-                                </h4>
-                                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                                  {w.completed_date && (
+                                    <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md border border-border/50 shrink-0">
+                                      Covered: <strong className="font-semibold text-foreground">{formatDateToDDMMYYYY(w.completed_date)}</strong> &bull; By: <strong className="font-semibold text-foreground">{w.faculty_name}</strong>
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs sm:text-sm text-muted-foreground">
                                   <strong>Expected Plan:</strong> {w.expected_topics || <span className="italic opacity-60">Not planned by HOD yet</span>}
                                 </p>
                               </div>
                             </div>
 
-                            {/* Right-aligned Meta and Action Buttons Bar */}
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 w-full lg:w-auto self-stretch lg:self-auto justify-between lg:justify-end">
-                              {w.completed_date && (
-                                <div className="text-xs text-muted-foreground bg-muted/40 px-2.5 py-1 rounded-md border border-border/50 shrink-0">
-                                  Covered: <span className="font-semibold text-foreground">{formatDateToDDMMYYYY(w.completed_date)}</span> &bull; By: <span className="font-semibold text-foreground">{w.faculty_name}</span>
-                                </div>
-                              )}
-                              
-                              <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-xs font-medium h-8 border border-input text-foreground hover:bg-accent flex-1 sm:flex-none flex items-center justify-center gap-1.5"
-                                  onClick={() => toggleWeekExpanded(w.week)}
-                                >
-                                  <Calendar className="w-3.5 h-3.5 text-primary" />
-                                  <span>{isExpanded ? "Hide Day Breakdown" : "Day Breakdown"}</span>
-                                  {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                                </Button>
+                            {/* Action Buttons Bar */}
+                            <div className="flex items-center gap-2 flex-wrap w-full xl:w-auto justify-start xl:justify-end shrink-0 pt-1 xl:pt-0">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-xs font-medium h-8 border border-input text-foreground hover:bg-accent flex items-center justify-center gap-1.5 shrink-0"
+                                onClick={() => toggleWeekExpanded(w.week)}
+                              >
+                                <Calendar className="w-3.5 h-3.5 text-primary" />
+                                <span>{isExpanded ? "Hide Day Breakdown" : "Day Breakdown"}</span>
+                                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                              </Button>
 
-                                <Button
-                                  size="sm"
-                                  variant={w.is_completed ? "outline" : "outline"}
-                                  className={`text-xs font-semibold h-8 flex-1 sm:flex-none transition-all active:scale-95 ${
-                                    w.is_completed
-                                      ? 'text-rose-600 border-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800'
-                                      : 'text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800'
-                                  }`}
-                                  onClick={() => handleToggleCompletion(w.week, w.is_completed)}
-                                >
-                                  {w.is_completed ? "Mark as Incomplete" : "Mark as Completed"}
-                                </Button>
+                              <Button
+                                size="sm"
+                                variant={w.is_completed ? "outline" : "outline"}
+                                className={`text-xs font-semibold h-8 shrink-0 transition-all active:scale-95 ${
+                                  w.is_completed
+                                    ? 'text-rose-600 border-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800'
+                                    : 'text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800'
+                                }`}
+                                onClick={() => handleToggleCompletion(w.week, w.is_completed)}
+                              >
+                                {w.is_completed ? "Mark as Incomplete" : "Mark as Completed"}
+                              </Button>
 
-                                <Button
-                                  size="sm"
-                                  className="text-xs h-8 px-3 font-semibold flex-1 sm:flex-none transition-all active:scale-95"
-                                  onClick={() => handleSaveProgress(w.week, w.is_completed)}
-                                  disabled={savingProgress === w.week}
-                                >
-                                  {savingProgress === w.week ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-                                  ) : (
-                                    <Save className="w-3.5 h-3.5 mr-1.5" />
-                                  )}
-                                  Save
-                                </Button>
-                              </div>
+                              <Button
+                                size="sm"
+                                className="text-xs h-8 px-3.5 font-semibold shrink-0 transition-all active:scale-95"
+                                onClick={() => handleSaveProgress(w.week, w.is_completed)}
+                                disabled={savingProgress === w.week}
+                              >
+                                {savingProgress === w.week ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                                ) : (
+                                  <Save className="w-3.5 h-3.5 mr-1.5" />
+                                )}
+                                Save
+                              </Button>
                             </div>
                           </div>
 
                           {/* Accordion Inputs for Progress Tracking */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-1">
                             <div className="space-y-1">
                               <label className="text-xs font-semibold opacity-70">Actual Topics Covered (Week Summary)</label>
                               <Input
@@ -863,12 +860,12 @@ const SyllabusTracker = () => {
 
                         {/* Expandable Day-Wise Teaching Log Section */}
                         {isExpanded && (
-                          <div className="mt-2 pt-4 border-t border-dashed space-y-3 bg-muted/20 p-4 rounded-xl">
+                          <div className="mt-2 pt-4 border-t border-dashed space-y-3 bg-muted/20 p-3.5 sm:p-4 rounded-xl">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                              <div>
-                                <h5 className="text-sm font-semibold flex items-center gap-1.5">
-                                  <Calendar className="w-4 h-4 text-primary" />
-                                  Day-Wise Lecture & Progress Log
+                              <div className="min-w-0 flex-1">
+                                <h5 className="text-sm font-semibold flex items-center gap-1.5 flex-wrap">
+                                  <Calendar className="w-4 h-4 text-primary shrink-0" />
+                                  <span>Day-Wise Lecture & Progress Log</span>
                                 </h5>
                                 <p className="text-xs text-muted-foreground mt-0.5">
                                   Track daily lectures, topics covered on specific dates, and verify syllabus completion day by day.
@@ -877,7 +874,7 @@ const SyllabusTracker = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="w-full sm:w-auto h-8 text-xs gap-1.5 shadow-xs bg-background hover:bg-muted justify-center"
+                                className="w-full sm:w-auto h-8 text-xs gap-1.5 shadow-xs bg-background hover:bg-muted justify-center shrink-0"
                                 onClick={() => {
                                   const currentLogs = [...dailyLogs];
                                   const today = new Date();
@@ -915,7 +912,7 @@ const SyllabusTracker = () => {
                             {plannedDays.length > 0 && dailyLogs.length === 0 && (
                               <div className="space-y-2">
                                 <p className="text-xs font-semibold text-primary">Department Master Plan for Week {w.week}:</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                                   {plannedDays.map((pd: any) => {
                                     const opt = DAY_OPTIONS.find(o => o.value === pd.day);
                                     const dayTitle = pd.day_name || opt?.label || `Day ${pd.day}`;
@@ -970,13 +967,13 @@ const SyllabusTracker = () => {
                                   return (
                                     <div
                                       key={idx}
-                                      className={`p-3.5 rounded-xl border flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between transition-all ${
+                                      className={`p-3 sm:p-3.5 rounded-xl border flex flex-col gap-2.5 transition-all ${
                                         log.is_completed ? "bg-emerald-500/5 border-emerald-500/30" : "bg-card border-border shadow-sm"
                                       }`}
                                     >
-                                      {/* Top Row on mobile / Left column on desktop: Completion Checkbox & Day Name Select */}
-                                      <div className="flex items-center justify-between lg:justify-start gap-2.5 shrink-0">
-                                        <div className="flex items-center gap-2">
+                                      {/* Top Row: Completion Checkbox & Day Name & Status on left, Delete on right */}
+                                      <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2 min-w-0 flex-wrap">
                                           <input
                                             type="checkbox"
                                             checked={!!log.is_completed}
@@ -988,25 +985,33 @@ const SyllabusTracker = () => {
                                                 [w.week]: { ...edit, daily_logs: updated }
                                               });
                                             }}
-                                            className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer accent-primary"
+                                            className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer accent-primary shrink-0"
                                           />
-                                          <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-muted/70 text-foreground border border-border/70 min-w-22 text-center shrink-0">
+                                          <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-muted/70 text-foreground border border-border/70 text-center shrink-0">
                                             {log.day_name || (log.date ? getDayInfoFromDate(parseDateString(log.date))?.day_name : `Day ${idx + 1}`)}
+                                          </span>
+                                          <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full shrink-0 ${
+                                            log.is_completed ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"
+                                          }`}>
+                                            {log.is_completed ? "Completed" : "Pending"}
                                           </span>
                                         </div>
 
-                                        {/* Status Badge */}
-                                        <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full lg:hidden ${
-                                          log.is_completed ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"
-                                        }`}>
-                                          {log.is_completed ? "Completed" : "Pending"}
-                                        </span>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                                          title="Delete day log"
+                                          onClick={() => handleDeleteDayLog(w.week, idx)}
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </Button>
                                       </div>
 
-                                      {/* Topic Taught & Date Picker using Shadcn Popover + Calendar */}
-                                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2.5 w-full">
+                                      {/* Middle & Bottom Rows: Mobile stacks Input / Date+Save, Tablet/Desktop flows in row */}
+                                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
                                         {/* Topic Input */}
-                                        <div className="sm:col-span-8 space-y-1">
+                                        <div className="flex-1 min-w-0">
                                           <Input
                                             className="h-8 text-xs bg-background"
                                             placeholder={plannedForDay ? `Planned: ${plannedForDay.topic}` : "Topic taught on this day..."}
@@ -1022,80 +1027,70 @@ const SyllabusTracker = () => {
                                           />
                                         </div>
 
-                                        {/* Shadcn Popover & Calendar Date Picker */}
-                                        <div className="sm:col-span-4 space-y-1">
-                                          <Popover>
-                                            <PopoverTrigger asChild>
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className={`h-8 w-full justify-start text-left font-normal text-xs bg-background ${
-                                                  !log.date ? "text-muted-foreground" : "text-foreground font-medium"
-                                                }`}
-                                              >
-                                                <Calendar className="mr-2 h-3.5 w-3.5 text-primary shrink-0" />
-                                                {log.date ? formatDateToDDMMYYYY(log.date) : <span>Select Date</span>}
-                                              </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0 z-50" align="start">
-                                              <CalendarComponent
-                                                mode="single"
-                                                selected={logDate}
-                                                onSelect={(selectedDate) => {
-                                                  if (selectedDate) {
-                                                    const year = selectedDate.getFullYear();
-                                                    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-                                                    const day = String(selectedDate.getDate()).padStart(2, '0');
-                                                    const dateStr = `${year}-${month}-${day}`;
-                                                    const dayInfo = getDayInfoFromDate(selectedDate);
-                                                    const matchedPlan = plannedDays.find((pd: any) => pd.day === dayInfo.day);
+                                        {/* Date Picker + Save Action Button: side-by-side on mobile, inline on desktop */}
+                                        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                                          <div className="flex-1 sm:w-40 sm:flex-none">
+                                            <Popover>
+                                              <PopoverTrigger asChild>
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  className={`h-8 w-full justify-start text-left font-normal text-xs bg-background truncate ${
+                                                    !log.date ? "text-muted-foreground" : "text-foreground font-medium"
+                                                  }`}
+                                                >
+                                                  <Calendar className="mr-1.5 h-3.5 w-3.5 text-primary shrink-0" />
+                                                  <span className="truncate">{log.date ? formatDateToDDMMYYYY(log.date) : "Select Date"}</span>
+                                                </Button>
+                                              </PopoverTrigger>
+                                              <PopoverContent className="w-auto p-0 z-50" align="start">
+                                                <CalendarComponent
+                                                  mode="single"
+                                                  selected={logDate}
+                                                  onSelect={(selectedDate) => {
+                                                    if (selectedDate) {
+                                                      const year = selectedDate.getFullYear();
+                                                      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                                                      const day = String(selectedDate.getDate()).padStart(2, '0');
+                                                      const dateStr = `${year}-${month}-${day}`;
+                                                      const dayInfo = getDayInfoFromDate(selectedDate);
+                                                      const matchedPlan = plannedDays.find((pd: any) => pd.day === dayInfo.day);
 
-                                                    const updated = [...dailyLogs];
-                                                    updated[idx] = {
-                                                      ...log,
-                                                      date: dateStr,
-                                                      day: dayInfo.day,
-                                                      day_name: dayInfo.day_name,
-                                                      topic_covered: log.topic_covered || (matchedPlan ? matchedPlan.topic : "")
-                                                    };
-                                                    setProgressEdits({
-                                                      ...progressEdits,
-                                                      [w.week]: { ...edit, daily_logs: sortDailyLogs(updated) }
-                                                    });
-                                                  }
-                                                }}
-                                                initialFocus
-                                              />
-                                            </PopoverContent>
-                                          </Popover>
+                                                      const updated = [...dailyLogs];
+                                                      updated[idx] = {
+                                                        ...log,
+                                                        date: dateStr,
+                                                        day: dayInfo.day,
+                                                        day_name: dayInfo.day_name,
+                                                        topic_covered: log.topic_covered || (matchedPlan ? matchedPlan.topic : "")
+                                                      };
+                                                      setProgressEdits({
+                                                        ...progressEdits,
+                                                        [w.week]: { ...edit, daily_logs: sortDailyLogs(updated) }
+                                                      });
+                                                    }
+                                                  }}
+                                                  initialFocus
+                                                />
+                                              </PopoverContent>
+                                            </Popover>
+                                          </div>
+
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-8 px-3 text-xs font-semibold text-primary border-primary/30 hover:bg-primary/10 gap-1.5 shadow-2xs shrink-0"
+                                            onClick={() => handleSaveDayProgress(w.week, idx)}
+                                            disabled={isSavingThisDay}
+                                          >
+                                            {isSavingThisDay ? (
+                                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : (
+                                              <Save className="w-3.5 h-3.5" />
+                                            )}
+                                            <span>Save Day</span>
+                                          </Button>
                                         </div>
-                                      </div>
-
-                                      {/* Individual Day Save Action & Delete buttons */}
-                                      <div className="flex items-center justify-end gap-2 shrink-0 pt-1 lg:pt-0">
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          className="h-8 px-3 text-xs font-semibold text-primary border-primary/30 hover:bg-primary/10 gap-1.5 shadow-2xs"
-                                          onClick={() => handleSaveDayProgress(w.week, idx)}
-                                          disabled={isSavingThisDay}
-                                        >
-                                          {isSavingThisDay ? (
-                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                          ) : (
-                                            <Save className="w-3.5 h-3.5" />
-                                          )}
-                                          <span>Save Day</span>
-                                        </Button>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                                          title="Delete day log"
-                                          onClick={() => handleDeleteDayLog(w.week, idx)}
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </Button>
                                       </div>
                                     </div>
                                   );
