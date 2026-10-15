@@ -2724,6 +2724,7 @@ export interface SemesterSyllabusMonitorResponse {
     subject_name: string;
     subject_code: string;
     subject_type: string;
+    faculty_name?: string;
     total_weeks: number;
     avg_progress: number;
     sections_progress: {
@@ -2990,18 +2991,161 @@ export const getStudentCourseExitSurveys = async () => {
   }
 };
 
-export const submitCourseExitSurvey = async (subjectId: string, ratings: { [key: string]: number }) => {
+export const submitCourseExitSurvey = async (subjectId: string, ratings: { [key: string]: number }, feedbackCycle?: number) => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/course-exit-surveys/submit/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ subject_id: subjectId, ratings })
+      body: JSON.stringify({ subject_id: subjectId, ratings, feedback_cycle: feedbackCycle })
     });
     return await response.json();
   } catch (error) {
     return { success: false, message: 'Network error submitting course exit survey' };
+  }
+};
+
+// ==========================================
+// Multi-Tier Student Feedback & Review APIs
+// ==========================================
+
+export const getFacultyFeedbackReviews = async (
+  cycle: number = 1,
+  subjectId?: number | string | null,
+  sectionId?: number | string | null
+) => {
+  try {
+    let url = `${API_ENDPOINT}/faculty/feedback-reviews/?cycle=${cycle}`;
+    if (subjectId !== undefined && subjectId !== null && subjectId !== '') {
+      url += `&subject_id=${subjectId}`;
+    }
+    if (sectionId !== undefined && sectionId !== null && sectionId !== '') {
+      url += `&section_id=${sectionId}`;
+    }
+    const response = await fetchWithTokenRefresh(url, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error loading faculty feedback reviews' };
+  }
+};
+
+export const submitFacultyFeedbackRemarks = async (workflowId: number, remarks: string) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/feedback-reviews/${workflowId}/submit-remarks/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ remarks })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error submitting faculty remarks' };
+  }
+};
+
+export const getHODFeedbackReviews = async (
+  cycle: number = 1,
+  subjectId?: number | string | null,
+  sectionId?: number | string | null
+) => {
+  try {
+    let url = `${API_ENDPOINT}/hod/feedback-reviews/?cycle=${cycle}`;
+    if (subjectId !== undefined && subjectId !== null && subjectId !== '') {
+      url += `&subject_id=${subjectId}`;
+    }
+    if (sectionId !== undefined && sectionId !== null && sectionId !== '') {
+      url += `&section_id=${sectionId}`;
+    }
+    const response = await fetchWithTokenRefresh(url, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error loading HOD feedback reviews' };
+  }
+};
+
+export const submitHODFeedbackRemarks = async (workflowId: number, remarks: string) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/feedback-reviews/${workflowId}/submit-remarks/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ remarks })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error submitting HOD remarks' };
+  }
+};
+
+export const setActiveFeedbackCycle = async (
+  subjectIdOrData: number | string | { subject_ids?: (number | string)[]; cycle: number; active?: boolean },
+  cycle?: number,
+  active?: boolean
+) => {
+  try {
+    let payload: any;
+    if (typeof subjectIdOrData === 'object' && subjectIdOrData !== null) {
+      payload = subjectIdOrData;
+    } else {
+      payload = {
+        subject_id: subjectIdOrData,
+        cycle: cycle || 1,
+        ...(active !== undefined ? { active } : {})
+      };
+    }
+
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/feedback-cycles/toggle/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error updating feedback cycle' };
+  }
+};
+
+export const getPrincipalFeedbackOverview = async (params: {
+  cycle?: number;
+  branch_id?: number | string;
+  status?: string;
+  subject_id?: number | string | null;
+  section_id?: number | string | null;
+} = {}) => {
+  try {
+    const query = new URLSearchParams();
+    if (params.cycle) query.append('cycle', params.cycle.toString());
+    if (params.branch_id) query.append('branch_id', params.branch_id.toString());
+    if (params.status) query.append('status', params.status);
+    if (params.subject_id !== undefined && params.subject_id !== null && params.subject_id !== '') {
+      query.append('subject_id', params.subject_id.toString());
+    }
+    if (params.section_id !== undefined && params.section_id !== null && params.section_id !== '') {
+      query.append('section_id', params.section_id.toString());
+    }
+
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/principal/feedback-overview/?${query.toString()}`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error loading principal feedback overview' };
+  }
+};
+
+export const acknowledgePrincipalFeedback = async (workflowId: number, remarks: string = '') => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/principal/feedback-reviews/${workflowId}/acknowledge/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ remarks })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error acknowledging feedback' };
   }
 };
 

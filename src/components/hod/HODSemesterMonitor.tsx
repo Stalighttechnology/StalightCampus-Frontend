@@ -27,8 +27,10 @@ import {
   exportSemesterSyllabusMonitorPdf,
   exportSyllabusPdf,
   exportSubjectSyllabusMonitorPdf,
-  toggleCourseExitSurvey
+  toggleCourseExitSurvey,
+  setActiveFeedbackCycle
 } from "@/utils/faculty_api";
+import { FeedbackReviewModal } from "@/components/common/FeedbackReviewModal";
 import { BookOpen, BarChart3, Users, Clock, AlertCircle, Eye, FileDown, Loader2, Star, Calendar, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
 import {
   Dialog,
@@ -41,16 +43,16 @@ import {
 import { Skeleton } from "../ui/skeleton";
 
 const SURVEY_QUESTIONS = [
-  { id: "Q1", text: "How clearly were the Course Outcomes (COs) and course syllabus communicated to you at the start of the semester?" },
-  { id: "Q2", text: "To what extent did the course delivery cover the entire prescribed syllabus in a structured and timely manner?" },
-  { id: "Q3", text: "How would you rate the instructor's effectiveness in explaining complex concepts and ensuring conceptual clarity?" },
-  { id: "Q4", text: "How effectively did the instructor encourage interactive discussion, critical questioning, and classroom engagement?" },
-  { id: "Q5", text: "Rate the relevance, quality, and accessibility of the study materials, references, and digital resources provided." },
-  { id: "Q6", text: "How well did the internal assessments (IA tests, assignments) evaluate your actual understanding of the course?" },
-  { id: "Q7", text: "How effectively did laboratory sessions, projects, or case studies assist in applying theoretical concepts to practical scenarios?" },
-  { id: "Q8", text: "To what extent is the course content relevant to contemporary industry trends, placement preparation, and future applications?" },
-  { id: "Q9", text: "How effectively did this course enhance your engineering problem-solving, analytical thinking, and design capabilities?" },
-  { id: "Q10", text: "Overall, rate the learning value, academic growth, and professional benefit you gained from this course." },
+  { id: "Q1", text: "The faculty explains concepts clearly and effectively." },
+  { id: "Q2", text: "The course content is delivered at an appropriate pace." },
+  { id: "Q3", text: "The faculty engages students and encourages class participation." },
+  { id: "Q4", text: "The teaching methods (lectures, presentations, examples) are effective." },
+  { id: "Q5", text: "The faculty is approachable for doubts and clarifications." },
+  { id: "Q6", text: "The course materials provided (notes, slides, resources) are helpful for understanding." },
+  { id: "Q7", text: "The assessment methods (tests, quizzes, assignments) are fair and appropriate." },
+  { id: "Q8", text: "The faculty integrates real-world examples or practical applications." },
+  { id: "Q9", text: "I am able to understand the subject and apply the concepts learned." },
+  { id: "Q10", text: "Overall, I am satisfied with the faculty's teaching and course delivery." },
 ];
 
 interface HODSemesterMonitorProps {
@@ -222,29 +224,30 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
     }
   };
 
-  const handleToggleSurvey = async (subj: any) => {
+  const handleToggleSurvey = async (subj: any, cycle?: number) => {
     setTogglingSubjectId(subj.subject_id);
     const targetStatus = !subj.course_exit_survey_active;
+    const targetCycle = cycle || subj.active_feedback_cycle || 1;
     try {
-      const res = await toggleCourseExitSurvey(subj.subject_id.toString(), targetStatus);
+      const res = await toggleCourseExitSurvey(subj.subject_id.toString(), targetStatus, targetCycle);
       if (res.success) {
         toast({
           title: "Success",
-          description: `Course Exit Survey is now ${targetStatus ? 'Active' : 'Inactive'} for ${subj.subject_name}`
+          description: `Faculty Feedback (Cycle ${targetCycle}) is now ${targetStatus ? 'Active' : 'Inactive'} for ${subj.subject_name}`
         });
         // Refresh local data state
         setMonitorData(prev => {
           if (!prev) return null;
           return {
             ...prev,
-            subjects: prev.subjects.map(s => s.subject_id === subj.subject_id ? { ...s, course_exit_survey_active: targetStatus } : s)
+            subjects: prev.subjects.map(s => s.subject_id === subj.subject_id ? { ...s, course_exit_survey_active: targetStatus, active_feedback_cycle: targetCycle } : s)
           };
         });
       } else {
         toast({
           variant: "destructive",
           title: "Error",
-          description: res.message || "Failed to update Course Exit Survey status"
+          description: res.message || "Failed to update Faculty Feedback status"
         });
       }
     } catch {
@@ -255,6 +258,37 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
       });
     } finally {
       setTogglingSubjectId(null);
+    }
+  };
+
+  const handleCycleChange = async (subj: any, newCycle: number) => {
+    try {
+      const res = await setActiveFeedbackCycle(subj.subject_id, newCycle);
+      if (res.success) {
+        toast({
+          title: "Feedback Cycle Updated",
+          description: `Active cycle set to Feedback ${newCycle} for ${subj.subject_name}`
+        });
+        setMonitorData(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            subjects: prev.subjects.map(s => s.subject_id === subj.subject_id ? { ...s, active_feedback_cycle: newCycle } : s)
+          };
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: res.message || "Failed to switch active feedback cycle"
+        });
+      }
+    } catch {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to switch active feedback cycle"
+      });
     }
   };
 
@@ -687,9 +721,14 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
                               {subj.subject_code}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground capitalize mt-1.5">
-                            Type: {subj.subject_type.replace('_', ' ')}
-                          </p>
+                          <div className="flex items-center gap-2 flex-wrap mt-1.5 text-xs text-muted-foreground">
+                            <span className="capitalize">Type: {subj.subject_type.replace('_', ' ')}</span>
+                            <span>•</span>
+                            <div className="flex items-center gap-1 font-medium text-foreground">
+                              <Users className="w-3.5 h-3.5 text-primary shrink-0" />
+                              <span>Faculty: {subj.faculty_name || "Not Assigned"}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </CardHeader>
@@ -708,42 +747,65 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
                         </div>
                       </div>
                       
-                      <div className="flex items-center justify-between border-t pt-3">
-                        <span className="text-sm font-medium">Course Exit Survey</span>
-                        <Button
-                          variant={subj.course_exit_survey_active ? "default" : "outline"}
-                          size="sm"
-                          disabled={togglingSubjectId === subj.subject_id}
-                          onClick={() => handleToggleSurvey(subj)}
-                          className={subj.course_exit_survey_active ? "bg-green-600 hover:bg-green-700 text-white border-transparent h-8" : "h-8"}
-                        >
-                          {togglingSubjectId === subj.subject_id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : subj.course_exit_survey_active ? (
-                            "Active (On)"
-                          ) : (
-                            "Inactive (Off)"
+                      <div className="flex flex-col gap-2 border-t pt-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-medium">Faculty Feedback</span>
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                              Cycle {subj.active_feedback_cycle || 1}
+                            </span>
+                          </div>
+                          {!isPrincipalUser && (
+                            <div className="flex items-center gap-1.5">
+                              <Select
+                                value={String(subj.active_feedback_cycle || 1)}
+                                onValueChange={(val) => handleCycleChange(subj, parseInt(val))}
+                              >
+                                <SelectTrigger className="h-7 w-28 text-xs px-2">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="1" className="text-xs">Feedback 1</SelectItem>
+                                  <SelectItem value="2" className="text-xs">Feedback 2</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                variant={subj.course_exit_survey_active ? "default" : "outline"}
+                                size="sm"
+                                disabled={togglingSubjectId === subj.subject_id}
+                                onClick={() => handleToggleSurvey(subj)}
+                                className={subj.course_exit_survey_active ? "bg-green-600 hover:bg-green-700 text-white border-transparent h-7 text-xs px-2.5" : "h-7 text-xs px-2.5"}
+                              >
+                                {togglingSubjectId === subj.subject_id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : subj.course_exit_survey_active ? (
+                                  "Active"
+                                ) : (
+                                  "Inactive"
+                                )}
+                              </Button>
+                            </div>
                           )}
-                        </Button>
+                        </div>
                       </div>
 
-                      {subj.survey_stats && subj.survey_stats.total_responses > 0 && (
-                        <div className="flex items-center justify-between border-t pt-3">
-                          <div className="flex flex-col text-left">
-                            <span className="text-sm font-medium">Exit Survey Rating</span>
-                            <span className="text-xs text-muted-foreground">{subj.survey_stats.total_responses} responses</span>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 gap-1 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/20"
-                            onClick={() => setSelectedSurveySubject(subj)}
-                          >
-                            <Star className="w-4 h-4 fill-current text-yellow-500" />
-                            <span>{subj.survey_stats.average_rating} / 5</span>
-                          </Button>
+                      <div className="flex items-center justify-between border-t pt-3">
+                        <div className="flex flex-col text-left">
+                          <span className="text-sm font-medium">Feedback Reviews & Remarks</span>
+                          <span className="text-xs text-muted-foreground">
+                            {subj.survey_stats?.total_responses ? `${subj.survey_stats.total_responses} student responses` : "Review multi-tier remarks"}
+                          </span>
                         </div>
-                      )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 gap-1.5 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/20 font-medium"
+                          onClick={() => setSelectedSurveySubject(subj)}
+                        >
+                          <Star className="w-3.5 h-3.5 fill-current text-yellow-500" />
+                          <span>{isPrincipalUser ? "Principal Review" : "HOD Review"}</span>
+                        </Button>
+                      </div>
 
                       <div className="pt-2 flex justify-end gap-2">
                         <Button 
@@ -951,63 +1013,19 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
             </DialogContent>
           </Dialog>
 
-        {/* Survey Analytics Dialog */}
-        {selectedSurveySubject && selectedSurveySubject.survey_stats && (
-          <Dialog open={!!selectedSurveySubject} onOpenChange={(open) => { if (!open) setSelectedSurveySubject(null); }}>
-            <DialogContent className={`w-[90%] max-h-[80vh] sm:w-[95vw] sm:max-w-3xl overflow-y-auto sm:max-h-[90vh] p-4 sm:p-6 rounded-2xl ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
-              <DialogHeader className="border-b pb-4 pr-6">
-                <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
-                  <Star className="w-5 h-5 fill-current text-yellow-500" />
-                  Course Exit Survey Analytics
-                </DialogTitle>
-                <DialogDescription className="text-sm">
-                  Detailed ratings breakdown for <strong>{selectedSurveySubject.subject_name}</strong> ({selectedSurveySubject.subject_code}) based on {selectedSurveySubject.survey_stats.total_responses} student responses.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4 pt-4 overflow-y-auto max-h-[60vh] pr-1">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/20 mb-2">
-                  <span className="font-semibold text-sm">Overall Average Rating</span>
-                  <div className="flex items-center gap-1.5 font-bold text-lg text-yellow-600 dark:text-yellow-400">
-                    <Star className="w-5 h-5 fill-current" />
-                    {selectedSurveySubject.survey_stats.average_rating} / 5.0
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {SURVEY_QUESTIONS.map((q, idx) => {
-                    const rating = selectedSurveySubject.survey_stats.question_averages[q.id] || 0.0;
-                    const percentage = (rating / 5) * 100;
-                    return (
-                      <div key={q.id} className={`p-4 rounded-xl border space-y-2.5 transition-all duration-300 ${theme === 'dark' ? 'bg-muted/5 border-border' : 'bg-gray-50/30 border-gray-100'}`}>
-                        <div className="flex justify-between items-start gap-4">
-                          <div className="space-y-0.5 text-left">
-                            <span className="text-xs font-semibold text-primary uppercase">Question {idx + 1}</span>
-                            <p className="text-sm font-medium leading-relaxed">{q.text}</p>
-                          </div>
-                          <span className="text-sm font-bold shrink-0 text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
-                            <Star className="w-3.5 h-3.5 fill-current" />
-                            {rating.toFixed(2)}
-                          </span>
-                        </div>
-                        {/* Rating Progress Visualizer */}
-                        <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden relative">
-                          <div
-                            className="h-full rounded-full bg-yellow-500 transition-all duration-500"
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <DialogFooter className="border-t pt-4">
-                <Button onClick={() => setSelectedSurveySubject(null)}>Close</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+        {/* Feedback Workflow Review Modal */}
+        {selectedSurveySubject && (
+          <FeedbackReviewModal
+            isOpen={!!selectedSurveySubject}
+            onClose={() => setSelectedSurveySubject(null)}
+            subjectId={selectedSurveySubject.subject_id}
+            subjectName={selectedSurveySubject.subject_name}
+            subjectCode={selectedSurveySubject.subject_code || ""}
+            sectionId={selectedSurveySubject.section_id || null}
+            sectionName={selectedSurveySubject.section_name || "All Sections"}
+            role={isPrincipalUser ? "principal" : "hod"}
+            onWorkflowUpdated={() => fetchMonitorData(false)}
+          />
         )}
 
         {/* Dedicated Section Teaching Progress Modal Dialog */}

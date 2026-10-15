@@ -18,20 +18,21 @@ interface SurveySubject {
   subject_code: string;
   subject_type: string;
   semester: number | null;
+  feedback_cycle?: number;
   is_submitted: boolean;
 }
 
 const QUESTIONS = [
-  { id: "Q1", text: "How clearly were the Course Outcomes (COs) and course syllabus communicated to you at the start of the semester?" },
-  { id: "Q2", text: "To what extent did the course delivery cover the entire prescribed syllabus in a structured and timely manner?" },
-  { id: "Q3", text: "How would you rate the instructor's effectiveness in explaining complex concepts and ensuring conceptual clarity?" },
-  { id: "Q4", text: "How effectively did the instructor encourage interactive discussion, critical questioning, and classroom engagement?" },
-  { id: "Q5", text: "Rate the relevance, quality, and accessibility of the study materials, references, and digital resources provided." },
-  { id: "Q6", text: "How well did the internal assessments (IA tests, assignments) evaluate your actual understanding of the course?" },
-  { id: "Q7", text: "How effectively did laboratory sessions, projects, or case studies assist in applying theoretical concepts to practical scenarios?" },
-  { id: "Q8", text: "To what extent is the course content relevant to contemporary industry trends, placement preparation, and future applications?" },
-  { id: "Q9", text: "How effectively did this course enhance your engineering problem-solving, analytical thinking, and design capabilities?" },
-  { id: "Q10", text: "Overall, rate the learning value, academic growth, and professional benefit you gained from this course." },
+  { id: "Q1", text: "The faculty explains concepts clearly and effectively." },
+  { id: "Q2", text: "The course content is delivered at an appropriate pace." },
+  { id: "Q3", text: "The faculty engages students and encourages class participation." },
+  { id: "Q4", text: "The teaching methods (lectures, presentations, examples) are effective." },
+  { id: "Q5", text: "The faculty is approachable for doubts and clarifications." },
+  { id: "Q6", text: "The course materials provided (notes, slides, resources) are helpful for understanding." },
+  { id: "Q7", text: "The assessment methods (tests, quizzes, assignments) are fair and appropriate." },
+  { id: "Q8", text: "The faculty integrates real-world examples or practical applications." },
+  { id: "Q9", text: "I am able to understand the subject and apply the concepts learned." },
+  { id: "Q10", text: "Overall, I am satisfied with the faculty's teaching and course delivery." },
 ];
 
 export const StudentCourseExitSurveys = ({ isOpen, onClose, onRefreshCount }: { isOpen: boolean; onClose: () => void; onRefreshCount?: () => void }) => {
@@ -94,11 +95,15 @@ export const StudentCourseExitSurveys = ({ isOpen, onClose, onRefreshCount }: { 
 
     setSubmitting(true);
     try {
-      const res = await submitCourseExitSurvey(selectedSubject.subject_id.toString(), ratings);
+      const res = await submitCourseExitSurvey(
+        selectedSubject.subject_id.toString(),
+        ratings,
+        selectedSubject.feedback_cycle || 1
+      );
       if (res.success) {
         toast({
           title: "Feedback Submitted",
-          description: `Thank you for completing the exit survey for ${selectedSubject.subject_name}!`
+          description: `Thank you for completing Feedback ${selectedSubject.feedback_cycle || 1} for ${selectedSubject.subject_name}!`
         });
         setSelectedSubject(null);
         fetchSurveys();
@@ -121,7 +126,10 @@ export const StudentCourseExitSurveys = ({ isOpen, onClose, onRefreshCount }: { 
     }
   };
 
+  const [surveyTab, setSurveyTab] = useState<'pending' | 'completed'>('pending');
+
   const activeSurveys = surveys.filter(s => !s.is_submitted);
+  const completedSurveys = surveys.filter(s => s.is_submitted);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
@@ -129,52 +137,115 @@ export const StudentCourseExitSurveys = ({ isOpen, onClose, onRefreshCount }: { 
         <DialogHeader className="border-b pb-4 pr-6">
           <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-primary shrink-0" />
-            Course Exit Surveys
+            Student Faculty Feedback
           </DialogTitle>
         </DialogHeader>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-10 space-y-3">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-muted-foreground">Loading active surveys...</p>
+            <p className="text-sm text-muted-foreground">Loading feedback forms...</p>
           </div>
         ) : !selectedSubject ? (
           <div className="space-y-4 pt-4">
             <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 text-blue-800 dark:text-blue-200 text-sm flex items-center gap-2 mb-2">
               <AlertCircle className="w-5 h-5 text-blue-500 shrink-0" />
-              <span>Please complete exit surveys for your registered courses. Your anonymous feedback helps us maintain high educational standards.</span>
+              <span>Please share your constructive feedback for your registered courses. Your anonymous input helps faculty and department improve instructional delivery.</span>
             </div>
 
-            {activeSurveys.length === 0 ? (
-              <div className="text-center py-8 space-y-2">
-                <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
-                <h3 className="font-semibold text-lg">No Pending Surveys</h3>
-                <p className="text-sm text-muted-foreground">You are up to date! All active course exit surveys have been submitted.</p>
-              </div>
-            ) : (
-              <div className="max-h-[50vh] overflow-y-auto pr-1">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {activeSurveys.map((subj) => (
-                    <Card key={subj.subject_id} className={`hover:border-primary/50 cursor-pointer transition-all duration-300 ${theme === 'dark' ? 'bg-muted/10 border-border' : 'bg-gray-50/50 border-gray-100'}`} onClick={() => handleSelectSubject(subj)}>
-                      <CardHeader className="pb-3 flex flex-row justify-between items-start">
-                        <div className="space-y-1">
-                          <CardTitle className="text-base font-semibold">{subj.subject_name}</CardTitle>
-                          <CardDescription className="text-xs">{subj.subject_code} | Sem {subj.semester}</CardDescription>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
-                      </CardHeader>
-                    </Card>
-                  ))}
+            {/* Tab Navigation: Pending vs Submitted */}
+            <div className="flex items-center gap-2 border-b pb-2">
+              <Button
+                variant={surveyTab === 'pending' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSurveyTab('pending')}
+                className="h-8 text-xs font-semibold"
+              >
+                Pending Forms ({activeSurveys.length})
+              </Button>
+              <Button
+                variant={surveyTab === 'completed' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSurveyTab('completed')}
+                className="h-8 text-xs font-semibold gap-1.5"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                Submitted ({completedSurveys.length})
+              </Button>
+            </div>
+
+            {surveyTab === 'pending' ? (
+              activeSurveys.length === 0 ? (
+                <div className="text-center py-8 space-y-2">
+                  <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
+                  <h3 className="font-semibold text-lg">No Pending Feedback Forms</h3>
+                  <p className="text-sm text-muted-foreground">You are all caught up! All active feedback surveys have been submitted.</p>
                 </div>
-              </div>
+              ) : (
+                <div className="max-h-[50vh] overflow-y-auto pr-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {activeSurveys.map((subj) => (
+                      <Card key={`${subj.subject_id}-${subj.feedback_cycle || 1}`} className={`hover:border-primary/50 cursor-pointer transition-all duration-300 ${theme === 'dark' ? 'bg-muted/10 border-border' : 'bg-gray-50/50 border-gray-100'}`} onClick={() => handleSelectSubject(subj)}>
+                        <CardHeader className="pb-3 flex flex-row justify-between items-start">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <CardTitle className="text-base font-semibold">{subj.subject_name}</CardTitle>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                                Feedback {subj.feedback_cycle === 2 ? '2 (End-Term)' : '1 (Mid-Term)'}
+                              </span>
+                            </div>
+                            <CardDescription className="text-xs">{subj.subject_code} | Sem {subj.semester}</CardDescription>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
+                        </CardHeader>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )
+            ) : (
+              completedSurveys.length === 0 ? (
+                <div className="text-center py-8 space-y-2 text-muted-foreground">
+                  <p className="text-sm">No feedback forms have been submitted yet.</p>
+                </div>
+              ) : (
+                <div className="max-h-[50vh] overflow-y-auto pr-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {completedSurveys.map((subj) => (
+                      <Card key={`completed-${subj.subject_id}-${subj.feedback_cycle || 1}`} className={`opacity-85 ${theme === 'dark' ? 'bg-muted/5 border-border' : 'bg-gray-50/30 border-gray-200'}`}>
+                        <CardHeader className="pb-3 flex flex-row justify-between items-start">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <CardTitle className="text-base font-semibold">{subj.subject_name}</CardTitle>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                                Feedback {subj.feedback_cycle === 2 ? '2 (End-Term)' : '1 (Mid-Term)'}
+                              </span>
+                            </div>
+                            <CardDescription className="text-xs">{subj.subject_code} | Sem {subj.semester}</CardDescription>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-600 dark:text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20 shrink-0">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Submitted
+                          </span>
+                        </CardHeader>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )
             )}
           </div>
         ) : (
           <div className="space-y-6 pt-4">
             <div className="border-b pb-2 flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-lg text-primary">{selectedSubject.subject_name}</h3>
-                <p className="text-xs text-muted-foreground">Course Exit Questionnaire</p>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-lg text-primary">{selectedSubject.subject_name}</h3>
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                    Feedback {selectedSubject.feedback_cycle === 2 ? '2 (End-Term)' : '1 (Mid-Term)'}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">10-Point Faculty Teaching Evaluation</p>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setSelectedSubject(null)}>Back to list</Button>
             </div>
