@@ -77,7 +77,6 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'apply-leave': 'apply-leave',
       'attendance-records': 'attendance-records',
       'faculty-attendance': 'faculty-attendance',
-      'my-attendance': 'faculty-attendance',
       'announcements': 'faculty-announcement-management',
       'proctor-students': 'proctor-students',
       'exam-applications': 'exam-applications',
@@ -134,7 +133,6 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'apply-leave': '/faculty/apply-leave',
       'attendance-records': '/faculty/attendance-records',
       'faculty-attendance': '/faculty/faculty-attendance',
-      'my-attendance': '/faculty/faculty-attendance',
       'announcements': '/faculty/announcements',
       'proctor-students': '/faculty/proctor-students',
       'exam-applications': '/faculty/exam-applications',
@@ -203,7 +201,6 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
         return <ApplyLeave />;
       case "attendance-records":
         return <AttendanceRecords />;
-      case "my-attendance":
       case "faculty-attendance":
         return <FacultyAttendance />;
       case "announcements":
