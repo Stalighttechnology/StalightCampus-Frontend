@@ -126,7 +126,7 @@ const DEFAULT_CATEGORY_WORKFLOWS: Record<string, any> = {
 
 const DEFAULT_STAFF_CATEGORY_MAPPING: Record<string, string[]> = {
   teaching: ['teacher', 'hod', 'dean'],
-  non_teaching: ['caretaker', 'driver', 'warden', 'library_admin', 'transport_admin', 'hms_admin', 'group_d', 'security', 'inventory_manager'],
+  non_teaching: ['caretaker', 'driver', 'warden', 'library_admin', 'transport_admin', 'hms_admin', 'group_d', 'security', 'inventory_manager', 'field_visitor'],
   admin_branch: ['principal', 'org_admin', 'admission_manager', 'fees_manager', 'coe', 'placement_officer', 'counsellor'],
 };
 
@@ -632,6 +632,7 @@ export default function PrincipalTimetableSettings() {
     { value: 'library_admin', label: 'Library Admin' },
     { value: 'transport_admin', label: 'Transport Admin' },
     { value: 'inventory_manager', label: 'Inventory Manager' },
+    { value: 'field_visitor', label: 'Field Visitor' },
   ];
 
   const [startTimeParts, setStartTimeParts] = useState({ hour: "09", minute: "00", period: "AM" });
@@ -1085,7 +1086,8 @@ export default function PrincipalTimetableSettings() {
       if (res.ok) {
         toast({ title: "Success", description: "Attendance workflow saved" });
       } else {
-        toast({ title: "Error", description: "Failed to save workflow", variant: "destructive" });
+        const errData = await res.json().catch(() => ({}));
+        toast({ title: "Error", description: errData.message || "Failed to save workflow", variant: "destructive" });
       }
     } catch (err) {
       toast({ title: "Error", description: "Failed to save workflow", variant: "destructive" });
