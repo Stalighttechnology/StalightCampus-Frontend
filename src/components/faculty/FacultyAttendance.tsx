@@ -11,7 +11,7 @@ import { normalizePaginatedResponse } from '@/utils/normalizePagination';
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
-import { fetchWithTokenRefresh } from "@/utils/authService";
+import { fetchWithTokenRefresh, getOrCreateDeviceId } from "@/utils/authService";
 import { API_ENDPOINT } from "@/utils/config";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Device } from '@capacitor/device';
@@ -513,7 +513,7 @@ const FacultyAttendance = () => {
         deviceId = info.identifier;
       } catch (e) {
         // Fallback for non-capacitor environments
-        deviceId = "web-" + navigator.userAgent.substring(0, 50);
+        deviceId = getOrCreateDeviceId() || ("web-" + navigator.userAgent.substring(0, 50));
       }
 
       if (status === 'present') {

@@ -604,6 +604,7 @@ export default function PrincipalTimetableSettings() {
   const [categoryWorkflows, setCategoryWorkflows] = useState<Record<string, any>>(DEFAULT_CATEGORY_WORKFLOWS);
   const [attendanceConfigLoading, setAttendanceConfigLoading] = useState(false);
   const [attendanceSaving, setAttendanceSaving] = useState(false);
+  const [globalConfigSaving, setGlobalConfigSaving] = useState(false);
 
   const PRESETS: Record<string, string[]> = {
     "Common": ["hod", "coe", "principal"],
@@ -1036,6 +1037,49 @@ export default function PrincipalTimetableSettings() {
     }
   };
 
+  const handleSaveGlobalConfig = async () => {
+    try {
+      setGlobalConfigSaving(true);
+      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/organizations/attendance-workflow/`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          allow_web_attendance: allowWebAttendance,
+          require_device_id_attendance: requireDeviceIdAttendance,
+          weekend_policy: weekendPolicy,
+        })
+      });
+      if (res.ok) {
+        try {
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            const u = JSON.parse(userStr);
+            u.org_allow_web_attendance = allowWebAttendance;
+            localStorage.setItem('user', JSON.stringify(u));
+          }
+          const sessionUserStr = sessionStorage.getItem('user');
+          if (sessionUserStr) {
+            const su = JSON.parse(sessionUserStr);
+            su.org_allow_web_attendance = allowWebAttendance;
+            sessionStorage.setItem('user', JSON.stringify(su));
+          }
+          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new Event('user-updated'));
+        } catch (e) {
+          console.error(e);
+        }
+        toast({ title: "Success", description: "Global attendance settings saved successfully" });
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        toast({ title: "Error", description: errData.message || "Failed to save settings", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to save settings", variant: "destructive" });
+    } finally {
+      setGlobalConfigSaving(false);
+    }
+  };
+
   const handleSaveAttendanceConfig = async () => {
     const mappedRoles = Object.values(staffCategoryMapping).flat();
     const unmappedRoles = AVAILABLE_ROLES.filter(r => !mappedRoles.includes(r.value));
@@ -1084,6 +1128,24 @@ export default function PrincipalTimetableSettings() {
         })
       });
       if (res.ok) {
+        try {
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            const u = JSON.parse(userStr);
+            u.org_allow_web_attendance = allowWebAttendance;
+            localStorage.setItem('user', JSON.stringify(u));
+          }
+          const sessionUserStr = sessionStorage.getItem('user');
+          if (sessionUserStr) {
+            const su = JSON.parse(sessionUserStr);
+            su.org_allow_web_attendance = allowWebAttendance;
+            sessionStorage.setItem('user', JSON.stringify(su));
+          }
+          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new Event('user-updated'));
+        } catch (e) {
+          console.error(e);
+        }
         toast({ title: "Success", description: "Attendance workflow saved" });
       } else {
         const errData = await res.json().catch(() => ({}));
@@ -3518,8 +3580,8 @@ export default function PrincipalTimetableSettings() {
                           </Select>
                         </div>
                         <div className="flex justify-end pt-4">
-                          <Button size="sm" onClick={handleSaveAttendanceConfig} disabled={attendanceSaving} className="h-8">
-                            <Save className="w-3.5 h-3.5 mr-2" /> {attendanceSaving ? 'Saving...' : 'Save Changes'}
+                          <Button size="sm" onClick={handleSaveGlobalConfig} disabled={globalConfigSaving} className="h-8">
+                            <Save className="w-3.5 h-3.5 mr-2" /> {globalConfigSaving ? 'Saving...' : 'Save Changes'}
                           </Button>
                         </div>
                       </div>

@@ -35,7 +35,7 @@ export { API_BASE_URL, API_ENDPOINT, TOKEN_REFRESH_TIMEOUT };
 // Global configuration settings
 export const APP_CONFIG = {
   // Whether to show the floating AI assistant widget
-  SHOW_FLOATING_ASSISTANT: true, // Enabled for Stalight AI Campus Intelligence
+  SHOW_FLOATING_ASSISTANT: false, // Set to false to hide globally
 };
 
 // Helper function to check if assistant should be shown
