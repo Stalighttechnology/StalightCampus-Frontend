@@ -55,6 +55,7 @@ const allMenuItems = [
   { id: "enroll-developer", label: "Enroll Developer", icon: <Users size={20} /> },
   { id: "office-locations", label: "Office Locations", icon: <Building2 size={20} /> },
   { id: "developer-audit", label: "Developer Audit", icon: <FileText size={20} /> },
+  { id: "developer-leaves", label: "Developer Leaves", icon: <Calendar size={20} /> },
   { id: "monitoring", label: "System Monitor", icon: <Activity size={20} /> },
   { id: "popups", label: "Popups", icon: <MessageSquare size={20} /> },
   { id: "reports", label: "Reports", icon: <BarChart3 size={20} /> },

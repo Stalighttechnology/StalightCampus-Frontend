@@ -21,6 +21,7 @@ import OfficeLocation from "./pages/OfficeLocation";
 import DeveloperAttendanceAudit from "./pages/DeveloperAttendanceAudit";
 import DeveloperAnnouncements from "./pages/DeveloperAnnouncements";
 import HQChatPage from "./pages/HQChatPage";
+import DeveloperLeaveApprovals from "./pages/DeveloperLeaveApprovals";
 
 import { useTheme } from "../context/ThemeContext";
 import { Sun, Moon, Menu } from "lucide-react";
@@ -168,6 +169,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
               <Route path="offer-letters" element={<OfferLetterManagement />} />
               <Route path="office-locations" element={<OfficeLocation />} />
               <Route path="developer-audit" element={<DeveloperAttendanceAudit />} />
+              <Route path="developer-leaves" element={<DeveloperLeaveApprovals />} />
               <Route path="announcements" element={<DeveloperAnnouncements />} />
               <Route path="chat" element={<HQChatPage />} />
 

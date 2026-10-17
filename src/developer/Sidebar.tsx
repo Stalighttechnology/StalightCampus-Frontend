@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ListTodo, Activity, User, LogOut, ChevronLeft, ChevronRight, CalendarCheck, Megaphone, MessageSquare } from "lucide-react";
+import { ListTodo, Activity, User, LogOut, ChevronLeft, ChevronRight, CalendarCheck, Megaphone, MessageSquare, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import { API_BASE_URL } from "@/utils/config";
@@ -16,6 +16,7 @@ const MENU_ITEMS = [
   { id: "assigned-issues", label: "Assigned Issues", icon: <ListTodo size={20} /> },
   { id: "monitoring", label: "HQ Monitor", icon: <Activity size={20} /> },
   { id: "attendance", label: "My Attendance", icon: <CalendarCheck size={20} /> },
+  { id: "leaves", label: "Apply Leave", icon: <Calendar size={20} /> },
   { id: "announcements", label: "Announcements", icon: <Megaphone size={20} /> },
   { id: "chat", label: "HQ Chat", icon: <MessageSquare size={20} /> },
   { id: "profile", label: "Profile", icon: <User size={20} /> },

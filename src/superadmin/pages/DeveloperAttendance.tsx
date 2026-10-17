@@ -10,30 +10,32 @@ import { normalizePaginatedResponse } from '@/utils/normalizePagination';
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
-import { fetchWithSuperadminTokenRefresh } from "@/utils/authService";
+import { fetchWithSuperadminTokenRefresh, getOrCreateDeviceId } from "@/utils/authService";
 import { API_ENDPOINT } from "@/utils/config";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Device } from '@capacitor/device';
+import { Geolocation } from '@capacitor/geolocation';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
+const formatTotalHours = (decimalHours: number | string): string => {
+  const num = typeof decimalHours === 'string' ? parseFloat(decimalHours) : decimalHours;
+  if (isNaN(num)) return typeof decimalHours === 'string' ? decimalHours : '—';
+  const hrs = Math.floor(num);
+  const mins = Math.round((num - hrs) * 60);
+  return `${hrs.toString().padStart(2, '0')}h ${mins.toString().padStart(2, '0')}m`;
+};
+
 const DeveloperAttendance = () => {
-  const [attendanceStatus, setAttendanceStatus] = useState<"present" | "absent" | "holiday" | "weekly_off" | null>(null);
+  const [attendanceStatus, setAttendanceStatus] = useState<"present" | "absent" | "holiday" | "weekly_off" | "on_leave" | null>(null);
+  const [selectedRecordDetails, setSelectedRecordDetails] = useState<DeveloperAttendanceRecord | null>(null);
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [markingStatus, setMarkingStatus] = useState<"present" | "absent" | null>(null);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [todayRecord, setTodayRecord] = useState<DeveloperAttendanceRecord | null>(null);
-  const [recentRecords, setRecentRecords] = useState<DeveloperAttendanceRecord[]>([]);
-  const [recentPage, setRecentPage] = useState<number>(1);
-  const recentPageSize = 10;
-  const recentTotalPages = Math.ceil(recentRecords.length / recentPageSize);
-  const paginatedRecentRecords = recentRecords.slice(
-    (recentPage - 1) * recentPageSize,
-    recentPage * recentPageSize
-  );
   const [historyRecords, setHistoryRecords] = useState<DeveloperAttendanceRecord[]>([]);
   const [historyPage, setHistoryPage] = useState<number>(1);
   const [historyPageSize] = useState<number>(10);
@@ -55,33 +57,33 @@ const DeveloperAttendance = () => {
 
   const initialLoadRef = useRef(true);
 
+  // Fetch today's record and config on mount
+  useEffect(() => {
+    fetchTodayRecord();
+  }, []);
+
+  // Fetch history when page or date filter changes
   useEffect(() => {
     fetchHistoryPage(historyPage);
   }, [historyPage, historyStartDate, historyEndDate]);
 
-  const fetchAttendanceData = async () => {
-    // Only call this manually if we really need to refresh just the dashboard
+  const fetchTodayRecord = async () => {
     try {
       setLoading(true);
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      const startDate = weekAgo.toLocaleDateString('sv-SE');
-
-      const response = await getDeveloperAttendanceRecords({ page: 1, page_size: 7, start_date: startDate });
-      if (response.success && response.data) {
-        setRecentRecords(response.data.slice(0, 7));
-        const today = new Date().toLocaleDateString('sv-SE');
-        const todayRec = response.data.find((r) => r.date === today) || null;
-        setTodayRecord(todayRec);
-        if (todayRec) {
-          setAttendanceStatus(todayRec.status as "present" | "absent" | "holiday" | "weekly_off");
-          setNotes(todayRec.notes || "");
+      const today = new Date().toLocaleDateString('sv-SE');
+      const response = await getDeveloperAttendanceRecords({ page: 1, page_size: 1, start_date: today, end_date: today });
+      if (response && response.success && response.data) {
+        const foundTodayRec = (response.data || []).find((r: any) => r.date === today) || null;
+        setTodayRecord(foundTodayRec);
+        if (foundTodayRec) {
+          setAttendanceStatus(foundTodayRec.status as any);
+          setNotes(foundTodayRec.notes || "");
         } else if ((response as any).is_today_holiday) {
           setAttendanceStatus("holiday");
         }
       }
     } catch (error) {
-      toast.error("Failed to load attendance data");
+      toast.error("Failed to load today's attendance record");
     } finally {
       setLoading(false);
     }
@@ -93,29 +95,24 @@ const DeveloperAttendance = () => {
       const params: any = { page, page_size: historyPageSize };
       if (historyStartDate) params.start_date = format(historyStartDate, "yyyy-MM-dd");
       if (historyEndDate) params.end_date = format(historyEndDate, "yyyy-MM-dd");
+
       const response = await getDeveloperAttendanceRecords(params);
-      if (response.success && response.data) {
+      if (response && response.success && response.data) {
         setHistoryRecords(response.data);
 
         if (initialLoadRef.current) {
           initialLoadRef.current = false;
-          const weekAgo = new Date();
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          const weekAgoStr = weekAgo.toLocaleDateString('sv-SE');
-          const recent = response.data.filter((r: any) => r.date >= weekAgoStr).slice(0, 7);
-          setRecentRecords(recent);
-
           const today = new Date().toLocaleDateString('sv-SE');
           const todayRec = response.data.find((r: any) => r.date === today) || null;
-          setTodayRecord(todayRec);
           if (todayRec) {
-            setAttendanceStatus(todayRec.status as "present" | "absent" | "holiday" | "weekly_off");
+            setTodayRecord(todayRec);
+            setAttendanceStatus(todayRec.status as any);
             setNotes(todayRec.notes || "");
           } else if ((response as any).is_today_holiday) {
             setAttendanceStatus("holiday");
           }
-          setLoading(false);
         }
+
         const norm = normalizePaginatedResponse(response, 'data');
         if (norm.meta && Object.keys(norm.meta).length > 0) {
           const meta = norm.meta;
@@ -128,6 +125,9 @@ const DeveloperAttendance = () => {
           setHistoryPage(p.current_page || p.page || page);
           setHistoryTotalPages(p.total_pages || p.totalPages || 1);
           setHistoryTotalItems(p.total_items || p.count || 0);
+        } else if (response.count !== undefined) {
+          setHistoryTotalItems(response.count);
+          setHistoryTotalPages(Math.ceil(response.count / historyPageSize) || 1);
         }
       }
       return response;
@@ -166,6 +166,53 @@ const DeveloperAttendance = () => {
     setEndCalendarOpen(false);
   };
 
+  const getFlowState = () => {
+    if (!todayRecord) {
+      return {
+        currentAction: 'check_in',
+        label: 'Check In',
+        isCheckOut: false,
+        isAllowed: true,
+        nextText: null,
+        isCompleted: false
+      };
+    }
+
+    const hasCheckIn = !!todayRecord.check_in_time;
+    const hasCheckOut = !!todayRecord.check_out_time;
+
+    if (hasCheckOut || todayRecord.notes?.includes('[Early Checkout]')) {
+      return {
+        currentAction: 'check_out',
+        label: 'Completed',
+        isCheckOut: false,
+        isAllowed: false,
+        nextText: null,
+        isCompleted: true
+      };
+    }
+
+    if (hasCheckIn) {
+      return {
+        currentAction: 'check_out',
+        label: 'Check Out',
+        isCheckOut: true,
+        isAllowed: true,
+        nextText: null,
+        isCompleted: false
+      };
+    }
+
+    return {
+      currentAction: 'check_in',
+      label: 'Check In',
+      isCheckOut: false,
+      isAllowed: true,
+      nextText: null,
+      isCompleted: false
+    };
+  };
+
   const handleExportPdf = async () => {
     setExportingPdf(true);
     try {
@@ -187,7 +234,7 @@ const DeveloperAttendance = () => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `my_attendance_history_${new Date().toISOString().split('T')[0]}.pdf`;
+        a.download = `developer_attendance_history_${new Date().toISOString().split('T')[0]}.pdf`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -202,9 +249,12 @@ const DeveloperAttendance = () => {
     }
   };
 
-  const handleToggleAttendance = async (status: "present" | "absent", action?: "check_in" | "check_out") => {
-    const capitalizedStatus = action ? (action === "check_in" ? "Check In" : "Check Out") : (status.charAt(0).toUpperCase() + status.slice(1));
-    const actionText = action ? (action === "check_in" ? "check in" : "check out") : `mark today's attendance as ${status}`;
+  const handleToggleAttendance = async (status: "present" | "absent", action?: string) => {
+    const isEarlyCheckOut = action === 'early_checkout';
+    const isCheckInAction = action === 'check_in';
+    const capitalizedStatus = action ? (action === 'early_checkout' ? "Early Check Out" : isCheckInAction ? "Check In" : "Check Out") : (status.charAt(0).toUpperCase() + status.slice(1));
+    const actionText = action ? (action === 'early_checkout' ? "check out early" : isCheckInAction ? "check in" : "check out") : `mark today's attendance as ${status}`;
+
     const confirmResult = await Swal.fire({
       title: `Confirm ${capitalizedStatus}?`,
       text: `Are you sure you want to ${actionText}?`,
@@ -235,29 +285,29 @@ const DeveloperAttendance = () => {
         const info = await Device.getId();
         deviceId = info.identifier;
       } catch (e) {
-        // Fallback for non-capacitor environments
-        deviceId = "web-" + navigator.userAgent.substring(0, 50);
+        deviceId = getOrCreateDeviceId() || ("web-" + navigator.userAgent.substring(0, 50));
       }
 
       if (status === 'present') {
         setLoadingMessage("Detecting your location...");
-        // Require geolocation for marking present
-        if (!navigator.geolocation) {
-          toast.error('Geolocation not supported by this browser. Cannot mark present.');
-          setIsSubmitting(false);
-          setMarkingStatus(null);
-          return;
+        let pos: any = null;
+        try {
+          pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+        } catch (err: any) {
+          if (navigator.geolocation) {
+            pos = await new Promise<any>((resolve) => {
+              navigator.geolocation.getCurrentPosition(
+                (p) => resolve(p),
+                (e) => {
+                  if (e && e.code === 1) toast.error('Location permission denied. Enable location to mark present.');
+                  else toast.error('Unable to get device location. Cannot mark present.');
+                  resolve(null);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+              );
+            });
+          }
         }
-
-        const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-          const timer = setTimeout(() => reject(new Error('Location timeout')), 10000);
-          navigator.geolocation.getCurrentPosition((p) => { clearTimeout(timer); resolve(p); }, (err) => { clearTimeout(timer); reject(err); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-        }).catch((err) => {
-
-          if (err && err.code === 1) toast.error('Location permission denied. Enable location to mark present.'); else
-            toast.error('Unable to get device location. Cannot mark present.');
-          return null;
-        });
 
         if (!pos) {
           setIsSubmitting(false);
@@ -277,28 +327,28 @@ const DeveloperAttendance = () => {
         };
       } else {
         setLoadingMessage("Capturing context...");
-        // For absent, try to capture location if available but do not block
         try {
-          const pos = await new Promise<GeolocationPosition | null>((resolve) => {
-            if (!navigator.geolocation) return resolve(null);
-            navigator.geolocation.getCurrentPosition((p) => resolve(p), () => resolve(null), { enableHighAccuracy: true, timeout: 5000, maximumAge: 300000 });
-          });
-          if (pos) {
-            latitude = pos.coords.latitude;
-            longitude = pos.coords.longitude;
-            device_info = { userAgent: navigator.userAgent };
+          if (navigator.geolocation) {
+            const pos = await new Promise<any>((resolve) => {
+              navigator.geolocation.getCurrentPosition((p) => resolve(p), () => resolve(null), { enableHighAccuracy: true, timeout: 5000, maximumAge: 300000 });
+            });
+            if (pos) {
+              latitude = pos.coords.latitude;
+              longitude = pos.coords.longitude;
+              device_info = { userAgent: navigator.userAgent };
+            }
           }
         } catch (e) {
-
           // ignore
         }
       }
 
       setLoadingMessage("Syncing with server...");
+      const finalAction = action === 'early_checkout' ? 'check_out' : action;
       const requestData: MarkDeveloperAttendanceRequest & any = {
         status,
-        action,
-        notes: notes.trim() || undefined,
+        action: finalAction,
+        notes: action === 'early_checkout' ? (notes.trim() ? `[Early Checkout] ${notes.trim()}` : '[Early Checkout]') : (notes.trim() || undefined),
         deviceId
       };
       if (latitude !== undefined && longitude !== undefined) {
@@ -314,10 +364,11 @@ const DeveloperAttendance = () => {
         const isUpdate = response.data?.updated || false;
         toast.success(isUpdate ? `Attendance updated to ${status}` : `Attendance marked as ${status}`);
         setAttendanceStatus(status);
-        await fetchAttendanceData(); // Refresh data
+        await fetchTodayRecord();
+        await fetchHistoryPage(historyPage);
       } else if (response.allow_self_declaration) {
-        const distanceInfo = response.location?.distance_meters 
-          ? ` (Distance: ${Math.round(response.location.distance_meters)}m outside boundary)` 
+        const distanceInfo = response.location?.distance_meters
+          ? ` (Distance: ${Math.round(response.location.distance_meters)}m outside boundary)`
           : "";
         const selfDeclarationResult = await Swal.fire({
           title: "Outside Campus Boundary",
@@ -357,7 +408,8 @@ const DeveloperAttendance = () => {
             const isUpdate = retryResponse.data?.updated || false;
             toast.success(isUpdate ? `Attendance updated to ${status} (Off-Campus)` : `Attendance marked as ${status} (Off-Campus)`);
             setAttendanceStatus(status);
-            await fetchAttendanceData();
+            await fetchTodayRecord();
+            await fetchHistoryPage(historyPage);
           } else {
             Swal.fire({
               title: "Action Blocked",
@@ -382,7 +434,6 @@ const DeveloperAttendance = () => {
         });
       }
     } catch (error) {
-
       toast.error("Network error occurred");
     } finally {
       setIsSubmitting(false);
@@ -392,14 +443,7 @@ const DeveloperAttendance = () => {
     }
   };
 
-  const resetAttendance = () => {
-    setAttendanceStatus(null);
-    setNotes("");
-    setTodayRecord(null);
-  };
-
   const handleOffCampusDuty = async () => {
-    // Step 1: Show warning + reason input
     const result = await Swal.fire({
       title: "Off-Campus Duty Check-In",
       html: `<div class="text-left text-sm space-y-2">
@@ -426,74 +470,84 @@ const DeveloperAttendance = () => {
     if (!result.isConfirmed || !result.value) return;
     const off_campus_reason = result.value.trim();
 
-    // Step 2: Get location
     setIsSubmitting(true);
     setMarkingStatus('present');
     setLoadingMessage('Getting your location...');
     let latitude: number | undefined;
     let longitude: number | undefined;
-    let device_info: object | undefined;
+    let device_info: any = undefined;
+    let deviceId: string | undefined = undefined;
 
     try {
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error('Location timeout')), 10000);
-        navigator.geolocation.getCurrentPosition(
-          (p) => { clearTimeout(timer); resolve(p); },
-          (err) => { clearTimeout(timer); reject(err); },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-      }).catch((err) => {
-        if (err && err.code === 1) toast.error('Location permission denied. Enable location to check in.');
-        else toast.error('Unable to get device location.');
-        return null;
-      });
-
-      if (!pos) {
-        setIsSubmitting(false);
-        setMarkingStatus(null);
-        setLoadingMessage('');
-        return;
+      try {
+        const info = await Device.getId();
+        deviceId = info.identifier;
+      } catch (e) {
+        deviceId = getOrCreateDeviceId() || ("web-" + navigator.userAgent.substring(0, 50));
       }
 
-      latitude = pos.coords.latitude;
-      longitude = pos.coords.longitude;
-      device_info = {
-        accuracy: pos.coords.accuracy,
-        altitude: pos.coords.altitude,
-        heading: pos.coords.heading,
-        speed: pos.coords.speed,
-        timestamp: pos.timestamp,
-        userAgent: navigator.userAgent
-      };
+      let pos: any = null;
+      try {
+        pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+      } catch (err: any) {
+        if (navigator.geolocation) {
+          pos = await new Promise<any>((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+              (p) => resolve(p),
+              (e) => {
+                if (e && e.code === 1) toast.error('Location permission denied. Enable location to check in.');
+                else toast.error('Unable to get device location.');
+                resolve(null);
+              },
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+          });
+        }
+      }
+
+      if (pos) {
+        latitude = pos.coords.latitude;
+        longitude = pos.coords.longitude;
+        device_info = {
+          accuracy: pos.coords.accuracy,
+          altitude: pos.coords.altitude,
+          heading: pos.coords.heading,
+          speed: pos.coords.speed,
+          timestamp: pos.timestamp,
+          userAgent: navigator.userAgent
+        };
+      }
 
       setLoadingMessage('Syncing with server...');
       const response = await markDeveloperAttendance({
         status: 'present',
         action: 'check_in',
+        notes: notes.trim() ? `${notes.trim()}` : undefined,
         off_campus_reason,
         latitude,
         longitude,
         device_info,
-        notes: notes.trim() || undefined,
-      });
+        deviceId
+      } as any);
 
       if (response.success) {
-        setLoadingMessage('Almost done...');
-        toast.success('Off-campus check-in recorded successfully!');
+        const isUpdate = response.data?.updated || false;
+        toast.success(isUpdate ? 'Attendance updated to present (Off-Campus)' : 'Attendance marked as present (Off-Campus)');
         setAttendanceStatus('present');
-        await fetchAttendanceData();
+        await fetchTodayRecord();
+        await fetchHistoryPage(historyPage);
       } else {
         Swal.fire({
-          title: 'Action Blocked',
-          text: response.message || 'Failed to mark off-campus attendance',
-          icon: 'error',
-          confirmButtonText: 'Okay',
-          confirmButtonColor: '#ef4444',
-          background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
-          color: theme === 'dark' ? '#E4E4E7' : '#000000',
+          title: "Action Blocked",
+          text: response.message || "Failed to mark off-campus attendance",
+          icon: "error",
+          confirmButtonText: "Okay",
+          confirmButtonColor: "#ef4444",
+          background: theme === "dark" ? "#1c1c1e" : "#ffffff",
+          color: theme === "dark" ? "#E4E4E7" : "#000000",
         });
       }
-    } catch {
+    } catch (e: any) {
       toast.error('Network error occurred');
     } finally {
       setIsSubmitting(false);
@@ -527,6 +581,8 @@ const DeveloperAttendance = () => {
         return theme === 'dark' ? 'bg-blue-900/20 border-blue-700' : 'bg-blue-50 border-blue-200';
       case "weekly_off":
         return theme === 'dark' ? 'bg-slate-900/20 border-slate-700' : 'bg-slate-50 border-slate-200';
+      case "on_leave":
+        return theme === 'dark' ? 'bg-purple-900/20 border-purple-700' : 'bg-purple-50 border-purple-200';
       default:
         return theme === 'dark' ? 'bg-gray-900/20 border-gray-700' : 'bg-gray-50 border-gray-200';
     }
@@ -538,8 +594,8 @@ const DeveloperAttendance = () => {
         <SkeletonCard className="h-64" />
         <SkeletonCard className="h-48" />
         <SkeletonCard className="h-96" />
-      </div>);
-
+      </div>
+    );
   }
 
   return (
@@ -559,163 +615,230 @@ const DeveloperAttendance = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-6 pb-0">
-            {/* Animated Toggle Buttons */}
-            <div className="flex flex-col items-center space-y-4">
-              <div className="flex items-center space-x-4">
-                
-                {/* Check In / Check Out Button */}
-                {(!todayRecord?.check_in_time || !todayRecord?.check_out_time) && attendanceStatus !== "absent" && (
-                  <motion.button
-                    onClick={() => handleToggleAttendance("present", todayRecord?.check_in_time ? "check_out" : "check_in")}
-                    disabled={isSubmitting || !!(todayRecord?.check_in_time && todayRecord?.check_out_time)}
-                    className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'present' ?
-                      'bg-blue-500 text-white animate-pulse' :
-                      (todayRecord?.check_in_time && !todayRecord?.check_out_time) ?
-                        'bg-orange-500 text-white scale-110' :
-                        theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
-                    }
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {markingStatus === 'present' ?
-                      <Loader2 className="w-8 h-8 animate-spin" /> :
-                      todayRecord?.check_in_time ? <Clock className="w-8 h-8" /> : <CheckCircle className="w-8 h-8" />
-                    }
-                  </motion.button>
-                )}
-
-                {/* Absent Button (only if not checked in) */}
-                {!todayRecord?.check_in_time && (
-                  <motion.button
-                    onClick={() => handleToggleAttendance("absent")}
-                    disabled={isSubmitting || !!attendanceStatus}
-                    className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'absent' ?
-                      'bg-blue-500 text-white animate-pulse' :
-                      attendanceStatus === 'absent' ?
-                        'bg-red-500 text-white scale-110' :
-                        theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
-                    }
-                    whileHover={{ scale: attendanceStatus === 'absent' || markingStatus === 'absent' ? 1.1 : 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {markingStatus === 'absent' ?
-                      <Loader2 className="w-8 h-8 animate-spin" /> :
-                      <XCircle className="w-8 h-8" />
-                    }
-                  </motion.button>
-                )}
+            {attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off' ? (
+              <div className="flex flex-col items-center py-6 space-y-3">
+                <div className={`p-4 rounded-full ${attendanceStatus === 'holiday'
+                  ? (theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700')
+                  : (theme === 'dark' ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700')
+                  }`}>
+                  <CalendarIcon className="w-10 h-10" />
+                </div>
+                <span className="text-xl font-bold capitalize">
+                  {attendanceStatus === 'holiday' ? 'Institutional Holiday' : 'Weekly Off'}
+                </span>
+                <p className="text-xs text-muted-foreground text-center max-w-xs">
+                  No attendance check-in is required today. Enjoy your day off!
+                </p>
               </div>
+            ) : (
+              <div className="flex flex-col items-center space-y-4">
+                <div className="flex items-center space-x-4">
 
-              {/* Button Labels */}
-              <div className="flex items-center space-x-8 text-sm font-medium">
-                {(!todayRecord?.check_in_time || !todayRecord?.check_out_time) && attendanceStatus !== "absent" && (
-                  <motion.span
-                    className={markingStatus === 'present' ? 'text-blue-500' : todayRecord?.check_in_time ? 'text-orange-600' : 'text-gray-500'}
-                  >
-                    {markingStatus === 'present' ? 'Processing...' : todayRecord?.check_in_time ? 'Check Out' : 'Check In'}
-                  </motion.span>
-                )}
-                {!todayRecord?.check_in_time && (
-                  <motion.span
-                    className={markingStatus === 'absent' ? 'text-blue-500' : attendanceStatus === 'absent' ? 'text-red-600' : 'text-gray-500'}
-                  >
-                    {markingStatus === 'absent' ? 'Marking...' : 'Absent'}
-                  </motion.span>
-                )}
-              </div>
+                  {/* Check In / Check Out Button */}
+                  {attendanceStatus !== "absent" && (() => {
+                    const { currentAction, isCheckOut, isAllowed, isCompleted } = getFlowState();
+                    return (
+                      <motion.button
+                        onClick={() => handleToggleAttendance("present", currentAction)}
+                        disabled={isSubmitting || isCompleted || !isAllowed}
+                        className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:cursor-not-allowed ${markingStatus === 'present' ?
+                          'bg-blue-500 text-white animate-pulse' :
+                          isCompleted ?
+                            (theme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-400') :
+                            !isAllowed ?
+                              (theme === 'dark' ? 'bg-red-900/20 text-red-500/50 border-2 border-red-900/30' : 'bg-red-50 text-red-400 border-2 border-red-100 opacity-60') :
+                              isCheckOut ?
+                                'bg-orange-500 text-white scale-110' :
+                                theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+                        }
+                        whileHover={{ scale: isCompleted || !isAllowed ? 1 : 1.05 }}
+                        whileTap={{ scale: isCompleted || !isAllowed ? 1 : 0.95 }}
+                      >
+                        {markingStatus === 'present' ?
+                          <Loader2 className="w-8 h-8 animate-spin" /> :
+                          isCompleted ? <CheckCircle className="w-8 h-8" /> :
+                            !isAllowed ? <XCircle className="w-8 h-8" /> :
+                              isCheckOut ? <Clock className="w-8 h-8" /> : <CheckCircle className="w-8 h-8" />
+                        }
+                      </motion.button>
+                    );
+                  })()}
 
-              {/* Off-Campus Duty Button — shown only when not yet checked in */}
-              {!todayRecord?.check_in_time && attendanceStatus !== 'absent' && (
-                <div className="mt-2">
-                  <button
-                    onClick={handleOffCampusDuty}
-                    disabled={isSubmitting}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
+                  {/* Absent Button (only if not checked in) */}
+                  {!todayRecord?.check_in_time && (() => {
+                    const { isCompleted } = getFlowState();
+                    return (
+                      <motion.button
+                        onClick={() => handleToggleAttendance("absent")}
+                        disabled={isSubmitting || !!attendanceStatus || isCompleted}
+                        className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'absent' ?
+                          'bg-blue-500 text-white animate-pulse' :
+                          attendanceStatus === 'absent' ?
+                            'bg-red-500 text-white scale-110' :
+                            theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+                        }
+                        whileHover={{ scale: attendanceStatus === 'absent' || markingStatus === 'absent' || isCompleted ? 1 : 1.05 }}
+                        whileTap={{ scale: isCompleted ? 1 : 0.95 }}
+                      >
+                        {markingStatus === 'absent' ?
+                          <Loader2 className="w-8 h-8 animate-spin" /> :
+                          <XCircle className="w-8 h-8" />
+                        }
+                      </motion.button>
+                    );
+                  })()}
+                </div>
+
+                {/* Button Labels */}
+                <div className="flex items-center space-x-8 text-sm font-medium">
+                  {attendanceStatus !== "absent" && (() => {
+                    const { label, isCheckOut, isCompleted } = getFlowState();
+                    return (
+                      <motion.span
+                        className={markingStatus === 'present' ? 'text-blue-500' : isCompleted ? 'text-gray-400' : isCheckOut ? 'text-orange-600' : 'text-gray-500'}
+                      >
+                        {markingStatus === 'present' ? 'Processing...' : isCompleted ? 'Completed' : label}
+                      </motion.span>
+                    );
+                  })()}
+                  {!todayRecord?.check_in_time && (
+                    <motion.span
+                      className={markingStatus === 'absent' ? 'text-blue-500' : attendanceStatus === 'absent' ? 'text-red-600' : 'text-gray-500'}
+                    >
+                      {markingStatus === 'absent' ? 'Marking...' : 'Absent'}
+                    </motion.span>
+                  )}
+                </div>
+
+                {/* Early Checkout — only when checked in, not checked out, and flow not completed */}
+                {todayRecord?.check_in_time && !todayRecord?.check_out_time && !getFlowState().isCompleted && (
+                  <div className="mt-2">
+                    <button
+                      onClick={() => handleToggleAttendance("present", "early_checkout")}
+                      disabled={isSubmitting}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
                       ${theme === 'dark'
-                        ? 'border-amber-500/50 text-amber-400 hover:bg-amber-500/10'
-                        : 'border-amber-400 text-amber-600 hover:bg-amber-50'
-                      }`}
-                  >
-                    <MapPin className="w-3.5 h-3.5" />
-                    Off-Campus Duty? Declare Here
-                  </button>
-                </div>
-              )}
-
-              {/* Attendance Details (Times & Hours) */}
-              {todayRecord?.check_in_time && (
-                <div className={`mt-4 p-4 rounded-lg w-full max-w-sm text-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-500">Check In:</span>
-                    <span className="font-semibold">{format(new Date(todayRecord.check_in_time), 'hh:mm a')}</span>
+                          ? 'border-orange-500/50 text-orange-400 hover:bg-orange-500/10'
+                          : 'border-orange-400 text-orange-600 hover:bg-orange-50'
+                        }`}
+                    >
+                      <Clock className="w-3.5 h-3.5" />
+                      Early Checkout
+                    </button>
                   </div>
-                  {todayRecord?.check_out_time && (
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-500">Check Out:</span>
-                      <span className="font-semibold">{format(new Date(todayRecord.check_out_time), 'hh:mm a')}</span>
+                )}
+
+                {/* Off-Campus Duty Button — shown only when not yet checked in and not absent */}
+                {!todayRecord?.check_in_time && attendanceStatus !== 'absent' && (
+                  <div className="mt-2">
+                    <button
+                      onClick={handleOffCampusDuty}
+                      disabled={isSubmitting || getFlowState().isCompleted}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
+                        ${theme === 'dark'
+                          ? 'border-amber-500/50 text-amber-400 hover:bg-amber-500/10'
+                          : 'border-amber-400 text-amber-600 hover:bg-amber-50'
+                        }`}
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                      Off-Campus Duty? Declare Here
+                    </button>
+                  </div>
+                )}
+
+                {/* Checkpoints & Attendance Summary Box */}
+                {todayRecord && (() => {
+                  const checkpoints = [
+                    { label: 'Check In', time: todayRecord.check_in_time },
+                    { label: 'Check Out', time: todayRecord.check_out_time }
+                  ];
+
+                  return (
+                    <div className={`mt-4 p-4 rounded-lg w-full max-w-sm text-center ${theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-gray-100 border border-gray-200'}`}>
+                      <div className="space-y-2 mb-2">
+                        <div className="font-semibold text-sm border-b pb-1 text-left flex justify-between items-center">
+                          <span>Checkpoints</span>
+                          <span className="text-[10px] font-normal text-muted-foreground">({checkpoints.length} Required)</span>
+                        </div>
+                        {checkpoints.map((cp, idx) => (
+                          <div key={idx} className="flex justify-between text-sm items-center py-0.5">
+                            <span className="text-gray-500 font-medium">{cp.label}:</span>
+                            {cp.time && cp.time !== "Missed" ? (
+                              <div className="flex items-center gap-1 font-semibold text-green-600 dark:text-green-400">
+                                <span>{format(new Date(cp.time), 'hh:mm a')}</span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 italic">Pending</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {todayRecord?.total_hours && (
+                        <div className="flex justify-between text-sm font-bold border-t border-gray-300 dark:border-gray-700 pt-2 mt-2">
+                          <span>Total Worked:</span>
+                          <span className="text-primary font-mono">
+                            {formatTotalHours(todayRecord.total_hours)}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {todayRecord?.total_hours && (
-                    <div className="flex justify-between text-sm font-bold border-t border-gray-300 pt-2 mt-2">
-                      <span>Total Hours:</span>
-                      <span className="text-primary">{todayRecord.total_hours} hrs</span>
-                    </div>
-                  )}
-                </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Progress Message */}
+            <AnimatePresence>
+              {isSubmitting && loadingMessage && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="flex items-center gap-2 text-xs font-medium text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800"
+                >
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  {loadingMessage}
+                </motion.div>
               )}
+            </AnimatePresence>
 
-
-              {/* Progress Message */}
-              <AnimatePresence>
-                {isSubmitting && loadingMessage &&
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="flex items-center gap-2 text-xs font-medium text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800">
-
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    {loadingMessage}
-                  </motion.div>
-                }
-              </AnimatePresence>
-
-              {/* Status Indicator */}
-              <AnimatePresence mode="wait">
-                {attendanceStatus &&
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="text-center mt-4">
-
-                    <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full ${
-                      attendanceStatus === 'present' ?
-                        (theme === 'dark' ? 'bg-green-900/20 text-green-400' : 'bg-green-100 text-green-800') :
-                      attendanceStatus === 'holiday' ?
-                        (theme === 'dark' ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-100 text-blue-800') :
+            {/* Status Indicator */}
+            <AnimatePresence mode="wait">
+              {attendanceStatus && (todayRecord?.marked_at || todayRecord?.check_in_time || attendanceStatus === 'holiday' || attendanceStatus === 'weekly_off') && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="text-center mt-4"
+                >
+                  <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full border ${attendanceStatus === 'present' ?
+                    (theme === 'dark' ? 'bg-green-900/20 border-green-800 text-green-400' : 'bg-green-50 border-green-200 text-green-800') :
+                    attendanceStatus === 'holiday' ?
+                      (theme === 'dark' ? 'bg-blue-900/20 border-blue-800 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700') :
                       attendanceStatus === 'weekly_off' ?
-                        (theme === 'dark' ? 'bg-slate-900/20 text-slate-400' : 'bg-slate-100 text-slate-800') :
-                        (theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-800')
+                        (theme === 'dark' ? 'bg-slate-900/20 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-800') :
+                        (theme === 'dark' ? 'bg-red-900/20 border-red-800 text-red-400' : 'bg-red-50 border-red-200 text-red-800')
                     }`}>
-                      {getStatusIcon(attendanceStatus)}
-                      <span className="font-medium capitalize">
-                        {attendanceStatus === 'weekly_off' ? 'Weekly Off' : attendanceStatus}
-                      </span>
-                    </div>
-                  </motion.div>
-                }
-              </AnimatePresence>
+                    {getStatusIcon(attendanceStatus)}
+                    <span className="font-medium capitalize">
+                      {attendanceStatus === 'weekly_off' ? 'Weekly Off' : attendanceStatus}
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            </div>
           </CardContent>
         </div>
+
         <CardContent className="pt-4 space-y-6">
           {/* Notes Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}>
+            transition={{ delay: 0.2 }}
+          >
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>
               Notes (Optional)
             </label>
@@ -723,19 +846,19 @@ const DeveloperAttendance = () => {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add any notes about your attendance..."
-              className={`resize-none h-24 ${theme === 'dark' ? 'bg-background border-input text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
-
+              className={`resize-none h-24 ${theme === 'dark' ? 'bg-background border-input text-foreground' : 'bg-white border-gray-300 text-gray-900'}`}
+            />
           </motion.div>
 
           {/* Attendance Details */}
           <AnimatePresence>
-            {todayRecord &&
+            {todayRecord && (todayRecord.marked_at || todayRecord.check_in_time || todayRecord.status === 'holiday' || todayRecord.status === 'weekly_off') && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className={`p-4 rounded-lg border ${getStatusColor(todayRecord.status)}`}>
-
+                className={`p-4 rounded-lg border ${getStatusColor(todayRecord.status)}`}
+              >
                 <div className="flex items-center space-x-3">
                   {getStatusIcon(todayRecord.status)}
                   <div>
@@ -743,27 +866,30 @@ const DeveloperAttendance = () => {
                     <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                       Marked at {todayRecord.marked_at ? new Date(todayRecord.marked_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', hour12: true }) : '—'}
                     </p>
-                    {todayRecord.location ?
+                    {todayRecord.location ? (
                       <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {todayRecord.location.inside ?
-                          <>On campus • {todayRecord.location.distance_meters !== null && todayRecord.location.distance_meters !== undefined ? `${Math.round(todayRecord.location.distance_meters)} m` : 'distance unknown'}</> :
-
+                        {todayRecord.location.inside ? (
+                          <>On campus • {todayRecord.location.distance_meters !== null && todayRecord.location.distance_meters !== undefined ? `${Math.round(todayRecord.location.distance_meters)} m` : 'distance unknown'}</>
+                        ) : (
                           <>Outside campus • {todayRecord.location.distance_meters !== null && todayRecord.location.distance_meters !== undefined ? `${Math.round(todayRecord.location.distance_meters)} m` : 'distance unknown'}</>
-                        }
+                        )}
                         {todayRecord.location.campus_name ? ` • ${todayRecord.location.campus_name}` : ''}
-                      </p> :
-
+                      </p>
+                    ) : (
                       <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Location not recorded</p>
-                    }
+                    )}
                     {todayRecord.notes && (
                       <div className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {todayRecord.notes.includes('[Off-Campus Check-in]') ? (
+                        {todayRecord.notes.includes('[Off-Campus Check-in]') || todayRecord.notes.startsWith('Off-Campus:') ? (
                           <span className="flex flex-wrap items-center gap-1.5">
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Off-Campus Duty</span>
                             {(() => {
-                              const r = todayRecord.notes.replace('[Off-Campus Check-in] Reason:', '').trim();
+                              const r = todayRecord.notes.replace('[Off-Campus Check-in] Reason:', '').replace(/^Off-Campus:\s*/, '').trim();
                               return r.length > 35 ? (
-                                <><span>{r.slice(0, 32)}...</span><button onClick={() => Swal.fire({ title: 'Off-Campus Duty Reason', text: r, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button></>
+                                <>
+                                  <span>{r.slice(0, 32)}...</span>
+                                  <button onClick={() => Swal.fire({ title: 'Off-Campus Duty Reason', text: r, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button>
+                                </>
                               ) : <span>{r}</span>;
                             })()}
                           </span>
@@ -775,131 +901,21 @@ const DeveloperAttendance = () => {
                   </div>
                 </div>
               </motion.div>
-            }
+            )}
           </AnimatePresence>
         </CardContent>
       </Card>
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Recent Attendance Records */}
-        <Card className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-          <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2 h-[72px] sm:h-[80px]">
-            <CardTitle className={`text-xl sm:text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              Recent Attendance (Last 7 Days)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
-            {recentRecords.length > 0 ? (
-              <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
-                {paginatedRecentRecords.map((record) =>
-                  <motion.div
-                    key={record.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        {getStatusIcon(record.status)}
-                        <div>
-                          <p className="font-medium capitalize">{record.status}</p>
-                          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            {record.date.split('-').reverse().join('-')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className={`text-sm text-right ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {record.check_in_time && (
-                          <div className="text-xs">In: {format(new Date(record.check_in_time), 'hh:mm a')}</div>
-                        )}
-                        {record.check_out_time && (
-                          <div className="text-xs">Out: {format(new Date(record.check_out_time), 'hh:mm a')}</div>
-                        )}
-                        {!record.check_in_time && record.marked_at && (
-                          <div>{new Date(record.marked_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
-                        )}
-                      </div>
-                    </div>
-                    {record.notes && (
-                      <div className="mt-2 flex items-start space-x-2">
-                        <FileText className="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
-                        <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                          {record.notes.includes('[Off-Campus Check-in]') ? (
-                            <span className="flex flex-wrap items-center gap-1.5">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Off-Campus Duty</span>
-                              {(() => {
-                                const r = record.notes.replace('[Off-Campus Check-in] Reason:', '').trim();
-                                return r.length > 35 ? (
-                                  <><span>{r.slice(0, 32)}...</span><button onClick={() => Swal.fire({ title: 'Off-Campus Duty Reason', text: r, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button></>
-                                ) : <span>{r}</span>;
-                              })()}
-                            </span>
-                          ) : record.notes}
-                        </div>
-                      </div>
-                    )}
-                    {record.total_hours && (
-                      <div className="mt-2 text-xs font-semibold text-right text-primary">
-                        Total: {record.total_hours} hrs
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </div>
-            ) : (
-              <div className={`flex flex-col items-center justify-center flex-1 py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
-                <div className={`p-3 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                  <Clock className="w-8 h-8 text-primary opacity-50" />
-                </div>
-                <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No recent records</h3>
-                <p className={`text-xs text-center max-w-[250px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  You haven't marked any attendance in the last 7 days.
-                </p>
-              </div>
-            )}
-          </CardContent>
-          {!loading && recentTotalPages > 1 && (
-            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-              <div>
-                Showing <span className="font-medium">{Math.min((recentPage - 1) * recentPageSize + 1, recentRecords.length)}</span> to <span className="font-medium">{Math.min(recentPage * recentPageSize, recentRecords.length)}</span> of <span className="font-medium">{recentRecords.length}</span> records
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRecentPage(Math.max(1, recentPage - 1))}
-                  disabled={recentPage === 1}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all hover:text-white">
-                  Previous
-                </Button>
-
-                <div className="flex items-center justify-center min-w-[2rem]">
-                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    {recentPage}
-                  </span>
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRecentPage(Math.min(recentTotalPages, recentPage + 1))}
-                  disabled={recentPage === recentTotalPages}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all hover:text-white">
-                  Next
-                </Button>
-              </div>
-            </CardFooter>
-          )}
-        </Card>
-
+      {/* Attendance History / Recent Attendance Card */}
+      <div className="">
         <Card id="faculty-attendance-history" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
           <CardHeader id="faculty-attendance-history-header" className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-6 pb-4 min-h-[72px] sm:h-[80px] gap-3">
             <CardTitle className={`text-xl sm:text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              Attendance History
+              {historyStartDate || historyEndDate ? 'Attendance History' : 'Recent Attendance'}
             </CardTitle>
             <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end sm:justify-start mb-3 sm:mb-0">
               {(() => {
-                const isFilterDisabled = !historyLoading && historyRecords.length === 0 && !historyStartDate && !historyEndDate;
+                const isFilterDisabled = false;
                 const isExportDisabled = exportingPdf || historyLoading || historyRecords.length === 0;
 
                 return (
@@ -1067,39 +1083,34 @@ const DeveloperAttendance = () => {
                           </p>
                         </div>
                       </div>
-                      <div className={`text-sm text-right ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {record.check_in_time && (
-                          <div className="text-xs">In: {format(new Date(record.check_in_time), 'hh:mm a')}</div>
-                        )}
-                        {record.check_out_time && (
-                          <div className="text-xs">Out: {format(new Date(record.check_out_time), 'hh:mm a')}</div>
-                        )}
-                        {!record.check_in_time && record.marked_at && (
-                          <div>{new Date(record.marked_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
-                        )}
+                      <div className="text-sm text-right">
+                        <button
+                          onClick={() => setSelectedRecordDetails(record)}
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${theme === 'dark' ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-primary text-white hover:bg-primary/90'}`}
+                        >
+                          View
+                        </button>
                       </div>
                     </div>
                     {record.notes && (
                       <div className="mt-2 flex items-start space-x-2">
                         <FileText className="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
                         <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                          {record.notes.includes('[Off-Campus Check-in]') ? (
+                          {record.notes.includes('[Off-Campus Check-in]') || record.notes.startsWith('Off-Campus:') ? (
                             <span className="flex flex-wrap items-center gap-1.5">
                               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Off-Campus Duty</span>
                               {(() => {
-                                const r = record.notes.replace('[Off-Campus Check-in] Reason:', '').trim();
+                                const r = record.notes.replace('[Off-Campus Check-in] Reason:', '').replace(/^Off-Campus:\s*/, '').trim();
                                 return r.length > 35 ? (
-                                  <><span>{r.slice(0, 32)}...</span><button onClick={() => Swal.fire({ title: 'Off-Campus Duty Reason', text: r, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button></>
+                                  <>
+                                    <span>{r.slice(0, 32)}...</span>
+                                    <button onClick={() => Swal.fire({ title: 'Off-Campus Duty Reason', text: r, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button>
+                                  </>
                                 ) : <span>{r}</span>;
                               })()}
                             </span>
                           ) : record.notes}
                         </div>
-                      </div>
-                    )}
-                    {record.total_hours && (
-                      <div className="mt-2 text-xs font-semibold text-right text-primary">
-                        Total: {record.total_hours} hrs
                       </div>
                     )}
                   </div>
@@ -1108,11 +1119,15 @@ const DeveloperAttendance = () => {
             ) : (
               <div className={`flex flex-col items-center justify-center flex-1 py-16 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                 <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                  <RotateCcw className="w-10 h-10 text-primary opacity-50" />
+                  <Filter className="w-10 h-10 text-primary opacity-50" />
                 </div>
-                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>History empty</h3>
+                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {historyStartDate || historyEndDate ? 'No records found' : 'No attendance records yet'}
+                </h3>
                 <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  There are no historical attendance records found for your account.
+                  {historyStartDate || historyEndDate
+                    ? 'There are no attendance records for the selected date range.'
+                    : 'No attendance records yet'}
                 </p>
               </div>
             )}
@@ -1152,8 +1167,96 @@ const DeveloperAttendance = () => {
           )}
         </Card>
       </div>
-    </div>);
 
+      {/* Record Details Modal */}
+      {selectedRecordDetails && (() => {
+        const dateObj = new Date(selectedRecordDetails.date + "T00:00:00");
+        const isPresent = selectedRecordDetails.status?.toLowerCase() === 'present';
+        const isAbsent = selectedRecordDetails.status?.toLowerCase() === 'absent';
+
+        return (
+          <Dialog open={!!selectedRecordDetails} onOpenChange={(open) => {
+            if (!open) setSelectedRecordDetails(null);
+          }}>
+            <DialogContent className={`w-[90%] max-w-[360px] p-0 border-0 rounded-2xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-slate-900 text-white' : 'bg-white text-gray-900'}`}>
+              <div className={`p-5 ${theme === 'dark' ? 'bg-slate-800' : 'bg-primary/5'} border-b ${theme === 'dark' ? 'border-white/10' : 'border-primary/10'}`}>
+                <DialogTitle className="text-lg font-bold">
+                  {dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                </DialogTitle>
+                <p className={`text-sm mt-1 font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Attendance Record Details
+                </p>
+              </div>
+
+              <div className="p-5">
+                <div className="space-y-4">
+                  <div className={`${isPresent ? 'text-green-500 bg-green-500/10' : isAbsent ? 'text-red-500 bg-red-500/10' : 'text-gray-500 bg-gray-500/10'} p-3 rounded-xl font-bold flex items-center gap-2 text-base`}>
+                    {isPresent ? <CheckCircle className="w-5 h-5" /> : isAbsent ? <XCircle className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                    {selectedRecordDetails.status === 'not_marked' ? 'Not Marked' : selectedRecordDetails.status.charAt(0).toUpperCase() + selectedRecordDetails.status.slice(1)}
+                  </div>
+
+                  {(selectedRecordDetails.check_in_time || selectedRecordDetails.check_out_time || (selectedRecordDetails.checkin_timestamps && selectedRecordDetails.checkin_timestamps.length > 0)) ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      {(selectedRecordDetails.check_in_time || selectedRecordDetails.checkin_timestamps?.[0]) && (
+                        <div className={`p-4 rounded-xl border flex flex-col items-center justify-center space-y-1 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                          <span className="font-semibold text-gray-500">Check In</span>
+                          <span className="text-xl font-bold">
+                            {new Date(selectedRecordDetails.check_in_time || selectedRecordDetails.checkin_timestamps![0]!).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                          </span>
+                        </div>
+                      )}
+                      {(selectedRecordDetails.check_out_time || selectedRecordDetails.checkin_timestamps?.[1]) && (
+                        <div className={`p-4 rounded-xl border flex flex-col items-center justify-center space-y-1 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                          <span className="font-semibold text-gray-500">Check Out</span>
+                          <span className="text-xl font-bold">
+                            {new Date(selectedRecordDetails.check_out_time || selectedRecordDetails.checkin_timestamps![1]!).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {selectedRecordDetails.total_hours && (
+                    <div className="flex items-center justify-between font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 px-4 py-3 rounded-xl border border-blue-500/20">
+                      <span>Total Worked</span>
+                      <span>{formatTotalHours(selectedRecordDetails.total_hours)}</span>
+                    </div>
+                  )}
+
+                  {selectedRecordDetails.leave_type && (
+                    <div className="flex items-center justify-center font-bold text-purple-700 dark:text-purple-400 bg-purple-500/10 px-4 py-3 rounded-xl border border-purple-500/20 gap-2 text-sm text-center">
+                      <Clock className="w-5 h-5 opacity-75 flex-shrink-0" />
+                      <span>On Leave ({selectedRecordDetails.leave_type})</span>
+                    </div>
+                  )}
+
+                  {(selectedRecordDetails.notes?.includes('[Off-Campus Check-in]') || selectedRecordDetails.notes?.startsWith('Off-Campus:')) && (
+                    <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed">
+                      <span className="block text-xs uppercase tracking-wider font-black mb-1 opacity-70">Off-Campus Duty</span>
+                      {selectedRecordDetails.notes.replace('[Off-Campus Check-in] Reason:', '').replace(/^Off-Campus:\s*/, '').trim()}
+                    </div>
+                  )}
+
+                  {selectedRecordDetails.notes?.includes('[Early Checkout]') && (
+                    <div className="flex items-center justify-center gap-2 text-orange-600 bg-orange-50 dark:bg-orange-900/20 px-4 py-2.5 rounded-full font-medium text-sm border border-orange-100 dark:border-orange-500/20">
+                      <Clock className="w-4 h-4" />
+                      <span>Early Checkout</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className={`p-4 border-t ${theme === 'dark' ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50/50'}`}>
+                <Button variant="outline" className="w-full font-bold" onClick={() => setSelectedRecordDetails(null)}>
+                  Close
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
+    </div>
+  );
 };
 
 export default DeveloperAttendance;

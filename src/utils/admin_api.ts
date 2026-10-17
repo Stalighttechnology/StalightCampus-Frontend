@@ -1153,6 +1153,282 @@ export const getDeveloperAttendanceRecords = async (params?: { page?: number; pa
   }
 };
 
+export const getDeveloperLeaves = async (params?: { status?: string; page?: number; page_size?: number } | number, statusArg?: string): Promise<any> => {
+  try {
+    let url = `${API_ENDPOINT}/developer/leaves/`;
+    const searchParams = new URLSearchParams();
+    if (typeof params === 'number') {
+      searchParams.append('page', params.toString());
+      if (statusArg && statusArg !== 'All') searchParams.append('status', statusArg);
+    } else if (params) {
+      if (params.page) searchParams.append('page', params.page.toString());
+      if (params.page_size) searchParams.append('page_size', params.page_size.toString());
+      if (params.status && params.status !== 'All') searchParams.append('status', params.status);
+    }
+    if (searchParams.toString()) url += `?${searchParams.toString()}`;
+    const response = await fetchWithSuperadminTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+      },
+    });
+    const json = await response.json();
+    if (json.results && typeof json.results === 'object' && !Array.isArray(json.results)) {
+      return {
+        ...json.results,
+        count: json.count,
+        next: json.next,
+        previous: json.previous,
+      };
+    }
+    return json;
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const applyDeveloperLeave = async (data: FormData | any): Promise<any> => {
+  try {
+    const isFormData = data instanceof FormData;
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+    };
+    if (!isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
+    const response = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/developer/leaves/`, {
+      method: "POST",
+      headers,
+      body: isFormData ? data : JSON.stringify(data),
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const cancelDeveloperLeave = async (id: number | string): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/developer/leaves/${id}/cancel/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+        "Content-Type": "application/json"
+      },
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getDeveloperColleagues = async (): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/developer/leaves/colleagues/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+      },
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export interface DeveloperLeaveRecord {
+  id: number;
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
+  title?: string;
+  reason: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  days_count: number;
+  admin_remarks?: string;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  substitute_developer_id?: number | null;
+  substitute_developer_name?: string | null;
+  substitute_status?: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'SKIPPED';
+  substitute_remarks?: string;
+  substitute_acted_at?: string | null;
+  document_url?: string | null;
+  applied_at?: string;
+}
+
+export interface DeveloperSubstituteRequest {
+  id: number;
+  applicant_id: number;
+  applicant_name: string;
+  applicant_email?: string;
+  applicant_username?: string;
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
+  days_count: number;
+  title: string;
+  reason: string;
+  substitute_status: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'SKIPPED';
+  substitute_remarks?: string;
+  substitute_acted_at?: string | null;
+  overall_leave_status: string;
+  document_url?: string | null;
+  applied_at?: string;
+}
+
+export interface DeveloperColleague {
+  id: number;
+  name: string;
+  email: string;
+  username: string;
+}
+
+export interface DeveloperLeaveAdminRecord {
+  id: number;
+  developer_id: number;
+  developer_name: string;
+  developer_email: string;
+  developer_username: string;
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
+  title?: string;
+  reason: string;
+  status: string;
+  days_count: number;
+  admin_remarks?: string;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  substitute_developer_id?: number | null;
+  substitute_developer_name?: string | null;
+  substitute_status?: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'SKIPPED';
+  substitute_remarks?: string;
+  substitute_acted_at?: string | null;
+  document_url?: string | null;
+  applied_at?: string;
+}
+
+export interface DeveloperLeaveQuota {
+  casual?: { label: string; annual_quota: number; used: number; remaining: number };
+  sick?: { label: string; annual_quota: number; used: number; remaining: number };
+  earned?: { label: string; annual_quota: number; used: number; remaining: number };
+  comp_off?: { label: string; annual_quota: number; used: number; remaining: number };
+  short_permission?: { label: string; monthly_quota_hours: number; used_this_month: number; remaining_this_month: number };
+  lop?: { label: string; used: number };
+}
+
+export const getDeveloperSubstituteRequests = async (params?: { status?: string; page?: number; page_size?: number; count_only?: boolean }): Promise<any> => {
+  try {
+    let url = `${API_ENDPOINT}/developer/leaves/substitute-requests/`;
+    if (params) {
+      const searchParams = new URLSearchParams();
+      if (params.page) searchParams.append('page', params.page.toString());
+      if (params.page_size) searchParams.append('page_size', params.page_size.toString());
+      if (params.status) searchParams.append('status', params.status);
+      if (params.count_only) searchParams.append('count_only', 'true');
+      if (searchParams.toString()) url += `?${searchParams.toString()}`;
+    }
+    const response = await fetchWithSuperadminTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+      },
+    });
+    const json = await response.json();
+    if (json.results && typeof json.results === 'object' && !Array.isArray(json.results)) {
+      return {
+        ...json.results,
+        count: json.count,
+        next: json.next,
+        previous: json.previous,
+      };
+    }
+    return json;
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const actionDeveloperSubstituteRequest = async (data: { leave_id: number | string; action: 'ACCEPT' | 'DECLINE'; remarks?: string }): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/developer/leaves/substitute-requests/action/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+
+export const getSuperAdminDeveloperLeaves = async (params?: { status?: string; search?: string; page?: number; page_size?: number; start_date?: string; end_date?: string }): Promise<any> => {
+  try {
+    let url = `${API_ENDPOINT}/superadmin/developer-leaves/`;
+    if (params) {
+      const searchParams = new URLSearchParams();
+      if (params.page) searchParams.append('page', params.page.toString());
+      if (params.page_size) searchParams.append('page_size', params.page_size.toString());
+      if (params.status) searchParams.append('status', params.status);
+      if (params.search) searchParams.append('search', params.search);
+      if (params.start_date) searchParams.append('start_date', params.start_date);
+      if (params.end_date) searchParams.append('end_date', params.end_date);
+      if (searchParams.toString()) url += `?${searchParams.toString()}`;
+    }
+    const response = await fetchWithSuperadminTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+      },
+    });
+    const json = await response.json();
+    if (json.results && typeof json.results === 'object' && !Array.isArray(json.results)) {
+      return {
+        ...json.results,
+        count: json.count,
+        next: json.next,
+        previous: json.previous,
+      };
+    }
+    return json;
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const actionSuperAdminDeveloperLeave = async (id: number | string, data: { action: 'APPROVE' | 'REJECT'; remarks?: string }): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/superadmin/developer-leaves/${id}/action/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
 export const getAdminFacultyAttendanceToday = async (
   branchId: number | string,
   params?: { page?: number; page_size?: number }
@@ -1267,6 +1543,19 @@ export interface DeveloperAttendanceRecord {
   latitude?: number;
   longitude?: number;
   distance_meters?: number;
+  check_in_time?: string | null;
+  check_out_time?: string | null;
+  total_hours?: string | number | null;
+  location?: {
+    latitude?: string | number;
+    longitude?: string | number;
+    inside?: boolean | null;
+    distance_meters?: number | null;
+    campus_name?: string | null;
+  } | null;
+  checkin_timestamps?: (string | null)[];
+  delays?: number[];
+  leave_type?: string | null;
 }
 
 export interface MarkDeveloperAttendanceRequest {

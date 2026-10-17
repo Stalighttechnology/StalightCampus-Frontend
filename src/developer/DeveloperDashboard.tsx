@@ -8,6 +8,7 @@ import Profile from "./pages/DeveloperProfile";
 import DeveloperAttendance from "../superadmin/pages/DeveloperAttendance";
 import DeveloperAnnouncements from "../superadmin/pages/DeveloperAnnouncements";
 import DeveloperChatPage from "./pages/DeveloperChatPage";
+import DeveloperApplyLeave from "./pages/DeveloperApplyLeave";
 import { useTheme } from "../context/ThemeContext";
 import { API_BASE_URL } from "@/utils/config";
 
@@ -122,6 +123,7 @@ const DeveloperDashboard = ({ setIsAuthenticated }: Props) => {
                   } 
                 />
                 <Route path="attendance" element={<DeveloperAttendance />} />
+                <Route path="leaves" element={<DeveloperApplyLeave />} />
                 <Route path="announcements" element={<DeveloperAnnouncements />} />
                 <Route path="chat" element={<DeveloperChatPage />} />
                 <Route path="profile" element={<Profile />} />
