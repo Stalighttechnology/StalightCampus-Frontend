@@ -573,78 +573,7 @@ const DeveloperApplyLeave: React.FC = () => {
 
       {activeMainTab === 'apply' ? (
         <>
-          {/* Quota Overview Cards (Matching Faculty Dashboard Design) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Casual Leave (CL) Card */}
-        <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Casual Leave (CL)</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 font-semibold whitespace-nowrap shrink-0">
-              Annual Quota
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-2xl font-semibold text-primary">{quotas?.casual?.remaining ?? 15}</span>
-            <span className="text-xs text-muted-foreground">/ {quotas?.casual?.annual_quota ?? 15} left</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Used: {quotas?.casual?.used ?? 0} days | Half-day eligible
-          </p>
-        </div>
-
-        {/* Sick Leave (SL) Card */}
-        <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sick / Medical (SL)</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 font-semibold whitespace-nowrap shrink-0">
-              Annual Quota
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-2xl font-semibold text-amber-600 dark:text-amber-400">{quotas?.sick?.remaining ?? 12}</span>
-            <span className="text-xs text-muted-foreground">/ {quotas?.sick?.annual_quota ?? 12} left</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Used: {quotas?.sick?.used ?? 0} days | Medical proof for &gt; 2 days
-          </p>
-        </div>
-
-        {/* Earned Leave (EL) Card */}
-        <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Earned Leave (EL)</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 font-semibold whitespace-nowrap shrink-0">
-              Annual Quota
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-2xl font-semibold text-indigo-600 dark:text-indigo-400">{quotas?.earned?.remaining ?? 15}</span>
-            <span className="text-xs text-muted-foreground">/ {quotas?.earned?.annual_quota ?? 15} left</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Used: {quotas?.earned?.used ?? 0} days | Plan with team
-          </p>
-        </div>
-
-        {/* Short Permission Card */}
-        <div className={`p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Short Permission</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 font-semibold whitespace-nowrap shrink-0">
-              Max 3h / month
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-2xl font-semibold text-purple-600 dark:text-purple-400">{quotas?.short_permission?.remaining_this_month ?? 3}</span>
-            <span className="text-xs text-muted-foreground">/ {quotas?.short_permission?.monthly_quota_hours ?? 3}h left</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Used this month: {quotas?.short_permission?.used_this_month ?? 0} hours
-          </p>
-        </div>
-      </div>
-
-      {/* Main 2-Column Layout (Matching Faculty ApplyLeave.tsx) */}
+          {/* Main 2-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* LEFT COLUMN: Leave Application Form */}
         <Card id="apply-leave-form-card" className={`apply-leave-card flex flex-col h-full border ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
