@@ -156,6 +156,18 @@ const DeveloperLeaveApprovals: React.FC = () => {
   };
 
   const handleApprove = async (leave: DeveloperLeaveAdminRecord) => {
+    if (leave.substitute_developer_name && leave.substitute_status !== 'ACCEPTED') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Standby Acceptance Required',
+        text: `Cannot approve this leave request. Standby colleague (${leave.substitute_developer_name}) has not accepted duty coverage yet.`,
+        background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: theme === 'dark' ? '#E4E4E7' : '#000000',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+
     const isShortPermission = leave.leave_type === "short_permission";
     const typeLabel = isShortPermission ? "Short Permission" : "Leave";
 
@@ -418,7 +430,8 @@ const DeveloperLeaveApprovals: React.FC = () => {
                                 : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
                             }`}
                             onClick={() => handleApprove(leave)}
-                            disabled={loading}
+                            disabled={loading || (Boolean(leave.substitute_developer_name) && leave.substitute_status === 'PENDING')}
+                            title={Boolean(leave.substitute_developer_name) && leave.substitute_status === 'PENDING' ? 'Standby colleague has not accepted yet' : undefined}
                           >
                             <CheckCircle size={16} /> Approve
                           </Button>
@@ -591,7 +604,8 @@ const DeveloperLeaveApprovals: React.FC = () => {
                                     : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
                                 }`}
                                 onClick={() => handleApprove(leave)}
-                                disabled={loading}
+                                disabled={loading || (Boolean(leave.substitute_developer_name) && leave.substitute_status === 'PENDING')}
+                                title={Boolean(leave.substitute_developer_name) && leave.substitute_status === 'PENDING' ? 'Standby colleague has not accepted yet' : undefined}
                               >
                                 <CheckCircle size={16} /> Approve
                               </Button>
