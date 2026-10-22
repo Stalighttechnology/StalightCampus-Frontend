@@ -28,7 +28,7 @@ interface AuditSummary {
 }
 
 interface DetailRecord {
-  id: number;
+  id: number | string;
   date: string;
   status: string;
   marked_at: string | null;
@@ -453,9 +453,14 @@ const DeveloperAttendanceAudit: React.FC = () => {
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
                           {rec.status === 'absent' ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                              Absent
-                            </span>
+                            <>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                                Absent
+                              </span>
+                              {rec.notes && (
+                                <span className="text-[11px] text-muted-foreground italic">({rec.notes})</span>
+                              )}
+                            </>
                           ) : rec.location ? (
                             <span className={cn(
                               "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
