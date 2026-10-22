@@ -1319,15 +1319,29 @@ export interface DeveloperLeaveAdminRecord {
   substitute_acted_at?: string | null;
   document_url?: string | null;
   applied_at?: string;
+  developer_quotas?: DeveloperLeaveQuota | null;
 }
 
 export interface DeveloperLeaveQuota {
-  casual?: { label: string; annual_quota: number; used: number; remaining: number };
-  sick?: { label: string; annual_quota: number; used: number; remaining: number };
-  earned?: { label: string; annual_quota: number; used: number; remaining: number };
-  comp_off?: { label: string; annual_quota: number; used: number; remaining: number };
-  short_permission?: { label: string; monthly_quota_hours: number; used_this_month: number; remaining_this_month: number };
+  cycle?: { label: string; start_date: string; end_date: string; start_month: number };
+  casual?: { label: string; annual_quota: number; used: number; remaining: number; is_enabled?: boolean };
+  sick?: { label: string; annual_quota: number; used: number; remaining: number; is_enabled?: boolean };
+  earned?: { label: string; annual_quota: number; used: number; remaining: number; is_enabled?: boolean };
+  comp_off?: { label: string; annual_quota: number; used: number; remaining: number; is_enabled?: boolean };
+  short_permission?: { label: string; monthly_quota_hours: number; used_this_month: number; remaining_this_month: number; is_enabled?: boolean };
+  restricted_holiday?: { label: string; annual_quota: number; used: number; remaining: number; is_enabled?: boolean };
+  maternity?: { label: string; annual_quota: number; used: number; remaining: number; is_enabled?: boolean };
   lop?: { label: string; used: number };
+}
+
+export interface DeveloperHolidayRecord {
+  id: number;
+  date: string;
+  description: string;
+  holiday_type: string;
+  created_by?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const getDeveloperSubstituteRequests = async (params?: { status?: string; page?: number; page_size?: number; count_only?: boolean }): Promise<any> => {
@@ -1422,6 +1436,88 @@ export const actionSuperAdminDeveloperLeave = async (id: number | string, data: 
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data),
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getSuperAdminDeveloperLeavePolicy = async (): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/superadmin/developer-leave-policy/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+      },
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const updateSuperAdminDeveloperLeavePolicy = async (data: any): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/superadmin/developer-leave-policy/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getSuperAdminDeveloperHolidays = async (params?: { start_date?: string; end_date?: string; year?: number | string }): Promise<any> => {
+  try {
+    let url = `${API_ENDPOINT}/superadmin/developer-holidays/`;
+    if (params) {
+      const searchParams = new URLSearchParams();
+      if (params.start_date) searchParams.append('start_date', params.start_date);
+      if (params.end_date) searchParams.append('end_date', params.end_date);
+      if (params.year) searchParams.append('year', params.year.toString());
+      if (searchParams.toString()) url += `?${searchParams.toString()}`;
+    }
+    const response = await fetchWithSuperadminTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+      },
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error", holidays: [] };
+  }
+};
+
+export const createSuperAdminDeveloperHoliday = async (data: { date: string; description: string; holiday_type: string }): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/superadmin/developer-holidays/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const deleteSuperAdminDeveloperHoliday = async (id: number | string): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(`${API_ENDPOINT}/superadmin/developer-holidays/${id}/`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+      },
     });
     return await response.json();
   } catch (error) {
@@ -1556,6 +1652,8 @@ export interface DeveloperAttendanceRecord {
   checkin_timestamps?: (string | null)[];
   delays?: number[];
   leave_type?: string | null;
+  is_off_location?: boolean;
+  off_location_reason?: string;
 }
 
 export interface MarkDeveloperAttendanceRequest {
@@ -1566,6 +1664,9 @@ export interface MarkDeveloperAttendanceRequest {
   longitude?: number;
   device_info?: any;
   off_campus_reason?: string;
+  off_location_reason?: string;
+  is_off_location?: boolean;
+  deviceId?: string;
 }
 
 export const transferStudents = async (data: { student_ids: number[]; target_branch_id: number; target_semester_id: number; target_section_id?: number }) => {

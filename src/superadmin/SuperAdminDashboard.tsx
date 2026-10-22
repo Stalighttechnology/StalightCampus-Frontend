@@ -22,6 +22,8 @@ import DeveloperAttendanceAudit from "./pages/DeveloperAttendanceAudit";
 import DeveloperAnnouncements from "./pages/DeveloperAnnouncements";
 import HQChatPage from "./pages/HQChatPage";
 import DeveloperLeaveApprovals from "./pages/DeveloperLeaveApprovals";
+import DeveloperLeavePolicySettings from "./pages/DeveloperLeavePolicySettings";
+import DeveloperHolidayCalendar from "./pages/DeveloperHolidayCalendar";
 
 import { useTheme } from "../context/ThemeContext";
 import { Sun, Moon, Menu } from "lucide-react";
@@ -170,6 +172,8 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
               <Route path="office-locations" element={<OfficeLocation />} />
               <Route path="developer-audit" element={<DeveloperAttendanceAudit />} />
               <Route path="developer-leaves" element={<DeveloperLeaveApprovals />} />
+              <Route path="developer-leave-policy" element={<DeveloperLeavePolicySettings />} />
+              <Route path="developer-holidays" element={<DeveloperHolidayCalendar />} />
               <Route path="announcements" element={<DeveloperAnnouncements />} />
               <Route path="chat" element={<HQChatPage />} />
 

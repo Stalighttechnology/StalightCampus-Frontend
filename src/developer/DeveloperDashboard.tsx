@@ -11,16 +11,27 @@ import DeveloperChatPage from "./pages/DeveloperChatPage";
 import DeveloperApplyLeave from "./pages/DeveloperApplyLeave";
 import { useTheme } from "../context/ThemeContext";
 import { API_BASE_URL } from "@/utils/config";
+import { Menu } from "lucide-react";
 
 interface Props {
   setIsAuthenticated: (val: boolean) => void;
 }
 
 const DeveloperDashboard = ({ setIsAuthenticated }: Props) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1024);
   const [unreadCount, setUnreadCount] = useState(0);
   const { theme } = useTheme();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchUnreadCount = async () => {
     try {
@@ -69,7 +80,7 @@ const DeveloperDashboard = ({ setIsAuthenticated }: Props) => {
     <div className={`flex h-screen overflow-hidden ${theme === 'dark' ? 'bg-[#0B0F19]' : 'bg-gray-50'}`}>
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} setIsAuthenticated={setIsAuthenticated} />
       
-      <div className="flex-1 flex flex-col relative overflow-hidden">
+      <div className="flex-1 flex flex-col relative overflow-hidden min-w-0">
         {/* Animated Background Overlay */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
           <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-full blur-3xl mix-blend-multiply dark:mix-blend-screen" />
@@ -77,11 +88,19 @@ const DeveloperDashboard = ({ setIsAuthenticated }: Props) => {
         </div>
 
         {/* Header / Navbar equivalent */}
-        <header className="h-16 border-b border-border/50 bg-background/80 backdrop-blur-md z-10 flex items-center justify-between px-6 shadow-sm">
-           <div className="flex items-center gap-4">
-              <span className="text-sm font-medium">Developer Mode</span>
+        <header className="h-16 border-b border-border/50 bg-background/80 backdrop-blur-md z-10 flex items-center justify-between px-3 sm:px-6 shadow-sm shrink-0">
+           <div className="flex items-center gap-2 sm:gap-4">
+              <button
+                type="button"
+                onClick={() => setCollapsed(!collapsed)}
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-muted text-muted-foreground lg:hidden transition-colors"
+                aria-label="Toggle menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <span className="text-sm font-semibold tracking-tight">Developer Mode</span>
            </div>
-           <div className="flex items-center gap-4">
+           <div className="flex items-center gap-3 sm:gap-4">
               <button 
                 onClick={() => navigate('/stalightcampus/developer/announcements')}
                 className="relative p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors"
@@ -104,12 +123,12 @@ const DeveloperDashboard = ({ setIsAuthenticated }: Props) => {
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 z-10 custom-scrollbar">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-8 z-10 custom-scrollbar">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="h-full max-w-7xl mx-auto"
+            className="h-full max-w-7xl mx-auto w-full"
           >
             <Routes>
                 <Route path="/" element={<Navigate to="assigned-issues" replace />} />

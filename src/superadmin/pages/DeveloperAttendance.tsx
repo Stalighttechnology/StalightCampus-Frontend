@@ -366,54 +366,60 @@ const DeveloperAttendance = () => {
         setAttendanceStatus(status);
         await fetchTodayRecord();
         await fetchHistoryPage(historyPage);
-      } else if (response.allow_self_declaration) {
+      } else if (response.allow_self_declaration || response.allow_off_location) {
         const distanceInfo = response.location?.distance_meters
-          ? ` (Distance: ${Math.round(response.location.distance_meters)}m outside boundary)`
+          ? ` (Distance: ${Math.round(response.location.distance_meters)}m outside office)`
+          : "";
+        const coordsInfo = (latitude && longitude)
+          ? `<div class="mt-2 text-xs font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 p-2 rounded border border-emerald-500/20">📍 Captured Coordinates: ${Number(latitude).toFixed(6)}, ${Number(longitude).toFixed(6)}</div>`
           : "";
         const selfDeclarationResult = await Swal.fire({
-          title: "Outside Campus Boundary",
+          title: "Outside Office Location",
           html: `<div class="text-left text-sm space-y-2">
-            <p>You are currently outside the campus boundary${distanceInfo}.</p>
-            <p class="font-semibold text-amber-500 mt-2">⚠️ Your attendance will be logged as <strong>Outside Campus (Self-Declared)</strong>, and your exact coordinates will be stored for audit.</p>
-            <p class="mt-4 text-xs font-semibold">Please enter your reason for off-campus duty to proceed:</p>
+            <p>You are currently outside the set office location boundary${distanceInfo}.</p>
+            ${coordsInfo}
+            <p class="font-semibold text-amber-500 mt-2">⚠️ Would you like to mark <strong>Off-Location Attendance</strong>? Your captured GPS coordinates will be stored for audit.</p>
+            <p class="mt-4 text-xs font-semibold">Please enter your reason for marking attendance off-location:</p>
           </div>`,
           icon: "warning",
           input: "textarea",
-          inputPlaceholder: "E.g., Client meeting, official seminar, university visit, field work...",
+          inputPlaceholder: "E.g., Work from Home, Client meeting, Field duty, Remote development...",
           inputAttributes: {
             'aria-label': 'Type your reason here'
           },
           showCancelButton: true,
-          confirmButtonText: "Declare & Check In",
+          confirmButtonText: "Confirm & Check In",
           cancelButtonText: "Cancel",
           confirmButtonColor: "#f59e0b",
           background: theme === "dark" ? "#1c1c1e" : "#ffffff",
           color: theme === "dark" ? "#E4E4E7" : "#000000",
           inputValidator: (value) => {
             if (!value || !value.trim()) {
-              return 'You must enter a reason for off-campus duty!';
+              return 'You must enter a reason for off-location attendance!';
             }
             return null;
           }
         });
 
         if (selfDeclarationResult.isConfirmed && selfDeclarationResult.value) {
-          setLoadingMessage("Submitting declaration...");
+          setLoadingMessage("Submitting off-location declaration...");
           const retryResponse = await markDeveloperAttendance({
             ...requestData,
+            is_off_location: true,
+            off_location_reason: selfDeclarationResult.value.trim(),
             off_campus_reason: selfDeclarationResult.value.trim()
           });
 
           if (retryResponse.success) {
             const isUpdate = retryResponse.data?.updated || false;
-            toast.success(isUpdate ? `Attendance updated to ${status} (Off-Campus)` : `Attendance marked as ${status} (Off-Campus)`);
+            toast.success(isUpdate ? `Attendance updated to ${status} (Off-Location)` : `Attendance marked as ${status} (Off-Location)`);
             setAttendanceStatus(status);
             await fetchTodayRecord();
             await fetchHistoryPage(historyPage);
           } else {
             Swal.fire({
               title: "Action Blocked",
-              text: retryResponse.message || "Failed to mark off-campus attendance",
+              text: retryResponse.message || "Failed to mark off-location attendance",
               icon: "error",
               confirmButtonText: "Okay",
               confirmButtonColor: "#ef4444",
@@ -443,38 +449,14 @@ const DeveloperAttendance = () => {
     }
   };
 
-  const handleOffCampusDuty = async () => {
-    const result = await Swal.fire({
-      title: "Off-Campus Duty Check-In",
-      html: `<div class="text-left text-sm space-y-2">
-        <p>You are declaring that you are currently <strong>outside the campus</strong> on official duty.</p>
-        <p class="font-semibold text-amber-500 mt-2">⚠️ Your attendance will be logged as <strong>Outside Campus (Self-Declared)</strong>, and your exact coordinates will be stored for audit.</p>
-        <p class="mt-4 text-xs font-semibold">Please enter your reason for off-campus duty to proceed:</p>
-      </div>`,
-      icon: "warning",
-      input: "textarea",
-      inputPlaceholder: "E.g., Client meeting, official seminar, university visit, field work...",
-      inputAttributes: { 'aria-label': 'Type your reason here' },
-      showCancelButton: true,
-      confirmButtonText: "Declare & Check In",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#f59e0b",
-      background: theme === "dark" ? "#1c1c1e" : "#ffffff",
-      color: theme === "dark" ? "#E4E4E7" : "#000000",
-      inputValidator: (value) => {
-        if (!value || !value.trim()) return 'You must enter a reason for off-campus duty!';
-        return null;
-      }
-    });
-
-    if (!result.isConfirmed || !result.value) return;
-    const off_campus_reason = result.value.trim();
-
+  const handleOffLocationAttendance = async () => {
     setIsSubmitting(true);
     setMarkingStatus('present');
-    setLoadingMessage('Getting your location...');
+    setLoadingMessage('Activating GPS & detecting location...');
+
     let latitude: number | undefined;
     let longitude: number | undefined;
+    let accuracy: number | undefined;
     let device_info: any = undefined;
     let deviceId: string | undefined = undefined;
 
@@ -488,42 +470,107 @@ const DeveloperAttendance = () => {
 
       let pos: any = null;
       try {
-        pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+        pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
       } catch (err: any) {
         if (navigator.geolocation) {
           pos = await new Promise<any>((resolve) => {
             navigator.geolocation.getCurrentPosition(
               (p) => resolve(p),
               (e) => {
-                if (e && e.code === 1) toast.error('Location permission denied. Enable location to check in.');
-                else toast.error('Unable to get device location.');
                 resolve(null);
               },
-              { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+              { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
             );
           });
         }
       }
 
-      if (pos) {
-        latitude = pos.coords.latitude;
-        longitude = pos.coords.longitude;
-        device_info = {
-          accuracy: pos.coords.accuracy,
-          altitude: pos.coords.altitude,
-          heading: pos.coords.heading,
-          speed: pos.coords.speed,
-          timestamp: pos.timestamp,
-          userAgent: navigator.userAgent
-        };
+      if (!pos || !pos.coords || !pos.coords.latitude || !pos.coords.longitude) {
+        setIsSubmitting(false);
+        setMarkingStatus(null);
+        setLoadingMessage('');
+        await Swal.fire({
+          title: "Location Services Required",
+          html: `<div class="text-left text-sm space-y-2">
+            <p>To mark attendance outside the set office location, your device's <strong>GPS / Location services</strong> must be enabled and permitted.</p>
+            <p class="text-amber-500 font-semibold mt-2">⚠️ Could not retrieve your current location.</p>
+            <p class="text-xs text-muted-foreground mt-2">Please turn on location in your browser or device settings, grant permission, and try again.</p>
+          </div>`,
+          icon: "warning",
+          confirmButtonText: "Understand",
+          confirmButtonColor: "#3b82f6",
+          background: theme === "dark" ? "#1c1c1e" : "#ffffff",
+          color: theme === "dark" ? "#E4E4E7" : "#000000",
+        });
+        return;
       }
 
-      setLoadingMessage('Syncing with server...');
+      latitude = pos.coords.latitude;
+      longitude = pos.coords.longitude;
+      accuracy = pos.coords.accuracy;
+      device_info = {
+        accuracy: pos.coords.accuracy,
+        altitude: pos.coords.altitude,
+        heading: pos.coords.heading,
+        speed: pos.coords.speed,
+        timestamp: pos.timestamp,
+        userAgent: navigator.userAgent
+      };
+
+      setIsSubmitting(false);
+      setMarkingStatus(null);
+      setLoadingMessage('');
+
+      const result = await Swal.fire({
+        title: "Mark Off-Location Attendance",
+        html: `<div class="text-left text-sm space-y-3">
+          <p>You are marking attendance <strong>outside the set office location</strong>.</p>
+          <div class="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-mono">
+            <div class="font-bold flex items-center gap-1 mb-1">
+              <span>📍 Live Location Captured</span>
+            </div>
+            <div>Latitude: <strong>${latitude.toFixed(6)}</strong></div>
+            <div>Longitude: <strong>${longitude.toFixed(6)}</strong></div>
+            ${accuracy ? `<div>Accuracy: ±${Math.round(accuracy)}m</div>` : ''}
+            <div class="mt-1.5 pt-1.5 border-t border-emerald-500/20">
+              <a href="https://maps.google.com/?q=${latitude},${longitude}" target="_blank" rel="noreferrer" class="underline text-blue-500 hover:text-blue-600 font-semibold inline-flex items-center gap-1">
+                Verify on Google Maps ↗
+              </a>
+            </div>
+          </div>
+          <p class="font-semibold text-amber-500 text-xs">⚠️ Your exact GPS coordinates and reason will be recorded for superadmin attendance audit.</p>
+          <p class="text-xs font-semibold">Specify your off-location reason (e.g. Work from Home, Client Visit, Remote Duty):</p>
+        </div>`,
+        icon: "info",
+        input: "textarea",
+        inputPlaceholder: "E.g., Work from Home, Client office visit, Remote development, Field duty...",
+        inputAttributes: { 'aria-label': 'Type your reason here' },
+        showCancelButton: true,
+        confirmButtonText: "Confirm & Check In",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#f59e0b",
+        background: theme === "dark" ? "#1c1c1e" : "#ffffff",
+        color: theme === "dark" ? "#E4E4E7" : "#000000",
+        inputValidator: (value) => {
+          if (!value || !value.trim()) return 'Please enter a valid reason for off-location attendance!';
+          return null;
+        }
+      });
+
+      if (!result.isConfirmed || !result.value) return;
+      const off_location_reason = result.value.trim();
+
+      setIsSubmitting(true);
+      setMarkingStatus('present');
+      setLoadingMessage('Recording off-location attendance...');
+
       const response = await markDeveloperAttendance({
         status: 'present',
         action: 'check_in',
         notes: notes.trim() ? `${notes.trim()}` : undefined,
-        off_campus_reason,
+        is_off_location: true,
+        off_location_reason,
+        off_campus_reason: off_location_reason,
         latitude,
         longitude,
         device_info,
@@ -532,14 +579,14 @@ const DeveloperAttendance = () => {
 
       if (response.success) {
         const isUpdate = response.data?.updated || false;
-        toast.success(isUpdate ? 'Attendance updated to present (Off-Campus)' : 'Attendance marked as present (Off-Campus)');
+        toast.success(isUpdate ? 'Attendance updated to Present (Off-Location)' : 'Attendance marked as Present (Off-Location)');
         setAttendanceStatus('present');
         await fetchTodayRecord();
         await fetchHistoryPage(historyPage);
       } else {
         Swal.fire({
           title: "Action Blocked",
-          text: response.message || "Failed to mark off-campus attendance",
+          text: response.message || "Failed to mark off-location attendance",
           icon: "error",
           confirmButtonText: "Okay",
           confirmButtonColor: "#ef4444",
@@ -548,7 +595,7 @@ const DeveloperAttendance = () => {
         });
       }
     } catch (e: any) {
-      toast.error('Network error occurred');
+      toast.error('Network error occurred while marking off-location attendance');
     } finally {
       setIsSubmitting(false);
       setMarkingStatus(null);
@@ -728,21 +775,26 @@ const DeveloperAttendance = () => {
                   </div>
                 )}
 
-                {/* Off-Campus Duty Button — shown only when not yet checked in and not absent */}
+                {/* Off-Location Attendance Option — shown only when not yet checked in and not absent */}
                 {!todayRecord?.check_in_time && attendanceStatus !== 'absent' && (
-                  <div className="mt-2">
-                    <button
-                      onClick={handleOffCampusDuty}
+                  <div className="mt-3 flex flex-col items-center">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleOffLocationAttendance}
                       disabled={isSubmitting || getFlowState().isCompleted}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed
+                      className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed border
                         ${theme === 'dark'
-                          ? 'border-amber-500/50 text-amber-400 hover:bg-amber-500/10'
-                          : 'border-amber-400 text-amber-600 hover:bg-amber-50'
+                          ? 'border-amber-500/40 text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
+                          : 'border-amber-400 text-amber-700 bg-amber-50 hover:bg-amber-100/80'
                         }`}
                     >
-                      <MapPin className="w-3.5 h-3.5" />
-                      Off-Campus Duty? Declare Here
-                    </button>
+                      <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
+                      <span>Mark Off-Location Attendance</span>
+                    </Button>
+                    <p className="text-[11px] text-muted-foreground mt-1.5 text-center max-w-xs">
+                      Outside office boundary? Captures live GPS coordinates to record your attendance.
+                    </p>
                   </div>
                 )}
 
@@ -866,7 +918,30 @@ const DeveloperAttendance = () => {
                     <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                       Marked at {todayRecord.marked_at ? new Date(todayRecord.marked_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', hour12: true }) : '—'}
                     </p>
-                    {todayRecord.location ? (
+                    {todayRecord.is_off_location || todayRecord.notes?.includes('[Off-Location') || todayRecord.notes?.includes('[Off-Campus Check-in]') || todayRecord.notes?.startsWith('Off-Campus:') ? (
+                      <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                          <MapPin className="w-3 h-3" />
+                          Off-Location Duty
+                        </span>
+                        {(todayRecord.latitude || todayRecord.location?.latitude) && (todayRecord.longitude || todayRecord.location?.longitude) && (
+                          <a
+                            href={`https://maps.google.com/?q=${todayRecord.latitude || todayRecord.location?.latitude},${todayRecord.longitude || todayRecord.location?.longitude}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-blue-500 hover:underline font-mono"
+                            title="View coordinates on Google Maps"
+                          >
+                            <span>📍 ({Number(todayRecord.latitude || todayRecord.location?.latitude).toFixed(4)}, {Number(todayRecord.longitude || todayRecord.location?.longitude).toFixed(4)})</span>
+                          </a>
+                        )}
+                        {todayRecord.location?.distance_meters && (
+                          <span className="text-xs text-muted-foreground">
+                            • {Math.round(todayRecord.location.distance_meters)}m outside office
+                          </span>
+                        )}
+                      </div>
+                    ) : todayRecord.location ? (
                       <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         {todayRecord.location.inside ? (
                           <>On campus • {todayRecord.location.distance_meters !== null && todayRecord.location.distance_meters !== undefined ? `${Math.round(todayRecord.location.distance_meters)} m` : 'distance unknown'}</>
@@ -880,17 +955,17 @@ const DeveloperAttendance = () => {
                     )}
                     {todayRecord.notes && (
                       <div className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {todayRecord.notes.includes('[Off-Campus Check-in]') || todayRecord.notes.startsWith('Off-Campus:') ? (
+                        {todayRecord.is_off_location || todayRecord.notes.includes('[Off-Location') || todayRecord.notes.includes('[Off-Campus Check-in]') || todayRecord.notes.startsWith('Off-Campus:') ? (
                           <span className="flex flex-wrap items-center gap-1.5">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Off-Campus Duty</span>
+                            <span className="text-xs font-semibold text-muted-foreground">Reason:</span>
                             {(() => {
-                              const r = todayRecord.notes.replace('[Off-Campus Check-in] Reason:', '').replace(/^Off-Campus:\s*/, '').trim();
-                              return r.length > 35 ? (
+                              const raw = todayRecord.off_location_reason || todayRecord.notes.replace(/^\[Off-Location:\s*([^\]]+)\]/, '$1').replace('[Off-Campus Check-in] Reason:', '').replace(/^Off-Campus:\s*/, '').trim();
+                              return raw.length > 35 ? (
                                 <>
-                                  <span>{r.slice(0, 32)}...</span>
-                                  <button onClick={() => Swal.fire({ title: 'Off-Campus Duty Reason', text: r, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button>
+                                  <span>{raw.slice(0, 32)}...</span>
+                                  <button onClick={() => Swal.fire({ title: 'Off-Location Reason', text: raw, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button>
                                 </>
-                              ) : <span>{r}</span>;
+                              ) : <span>{raw}</span>;
                             })()}
                           </span>
                         ) : (
@@ -1092,19 +1167,38 @@ const DeveloperAttendance = () => {
                         </button>
                       </div>
                     </div>
+                    {(record.is_off_location || record.notes?.includes('[Off-Location') || record.notes?.includes('[Off-Campus Check-in]') || record.notes?.startsWith('Off-Campus:')) && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                          <MapPin className="w-3 h-3" />
+                          Off-Location
+                        </span>
+                        {(record.latitude || record.location?.latitude) && (record.longitude || record.location?.longitude) && (
+                          <a
+                            href={`https://maps.google.com/?q=${record.latitude || record.location?.latitude},${record.longitude || record.location?.longitude}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-blue-500 hover:underline font-mono inline-flex items-center gap-0.5"
+                            title="View coordinates on Google Maps"
+                          >
+                            <span>📍 ({Number(record.latitude || record.location?.latitude).toFixed(4)}, {Number(record.longitude || record.location?.longitude).toFixed(4)})</span>
+                          </a>
+                        )}
+                      </div>
+                    )}
                     {record.notes && (
                       <div className="mt-2 flex items-start space-x-2">
                         <FileText className="w-4 h-4 mt-0.5 text-gray-500 shrink-0" />
                         <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                          {record.notes.includes('[Off-Campus Check-in]') || record.notes.startsWith('Off-Campus:') ? (
+                          {record.is_off_location || record.notes.includes('[Off-Location') || record.notes.includes('[Off-Campus Check-in]') || record.notes.startsWith('Off-Campus:') ? (
                             <span className="flex flex-wrap items-center gap-1.5">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Off-Campus Duty</span>
+                              <span className="text-xs font-semibold text-muted-foreground">Reason:</span>
                               {(() => {
-                                const r = record.notes.replace('[Off-Campus Check-in] Reason:', '').replace(/^Off-Campus:\s*/, '').trim();
+                                const r = (record.off_location_reason || record.notes.replace(/^\[Off-Location:\s*([^\]]+)\]/, '$1').replace('[Off-Campus Check-in] Reason:', '').replace(/^Off-Campus:\s*/, '')).trim();
                                 return r.length > 35 ? (
                                   <>
                                     <span>{r.slice(0, 32)}...</span>
-                                    <button onClick={() => Swal.fire({ title: 'Off-Campus Duty Reason', text: r, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button>
+                                    <button onClick={() => Swal.fire({ title: 'Off-Location Reason', text: r, icon: 'info', confirmButtonText: 'Close', confirmButtonColor: '#3b82f6', background: theme === 'dark' ? '#1c1c1e' : '#ffffff', color: theme === 'dark' ? '#E4E4E7' : '#000000' })} className="text-xs text-blue-500 hover:underline font-bold">(View)</button>
                                   </>
                                 ) : <span>{r}</span>;
                               })()}
@@ -1230,10 +1324,26 @@ const DeveloperAttendance = () => {
                     </div>
                   )}
 
-                  {(selectedRecordDetails.notes?.includes('[Off-Campus Check-in]') || selectedRecordDetails.notes?.startsWith('Off-Campus:')) && (
-                    <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed">
-                      <span className="block text-xs uppercase tracking-wider font-black mb-1 opacity-70">Off-Campus Duty</span>
-                      {selectedRecordDetails.notes.replace('[Off-Campus Check-in] Reason:', '').replace(/^Off-Campus:\s*/, '').trim()}
+                  {(selectedRecordDetails.is_off_location || selectedRecordDetails.notes?.includes('[Off-Location') || selectedRecordDetails.notes?.includes('[Off-Campus Check-in]') || selectedRecordDetails.notes?.startsWith('Off-Campus:')) && (
+                    <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 font-semibold leading-relaxed space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1 text-xs uppercase tracking-wider font-black opacity-90">
+                          <MapPin className="w-3.5 h-3.5" /> Off-Location Duty
+                        </span>
+                        {(selectedRecordDetails.latitude || selectedRecordDetails.location?.latitude) && (selectedRecordDetails.longitude || selectedRecordDetails.location?.longitude) && (
+                          <a
+                            href={`https://maps.google.com/?q=${selectedRecordDetails.latitude || selectedRecordDetails.location?.latitude},${selectedRecordDetails.longitude || selectedRecordDetails.location?.longitude}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-blue-500 hover:underline font-mono"
+                          >
+                            Map ↗
+                          </a>
+                        )}
+                      </div>
+                      <p className="text-xs">
+                        {selectedRecordDetails.off_location_reason || selectedRecordDetails.notes?.replace(/^\[Off-Location:\s*([^\]]+)\]/, '$1').replace('[Off-Campus Check-in] Reason:', '').replace(/^Off-Campus:\s*/, '').trim()}
+                      </p>
                     </div>
                   )}
 

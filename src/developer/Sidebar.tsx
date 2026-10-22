@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ListTodo, Activity, User, LogOut, ChevronLeft, ChevronRight, CalendarCheck, Megaphone, MessageSquare, Calendar } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ListTodo, Activity, User, LogOut, ChevronLeft, ChevronRight, CalendarCheck, Megaphone, MessageSquare, Calendar, X } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import { API_BASE_URL } from "@/utils/config";
@@ -72,34 +72,32 @@ const Sidebar = ({ collapsed, setCollapsed, setIsAuthenticated }: Props) => {
     ? MENU_ITEMS.filter((item) => item.id !== "monitoring") 
     : MENU_ITEMS;
 
-  return (
-    <motion.div
-      initial={{ width: 260 }}
-      animate={{ width: collapsed ? 80 : 260 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="h-full bg-card border-r border-border/50 flex flex-col shadow-sm relative z-20"
-    >
-      <div className="h-16 flex items-center justify-between px-4 border-b border-border/50">
-        {!collapsed && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="font-bold text-lg text-primary truncate"
-          >
+  const renderContent = (isMobileView: boolean) => (
+    <div className="flex flex-col h-full">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-border/50 shrink-0">
+        {(!collapsed || isMobileView) && (
+          <div className="font-bold text-lg text-primary truncate">
             Developer Portal
-          </motion.div>
+          </div>
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors mx-auto"
+          aria-label={isMobileView ? "Close sidebar" : (collapsed ? "Expand sidebar" : "Collapse sidebar")}
         >
-          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          {isMobileView ? (
+            <X size={20} />
+          ) : collapsed ? (
+            <ChevronRight size={20} />
+          ) : (
+            <ChevronLeft size={20} />
+          )}
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
         <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">
-          {!collapsed ? "Main Menu" : "..."}
+          {(!collapsed || isMobileView) ? "Main Menu" : "..."}
         </div>
         
         {visibleMenuItems.map((item) => {
@@ -108,13 +106,18 @@ const Sidebar = ({ collapsed, setCollapsed, setIsAuthenticated }: Props) => {
             <Link
               key={item.id}
               to={`/stalightcampus/developer/${item.id}`}
+              onClick={() => {
+                if (isMobileView || (typeof window !== 'undefined' && window.innerWidth < 1024)) {
+                  setCollapsed(true);
+                }
+              }}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
                 isActive 
                   ? "bg-primary/10 text-primary font-medium" 
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <div className={`${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"} relative`}>
+              <div className={`${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"} relative shrink-0`}>
                 {item.icon}
                 {item.id === "chat" && chatUnread > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-[8px] text-white font-bold">
@@ -123,18 +126,18 @@ const Sidebar = ({ collapsed, setCollapsed, setIsAuthenticated }: Props) => {
                 )}
               </div>
               
-              {!collapsed && (
+              {(!collapsed || isMobileView) && (
                 <span className="truncate">{item.label}</span>
               )}
               
-              {isActive && !collapsed && (
+              {isActive && (!collapsed || isMobileView) && (
                 <motion.div
-                  layoutId="activeTab"
+                  layoutId={isMobileView ? "activeTabMobile" : "activeTabDesktop"}
                   className="absolute right-2 w-1.5 h-1.5 rounded-full bg-primary"
                 />
               )}
 
-              {collapsed && (
+              {collapsed && !isMobileView && (
                 <div className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 border shadow-md pointer-events-none">
                   {item.label}
                 </div>
@@ -144,22 +147,61 @@ const Sidebar = ({ collapsed, setCollapsed, setIsAuthenticated }: Props) => {
         })}
       </div>
 
-      <div className="p-4 border-t border-border/50">
+      <div className="p-4 border-t border-border/50 shrink-0">
         <button
           onClick={handleLogout}
-          className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors group relative ${collapsed ? 'justify-center' : ''}`}
+          className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors group relative ${(collapsed && !isMobileView) ? 'justify-center' : ''}`}
         >
           <LogOut size={20} />
-          {!collapsed && <span>Logout</span>}
+          {(!collapsed || isMobileView) && <span>Logout</span>}
           
-          {collapsed && (
+          {collapsed && !isMobileView && (
             <div className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 border shadow-md pointer-events-none">
               Logout
             </div>
           )}
         </button>
       </div>
-    </motion.div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile Drawer (< 1024px) */}
+      <div className="lg:hidden">
+        <AnimatePresence>
+          {!collapsed && (
+            <motion.div
+              className="fixed inset-0 bg-black/60 z-40 backdrop-blur-xs"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setCollapsed(true)}
+            />
+          )}
+        </AnimatePresence>
+
+        <motion.div
+          className="fixed top-0 bottom-0 left-0 z-50 shadow-2xl w-72 bg-card border-r border-border flex flex-col"
+          initial={{ x: "-100%" }}
+          animate={{ x: collapsed ? "-100%" : "0%" }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          {renderContent(true)}
+        </motion.div>
+      </div>
+
+      {/* Desktop Persistent Sidebar (>= 1024px) */}
+      <motion.div
+        initial={false}
+        animate={{ width: collapsed ? 80 : 260 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="hidden lg:flex h-full bg-card border-r border-border/50 flex-col shadow-sm relative z-20 shrink-0"
+      >
+        {renderContent(false)}
+      </motion.div>
+    </>
   );
 };
 

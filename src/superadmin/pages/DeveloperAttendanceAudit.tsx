@@ -41,6 +41,8 @@ interface DetailRecord {
   notes: string;
   latitude: string | null;
   longitude: string | null;
+  is_off_location?: boolean;
+  off_location_reason?: string;
   location: {
     inside: boolean | null;
     distance_meters: number | null;
@@ -482,6 +484,12 @@ const DeveloperAttendanceAudit: React.FC = () => {
                                 <span className="text-[11px] text-muted-foreground italic">({rec.notes})</span>
                               )}
                             </>
+                          ) : rec.is_off_location || rec.notes?.includes('[Off-Location') || rec.notes?.includes('[Off-Campus') ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                              <MapPin className="w-3 h-3 shrink-0" />
+                              Off-Location
+                              {rec.off_location_reason ? ` • ${rec.off_location_reason}` : ''}
+                            </span>
                           ) : rec.location ? (
                             <span className={cn(
                               "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
@@ -517,10 +525,13 @@ const DeveloperAttendanceAudit: React.FC = () => {
                           href={`https://maps.google.com/?q=${rec.latitude},${rec.longitude}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-primary hover:text-primary/80 transition-colors"
-                          title="View on Map"
+                          className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors bg-primary/10 hover:bg-primary/20 px-2 py-1 rounded-md font-mono font-medium"
+                          title="View on Google Maps"
                         >
-                          <MapPin className="w-4 h-4" />
+                          <MapPin className="w-3.5 h-3.5 text-primary" />
+                          <span className="hidden sm:inline">
+                            {Number(rec.latitude).toFixed(3)}, {Number(rec.longitude).toFixed(3)}
+                          </span>
                         </a>
                       )}
                     </div>

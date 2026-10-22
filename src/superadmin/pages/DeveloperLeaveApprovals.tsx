@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, Filter, FileText, ExternalLink, Calendar as CalendarIcon, Search, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Filter, FileText, ExternalLink, Calendar as CalendarIcon, Search, Loader2, CalendarDays, Sliders, CalendarCheck2 } from "lucide-react";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import { useTheme } from "../../context/ThemeContext";
@@ -19,6 +19,8 @@ import {
   actionSuperAdminDeveloperLeave,
   DeveloperLeaveAdminRecord
 } from "../../utils/admin_api";
+import DeveloperLeavePolicySettings from "./DeveloperLeavePolicySettings";
+import DeveloperHolidayCalendar from "./DeveloperHolidayCalendar";
 
 const getStatusBadge = (status: string, theme: string) => {
   switch (status?.toUpperCase()) {
@@ -106,6 +108,7 @@ const formatDateString = (dateStr: string) => {
 const DeveloperLeaveApprovals: React.FC = () => {
   const { theme } = useTheme();
 
+  const [activeTab, setActiveTab] = useState<'requests' | 'policy' | 'holidays'>('requests');
   const [leaves, setLeaves] = useState<DeveloperLeaveAdminRecord[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -274,7 +277,60 @@ const DeveloperLeaveApprovals: React.FC = () => {
 
   return (
     <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Card id="developer-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
+      {/* Top Section Segmented Tabs */}
+      <div className="flex flex-wrap items-center gap-2 mb-4 p-1 rounded-xl bg-muted/40 w-fit border border-border/50">
+        <button
+          type="button"
+          onClick={() => setActiveTab('requests')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            activeTab === 'requests'
+              ? 'bg-primary text-white shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <CalendarIcon className="w-3.5 h-3.5" />
+          <span>Leave Requests</span>
+          {totalCount > 0 && (
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+              activeTab === 'requests' ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'
+            }`}>
+              {totalCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('policy')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            activeTab === 'policy'
+              ? 'bg-primary text-white shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Sliders className="w-3.5 h-3.5" />
+          <span>Leave Policy Configuration</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('holidays')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            activeTab === 'holidays'
+              ? 'bg-primary text-white shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <CalendarDays className="w-3.5 h-3.5" />
+          <span>Annual Holiday Calendar</span>
+        </button>
+      </div>
+
+      {activeTab === 'policy' && <DeveloperLeavePolicySettings />}
+      {activeTab === 'holidays' && <DeveloperHolidayCalendar />}
+
+      {activeTab === 'requests' && (
+        <Card id="developer-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
         <CardHeader id="developer-leaves-header-section" className="leave-card-header border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6">
           <div className="flex flex-col gap-1">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -346,6 +402,39 @@ const DeveloperLeaveApprovals: React.FC = () => {
                     <div className="mt-2.5">
                       <div className="text-sm font-semibold text-foreground">{leave.title || "Leave Application"}</div>
                       {renderLeaveCategoryBadge(leave.leave_type, leave.is_half_day, leave.half_day_session)}
+                      {leave.developer_quotas && (
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                          {(() => {
+                            const q = leave.developer_quotas;
+                            const type = (leave.leave_type || 'casual').toLowerCase();
+                            let quotaInfo: { label: string; used: any; total: any; left: any } | null = null;
+                            if (type === 'casual' && q.casual) {
+                              quotaInfo = { label: 'CL Quota', used: q.casual.used, total: q.casual.annual_quota, left: q.casual.remaining };
+                            } else if (type === 'sick' && q.sick) {
+                              quotaInfo = { label: 'SL Quota', used: q.sick.used, total: q.sick.annual_quota, left: q.sick.remaining };
+                            } else if (type === 'earned' && q.earned) {
+                              quotaInfo = { label: 'EL Quota', used: q.earned.used, total: q.earned.annual_quota, left: q.earned.remaining };
+                            } else if (type === 'comp_off' && q.comp_off) {
+                              quotaInfo = { label: 'Comp-Off', used: q.comp_off.used, total: q.comp_off.annual_quota, left: q.comp_off.remaining };
+                            } else if (type === 'short_permission' && q.short_permission) {
+                              quotaInfo = { label: 'Permission', used: `${q.short_permission.used_this_month}h`, total: `${q.short_permission.monthly_quota_hours}h`, left: `${q.short_permission.remaining_this_month}h` };
+                            } else if (q.casual) {
+                              quotaInfo = { label: 'CL Quota', used: q.casual.used, total: q.casual.annual_quota, left: q.casual.remaining };
+                            }
+                            if (!quotaInfo) return null;
+                            const isExhausted = typeof quotaInfo.left === 'number' && quotaInfo.left <= 0;
+                            return (
+                              <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md font-semibold border ${
+                                isExhausted
+                                  ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
+                                  : 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20'
+                              }`}>
+                                {quotaInfo.label}: {quotaInfo.used} / {quotaInfo.total} used ({quotaInfo.left} left)
+                              </span>
+                            );
+                          })()}
+                        </div>
+                      )}
                       {leave.substitute_developer_name && (
                         <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground mt-1">
                           <span>Standby: <span className="font-semibold text-foreground">{leave.substitute_developer_name}</span></span>
@@ -510,6 +599,39 @@ const DeveloperLeaveApprovals: React.FC = () => {
                         <td className="py-4 px-2 md:px-4 text-left">
                           <div className={`font-medium text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title || "Leave Application"}</div>
                           {renderLeaveCategoryBadge(leave.leave_type, leave.is_half_day, leave.half_day_session)}
+                          {leave.developer_quotas && (
+                            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                              {(() => {
+                                const q = leave.developer_quotas;
+                                const type = (leave.leave_type || 'casual').toLowerCase();
+                                let quotaInfo: { label: string; used: any; total: any; left: any } | null = null;
+                                if (type === 'casual' && q.casual) {
+                                  quotaInfo = { label: 'CL Quota', used: q.casual.used, total: q.casual.annual_quota, left: q.casual.remaining };
+                                } else if (type === 'sick' && q.sick) {
+                                  quotaInfo = { label: 'SL Quota', used: q.sick.used, total: q.sick.annual_quota, left: q.sick.remaining };
+                                } else if (type === 'earned' && q.earned) {
+                                  quotaInfo = { label: 'EL Quota', used: q.earned.used, total: q.earned.annual_quota, left: q.earned.remaining };
+                                } else if (type === 'comp_off' && q.comp_off) {
+                                  quotaInfo = { label: 'Comp-Off', used: q.comp_off.used, total: q.comp_off.annual_quota, left: q.comp_off.remaining };
+                                } else if (type === 'short_permission' && q.short_permission) {
+                                  quotaInfo = { label: 'Permission', used: `${q.short_permission.used_this_month}h`, total: `${q.short_permission.monthly_quota_hours}h`, left: `${q.short_permission.remaining_this_month}h` };
+                                } else if (q.casual) {
+                                  quotaInfo = { label: 'CL Quota', used: q.casual.used, total: q.casual.annual_quota, left: q.casual.remaining };
+                                }
+                                if (!quotaInfo) return null;
+                                const isExhausted = typeof quotaInfo.left === 'number' && quotaInfo.left <= 0;
+                                return (
+                                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md font-semibold border ${
+                                    isExhausted
+                                      ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
+                                      : 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20'
+                                  }`}>
+                                    {quotaInfo.label}: {quotaInfo.used} / {quotaInfo.total} used ({quotaInfo.left} left)
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                          )}
                           {leave.substitute_developer_name && (
                             <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground mt-1">
                               <span>Standby: <span className="font-semibold text-foreground">{leave.substitute_developer_name}</span></span>
@@ -699,6 +821,7 @@ const DeveloperLeaveApprovals: React.FC = () => {
           </CardFooter>
         )}
       </Card>
+      )}
 
       {/* View Reason Dialog matching HODLeavesManagement */}
       <Dialog open={!!selectedLeaveForReason} onOpenChange={() => setSelectedLeaveForReason(null)}>
@@ -741,6 +864,62 @@ const DeveloperLeaveApprovals: React.FC = () => {
                   <div className="text-amber-600 dark:text-amber-400 mt-2"><strong>Admin Remarks:</strong> {selectedLeaveForReason.admin_remarks}</div>
                 )}
               </div>
+
+              {selectedLeaveForReason.developer_quotas && (
+                <div className={`p-3 rounded-lg border text-xs space-y-2 ${theme === 'dark' ? 'bg-card border-border/80' : 'bg-slate-50 border-slate-200'}`}>
+                  <div className="flex items-center justify-between font-semibold">
+                    <span className="flex items-center gap-1.5">
+                      <CalendarCheck2 className="w-3.5 h-3.5 text-primary" />
+                      Applicant Annual Leave Balance
+                    </span>
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      Cycle: {selectedLeaveForReason.developer_quotas.cycle?.label || 'Annual'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="p-2 rounded border bg-background text-center">
+                      <span className="text-[10px] text-muted-foreground block">Casual (CL)</span>
+                      <span className="font-bold text-sm text-foreground">
+                        {selectedLeaveForReason.developer_quotas.casual?.remaining ?? 0} Left
+                      </span>
+                      <span className="text-[9px] text-muted-foreground block">
+                        {selectedLeaveForReason.developer_quotas.casual?.used ?? 0} / {selectedLeaveForReason.developer_quotas.casual?.annual_quota ?? 15} used
+                      </span>
+                    </div>
+
+                    <div className="p-2 rounded border bg-background text-center">
+                      <span className="text-[10px] text-muted-foreground block">Sick (SL)</span>
+                      <span className="font-bold text-sm text-foreground">
+                        {selectedLeaveForReason.developer_quotas.sick?.remaining ?? 0} Left
+                      </span>
+                      <span className="text-[9px] text-muted-foreground block">
+                        {selectedLeaveForReason.developer_quotas.sick?.used ?? 0} / {selectedLeaveForReason.developer_quotas.sick?.annual_quota ?? 12} used
+                      </span>
+                    </div>
+
+                    <div className="p-2 rounded border bg-background text-center">
+                      <span className="text-[10px] text-muted-foreground block">Earned (EL)</span>
+                      <span className="font-bold text-sm text-foreground">
+                        {selectedLeaveForReason.developer_quotas.earned?.remaining ?? 0} Left
+                      </span>
+                      <span className="text-[9px] text-muted-foreground block">
+                        {selectedLeaveForReason.developer_quotas.earned?.used ?? 0} / {selectedLeaveForReason.developer_quotas.earned?.annual_quota ?? 15} used
+                      </span>
+                    </div>
+
+                    <div className="p-2 rounded border bg-background text-center">
+                      <span className="text-[10px] text-muted-foreground block">Short Perm.</span>
+                      <span className="font-bold text-sm text-foreground">
+                        {selectedLeaveForReason.developer_quotas.short_permission?.remaining_this_month ?? 0}h Left
+                      </span>
+                      <span className="text-[9px] text-muted-foreground block">
+                        {selectedLeaveForReason.developer_quotas.short_permission?.used_this_month ?? 0}h used mo
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className={`p-3 text-sm leading-relaxed whitespace-pre-wrap break-words max-h-64 overflow-y-auto rounded-md border ${theme === 'dark' ? 'text-foreground bg-muted/10 border-border' : 'text-gray-900 bg-white border-gray-200'}`}>
                 {selectedLeaveForReason.reason}

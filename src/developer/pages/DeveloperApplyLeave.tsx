@@ -270,6 +270,28 @@ const DeveloperApplyLeave: React.FC = () => {
     }
   }, [activeMainTab, substitutePage, substituteStatusFilter]);
 
+  const isCategoryEnabled = (type: string) => {
+    if (!quotas) return true;
+    if (type === 'casual') return quotas.casual?.is_enabled !== false;
+    if (type === 'sick') return quotas.sick?.is_enabled !== false;
+    if (type === 'earned') return quotas.earned?.is_enabled !== false;
+    if (type === 'comp_off') return quotas.comp_off?.is_enabled !== false;
+    if (type === 'half_day') return quotas.casual?.is_enabled !== false;
+    if (type === 'short_permission') return quotas.short_permission?.is_enabled !== false;
+    return true; // 'lop' is always enabled as fallback
+  };
+
+  // If current leaveType is disabled by SuperAdmin, automatically switch to first available enabled option
+  useEffect(() => {
+    if (!quotas) return;
+    if (!isCategoryEnabled(leaveType)) {
+      const candidates = ['casual', 'sick', 'earned', 'comp_off', 'half_day', 'short_permission', 'lop'];
+      const firstAvailable = candidates.find(c => isCategoryEnabled(c)) || 'lop';
+      setLeaveType(firstAvailable);
+      setIsHalfDay(firstAvailable === 'half_day');
+    }
+  }, [quotas, leaveType]);
+
   const fetchSubstituteCountOnly = async () => {
     try {
       const res = await getDeveloperSubstituteRequests({ count_only: true });
@@ -412,6 +434,13 @@ const DeveloperApplyLeave: React.FC = () => {
       return;
     }
 
+    if (!isCategoryEnabled(leaveType)) {
+      const errStr = 'This leave category has been disabled by administrator in the leave policy.';
+      setError(errStr);
+      toast.error(errStr);
+      return;
+    }
+
     if (leaveType === 'short_permission') {
       if (!startTime || !endTime) {
         setError('Start time and end time are required for short permission');
@@ -511,13 +540,13 @@ const DeveloperApplyLeave: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <div className={`space-y-6 w-full max-w-7xl mx-auto pb-12 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+    <div className={`space-y-4 sm:space-y-6 w-full max-w-7xl mx-auto pb-10 sm:pb-12 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       {/* Leave Cycle Header */}
-      <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+      <div className={`p-3 sm:p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 ${
         theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-slate-200 shadow-sm'
       }`}>
-        <div className="flex items-center gap-2">
-          <CalendarIcon className="w-5 h-5 text-primary shrink-0" />
+        <div className="flex items-center gap-2 flex-wrap">
+          <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
           <span className="text-xs sm:text-sm font-semibold text-foreground">
             Developer Leave Cycle:
           </span>
@@ -525,7 +554,7 @@ const DeveloperApplyLeave: React.FC = () => {
             Year {currentYear}
           </span>
         </div>
-        <span className="text-[11px] text-muted-foreground font-medium">
+        <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">
           Cycle Window: Jan 01, {currentYear} to Dec 31, {currentYear} (Annual Reset)
         </span>
       </div>
@@ -538,28 +567,29 @@ const DeveloperApplyLeave: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveMainTab('apply')}
-            className={`flex-1 justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${
+            className={`flex-1 justify-center px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-1.5 sm:gap-2 ${
               activeMainTab === 'apply'
                 ? 'bg-primary text-white shadow-sm'
                 : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
             }`}
           >
-            <CalendarCheck2 className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">Apply Leave</span>
+            <CalendarCheck2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Apply Leave</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveMainTab('substitute_requests')}
-            className={`flex-1 justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 relative ${
+            className={`flex-1 justify-center px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-1.5 sm:gap-2 relative ${
               activeMainTab === 'substitute_requests'
                 ? 'bg-primary text-white shadow-sm'
                 : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
             }`}
           >
-            <Users className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">Substitute / Handover Requests</span>
+            <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="hidden sm:inline truncate">Substitute / Handover Requests</span>
+            <span className="sm:hidden truncate">Handover Requests</span>
             {pendingSubstituteCount > 0 && (
-              <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] rounded-full font-semibold leading-none ${
+              <span className={`ml-1 px-1.5 py-0.5 text-[10px] rounded-full font-semibold leading-none ${
                 activeMainTab === 'substitute_requests'
                   ? 'bg-white text-primary'
                   : 'bg-rose-500 text-white animate-pulse'
@@ -573,8 +603,154 @@ const DeveloperApplyLeave: React.FC = () => {
 
       {activeMainTab === 'apply' ? (
         <>
+          {/* Developer Quota & Leave Balance Metric Banner */}
+          {quotas && (
+            <div className="mb-5 sm:mb-6 space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
+                <div className="flex items-center gap-2">
+                  <CalendarCheck2 className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-[11px] sm:text-xs font-bold tracking-tight text-foreground uppercase">
+                    My Annual Leave Quotas & Usage ({quotas.cycle?.label ? `Cycle AY ${quotas.cycle.label}` : new Date().getFullYear()})
+                  </span>
+                </div>
+                <span className="text-[10px] sm:text-[11px] text-muted-foreground font-mono">
+                  {quotas.cycle?.start_date && quotas.cycle?.end_date ? `${quotas.cycle.start_date} to ${quotas.cycle.end_date}` : 'Annual Allocation'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-3">
+                {/* 1. Casual Leave */}
+                {quotas.casual?.is_enabled !== false && (
+                  <div className={`p-2.5 sm:p-3 rounded-xl border flex flex-col justify-between transition-all ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-slate-200 shadow-xs'}`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">Casual (CL)</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 font-bold">
+                        {quotas.casual?.remaining ?? 0} Left
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-baseline justify-between">
+                      <span className="text-base sm:text-lg font-extrabold text-foreground">{quotas.casual?.used ?? 0}</span>
+                      <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">/ {quotas.casual?.annual_quota ?? 15} used</span>
+                    </div>
+                    <div className="w-full bg-muted/40 h-1.5 rounded-full mt-2 overflow-hidden">
+                      <div
+                        className="bg-emerald-500 h-full rounded-full transition-all"
+                        style={{ width: `${Math.min(100, ((quotas.casual?.used ?? 0) / (quotas.casual?.annual_quota || 15)) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Sick Leave */}
+                {quotas.sick?.is_enabled !== false && (
+                  <div className={`p-2.5 sm:p-3 rounded-xl border flex flex-col justify-between transition-all ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-slate-200 shadow-xs'}`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">Sick (SL)</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 font-bold">
+                        {quotas.sick?.remaining ?? 0} Left
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-baseline justify-between">
+                      <span className="text-base sm:text-lg font-extrabold text-foreground">{quotas.sick?.used ?? 0}</span>
+                      <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">/ {quotas.sick?.annual_quota ?? 12} used</span>
+                    </div>
+                    <div className="w-full bg-muted/40 h-1.5 rounded-full mt-2 overflow-hidden">
+                      <div
+                        className="bg-rose-500 h-full rounded-full transition-all"
+                        style={{ width: `${Math.min(100, ((quotas.sick?.used ?? 0) / (quotas.sick?.annual_quota || 12)) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Earned Leave */}
+                {quotas.earned?.is_enabled !== false && (
+                  <div className={`p-2.5 sm:p-3 rounded-xl border flex flex-col justify-between transition-all ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-slate-200 shadow-xs'}`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">Earned (EL)</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 font-bold">
+                        {quotas.earned?.remaining ?? 0} Left
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-baseline justify-between">
+                      <span className="text-base sm:text-lg font-extrabold text-foreground">{quotas.earned?.used ?? 0}</span>
+                      <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">/ {quotas.earned?.annual_quota ?? 15} used</span>
+                    </div>
+                    <div className="w-full bg-muted/40 h-1.5 rounded-full mt-2 overflow-hidden">
+                      <div
+                        className="bg-blue-500 h-full rounded-full transition-all"
+                        style={{ width: `${Math.min(100, ((quotas.earned?.used ?? 0) / (quotas.earned?.annual_quota || 15)) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. Comp Off */}
+                {quotas.comp_off?.is_enabled !== false && (
+                  <div className={`p-2.5 sm:p-3 rounded-xl border flex flex-col justify-between transition-all ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-slate-200 shadow-xs'}`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-purple-600 dark:text-purple-400">Comp Off</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 font-bold">
+                        {quotas.comp_off?.remaining ?? 0} Left
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-baseline justify-between">
+                      <span className="text-base sm:text-lg font-extrabold text-foreground">{quotas.comp_off?.used ?? 0}</span>
+                      <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">/ {quotas.comp_off?.annual_quota ?? 5} used</span>
+                    </div>
+                    <div className="w-full bg-muted/40 h-1.5 rounded-full mt-2 overflow-hidden">
+                      <div
+                        className="bg-purple-500 h-full rounded-full transition-all"
+                        style={{ width: `${Math.min(100, ((quotas.comp_off?.used ?? 0) / (quotas.comp_off?.annual_quota || 5)) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 5. Short Permission */}
+                {quotas.short_permission?.is_enabled !== false && (
+                  <div className={`p-2.5 sm:p-3 rounded-xl border flex flex-col justify-between transition-all ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-slate-200 shadow-xs'}`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">Permission</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 font-bold">
+                        {quotas.short_permission?.remaining_this_month ?? 0}h Left
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-baseline justify-between">
+                      <span className="text-base sm:text-lg font-extrabold text-foreground">{quotas.short_permission?.used_this_month ?? 0}h</span>
+                      <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">/ {quotas.short_permission?.monthly_quota_hours ?? 3}h mo</span>
+                    </div>
+                    <div className="w-full bg-muted/40 h-1.5 rounded-full mt-2 overflow-hidden">
+                      <div
+                        className="bg-amber-500 h-full rounded-full transition-all"
+                        style={{ width: `${Math.min(100, ((quotas.short_permission?.used_this_month ?? 0) / (quotas.short_permission?.monthly_quota_hours || 3)) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. LOP */}
+                <div className={`p-2.5 sm:p-3 rounded-xl border flex flex-col justify-between transition-all ${theme === 'dark' ? 'bg-card/70 border-border/80' : 'bg-white border-slate-200 shadow-xs'}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-slate-500">Loss of Pay</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-500 font-bold">
+                      LOP
+                    </span>
+                  </div>
+                  <div className="mt-2 flex items-baseline justify-between">
+                    <span className="text-base sm:text-lg font-extrabold text-foreground">{quotas.lop?.used ?? 0}</span>
+                    <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">Days taken</span>
+                  </div>
+                  <div className="w-full bg-muted/40 h-1.5 rounded-full mt-2 overflow-hidden">
+                    <div className="bg-slate-400 h-full rounded-full transition-all" style={{ width: `${Math.min(100, (quotas.lop?.used ?? 0) * 10)}%` }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Main 2-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* LEFT COLUMN: Leave Application Form */}
         <Card id="apply-leave-form-card" className={`apply-leave-card flex flex-col h-full border ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader className="px-4 sm:px-6 py-4 sm:py-5 border-b">
@@ -618,12 +794,24 @@ const DeveloperApplyLeave: React.FC = () => {
                     <SelectValue placeholder="Select Leave Category" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : ''}>
-                    <SelectItem value="casual">Casual Leave (CL)</SelectItem>
-                    <SelectItem value="sick">Sick / Medical Leave (SL)</SelectItem>
-                    <SelectItem value="earned">Earned Leave (EL)</SelectItem>
-                    <SelectItem value="comp_off">Comp Off</SelectItem>
-                    <SelectItem value="half_day">Half Day</SelectItem>
-                    <SelectItem value="short_permission">Short Permission (Hours)</SelectItem>
+                    {quotas?.casual?.is_enabled !== false && (
+                      <SelectItem value="casual">Casual Leave (CL)</SelectItem>
+                    )}
+                    {quotas?.sick?.is_enabled !== false && (
+                      <SelectItem value="sick">Sick / Medical Leave (SL)</SelectItem>
+                    )}
+                    {quotas?.earned?.is_enabled !== false && (
+                      <SelectItem value="earned">Earned Leave (EL)</SelectItem>
+                    )}
+                    {quotas?.comp_off?.is_enabled !== false && (
+                      <SelectItem value="comp_off">Comp Off</SelectItem>
+                    )}
+                    {quotas?.casual?.is_enabled !== false && (
+                      <SelectItem value="half_day">Half Day</SelectItem>
+                    )}
+                    {quotas?.short_permission?.is_enabled !== false && (
+                      <SelectItem value="short_permission">Short Permission (Hours)</SelectItem>
+                    )}
                     <SelectItem value="lop">Leave Without Pay (LOP)</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1441,7 +1629,7 @@ const DeveloperApplyLeave: React.FC = () => {
 
       {/* Details Dialog */}
       <Dialog open={!!selectedLeave} onOpenChange={() => setSelectedLeave(null)}>
-        <DialogContent className={`max-w-md ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+        <DialogContent className={`w-[94vw] sm:max-w-md max-h-[88vh] overflow-y-auto ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">Leave Request Details</DialogTitle>
           </DialogHeader>
@@ -1566,7 +1754,7 @@ const DeveloperApplyLeave: React.FC = () => {
 
       {/* Substitute Request Reason View Dialog */}
       <Dialog open={!!substituteViewReason} onOpenChange={() => setSubstituteViewReason(null)}>
-        <DialogContent className={`max-w-md ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+        <DialogContent className={`w-[94vw] sm:max-w-md max-h-[88vh] overflow-y-auto ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">Reason for Leave Request</DialogTitle>
           </DialogHeader>

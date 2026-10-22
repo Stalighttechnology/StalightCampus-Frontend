@@ -20,7 +20,9 @@ import {
   Mail,
   Megaphone,
   Briefcase,
-  Calendar
+  Calendar,
+  CalendarCheck2,
+  CalendarDays
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useTheme } from "../context/ThemeContext";
@@ -56,6 +58,8 @@ const allMenuItems = [
   { id: "office-locations", label: "Office Locations", icon: <Building2 size={20} /> },
   { id: "developer-audit", label: "Developer Audit", icon: <FileText size={20} /> },
   { id: "developer-leaves", label: "Developer Leaves", icon: <Calendar size={20} /> },
+  { id: "developer-leave-policy", label: "Leave Policy Settings", icon: <CalendarCheck2 size={20} /> },
+  { id: "developer-holidays", label: "Holiday Calendar", icon: <CalendarDays size={20} /> },
   { id: "monitoring", label: "System Monitor", icon: <Activity size={20} /> },
   { id: "popups", label: "Popups", icon: <MessageSquare size={20} /> },
   { id: "reports", label: "Reports", icon: <BarChart3 size={20} /> },
