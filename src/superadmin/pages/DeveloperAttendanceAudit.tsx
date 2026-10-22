@@ -21,6 +21,9 @@ interface AuditSummary {
   id: number;
   name: string;
   email: string;
+  joining_date?: string | null;
+  effective_start_date?: string;
+  joined_mid_period?: boolean;
   total_days: number;
   present: number;
   absent: number;
@@ -323,6 +326,19 @@ const DeveloperAttendanceAudit: React.FC = () => {
                         <TableCell className="py-5 px-6">
                           <div className="font-semibold text-sm sm:text-base text-foreground">{item.name}</div>
                           <div className="text-xs text-muted-foreground mt-0.5">{item.email}</div>
+                          {item.joining_date && (
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <CalendarIcon className="w-3 h-3 text-primary/70 shrink-0" />
+                                Joined: {format(new Date(item.joining_date + 'T00:00:00'), "MMM d, yyyy")}
+                              </span>
+                              {item.joined_mid_period && item.effective_start_date && (
+                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                                  Audit starts {format(new Date(item.effective_start_date + 'T00:00:00'), "MMM d")}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell className="text-center font-mono font-semibold text-sm">{item.total_days}</TableCell>
                         <TableCell className="text-center">
@@ -405,8 +421,13 @@ const DeveloperAttendanceAudit: React.FC = () => {
             </DialogTitle>
             <DialogDescription className="text-xs sm:text-sm font-medium mt-1">
               Detail view for <span className="text-foreground font-semibold">{selectedDev?.name}</span>
+              {selectedDev?.joining_date && (
+                <span className="text-muted-foreground"> · Joined {format(new Date(selectedDev.joining_date + 'T00:00:00'), "MMM d, yyyy")}</span>
+              )}
               {startDate && endDate && (
-                <span className="text-muted-foreground"> · {format(new Date(startDate), "MMM d")} – {format(new Date(endDate), "MMM d, yyyy")}</span>
+                <span className="text-muted-foreground">
+                  {" "}· Audited {format(new Date((selectedDev?.effective_start_date || startDate) + 'T00:00:00'), "MMM d")} – {format(new Date(endDate + 'T00:00:00'), "MMM d, yyyy")}
+                </span>
               )}
             </DialogDescription>
           </DialogHeader>
