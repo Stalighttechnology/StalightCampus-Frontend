@@ -237,6 +237,7 @@ interface CreateQPPayload {
   branch: number;
   semester: number;
   section: number;
+  target_branch_ids?: number[];
 }
 
 const UploadQP = () => {
@@ -248,10 +249,13 @@ const UploadQP = () => {
     branch: [] as { id: number; name: string; }[],
     semester: [] as { id: number; number: number; }[],
     section: [] as { id: number; name: string; }[],
-    subject: [] as { id: number; name: string; code?: string; subject_code?: string; }[],
+    subject: [] as { id: number; name: string; code?: string; subject_code?: string; subject_type?: string; }[],
     testType: ["IA1", "IA2", "IA3", "IA4", "IA5", "SEE"],
     setNumber: ["Set 1", "Set 2"]
   });
+
+  const [selectedBranchIds, setSelectedBranchIds] = useState<number[]>([]);
+  const [isMultiBranchOpen, setIsMultiBranchOpen] = useState(false);
 
   const [selected, setSelected] = useState({
     batch_id: location.state?.batch_id || undefined as number | undefined,
@@ -268,6 +272,14 @@ const UploadQP = () => {
   const [examDate, setExamDate] = useState<string>('');
   const [examTime, setExamTime] = useState<string>('');
   const [currentQPMeta, setCurrentQPMeta] = useState<QPMetadata | null>(null);
+  const [branchStatuses, setBranchStatuses] = useState<Array<{
+    branchId: number;
+    branchName: string;
+    qpId?: number;
+    status?: string | null;
+    last_action?: { actor?: string; role: string; action: string; comment: string; } | null;
+  }>>([]);
+  const [reloadTick, setReloadTick] = useState(0);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [isDrawingOpen, setIsDrawingOpen] = useState(false);
@@ -351,21 +363,55 @@ const UploadQP = () => {
 
   useEffect(() => {
     const branches = Array.from(new Map(assignments.map((a) => [a.branch_id, { id: a.branch_id, name: a.branch }])).values());
-    const subjects = Array.from(
-      new Map(
-        assignments.map((a) => [
-          a.subject_id,
-          {
-            id: a.subject_id,
-            name: a.subject_name,
-            code: a.subject_code,
-            subject_code: a.subject_code,
-          },
-        ])
-      ).values()
-    );
+
+    // Group subjects: For electives and open electives, group by subject name so the same elective across branches appears only once!
+    const subjectMap = new Map<string, {
+      id: number;
+      name: string;
+      code?: string;
+      subject_code?: string;
+      subject_type?: string;
+      all_subject_ids: number[];
+    }>();
+
+    assignments.forEach((a) => {
+      const isElective = a.subject_type === 'open_elective' || a.subject_type === 'elective';
+      const key = isElective ? `elective_${a.subject_name.trim().toLowerCase()}` : `subj_${a.subject_id}`;
+
+      if (!subjectMap.has(key)) {
+        subjectMap.set(key, {
+          id: a.subject_id,
+          name: a.subject_name,
+          code: a.subject_code,
+          subject_code: a.subject_code,
+          subject_type: a.subject_type,
+          all_subject_ids: [a.subject_id],
+        });
+      } else {
+        const existing = subjectMap.get(key)!;
+        if (!existing.all_subject_ids.includes(a.subject_id)) {
+          existing.all_subject_ids.push(a.subject_id);
+        }
+      }
+    });
+
+    const subjects = Array.from(subjectMap.values());
     setDropdownData((prev) => ({ ...prev, branch: branches, subject: subjects }));
   }, [assignments]);
+
+  const currentSubjectObj = dropdownData.subject.find((s) => s.id === selected.subject_id);
+  const currentAssignment = assignments.find((a) => a.subject_id === selected.subject_id || (currentSubjectObj && a.subject_name.trim().toLowerCase() === currentSubjectObj.name.trim().toLowerCase()));
+  const currentSubjectType = currentSubjectObj?.subject_type || currentAssignment?.subject_type;
+  const isElectiveOrOpenElective = (currentSubjectType === 'open_elective' || currentSubjectType === 'elective') && dropdownData.branch.length > 1;
+
+  // Resolves the exact subject_id corresponding to the active branch for this faculty
+  const getEffectiveSubjectId = () => {
+    const branchAssign = assignments.find((a) =>
+      (!selected.branch_id || a.branch_id === selected.branch_id) &&
+      (a.subject_id === selected.subject_id || (currentSubjectObj && a.subject_name.trim().toLowerCase() === currentSubjectObj.name.trim().toLowerCase()))
+    );
+    return branchAssign?.subject_id || selected.subject_id;
+  };
 
   useEffect(() => {
     const loadBatches = async () => {
@@ -383,6 +429,7 @@ const UploadQP = () => {
   useEffect(() => {
     const loadIfReady = async () => {
       if (!selected.batch_id || !selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber) return;
+      const effectiveSubjId = getEffectiveSubjectId();
       // default template to show when no saved QP exists
       const defaultTemplate: QuestionRow[] = [
         { id: `1a_${Date.now()}_1`, number: '1a', content: 'Question 1a', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply', partName: 'PART-A', isOr: false },
@@ -391,7 +438,29 @@ const UploadQP = () => {
 
       try {
         setLoading(true);
-        const res = await getQuestionPapers({ batch_id: selected.batch_id?.toString(), branch_id: selected.branch_id?.toString(), semester_id: selected.semester_id?.toString(), section_id: selected.section_id?.toString(), subject_id: selected.subject_id?.toString(), test_type: selected.testType, set_number: selected.setNumber, detail: true });
+        const isMulti = isElectiveOrOpenElective && selectedBranchIds.length > 1;
+        const allSubjIds = currentSubjectObj?.all_subject_ids?.length
+          ? currentSubjectObj.all_subject_ids.join(',')
+          : effectiveSubjId?.toString();
+
+        const queryParams: any = {
+          batch_id: selected.batch_id?.toString(),
+          semester_id: selected.semester_id?.toString(),
+          section_id: selected.section_id?.toString(),
+          test_type: selected.testType,
+          set_number: selected.setNumber,
+          detail: true,
+        };
+
+        if (isMulti) {
+          queryParams.branch_ids = selectedBranchIds.join(',');
+          queryParams.subject_ids = allSubjIds;
+        } else {
+          queryParams.branch_id = selected.branch_id?.toString();
+          queryParams.subject_id = effectiveSubjId?.toString();
+        }
+
+        const res = await getQuestionPapers(queryParams);
         
         if (res?.has_exam_started !== undefined) {
           setHasExamStarted(res.has_exam_started);
@@ -402,12 +471,39 @@ const UploadQP = () => {
         }
 
         if (res?.success && Array.isArray(res?.data) && res.data.length > 0) {
-          // prefer exact match on subject+test_type+set_number with string/trim normalization
-          const qp = res.data.find((q: QuestionPaper) =>
-            String(q.subject) === String(selected.subject_id) &&
-            String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase() &&
-            String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase()
-          );
+          if (isMulti) {
+            const statuses = selectedBranchIds.map((bId) => {
+              const branchObj = dropdownData.branch.find((b) => b.id === bId);
+              const matchingQP = res.data.find(
+                (q: QuestionPaper) => {
+                  const qpBranchId = typeof q.branch === 'object' ? (q.branch as any)?.id : q.branch;
+                  const matchTest = String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase();
+                  const matchSet = String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase();
+                  return Number(qpBranchId) === Number(bId) && matchTest && matchSet;
+                }
+              );
+              return {
+                branchId: bId,
+                branchName: branchObj?.name || `Branch #${bId}`,
+                qpId: matchingQP?.id,
+                status: matchingQP?.status || null,
+                last_action: matchingQP?.last_action || null,
+              };
+            });
+            setBranchStatuses(statuses);
+          } else {
+            setBranchStatuses([]);
+          }
+
+          // prefer exact match on branch + subject + test_type + set_number
+          const qp = res.data.find((q: QuestionPaper) => {
+            const qpBranchId = typeof q.branch === 'object' ? (q.branch as any)?.id : q.branch;
+            const matchBranch = !selected.branch_id || Number(qpBranchId) === Number(selected.branch_id);
+            const matchTest = String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase();
+            const matchSet = String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase();
+            return matchBranch && matchTest && matchSet;
+          }) || res.data[0];
+
           if (qp) {
             // build flat question rows from nested questions/subparts
             const rows = buildQuestionRowsFromQP(qp);
@@ -433,7 +529,7 @@ const UploadQP = () => {
             setExamTime('');
           }
         } else {
-          // no saved QP — use default template for this selection
+          setBranchStatuses([]);
           setQuestions(defaultTemplate);
           setQpId(null);
           setCurrentQPMeta(null);
@@ -441,6 +537,7 @@ const UploadQP = () => {
           setExamTime('');
         }
       } catch (err) {
+        setBranchStatuses([]);
         setQuestions(defaultTemplate);
         setQpId(null);
         setCurrentQPMeta(null);
@@ -451,7 +548,7 @@ const UploadQP = () => {
       }
     };
     loadIfReady();
-  }, [selected.batch_id, selected.branch_id, selected.subject_id, selected.testType, selected.setNumber, selected.semester_id, selected.section_id]);
+  }, [selected.batch_id, selected.branch_id, selected.subject_id, selected.testType, selected.setNumber, selected.semester_id, selected.section_id, selectedBranchIds, reloadTick]);
 
   // Load rejected QPs for this faculty to show editable items on the page
   useEffect(() => {
@@ -873,8 +970,10 @@ const UploadQP = () => {
       ]
     }));
 
+    const effectiveSubjId = getEffectiveSubjectId();
+
     return {
-      subject: selected.subject_id,
+      subject: effectiveSubjId || selected.subject_id,
       test_type: selected.testType,
       set_number: selected.setNumber as string,
       exam_date: examDate || undefined,
@@ -883,7 +982,8 @@ const UploadQP = () => {
       batch: selected.batch_id,
       branch,
       semester,
-      section
+      section,
+      target_branch_ids: isElectiveOrOpenElective && selectedBranchIds.length > 1 ? selectedBranchIds : undefined
     };
   };
 
@@ -892,13 +992,14 @@ const UploadQP = () => {
   };
 
   const findExistingQP = async (): Promise<QuestionPaper | null> => {
+    const effectiveSubjId = getEffectiveSubjectId();
     try {
       const res = await getQuestionPapers({
         batch_id: selected.batch_id?.toString(),
         branch_id: selected.branch_id?.toString(),
         semester_id: selected.semester_id?.toString(),
         section_id: selected.section_id?.toString(),
-        subject_id: selected.subject_id?.toString(),
+        subject_id: effectiveSubjId?.toString(),
         test_type: selected.testType,
         set_number: selected.setNumber,
         detail: false,
@@ -907,7 +1008,7 @@ const UploadQP = () => {
       if (res?.success && Array.isArray(res.data)) {
         // Find exact match on Subject, Test Type, Set Number
         return res.data.find((q: QuestionPaper) =>
-          String(q.subject) === String(selected.subject_id) &&
+          (String(q.subject) === String(effectiveSubjId) || String(q.subject) === String(selected.subject_id)) &&
           String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase() &&
           String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase()
         ) || null;
@@ -935,7 +1036,9 @@ const UploadQP = () => {
     const MySwal = withReactContent(Swal);
     const confirmResult = await MySwal.fire({
       title: 'Save Question Format?',
-      text: 'This will save the question paper format. Do you want to continue?',
+      text: isElectiveOrOpenElective && selectedBranchIds.length > 1
+        ? `This will save and publish the question paper format across ${selectedBranchIds.length} branches. Do you want to continue?`
+        : 'This will save the question paper format. Do you want to continue?',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: 'hsl(var(--primary))',
@@ -946,8 +1049,12 @@ const UploadQP = () => {
 
     if (!confirmResult.isConfirmed) return;
 
-    const assignForSubject = assignments.find((a) => a.subject_id === selected.subject_id);
-    const ids = getDerivedIds(assignForSubject);
+    const effectiveSubjId = getEffectiveSubjectId();
+    const assignForSubject = assignments.find((a) =>
+      (!selected.branch_id || a.branch_id === selected.branch_id) &&
+      (a.subject_id === effectiveSubjId || (currentSubjectObj && a.subject_name.trim().toLowerCase() === currentSubjectObj.name.trim().toLowerCase()))
+    );
+    const ids = getDerivedIds(assignForSubject || assignments.find((a) => a.subject_id === effectiveSubjId || a.subject_id === selected.subject_id));
 
     if (!validateDerivedIds(ids.branch, ids.semester, ids.section)) {
       alert('Please select or ensure assignment provides Branch, Semester and Section before saving the QP format.');
@@ -972,9 +1079,14 @@ const UploadQP = () => {
         if (res.data?.status) {
           setCurrentQPMeta({ status: res.data.status, org_logo: res.data.org_logo, org_name: res.data.org_name, last_action: res.data.last_action });
         }
+        setReloadTick((t) => t + 1);
 
         setTabValue('questionPaper');
-        MySwal.fire('Success!', 'Question format saved successfully!', 'success');
+        if (isElectiveOrOpenElective && selectedBranchIds.length > 1) {
+          MySwal.fire('Success!', `Question format saved and published for all ${selectedBranchIds.length} departments!`, 'success');
+        } else {
+          MySwal.fire('Success!', 'Question format saved successfully!', 'success');
+        }
       } else {
         const errorMsg = res?.message || 'Failed to save the format. Please try again.';
         MySwal.fire('Error', errorMsg, 'error');
@@ -1079,6 +1191,7 @@ const UploadQP = () => {
 
         // optimistically set pending status so submit button disables immediately
         setCurrentQPMeta({ status: 'pending_hod', last_action: { actor: null, role: 'faculty', action: 'submitted', comment: '' } });
+        setReloadTick((t) => t + 1);
         // refresh metadata from server to reflect pending status
         try {
           const detail = await getQuestionPaperDetail(qpId);
@@ -1146,9 +1259,27 @@ const UploadQP = () => {
                     setQuestions([]);
                     setQpId(null);
                     setCurrentQPMeta(null);
-                    const filteredBySubject = assignments.filter((a) => a.subject_id === subjIdNum);
+                    const selectedSubj = dropdownData.subject.find((s) => s.id === subjIdNum);
+                    const isElective = selectedSubj?.subject_type === 'open_elective' || selectedSubj?.subject_type === 'elective';
+                    const filteredBySubject = assignments.filter((a) =>
+                      a.subject_id === subjIdNum ||
+                      (isElective && selectedSubj && (
+                        a.subject_name.trim().toLowerCase() === selectedSubj.name.trim().toLowerCase() ||
+                        selectedSubj.all_subject_ids?.includes(a.subject_id)
+                      ))
+                    );
                     const branches = Array.from(new Map(filteredBySubject.filter((a) => a.branch_id).map((a) => [a.branch_id, { id: a.branch_id, name: a.branch }])).values());
-                    const autoBranchId = branches.length === 1 ? branches[0].id : undefined;
+                    
+                    const isMultiBranchElective = isElective && branches.length > 1;
+
+                    let autoBranchId = branches.length === 1 ? branches[0].id : undefined;
+                    if (isMultiBranchElective) {
+                      autoBranchId = branches[0].id;
+                      setSelectedBranchIds(branches.map(b => b.id));
+                    } else {
+                      setSelectedBranchIds(autoBranchId ? [autoBranchId] : []);
+                    }
+
                     setSelected((s) => ({ ...s, subject_id: subjIdNum, branch_id: autoBranchId }));
                     setDropdownData((prev) => ({ ...prev, branch: branches }));
                     if (autoBranchId) {
@@ -1172,28 +1303,114 @@ const UploadQP = () => {
                   </Select>
                 </div>
                 <div>
-                  <label htmlFor="branch-select" className="text-sm">{translateTerminology("Branch")}</label>
-                  <Select value={selected.branch_id ? String(selected.branch_id) : undefined} onValueChange={(v) => {
-                    const branchId = Number(v);
-                    setQuestions([]);
-                    setQpId(null);
-                    setCurrentQPMeta(null);
-                    setSelected((s) => ({ ...s, branch_id: branchId }));
-                    setTimeout(() => setIsTestTypeOpen(true), 150);
-                  }} disabled={!selected.subject_id} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
-                    <SelectTrigger className="w-full" disabled={!selected.subject_id}>
-                      <SelectValue placeholder={translateTerminology("Select Branch")} />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[200px]">
-                      {dropdownData.branch.length > 0 ? (
-                        dropdownData.branch.map((b) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)
-                      ) : (
-                        <div className="p-2 text-sm text-center text-muted-foreground">
-                          No branch assigned
-                        </div>
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="branch-select" className="text-sm font-medium flex items-center gap-1.5">
+                      <span>{translateTerminology("Branch")}</span>
+                      {isElectiveOrOpenElective && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 uppercase bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300 font-semibold border-0">
+                          {currentSubjectType === 'open_elective' ? 'Open Elective' : 'Elective'}
+                        </Badge>
                       )}
-                    </SelectContent>
-                  </Select>
+                    </label>
+                  </div>
+                  {isElectiveOrOpenElective ? (
+                    <Popover open={isMultiBranchOpen} onOpenChange={setIsMultiBranchOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between h-10 font-normal border-input bg-background mt-1 px-3"
+                          disabled={!selected.subject_id}
+                        >
+                          <span className="truncate">
+                            {selectedBranchIds.length === dropdownData.branch.length
+                              ? `All Branches (${selectedBranchIds.length})`
+                              : selectedBranchIds.length > 0
+                              ? `${selectedBranchIds.length} Branches Selected`
+                              : translateTerminology("Select Branch")}
+                          </span>
+                          <ChevronDown className="h-4 w-4 shrink-0 opacity-50 ml-1" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64 p-2 shadow-lg" align="start">
+                        <div className="space-y-2">
+                          <div
+                            className="flex items-center space-x-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer border-b pb-2"
+                            onClick={() => {
+                              if (selectedBranchIds.length === dropdownData.branch.length) {
+                                setSelectedBranchIds([dropdownData.branch[0].id]);
+                                setSelected((s) => ({ ...s, branch_id: dropdownData.branch[0].id }));
+                              } else {
+                                const allIds = dropdownData.branch.map((b) => b.id);
+                                setSelectedBranchIds(allIds);
+                                setSelected((s) => ({ ...s, branch_id: allIds[0] }));
+                              }
+                            }}
+                          >
+                            <Checkbox
+                              checked={selectedBranchIds.length === dropdownData.branch.length}
+                            />
+                            <span className="text-xs font-semibold">Select All Departments</span>
+                          </div>
+                          <div className="max-h-48 overflow-y-auto space-y-1">
+                            {dropdownData.branch.map((b) => {
+                              const isChecked = selectedBranchIds.includes(b.id);
+                              return (
+                                <div
+                                  key={b.id}
+                                  className="flex items-center space-x-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-xs"
+                                  onClick={() => {
+                                    let nextIds: number[];
+                                    if (isChecked) {
+                                      if (selectedBranchIds.length <= 1) {
+                                        toast({
+                                          title: "At least one branch required",
+                                          description: "You must select at least one branch for this question paper.",
+                                          variant: "destructive",
+                                        });
+                                        return;
+                                      }
+                                      nextIds = selectedBranchIds.filter((id) => id !== b.id);
+                                    } else {
+                                      nextIds = [...selectedBranchIds, b.id];
+                                    }
+                                    setSelectedBranchIds(nextIds);
+                                    setSelected((s) => ({ ...s, branch_id: nextIds[0] }));
+                                  }}
+                                >
+                                  <Checkbox checked={isChecked} />
+                                  <span className="truncate">{b.name}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    <Select value={selected.branch_id ? String(selected.branch_id) : undefined} onValueChange={(v) => {
+                      const branchId = Number(v);
+                      setQuestions([]);
+                      setQpId(null);
+                      setCurrentQPMeta(null);
+                      setSelected((s) => ({ ...s, branch_id: branchId }));
+                      setSelectedBranchIds([branchId]);
+                      setTimeout(() => setIsTestTypeOpen(true), 150);
+                    }} disabled={!selected.subject_id} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
+                      <SelectTrigger className="w-full" disabled={!selected.subject_id}>
+                        <SelectValue placeholder={translateTerminology("Select Branch")} />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[200px]">
+                        {dropdownData.branch.length > 0 ? (
+                          dropdownData.branch.map((b) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)
+                        ) : (
+                          <div className="p-2 text-sm text-center text-muted-foreground">
+                            No branch assigned
+                          </div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="test-type-select" className="text-sm">Test Type</label>
@@ -1237,6 +1454,18 @@ const UploadQP = () => {
                   </Select>
                 </div>
               </div>
+              {isElectiveOrOpenElective && selectedBranchIds.length > 1 && (
+                <div className={`mb-4 p-3 rounded-lg flex items-center justify-between text-xs sm:text-sm border transition-all ${
+                  theme === 'dark' ? 'bg-purple-950/20 border-purple-800/60 text-purple-200' : 'bg-purple-50/80 border-purple-200 text-purple-900'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">✨</span>
+                    <span>
+                      <strong>Single Upload Enabled:</strong> Saving once will publish this Question Paper to all <strong>{selectedBranchIds.length} departments</strong> ({dropdownData.branch.filter(b => selectedBranchIds.includes(b.id)).map(b => b.name).join(', ')}).
+                    </span>
+                  </div>
+                </div>
+              )}
               <TabsList>
                 <TabsTrigger value="questionFormat">Question Format</TabsTrigger>
                 <TabsTrigger value="questionPaper">Question Paper</TabsTrigger>
@@ -2217,24 +2446,81 @@ const UploadQP = () => {
                         {downloadingPDF ? "Downloading..." : "Download PDF"}
                       </Button>
                       {qpId ? (() => {
+                        const isMulti = isElectiveOrOpenElective && selectedBranchIds.length > 1;
+                        const allApprovedOrPending = isMulti && branchStatuses.length > 0
+                          ? branchStatuses.every(bs => bs.status && (bs.status.startsWith('pending') || bs.status === 'approved'))
+                          : currentQPMeta?.status && (currentQPMeta.status.startsWith('pending') || currentQPMeta.status === 'approved');
                         const status = currentQPMeta?.status;
-                        const isPendingOrApproved = status && (status.startsWith('pending') || status === 'approved');
-                        const buttonLabel = getSubmitButtonLabel(submitting, status);
+                        const buttonLabel = getSubmitButtonLabel(submitting, allApprovedOrPending ? 'pending' : (status || 'draft'));
                         return (
                           <Button
                             onClick={handleSubmitForApproval}
                             className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700"
-                            disabled={isPendingOrApproved || submitting || hasExamStarted}
+                            disabled={Boolean(allApprovedOrPending) || submitting || hasExamStarted}
                           >
-                            {buttonLabel}
+                            {allApprovedOrPending ? 'Submitted' : buttonLabel}
                           </Button>
                         );
                       })() : null}
                     </div>
                   </div>
 
-                  {currentQPMeta?.status && (
-                    <div className={`p-3 rounded-lg border ${currentQPMeta.status === 'rejected' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'}`}>
+                  {isElectiveOrOpenElective && selectedBranchIds.length > 1 && branchStatuses.length > 0 ? (
+                    <div className="mb-4 space-y-2">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                        <span>Department Approval Status ({branchStatuses.length} branches)</span>
+                        <Badge variant="outline" className="text-[10px] font-normal">Independent Branch Workflow</Badge>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {branchStatuses.map((bs) => {
+                          const isRejected = bs.status === 'rejected';
+                          const isApproved = bs.status === 'approved';
+                          const isPending = bs.status && bs.status.startsWith('pending');
+                          const statusDisplay = isRejected
+                            ? 'Rejected'
+                            : isApproved
+                            ? 'Approved'
+                            : isPending
+                            ? `Pending (${bs.status?.replace('pending_', '').toUpperCase()})`
+                            : bs.status || 'Draft / Not Submitted';
+
+                          const cardBg = isRejected
+                            ? 'bg-red-50/70 dark:bg-red-950/30 border-red-200 dark:border-red-900/50'
+                            : isApproved
+                            ? 'bg-green-50/70 dark:bg-green-950/30 border-green-200 dark:border-green-900/50'
+                            : isPending
+                            ? 'bg-blue-50/70 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/50'
+                            : 'bg-muted/40 border-border';
+
+                          const badgeVariant = isRejected ? 'destructive' : isApproved ? 'default' : isPending ? 'secondary' : 'outline';
+
+                          return (
+                            <div key={bs.branchId} className={`p-3 rounded-lg border ${cardBg} transition-all`}>
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-semibold text-xs sm:text-sm text-foreground truncate">{bs.branchName}</span>
+                                <Badge variant={badgeVariant} className="text-[11px] shrink-0 font-medium">
+                                  {statusDisplay}
+                                </Badge>
+                              </div>
+                              {bs.last_action ? (
+                                <div className="text-xs mt-1.5 space-y-0.5 text-muted-foreground">
+                                  <div>Last: <span className="font-medium text-foreground">{bs.last_action.action}</span>{bs.last_action.role !== 'system' && ` by ${bs.last_action.actor || bs.last_action.role}`} ({bs.last_action.role || 'N/A'})</div>
+                                  {bs.last_action.comment && (
+                                    <div className="text-[11px] italic text-foreground/80 bg-background/50 p-1 rounded mt-1">
+                                      "{bs.last_action.comment}"
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-xs mt-1 text-muted-foreground">Draft paper saved (Not yet submitted)</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : currentQPMeta?.status ? (
+                    <div className={`p-3 rounded-lg border mb-4 ${currentQPMeta.status === 'rejected' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'}`}>
                       <div className={`font-semibold text-sm ${currentQPMeta.status === 'rejected' ? 'text-red-700 dark:text-red-400' : 'text-blue-700 dark:text-blue-400'}`}>
                         Status: {(() => {
                           const s = currentQPMeta.status;
@@ -2251,7 +2537,7 @@ const UploadQP = () => {
                         </div>
                       )}
                     </div>
-                  )}
+                  ) : null}
 
                   {/* Question Paper Preview Sheet */}
                   <div className="overflow-x-auto p-1 custom-scrollbar">
@@ -2333,9 +2619,12 @@ const UploadQP = () => {
                             <div className={`col-span-2 font-bold p-2 ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-slate-50 border-slate-900'} border-r`}>Semester / Div:</div>
                             <div className="col-span-3 p-2 font-medium">
                               {(() => {
-                                const assign = assignments.find(a => String(a.subject_id) === String(selected.subject_id));
+                                const currentSubject = dropdownData.subject.find(s => String(s.id) === String(selected.subject_id));
+                                const assign = assignments.find(a => String(a.subject_id) === String(selected.subject_id) || (currentSubject && a.subject_name.trim().toLowerCase() === currentSubject.name.trim().toLowerCase()));
                                 const semNum = selected.semester_id || assign?.semester || '--';
-                                const branchName = dropdownData.branch.find(b => String(b.id) === String(selected.branch_id))?.name || assign?.branch || '';
+                                const branchName = isElectiveOrOpenElective && selectedBranchIds.length > 1
+                                  ? `All Branches (${selectedBranchIds.length})`
+                                  : (dropdownData.branch.find(b => String(b.id) === String(selected.branch_id))?.name || assign?.branch || '');
                                 const sec = selected.section_id ? (assign?.section || selected.section_id) : (assign?.section || '--');
                                 return `Semester ${semNum}${branchName ? ` - ${branchName}` : ''} / ${sec}`;
                               })()}

@@ -675,7 +675,7 @@ const QPApprovals = () => {
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="font-semibold text-base line-clamp-2">{qp.subject}</h3>
                 <Badge variant="outline" className={theme === 'dark' ? 'border-primary/50 text-primary' : 'border-blue-200 text-blue-700'}>
-                  {qp.test_type} {qp.set_number ? `Set ${qp.set_number}` : ''}
+                  {qp.test_type} {qp.set_number ? (qp.set_number.trim().toLowerCase().startsWith('set') ? qp.set_number : `Set ${qp.set_number}`) : ''}
                 </Badge>
               </div>
 
@@ -928,7 +928,7 @@ const QPApprovals = () => {
             className={`qp-dialog-content ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-4xl sm:max-w-5xl w-[95%] rounded-xl flex flex-col max-h-[90vh]`}>
             <DialogHeader className="pb-2 border-b border-border/40">
               <DialogTitle className={`text-left pr-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number ? `Set ${selectedQP?.set_number}` : ''}
+                Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number ? (selectedQP.set_number.trim().toLowerCase().startsWith('set') ? selectedQP.set_number : `Set ${selectedQP.set_number}`) : ''}
               </DialogTitle>
               <DialogDescription className="sr-only">Review question paper details and approval workflow progress</DialogDescription>
               <div className="pt-2">
@@ -962,7 +962,11 @@ const QPApprovals = () => {
                             {getOrgName(qpDetail?.org_name || selectedQP?.org_name)}
                           </h2>
                           <div className="text-sm sm:text-base font-bold text-primary">
-                            {qpDetail.test_type ? qpDetail.test_type.replace('_', ' ') : (selectedQP?.test_type ? selectedQP.test_type.replace('_', ' ') : 'Internal Assessment')} {qpDetail.set_number ? `- Set ${qpDetail.set_number}` : (selectedQP?.set_number ? `- Set ${selectedQP.set_number}` : '')}
+                            {qpDetail.test_type ? qpDetail.test_type.replace('_', ' ') : (selectedQP?.test_type ? selectedQP.test_type.replace('_', ' ') : 'Internal Assessment')} {(() => {
+                              const setNum = qpDetail.set_number || selectedQP?.set_number;
+                              if (!setNum) return '';
+                              return setNum.trim().toLowerCase().startsWith('set') ? `- ${setNum}` : `- Set ${setNum}`;
+                            })()}
                           </div>
                         </div>
                         <div className="w-20 sm:w-24 flex-shrink-0" />

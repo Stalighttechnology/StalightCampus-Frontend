@@ -2376,11 +2376,15 @@ export const createQuestionPaper = async (data: CreateQPRequest): Promise<QPResp
 
 export interface GetQPsParams {
   branch_id?: string;
+  branch_ids?: string;
   semester_id?: string;
   section_id?: string;
   subject_id?: string;
+  subject_ids?: string;
   test_type?: string;
   qp_id?: string | number;
+  batch_id?: string;
+  set_number?: string;
   detail?: boolean;
   approved_only?: boolean;
   mine_only?: boolean;
@@ -2391,7 +2395,9 @@ export const getQuestionPapers = async (params: GetQPsParams = {}): Promise<any>
     // If caller is not requesting a specific qp (`qp_id`), require branch, subject and test_type
     // to avoid unnecessary empty calls from pages before filters are selected.
     if (!params.qp_id) {
-      if (!params.branch_id || !params.subject_id || !params.test_type) {
+      const hasBranch = Boolean(params.branch_id || params.branch_ids);
+      const hasSubject = Boolean(params.subject_id || params.subject_ids);
+      if (!hasBranch || !hasSubject || !params.test_type) {
         return { success: true, data: [] };
       }
     }
