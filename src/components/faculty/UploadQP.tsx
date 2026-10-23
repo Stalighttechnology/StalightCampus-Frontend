@@ -1459,7 +1459,6 @@ const UploadQP = () => {
                   theme === 'dark' ? 'bg-purple-950/20 border-purple-800/60 text-purple-200' : 'bg-purple-50/80 border-purple-200 text-purple-900'
                 }`}>
                   <div className="flex items-center gap-2">
-                    <span className="text-base">✨</span>
                     <span>
                       <strong>Single Upload Enabled:</strong> Saving once will publish this Question Paper to all <strong>{selectedBranchIds.length} departments</strong> ({dropdownData.branch.filter(b => selectedBranchIds.includes(b.id)).map(b => b.name).join(', ')}).
                     </span>
