@@ -1260,6 +1260,21 @@ const UploadQP = () => {
   const handleSubmitForApproval = async () => {
     if (!qpId) return;
 
+    const wasApproved = currentQPMeta?.status === 'approved' || (isElectiveOrOpenElective && branchStatuses.some(b => b.status === 'approved'));
+    if (wasApproved) {
+      const confirm = await Swal.fire({
+        title: 'Submit Revised Paper?',
+        text: 'This question paper was previously approved. Submitting these modifications will send the revised paper back to the HOD and Principal for re-approval with a notice that it was modified. Continue?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: 'hsl(var(--primary))',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Submit Revision',
+        cancelButtonText: 'Cancel'
+      });
+      if (!confirm.isConfirmed) return;
+    }
+
     try {
       setSubmitting(true);
       const result = await submitQPForApproval(qpId);
@@ -1724,9 +1739,16 @@ const UploadQP = () => {
                           ? branchStatuses.some((bs) => !bs.status || bs.status === 'draft')
                           : (!currentQPMeta?.status || currentQPMeta.status === 'draft');
 
-                        // Editing is enabled if any selected branch is rejected or in draft!
-                        const canEdit = hasRejectedBranch || hasDraftBranch;
-                        const isLocked = (!canEdit && Boolean(currentQPMeta?.status)) || hasExamStarted;
+                        const isApproved = isMulti
+                          ? branchStatuses.length > 0 && branchStatuses.some((bs) => bs.status === 'approved')
+                          : currentQPMeta?.status === 'approved';
+
+                        const isPending = isMulti
+                          ? branchStatuses.some((bs) => bs.status && bs.status.startsWith('pending'))
+                          : Boolean(currentQPMeta?.status && currentQPMeta.status.startsWith('pending'));
+
+                        // Faculty is ALWAYS allowed to edit unless the exam has already started!
+                        const isLocked = hasExamStarted;
 
                         const rejectedBranches = isMulti
                           ? branchStatuses.filter((bs) => bs.status === 'rejected')
@@ -1736,10 +1758,27 @@ const UploadQP = () => {
 
                         return (
                           <>
-                            {isLocked && (
-                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
-                                <div className="font-semibold text-sm text-blue-700 dark:text-blue-400">Locked</div>
-                                <div className="text-sm text-muted-foreground">This question paper has been submitted for approval and cannot be edited.</div>
+                            {isPending && !hasRejectedBranch && !hasExamStarted && (
+                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 rounded-lg">
+                                <div className="font-semibold text-sm text-blue-800 dark:text-blue-400 flex items-center justify-between">
+                                  <span>ℹ️ Under Review – Editing Enabled</span>
+                                  <Badge variant="outline" className="border-blue-400 text-blue-700 dark:text-blue-300 text-[10px]">Editing Enabled</Badge>
+                                </div>
+                                <div className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                                  This question paper is currently under review by your HOD / Principal. You can make adjustments here. Saving and submitting will update the paper for review.
+                                </div>
+                              </div>
+                            )}
+
+                            {isApproved && !hasRejectedBranch && !isPending && !hasExamStarted && (
+                              <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 rounded-lg">
+                                <div className="font-semibold text-sm text-amber-800 dark:text-amber-400 flex items-center justify-between">
+                                  <span>ℹ️ Paper Approved – Modification Mode</span>
+                                  <Badge variant="outline" className="border-amber-400 text-amber-700 dark:text-amber-300 text-[10px]">Editing Enabled</Badge>
+                                </div>
+                                <div className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                                  This question paper was previously approved. You can revise questions below. When you click <strong>Save Format</strong> and <strong>Submit</strong>, the revised paper will be sent back to HOD and Principal for re-approval with a notification that it was modified after approval.
+                                </div>
                               </div>
                             )}
 
@@ -2668,21 +2707,38 @@ const UploadQP = () => {
                       </Button>
                       {qpId ? (() => {
                         const isMulti = isElectiveOrOpenElective && selectedBranchIds.length > 1;
-                        const allApprovedOrPending = isMulti && branchStatuses.length > 0
-                          ? branchStatuses.every(bs => bs.status && (bs.status.startsWith('pending') || bs.status === 'approved'))
-                          : currentQPMeta?.status && (currentQPMeta.status.startsWith('pending') || currentQPMeta.status === 'approved');
-                        const status = currentQPMeta?.status;
+                        const isPendingReview = isMulti && branchStatuses.length > 0
+                          ? branchStatuses.some(bs => bs.status && bs.status.startsWith('pending'))
+                          : Boolean(currentQPMeta?.status && currentQPMeta.status.startsWith('pending'));
+
+                        const isFullyApproved = isMulti && branchStatuses.length > 0
+                          ? branchStatuses.every(bs => bs.status === 'approved')
+                          : currentQPMeta?.status === 'approved';
+
                         const hasRejected = isMulti
                           ? branchStatuses.some(bs => bs.status === 'rejected')
                           : currentQPMeta?.status === 'rejected';
-                        const buttonLabel = getSubmitButtonLabel(submitting, allApprovedOrPending ? 'pending' : (status || 'draft'), hasRejected);
+
+                        let buttonLabel = 'Submit for Approval';
+                        if (submitting) {
+                          buttonLabel = 'Submitting...';
+                        } else if (hasRejected) {
+                          buttonLabel = 'Resubmit for Approval';
+                        } else if (isFullyApproved) {
+                          buttonLabel = 'Resubmit Revised QP';
+                        } else if (isPendingReview) {
+                          buttonLabel = 'Resubmit for Review';
+                        }
+
+                        const isDisabled = submitting || hasExamStarted;
+
                         return (
                           <Button
                             onClick={handleSubmitForApproval}
-                            className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700"
-                            disabled={Boolean(allApprovedOrPending) || submitting || hasExamStarted}
+                            className={`w-full sm:w-auto text-white ${isFullyApproved ? 'bg-amber-600 hover:bg-amber-700' : 'bg-green-600 hover:bg-green-700'}`}
+                            disabled={isDisabled}
                           >
-                            {allApprovedOrPending ? 'Submitted' : buttonLabel}
+                            {buttonLabel}
                           </Button>
                         );
                       })() : null}
