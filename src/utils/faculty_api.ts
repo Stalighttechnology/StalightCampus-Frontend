@@ -2304,6 +2304,10 @@ export interface CreateQPRequest {
   section: number;
   subject: number;
   test_type: string;
+  set_number?: string;
+  target_branch_ids?: number[];
+  target_section_ids?: number[];
+  applicable_sections?: string;
   questions_data: Array<{
     question_number: string;
     co: string;
@@ -2379,6 +2383,7 @@ export interface GetQPsParams {
   branch_ids?: string;
   semester_id?: string;
   section_id?: string;
+  section_ids?: string;
   subject_id?: string;
   subject_ids?: string;
   test_type?: string;
