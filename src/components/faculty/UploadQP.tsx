@@ -494,8 +494,6 @@ const UploadQP = () => {
         const queryParams: any = {
           batch_id: selected.batch_id?.toString(),
           semester_id: selected.semester_id?.toString(),
-          section_id: selected.section_id?.toString(),
-          section_ids: selectedSectionIds.length > 0 ? selectedSectionIds.join(',') : undefined,
           test_type: selected.testType,
           set_number: selected.setNumber,
           detail: true,
@@ -507,6 +505,8 @@ const UploadQP = () => {
         } else {
           queryParams.branch_id = selected.branch_id?.toString();
           queryParams.subject_id = effectiveSubjId?.toString();
+          queryParams.section_id = selected.section_id?.toString();
+          queryParams.section_ids = selectedSectionIds.length > 0 ? selectedSectionIds.join(',') : undefined;
         }
 
         const res = await getQuestionPapers(queryParams);
