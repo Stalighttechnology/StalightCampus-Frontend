@@ -495,8 +495,17 @@ const UploadQP = () => {
             setBranchStatuses([]);
           }
 
-          // prefer exact match on branch + subject + test_type + set_number
-          const qp = res.data.find((q: QuestionPaper) => {
+          // If any branch is rejected, prioritize that QP so rejection comments and resubmission are front and center!
+          const rejectedQP = isMulti
+            ? res.data.find((q: QuestionPaper) => {
+                const matchTest = String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase();
+                const matchSet = String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase();
+                return q.status === 'rejected' && matchTest && matchSet;
+              })
+            : null;
+
+          // prefer rejected match, or exact match on branch + subject + test_type + set_number
+          const qp = rejectedQP || res.data.find((q: QuestionPaper) => {
             const qpBranchId = typeof q.branch === 'object' ? (q.branch as any)?.id : q.branch;
             const matchBranch = !selected.branch_id || Number(qpBranchId) === Number(selected.branch_id);
             const matchTest = String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase();
@@ -1168,8 +1177,9 @@ const UploadQP = () => {
     return grouped;
   };
 
-  const getSubmitButtonLabel = (submitting: boolean, status: string | undefined) => {
+  const getSubmitButtonLabel = (submitting: boolean, status: string | undefined, hasRejected?: boolean) => {
     if (submitting) return 'Submitting...';
+    if (hasRejected || status === 'rejected') return 'Resubmit for Approval';
     if (status === 'approved') return 'Approved';
     if (status?.startsWith('pending')) return 'Submitted';
     return 'Submit for Approval';
@@ -1544,13 +1554,53 @@ const UploadQP = () => {
 
                     <>
                       {(() => {
-                        const isLocked = (currentQPMeta?.status && !['draft', 'rejected'].includes(currentQPMeta.status)) || hasExamStarted;
+                        const isMulti = isElectiveOrOpenElective && selectedBranchIds.length > 1;
+                        const hasRejectedBranch = isMulti
+                          ? branchStatuses.some((bs) => bs.status === 'rejected')
+                          : currentQPMeta?.status === 'rejected';
+
+                        const hasDraftBranch = isMulti
+                          ? branchStatuses.some((bs) => !bs.status || bs.status === 'draft')
+                          : (!currentQPMeta?.status || currentQPMeta.status === 'draft');
+
+                        // Editing is enabled if any selected branch is rejected or in draft!
+                        const canEdit = hasRejectedBranch || hasDraftBranch;
+                        const isLocked = (!canEdit && Boolean(currentQPMeta?.status)) || hasExamStarted;
+
+                        const rejectedBranches = isMulti
+                          ? branchStatuses.filter((bs) => bs.status === 'rejected')
+                          : currentQPMeta?.status === 'rejected'
+                          ? [{ branchId: selected.branch_id || 0, branchName: currentSubjectObj?.name || 'Question Paper', last_action: currentQPMeta.last_action }]
+                          : [];
+
                         return (
                           <>
                             {isLocked && (
                               <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
                                 <div className="font-semibold text-sm text-blue-700 dark:text-blue-400">Locked</div>
                                 <div className="text-sm text-muted-foreground">This question paper has been submitted for approval and cannot be edited.</div>
+                              </div>
+                            )}
+
+                            {hasRejectedBranch && !hasExamStarted && (
+                              <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/60 rounded-lg">
+                                <div className="font-semibold text-sm text-red-700 dark:text-red-400 flex items-center justify-between">
+                                  <span>⚠️ Revision Needed for Rejected Paper</span>
+                                  <Badge variant="destructive" className="text-[10px]">Editing Enabled</Badge>
+                                </div>
+                                <div className="text-xs text-red-600 dark:text-red-300 mt-1.5 space-y-1">
+                                  {rejectedBranches.map((rb, idx) => (
+                                    <div key={idx}>
+                                      <strong>{rb.branchName}:</strong> Rejected by {rb.last_action?.actor || rb.last_action?.role || 'HOD'}
+                                      {rb.last_action?.comment && (
+                                        <span className="italic block mt-0.5 ml-2 font-medium">"{rb.last_action.comment}"</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                  <div className="text-muted-foreground mt-1 text-[11px]">
+                                    You can revise the questions below and click <strong>Submit for Approval</strong> to resubmit only the rejected department. Approved departments will remain approved.
+                                  </div>
+                                </div>
                               </div>
                             )}
                             
@@ -2450,7 +2500,10 @@ const UploadQP = () => {
                           ? branchStatuses.every(bs => bs.status && (bs.status.startsWith('pending') || bs.status === 'approved'))
                           : currentQPMeta?.status && (currentQPMeta.status.startsWith('pending') || currentQPMeta.status === 'approved');
                         const status = currentQPMeta?.status;
-                        const buttonLabel = getSubmitButtonLabel(submitting, allApprovedOrPending ? 'pending' : (status || 'draft'));
+                        const hasRejected = isMulti
+                          ? branchStatuses.some(bs => bs.status === 'rejected')
+                          : currentQPMeta?.status === 'rejected';
+                        const buttonLabel = getSubmitButtonLabel(submitting, allApprovedOrPending ? 'pending' : (status || 'draft'), hasRejected);
                         return (
                           <Button
                             onClick={handleSubmitForApproval}
