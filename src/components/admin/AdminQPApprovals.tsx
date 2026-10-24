@@ -243,7 +243,6 @@ interface QPPending {
   current_holder?: string | null;
   last_action?: { actor?: string; role?: string; action?: string; comment?: string; timestamp?: string; } | null;
   has_exam_started?: boolean;
-  is_modified_after_approval?: boolean;
 }
 
 interface AdminQPApprovalsProps {
@@ -686,17 +685,6 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
                 }
               </div>
 
-              {qp.is_modified_after_approval && (
-                <div className="mb-2 p-2 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs">
-                  <div className="font-bold flex items-center gap-1">
-                    <span>⚠️ Paper Modified After Approval</span>
-                  </div>
-                  <div className="text-[11px] mt-0.5 opacity-90">
-                    Faculty modified this paper after prior approval. HOD has reviewed the revisions. Review and finalize.
-                  </div>
-                </div>
-              )}
-
               {/* Workflow Stepper on Card */}
               <div className="pt-1 pb-2 border-t border-b border-border/40 my-2">
                 <QPWorkflowStepper chain={approvalChain} currentStatus={qp.status || `pending_${role}`} />
@@ -930,16 +918,6 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
               <div className="pt-2">
                 <QPWorkflowStepper chain={approvalChain} currentStatus={selectedQP?.status || `pending_${role}`} />
               </div>
-              {(selectedQP?.is_modified_after_approval || qpDetail?.is_modified_after_approval) && (
-                <div className="mt-2 p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-lg text-amber-800 dark:text-amber-300 text-xs sm:text-sm">
-                  <div className="font-bold flex items-center gap-1.5 text-sm">
-                    <span>⚠️ Paper Modified After Prior Approval</span>
-                  </div>
-                  <p className="mt-1 text-xs">
-                    This question paper was previously approved and has been modified by the faculty. HOD has reviewed the revisions. Please review the updated questions below and finalize.
-                  </p>
-                </div>
-              )}
             </DialogHeader>
             <div className="overflow-auto custom-scrollbar px-4 py-2 space-y-4 flex-1">
               {detailLoading ?
@@ -1169,9 +1147,7 @@ const AdminQPApprovals = ({ role = "principal" }: AdminQPApprovalsProps) => {
                     >
                       <CheckCircle className={`w-4 h-4 mr-1.5 shrink-0 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
                       <span className="whitespace-normal">
-                        {(selectedQP?.is_modified_after_approval || qpDetail?.is_modified_after_approval)
-                          ? (!getNextRole(role) ? 'Approve Revision & Finalize' : 'Approve Revision & Forward')
-                          : (!getNextRole(role) ? 'Finalize & Approve' : 'Approve & Forward')}
+                        {!getNextRole(role) ? 'Finalize & Approve' : 'Approve & Forward'}
                       </span>
                     </Button>
                     <Button

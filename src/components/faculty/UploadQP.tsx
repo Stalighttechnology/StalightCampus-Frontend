@@ -238,8 +238,6 @@ interface CreateQPPayload {
   semester: number;
   section: number;
   target_branch_ids?: number[];
-  target_section_ids?: number[];
-  applicable_sections?: string;
 }
 
 const UploadQP = () => {
@@ -258,8 +256,6 @@ const UploadQP = () => {
 
   const [selectedBranchIds, setSelectedBranchIds] = useState<number[]>([]);
   const [isMultiBranchOpen, setIsMultiBranchOpen] = useState(false);
-  const [selectedSectionIds, setSelectedSectionIds] = useState<number[]>([]);
-  const [isSectionOpen, setIsSectionOpen] = useState(false);
 
   const [selected, setSelected] = useState({
     batch_id: location.state?.batch_id || undefined as number | undefined,
@@ -429,50 +425,6 @@ const UploadQP = () => {
     loadBatches();
   }, []);
 
-  // Derive available sections based on selected Subject and Branch
-  useEffect(() => {
-    if (!selected.subject_id) {
-      setDropdownData((prev) => ({ ...prev, section: [] }));
-      setSelectedSectionIds([]);
-      return;
-    }
-
-    const currentSubjObj = dropdownData.subject.find((s) => s.id === selected.subject_id);
-    const relevantAssignments = assignments.filter((a) =>
-      (!selected.branch_id || a.branch_id === selected.branch_id) &&
-      (a.subject_id === selected.subject_id || (currentSubjObj && a.subject_name.trim().toLowerCase() === currentSubjObj.name.trim().toLowerCase()))
-    );
-
-    const sections = Array.from(
-      new Map(
-        relevantAssignments
-          .filter((a) => a.section_id)
-          .map((a) => {
-            const rawName = a.section || '';
-            const displayName = rawName ? (rawName.toLowerCase().startsWith('section') ? rawName : `Section ${rawName}`) : `Section ${a.section_id}`;
-            return [a.section_id, { id: a.section_id, name: displayName }];
-          })
-      ).values()
-    );
-
-    setDropdownData((prev) => ({ ...prev, section: sections }));
-
-    if (sections.length > 0) {
-      // If none selected, or selected IDs are not in current sections, default to all sections
-      const validSelected = selectedSectionIds.filter((id) => sections.some((s) => s.id === id));
-      if (validSelected.length === 0) {
-        const allSecIds = sections.map((s) => s.id);
-        setSelectedSectionIds(allSecIds);
-        setSelected((s) => ({ ...s, section_id: allSecIds[0] }));
-      } else {
-        setSelectedSectionIds(validSelected);
-        setSelected((s) => ({ ...s, section_id: validSelected[0] }));
-      }
-    } else {
-      setSelectedSectionIds([]);
-    }
-  }, [selected.subject_id, selected.branch_id, assignments, dropdownData.subject]);
-
   // Load existing QP when Batch + Branch + Subject + Test Type are selected
   useEffect(() => {
     const loadIfReady = async () => {
@@ -494,6 +446,7 @@ const UploadQP = () => {
         const queryParams: any = {
           batch_id: selected.batch_id?.toString(),
           semester_id: selected.semester_id?.toString(),
+          section_id: selected.section_id?.toString(),
           test_type: selected.testType,
           set_number: selected.setNumber,
           detail: true,
@@ -505,8 +458,6 @@ const UploadQP = () => {
         } else {
           queryParams.branch_id = selected.branch_id?.toString();
           queryParams.subject_id = effectiveSubjId?.toString();
-          queryParams.section_id = selected.section_id?.toString();
-          queryParams.section_ids = selectedSectionIds.length > 0 ? selectedSectionIds.join(',') : undefined;
         }
 
         const res = await getQuestionPapers(queryParams);
@@ -553,15 +504,13 @@ const UploadQP = () => {
               })
             : null;
 
-          // prefer rejected match, or exact match on branch + section + subject + test_type + set_number
+          // prefer rejected match, or exact match on branch + subject + test_type + set_number
           const qp = rejectedQP || res.data.find((q: QuestionPaper) => {
             const qpBranchId = typeof q.branch === 'object' ? (q.branch as any)?.id : q.branch;
-            const qpSectionId = typeof q.section === 'object' ? (q.section as any)?.id : q.section;
             const matchBranch = !selected.branch_id || Number(qpBranchId) === Number(selected.branch_id);
-            const matchSection = selectedSectionIds.length === 0 || selectedSectionIds.includes(Number(qpSectionId));
             const matchTest = String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase();
             const matchSet = String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase();
-            return matchBranch && matchSection && matchTest && matchSet;
+            return matchBranch && matchTest && matchSet;
           }) || res.data[0];
 
           if (qp) {
@@ -608,7 +557,7 @@ const UploadQP = () => {
       }
     };
     loadIfReady();
-  }, [selected.batch_id, selected.branch_id, selected.subject_id, selected.testType, selected.setNumber, selected.semester_id, selected.section_id, selectedBranchIds, selectedSectionIds, reloadTick]);
+  }, [selected.batch_id, selected.branch_id, selected.subject_id, selected.testType, selected.setNumber, selected.semester_id, selected.section_id, selectedBranchIds, reloadTick]);
 
   // Load rejected QPs for this faculty to show editable items on the page
   useEffect(() => {
@@ -1011,11 +960,6 @@ const UploadQP = () => {
       MySwal.fire('Validation Error', 'Please select batch, branch, subject, test type and set number', 'error');
       return false;
     }
-    if (dropdownData.section.length > 0 && selectedSectionIds.length === 0) {
-      const MySwal = withReactContent(Swal);
-      MySwal.fire('Validation Error', 'Please select at least one section for this question paper', 'error');
-      return false;
-    }
     return true;
   };
 
@@ -1036,15 +980,6 @@ const UploadQP = () => {
     }));
 
     const effectiveSubjId = getEffectiveSubjectId();
-    const isAllSections = dropdownData.section.length > 0 && selectedSectionIds.length === dropdownData.section.length;
-    const applicableSectionsStr = isAllSections
-      ? 'ALL'
-      : dropdownData.section
-          .filter((s) => selectedSectionIds.includes(s.id))
-          .map((s) => s.name.replace(/^Section\s*/i, ''))
-          .join(', ');
-
-    const chosenSectionId = selectedSectionIds[0] || section;
 
     return {
       subject: effectiveSubjId || selected.subject_id,
@@ -1056,10 +991,8 @@ const UploadQP = () => {
       batch: selected.batch_id,
       branch,
       semester,
-      section: chosenSectionId,
-      target_branch_ids: isElectiveOrOpenElective && selectedBranchIds.length > 1 ? selectedBranchIds : undefined,
-      target_section_ids: selectedSectionIds.length > 0 ? selectedSectionIds : undefined,
-      applicable_sections: applicableSectionsStr,
+      section,
+      target_branch_ids: isElectiveOrOpenElective && selectedBranchIds.length > 1 ? selectedBranchIds : undefined
     };
   };
 
@@ -1074,8 +1007,7 @@ const UploadQP = () => {
         batch_id: selected.batch_id?.toString(),
         branch_id: selected.branch_id?.toString(),
         semester_id: selected.semester_id?.toString(),
-        section_id: (selectedSectionIds[0] || selected.section_id)?.toString(),
-        section_ids: selectedSectionIds.length > 0 ? selectedSectionIds.join(',') : undefined,
+        section_id: selected.section_id?.toString(),
         subject_id: effectiveSubjId?.toString(),
         test_type: selected.testType,
         set_number: selected.setNumber,
@@ -1083,15 +1015,12 @@ const UploadQP = () => {
         mine_only: true
       });
       if (res?.success && Array.isArray(res.data)) {
-        // Find exact match on Subject, Section, Test Type, Set Number
-        return res.data.find((q: QuestionPaper) => {
-          const qpSectionId = typeof q.section === 'object' ? (q.section as any)?.id : q.section;
-          const matchSection = selectedSectionIds.length === 0 || selectedSectionIds.includes(Number(qpSectionId));
-          const matchSubj = String(q.subject) === String(effectiveSubjId) || String(q.subject) === String(selected.subject_id);
-          const matchTest = String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase();
-          const matchSet = String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase();
-          return matchSubj && matchSection && matchTest && matchSet;
-        }) || null;
+        // Find exact match on Subject, Test Type, Set Number
+        return res.data.find((q: QuestionPaper) =>
+          (String(q.subject) === String(effectiveSubjId) || String(q.subject) === String(selected.subject_id)) &&
+          String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase() &&
+          String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase()
+        ) || null;
       }
     } catch (err) {
 
@@ -1136,13 +1065,12 @@ const UploadQP = () => {
     );
     const ids = getDerivedIds(assignForSubject || assignments.find((a) => a.subject_id === effectiveSubjId || a.subject_id === selected.subject_id));
 
-    const secId = selectedSectionIds[0] || ids.section;
-    if (!validateDerivedIds(ids.branch, ids.semester, secId)) {
+    if (!validateDerivedIds(ids.branch, ids.semester, ids.section)) {
       alert('Please select or ensure assignment provides Branch, Semester and Section before saving the QP format.');
       return;
     }
 
-    const payload = buildPayload(ids.branch, ids.semester, secId);
+    const payload = buildPayload(ids.branch, ids.semester, ids.section);
 
     try {
       // Prioritize local qpId if we already loaded one, otherwise double check with server
@@ -1260,21 +1188,6 @@ const UploadQP = () => {
   const handleSubmitForApproval = async () => {
     if (!qpId) return;
 
-    const wasApproved = currentQPMeta?.status === 'approved' || (isElectiveOrOpenElective && branchStatuses.some(b => b.status === 'approved'));
-    if (wasApproved) {
-      const confirm = await Swal.fire({
-        title: 'Submit Revised Paper?',
-        text: 'This question paper was previously approved. Submitting these modifications will send the revised paper back to the HOD and Principal for re-approval with a notice that it was modified. Continue?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: 'hsl(var(--primary))',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, Submit Revision',
-        cancelButtonText: 'Cancel'
-      });
-      if (!confirm.isConfirmed) return;
-    }
-
     try {
       setSubmitting(true);
       const result = await submitQPForApproval(qpId);
@@ -1324,7 +1237,7 @@ const UploadQP = () => {
               </div>
             </CardHeader>
             <CardContent className="pb-0">
-              <div id="upload-qp-selectors" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+              <div id="upload-qp-selectors" className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                 <div>
                   <label htmlFor="batch-select" className="text-sm">Batch</label>
                   <Select value={selected.batch_id ? String(selected.batch_id) : undefined} onValueChange={(v) => {
@@ -1380,7 +1293,7 @@ const UploadQP = () => {
                     setSelected((s) => ({ ...s, subject_id: subjIdNum, branch_id: autoBranchId }));
                     setDropdownData((prev) => ({ ...prev, branch: branches }));
                     if (autoBranchId) {
-                      setTimeout(() => setIsSectionOpen(true), 150);
+                      setTimeout(() => setIsTestTypeOpen(true), 150);
                     } else {
                       setTimeout(() => setIsBranchOpen(true), 150);
                     }
@@ -1492,7 +1405,7 @@ const UploadQP = () => {
                       setCurrentQPMeta(null);
                       setSelected((s) => ({ ...s, branch_id: branchId }));
                       setSelectedBranchIds([branchId]);
-                      setTimeout(() => setIsSectionOpen(true), 150);
+                      setTimeout(() => setIsTestTypeOpen(true), 150);
                     }} disabled={!selected.subject_id} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
                       <SelectTrigger className="w-full" disabled={!selected.subject_id}>
                         <SelectValue placeholder={translateTerminology("Select Branch")} />
@@ -1510,95 +1423,6 @@ const UploadQP = () => {
                   )}
                 </div>
                 <div>
-                  <label htmlFor="section-select" className="text-sm">Section</label>
-                  <Popover open={isSectionOpen} onOpenChange={setIsSectionOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        role="combobox"
-                        className="w-full justify-between h-10 font-normal border-input bg-background mt-1 px-3"
-                        disabled={!selected.branch_id || dropdownData.section.length === 0}
-                      >
-                        <span className="truncate">
-                          {dropdownData.section.length === 0
-                            ? "No Section"
-                            : selectedSectionIds.length === dropdownData.section.length
-                            ? `All Sections (${selectedSectionIds.length})`
-                            : selectedSectionIds.length > 0
-                            ? dropdownData.section
-                                .filter((s) => selectedSectionIds.includes(s.id))
-                                .map((s) => s.name.replace(/^Section\s*/i, ''))
-                                .join(', ')
-                            : "Select Section"}
-                        </span>
-                        <ChevronDown className="h-4 w-4 shrink-0 opacity-50 ml-1" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-56 p-2 shadow-lg" align="start">
-                      <div className="space-y-2">
-                        <div
-                          className="flex items-center space-x-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer border-b pb-2"
-                          onClick={() => {
-                            if (selectedSectionIds.length === dropdownData.section.length) {
-                              const firstId = dropdownData.section[0].id;
-                              setSelectedSectionIds([firstId]);
-                              setSelected((s) => ({ ...s, section_id: firstId }));
-                            } else {
-                              const allIds = dropdownData.section.map((s) => s.id);
-                              setSelectedSectionIds(allIds);
-                              setSelected((s) => ({ ...s, section_id: allIds[0] }));
-                            }
-                            setQuestions([]);
-                            setQpId(null);
-                            setCurrentQPMeta(null);
-                          }}
-                        >
-                          <Checkbox
-                            checked={dropdownData.section.length > 0 && selectedSectionIds.length === dropdownData.section.length}
-                          />
-                          <span className="text-xs font-semibold">Select All Sections</span>
-                        </div>
-                        <div className="max-h-48 overflow-y-auto space-y-1">
-                          {dropdownData.section.map((sec) => {
-                            const isChecked = selectedSectionIds.includes(sec.id);
-                            return (
-                              <div
-                                key={sec.id}
-                                className="flex items-center space-x-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-xs"
-                                onClick={() => {
-                                  let nextIds: number[];
-                                  if (isChecked) {
-                                    if (selectedSectionIds.length <= 1) {
-                                      toast({
-                                        title: "At least one section required",
-                                        description: "You must select at least one section for this question paper.",
-                                        variant: "destructive",
-                                      });
-                                      return;
-                                    }
-                                    nextIds = selectedSectionIds.filter((id) => id !== sec.id);
-                                  } else {
-                                    nextIds = [...selectedSectionIds, sec.id];
-                                  }
-                                  setSelectedSectionIds(nextIds);
-                                  setSelected((s) => ({ ...s, section_id: nextIds[0] }));
-                                  setQuestions([]);
-                                  setQpId(null);
-                                  setCurrentQPMeta(null);
-                                }}
-                              >
-                                <Checkbox checked={isChecked} />
-                                <span className="truncate">{sec.name}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div>
                   <label htmlFor="test-type-select" className="text-sm">Test Type</label>
                   <Select value={selected.testType} onValueChange={(v) => {
                     const newTest = String(v);
@@ -1607,8 +1431,8 @@ const UploadQP = () => {
                     setCurrentQPMeta(null);
                     setSelected((s) => ({ ...s, testType: newTest }));
                     setTimeout(() => setIsSetNumberOpen(true), 150);
-                  }} disabled={!selected.branch_id || (dropdownData.section.length > 0 && selectedSectionIds.length === 0)} open={isTestTypeOpen} onOpenChange={setIsTestTypeOpen}>
-                    <SelectTrigger className="w-full" disabled={!selected.branch_id || (dropdownData.section.length > 0 && selectedSectionIds.length === 0)}>
+                  }} disabled={!selected.branch_id} open={isTestTypeOpen} onOpenChange={setIsTestTypeOpen}>
+                    <SelectTrigger className="w-full" disabled={!selected.branch_id}>
                       <SelectValue placeholder="Select Test Type" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px]">
@@ -1717,14 +1541,14 @@ const UploadQP = () => {
                   <div className="py-4">
                     <SkeletonList items={3} />
                   </div> :
-                  !selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber || (dropdownData.section.length > 0 && selectedSectionIds.length === 0) ?
+                  !selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber ?
                     <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                       <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                         <Layers className="w-12 h-12 opacity-80" />
                       </div>
                       <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
                       <p className="max-w-xs text-base leading-relaxed">
-                        Please select Batch, Subject, Branch, Section, Test Type, and Set Number to load or create a question paper.
+                        Please select Batch, Subject, Branch, Test Type, and Set Number to load or create a question paper.
                       </p>
                     </div> :
 
@@ -1739,16 +1563,9 @@ const UploadQP = () => {
                           ? branchStatuses.some((bs) => !bs.status || bs.status === 'draft')
                           : (!currentQPMeta?.status || currentQPMeta.status === 'draft');
 
-                        const isApproved = isMulti
-                          ? branchStatuses.length > 0 && branchStatuses.some((bs) => bs.status === 'approved')
-                          : currentQPMeta?.status === 'approved';
-
-                        const isPending = isMulti
-                          ? branchStatuses.some((bs) => bs.status && bs.status.startsWith('pending'))
-                          : Boolean(currentQPMeta?.status && currentQPMeta.status.startsWith('pending'));
-
-                        // Faculty is ALWAYS allowed to edit unless the exam has already started!
-                        const isLocked = hasExamStarted;
+                        // Editing is enabled if any selected branch is rejected or in draft!
+                        const canEdit = hasRejectedBranch || hasDraftBranch;
+                        const isLocked = (!canEdit && Boolean(currentQPMeta?.status)) || hasExamStarted;
 
                         const rejectedBranches = isMulti
                           ? branchStatuses.filter((bs) => bs.status === 'rejected')
@@ -1758,27 +1575,10 @@ const UploadQP = () => {
 
                         return (
                           <>
-                            {isPending && !hasRejectedBranch && !hasExamStarted && (
-                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 rounded-lg">
-                                <div className="font-semibold text-sm text-blue-800 dark:text-blue-400 flex items-center justify-between">
-                                  <span>ℹ️ Under Review – Editing Enabled</span>
-                                  <Badge variant="outline" className="border-blue-400 text-blue-700 dark:text-blue-300 text-[10px]">Editing Enabled</Badge>
-                                </div>
-                                <div className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                                  This question paper is currently under review by your HOD / Principal. You can make adjustments here. Saving and submitting will update the paper for review.
-                                </div>
-                              </div>
-                            )}
-
-                            {isApproved && !hasRejectedBranch && !isPending && !hasExamStarted && (
-                              <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 rounded-lg">
-                                <div className="font-semibold text-sm text-amber-800 dark:text-amber-400 flex items-center justify-between">
-                                  <span>ℹ️ Paper Approved – Modification Mode</span>
-                                  <Badge variant="outline" className="border-amber-400 text-amber-700 dark:text-amber-300 text-[10px]">Editing Enabled</Badge>
-                                </div>
-                                <div className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                                  This question paper was previously approved. You can revise questions below. When you click <strong>Save Format</strong> and <strong>Submit</strong>, the revised paper will be sent back to HOD and Principal for re-approval with a notification that it was modified after approval.
-                                </div>
+                            {isLocked && (
+                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
+                                <div className="font-semibold text-sm text-blue-700 dark:text-blue-400">Locked</div>
+                                <div className="text-sm text-muted-foreground">This question paper has been submitted for approval and cannot be edited.</div>
                               </div>
                             )}
 
@@ -1868,18 +1668,7 @@ const UploadQP = () => {
                             <div className="flex justify-between items-center mb-4 mt-6">
                               <h3 className="text-xl font-bold tracking-tight text-primary">
                                 {selected.testType ? selected.testType.replace('_', ' ') : 'Question Paper'}
-                                {selected.setNumber ? ` - ${selected.setNumber}` : ''}
-                                {selected.subject_id && dropdownData.subject.find(s => String(s.id) === String(selected.subject_id)) && ` (${dropdownData.subject.find(s => String(s.id) === String(selected.subject_id))?.name})`}
-                                {(() => {
-                                  const isAll = dropdownData.section.length > 0 && selectedSectionIds.length === dropdownData.section.length;
-                                  if (isAll) return null;
-                                  const secNames = dropdownData.section
-                                    .filter((s) => selectedSectionIds.includes(s.id))
-                                    .map((s) => s.name.replace(/^Section\s*/i, ''))
-                                    .join(', ');
-                                  if (!secNames) return null;
-                                  return <span className="ml-2 font-semibold text-sm text-foreground">[{`Section: ${secNames}`}]</span>;
-                                })()}
+                                {selected.subject_id && dropdownData.subject.find(s => String(s.id) === String(selected.subject_id)) && ` - ${dropdownData.subject.find(s => String(s.id) === String(selected.subject_id))?.name}`}
                               </h3>
                             </div>
                             <div id="upload-qp-table" className="overflow-x-auto border rounded-xl shadow-sm mt-2 custom-scrollbar bg-card">
@@ -2665,14 +2454,14 @@ const UploadQP = () => {
               </div>
             </TabsContent>
             <TabsContent value="questionPaper" className="w-full max-w-full overflow-hidden mt-0">
-              {!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber || (dropdownData.section.length > 0 && selectedSectionIds.length === 0) ? (
+              {!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber ? (
                 <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                   <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                     <Layers className="w-12 h-12 opacity-80" />
                   </div>
                   <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
                   <p className="max-w-xs text-base leading-relaxed">
-                    Please select Batch, Subject, Branch, Section, Test Type, and Set Number to preview the question paper.
+                    Please select Batch, Subject, Branch, Test Type, and Set Number to preview the question paper.
                   </p>
                 </div>
               ) : (
@@ -2707,38 +2496,21 @@ const UploadQP = () => {
                       </Button>
                       {qpId ? (() => {
                         const isMulti = isElectiveOrOpenElective && selectedBranchIds.length > 1;
-                        const isPendingReview = isMulti && branchStatuses.length > 0
-                          ? branchStatuses.some(bs => bs.status && bs.status.startsWith('pending'))
-                          : Boolean(currentQPMeta?.status && currentQPMeta.status.startsWith('pending'));
-
-                        const isFullyApproved = isMulti && branchStatuses.length > 0
-                          ? branchStatuses.every(bs => bs.status === 'approved')
-                          : currentQPMeta?.status === 'approved';
-
+                        const allApprovedOrPending = isMulti && branchStatuses.length > 0
+                          ? branchStatuses.every(bs => bs.status && (bs.status.startsWith('pending') || bs.status === 'approved'))
+                          : currentQPMeta?.status && (currentQPMeta.status.startsWith('pending') || currentQPMeta.status === 'approved');
+                        const status = currentQPMeta?.status;
                         const hasRejected = isMulti
                           ? branchStatuses.some(bs => bs.status === 'rejected')
                           : currentQPMeta?.status === 'rejected';
-
-                        let buttonLabel = 'Submit for Approval';
-                        if (submitting) {
-                          buttonLabel = 'Submitting...';
-                        } else if (hasRejected) {
-                          buttonLabel = 'Resubmit for Approval';
-                        } else if (isFullyApproved) {
-                          buttonLabel = 'Resubmit Revised QP';
-                        } else if (isPendingReview) {
-                          buttonLabel = 'Resubmit for Review';
-                        }
-
-                        const isDisabled = submitting || hasExamStarted;
-
+                        const buttonLabel = getSubmitButtonLabel(submitting, allApprovedOrPending ? 'pending' : (status || 'draft'), hasRejected);
                         return (
                           <Button
                             onClick={handleSubmitForApproval}
-                            className={`w-full sm:w-auto text-white ${isFullyApproved ? 'bg-amber-600 hover:bg-amber-700' : 'bg-green-600 hover:bg-green-700'}`}
-                            disabled={isDisabled}
+                            className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700"
+                            disabled={Boolean(allApprovedOrPending) || submitting || hasExamStarted}
                           >
-                            {buttonLabel}
+                            {allApprovedOrPending ? 'Submitted' : buttonLabel}
                           </Button>
                         );
                       })() : null}
@@ -2847,16 +2619,6 @@ const UploadQP = () => {
                             </h2>
                             <div className="text-sm sm:text-base font-bold text-primary">
                               {selected.testType ? selected.testType.replace('_', ' ') : 'Internal Assessment'} {selected.setNumber ? `- ${selected.setNumber}` : ''}
-                              {(() => {
-                                const isAll = dropdownData.section.length > 0 && selectedSectionIds.length === dropdownData.section.length;
-                                if (isAll) return null;
-                                const secNames = dropdownData.section
-                                  .filter((s) => selectedSectionIds.includes(s.id))
-                                  .map((s) => s.name.replace(/^Section\s*/i, ''))
-                                  .join(', ');
-                                if (!secNames) return null;
-                                return <span className="ml-2 font-semibold text-xs sm:text-sm text-foreground">({`Section: ${secNames}`})</span>;
-                              })()}
                             </div>
                           </div>
                           <div className="w-20 sm:w-24 flex-shrink-0" />
@@ -2915,15 +2677,8 @@ const UploadQP = () => {
                                 const branchName = isElectiveOrOpenElective && selectedBranchIds.length > 1
                                   ? `All Branches (${selectedBranchIds.length})`
                                   : (dropdownData.branch.find(b => String(b.id) === String(selected.branch_id))?.name || assign?.branch || '');
-                                
-                                const isAll = dropdownData.section.length > 0 && selectedSectionIds.length === dropdownData.section.length;
-                                const secNames = dropdownData.section
-                                  .filter((s) => selectedSectionIds.includes(s.id))
-                                  .map((s) => s.name.replace(/^Section\s*/i, ''))
-                                  .join(', ');
-
-                                const secPart = isAll ? '' : (secNames ? ` / Section: ${secNames}` : (selected.section_id ? ` / ${assign?.section || selected.section_id}` : ''));
-                                return `Semester ${semNum}${branchName ? ` - ${branchName}` : ''}${secPart}`;
+                                const sec = selected.section_id ? (assign?.section || selected.section_id) : (assign?.section || '--');
+                                return `Semester ${semNum}${branchName ? ` - ${branchName}` : ''} / ${sec}`;
                               })()}
                             </div>
                           </div>
