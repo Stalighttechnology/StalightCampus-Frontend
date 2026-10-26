@@ -88,12 +88,14 @@ interface FacultyLeavesBootstrapResponse {
   previous?: string | null;
 }
 
+const PAGE_SIZE = 10;
+
 const LeaveManagement = () => {
   const [activeTab, setActiveTab] = useState<"faculty" | "student">("faculty");
   const [studentPendingCount, setStudentPendingCount] = useState<number>(0);
   const [search, setSearch] = useState("");
   const [localSearch, setLocalSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"All" | "Pending" | "Approved" | "Rejected">("All");
+  const [filterStatus, setFilterStatus] = useState<"All" | "Pending" | "Past Due" | "Approved" | "Rejected">("All");
   const [showFilter, setShowFilter] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -128,8 +130,7 @@ const LeaveManagement = () => {
   const hasFetchedRef = useRef(false);
   const initialLoadRef = useRef(true);
   const isSilentOperationRef = useRef(false);
-
-  const pendingFacultyLeavesCount = leaveRequests.filter(r => r.status === "Pending" || r.canApprove).length;
+  const [facultyPendingCount, setFacultyPendingCount] = useState<number>(0);
 
   useEffect(() => {
     const fetchStudentPendingCount = async () => {
@@ -239,13 +240,14 @@ const LeaveManagement = () => {
       const filters = {
         status: filterStatus !== "All" ?
           filterStatus === "Pending" ? "PENDING" :
-            filterStatus === "Approved" ? "APPROVED" :
-              filterStatus === "Rejected" ? "REJECTED" : undefined : undefined,
+            filterStatus === "Past Due" ? "PAST_DUE" :
+              filterStatus === "Approved" ? "APPROVED" :
+                filterStatus === "Rejected" ? "REJECTED" : undefined : undefined,
         search: search || undefined,
         date_from: dateFrom ? `${dateFrom}T00:00:00Z` : undefined,
         date_to: dateTo ? `${dateTo}T23:59:59Z` : undefined,
         page,
-        page_size: 50 // Match backend AdminPagination default
+        page_size: PAGE_SIZE
       };
 
       const response = await getFacultyLeavesBootstrap(undefined, filters); // No branch_id needed
@@ -258,113 +260,89 @@ const LeaveManagement = () => {
       // Set branchId from response
       setBranchId(data.profile.branch_id);
 
-      // Set leave requests
-      // Client-side safety filtering according to FINAL RULE:
       const today = new Date();
       const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const sevenDaysAgo = new Date(todayDateOnly);
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      const processed = data.leaves.
-        map((req: any) => {
-          const isPending = req.status === "PENDING";
-          const isHodApproved = req.hod_approval_status === "APPROVED";
-          const isAtHod = req.current_stage === "hod";
-
-          let displayStatus: "Pending" | "Approved" | "Rejected" | "Endorsed (Pending Principal)" | "Endorsed (Pending Next Authority)" = "Pending";
-          if (req.status === "APPROVED") {
-            displayStatus = "Approved";
-          } else if (req.status === "REJECTED") {
-            displayStatus = "Rejected";
-          } else if (isHodApproved) {
-            const nextStage = (req.current_stage || '').toLowerCase();
-            if (nextStage === 'principal') {
-              displayStatus = "Endorsed (Pending Principal)";
-            } else if (nextStage === 'dean') {
-              displayStatus = "Endorsed (Pending Dean)" as any;
-            } else if (nextStage === 'coe') {
-              displayStatus = "Endorsed (Pending COE)" as any;
-            } else if (nextStage && nextStage !== 'completed') {
-              displayStatus = `Endorsed (Pending ${nextStage.replace('_', ' ').toUpperCase()})` as any;
-            } else {
-              displayStatus = "Endorsed (Pending Next Authority)";
-            }
-          } else {
-            displayStatus = "Pending";
-          }
-
-          return {
-            raw: req,
-            mapped: {
-              id: req.id.toString(),
-              name: req.faculty_name || "Unknown",
-              role: req.role || "teacher",
-              dept: req.department || "Unknown",
-              title: req.title || (req.leave_type === 'short_permission' ? 'Short Permission' : (req.reason ? req.reason.slice(0, 50) : 'Leave Request')),
-              leave_type: req.leave_type || "casual",
-              start_time: req.start_time,
-              end_time: req.end_time,
-              is_half_day: Boolean(req.is_half_day || req.leave_type === 'half_day'),
-              half_day_session: req.half_day_session,
-              from: req.start_date || "N/A",
-              to: req.end_date || "N/A",
-              period: formatPeriod(req.start_date, req.end_date),
-              reason: req.reason || "No reason provided",
-              status: displayStatus,
-              initial_document_url: req.initial_document_url || null,
-              completion_document_url: req.completion_document_url || null,
-              od_completion_verified: Boolean(req.od_completion_verified),
-              od_purpose_category: req.od_purpose_category || null,
-              alternate_faculty_name: req.alternate_faculty_name,
-              alternate_duty_status: req.alternate_duty_status,
-              hod_approval_status: req.hod_approval_status,
-              hod_reviewed_by_name: req.hod_reviewed_by_name,
-              current_stage: req.current_stage,
-              canApprove: isPending && isAtHod && !isHodApproved
-            }
-          };
-        }).
-        filter((item) => {
-          const r = item.raw;
-          const status = (r.status || '').toUpperCase();
-          const isHodApproved = r.hod_approval_status === "APPROVED";
-
-          // If user has chosen a specific date range (e.g. via Month filter), skip the "7-day/pending active" rule
-          if (filters?.date_from || filters?.date_to) return true;
-
-          if (status === 'PENDING') {
-            if (isHodApproved) {
-              const refDateStr = r.reviewed_at || r.submitted_at;
-              if (!refDateStr) return true;
-              const ref = new Date(refDateStr);
-              const refDateOnly = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
-              return refDateOnly >= sevenDaysAgo;
-            }
-            try {
-              const end = new Date(r.end_date);
-              const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-              return endDateOnly >= todayDateOnly; // show only active/future pending
-            } catch {
-              return false;
-            }
-          }
-
-          if (status === 'APPROVED' || status === 'REJECTED') {
-            // Use reviewed_at if available else submitted_at
-            const refDateStr = r.reviewed_at || r.submitted_at;
-            if (!refDateStr) return false;
-            const ref = new Date(refDateStr);
-            const refDateOnly = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
-            return refDateOnly >= sevenDaysAgo; // only recent approvals/rejections
-          }
-
+      // Filter out HOD's own leaves so only faculty leaves are shown
+      const activeOrHistoricalLeaves = (data.leaves || []).filter((req: any) => {
+        if (req.role === "hod") {
           return false;
-        }).
-        map((item) => item.mapped);
+        }
+        return true;
+      });
+
+      const processed: LeaveRequest[] = activeOrHistoricalLeaves.map((req: any) => {
+        const isPending = req.status === "PENDING";
+        const isHodApproved = req.hod_approval_status === "APPROVED";
+        const isAtHod = req.current_stage === "hod";
+
+        let isPastDue = false;
+        if (isPending) {
+          try {
+            const end = new Date(req.end_date);
+            const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+            isPastDue = endDateOnly < todayDateOnly;
+          } catch {
+            isPastDue = false;
+          }
+        }
+
+        let displayStatus: "Pending" | "Past Due" | "Approved" | "Rejected" | "Endorsed (Pending Principal)" | "Endorsed (Pending Dean)" | "Endorsed (Pending COE)" | "Endorsed (Pending Next Authority)" | string = "Pending";
+        if (req.status === "APPROVED") {
+          displayStatus = "Approved";
+        } else if (req.status === "REJECTED") {
+          displayStatus = "Rejected";
+        } else if (isPastDue) {
+          displayStatus = "Past Due";
+        } else if (isHodApproved) {
+          const nextStage = (req.current_stage || '').toLowerCase();
+          if (nextStage === 'principal') {
+            displayStatus = "Endorsed (Pending Principal)";
+          } else if (nextStage === 'dean') {
+            displayStatus = "Endorsed (Pending Dean)" as any;
+          } else if (nextStage === 'coe') {
+            displayStatus = "Endorsed (Pending COE)" as any;
+          } else if (nextStage && nextStage !== 'completed') {
+            displayStatus = `Endorsed (Pending ${nextStage.replace('_', ' ').toUpperCase()})` as any;
+          } else {
+            displayStatus = "Endorsed (Pending Next Authority)";
+          }
+        } else {
+          displayStatus = "Pending";
+        }
+
+        return {
+          id: req.id.toString(),
+          name: req.faculty_name || "Unknown",
+          role: req.role || "teacher",
+          dept: req.department || "Unknown",
+          title: req.title || (req.leave_type === 'short_permission' ? 'Short Permission' : (req.reason ? req.reason.slice(0, 50) : 'Leave Request')),
+          leave_type: req.leave_type || "casual",
+          start_time: req.start_time,
+          end_time: req.end_time,
+          is_half_day: Boolean(req.is_half_day || req.leave_type === 'half_day'),
+          half_day_session: req.half_day_session,
+          from: req.start_date || "N/A",
+          to: req.end_date || "N/A",
+          period: formatPeriod(req.start_date, req.end_date),
+          reason: req.reason || "No reason provided",
+          status: displayStatus,
+          initial_document_url: req.initial_document_url || null,
+          completion_document_url: req.completion_document_url || null,
+          od_completion_verified: Boolean(req.od_completion_verified),
+          od_purpose_category: req.od_purpose_category || null,
+          alternate_faculty_name: req.alternate_faculty_name,
+          alternate_duty_status: req.alternate_duty_status,
+          hod_approval_status: req.hod_approval_status,
+          hod_reviewed_by_name: req.hod_reviewed_by_name,
+          current_stage: req.current_stage,
+          canApprove: isPending && isAtHod && !isHodApproved && !isPastDue
+        };
+      });
 
       setLeaveRequests(processed);
       setTotalCount(response.count || 0);
-      setTotalPages(response.total_pages || Math.ceil((response.count || 0) / 50));
+      setTotalPages(response.total_pages || Math.ceil((response.count || 0) / PAGE_SIZE));
       setCurrentPage(response.current_page || page);
       setErrors([]);
 
@@ -372,6 +350,7 @@ const LeaveManagement = () => {
       const currentPendingCount = typeof (data as any).pending_count === 'number'
         ? (data as any).pending_count
         : (typeof response.pending_count === 'number' ? response.pending_count : processed.filter((l: any) => l.canApprove).length);
+      setFacultyPendingCount(currentPendingCount);
       window.dispatchEvent(new CustomEvent('leave-approvals-updated', { detail: { pending_count: currentPendingCount } }));
 
     } catch (err: unknown) {
@@ -439,6 +418,7 @@ const LeaveManagement = () => {
           const remainingPending = typeof res.pending_leaves_count === 'number'
             ? res.pending_leaves_count
             : nextList.filter(item => item.canApprove).length;
+          setFacultyPendingCount(remainingPending);
           window.dispatchEvent(new CustomEvent('leave-approvals-updated', { detail: { pending_count: remainingPending } }));
           window.dispatchEvent(new CustomEvent('leaves-updated'));
           return nextList;
@@ -491,6 +471,7 @@ const LeaveManagement = () => {
               const remainingPending = typeof res.pending_leaves_count === 'number'
                 ? res.pending_leaves_count
                 : nextList.filter(item => item.canApprove).length;
+              setFacultyPendingCount(remainingPending);
               window.dispatchEvent(new CustomEvent('leave-approvals-updated', { detail: { pending_count: remainingPending } }));
               window.dispatchEvent(new CustomEvent('leaves-updated'));
               return nextList;
@@ -570,9 +551,9 @@ const LeaveManagement = () => {
                   }`}
                 >
                   Faculty Leaves
-                  {pendingFacultyLeavesCount > 0 && (
+                  {facultyPendingCount > 0 && (
                     <span className={`px-1.5 py-0.2 rounded-full text-[11px] ${activeTab === "faculty" ? "bg-white text-primary font-bold" : "bg-primary text-white"}`}>
-                      {pendingFacultyLeavesCount}
+                      {facultyPendingCount}
                     </span>
                   )}
                 </button>
@@ -614,7 +595,7 @@ const LeaveManagement = () => {
                   {showFilter &&
                     <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-md shadow-lg z-20`}>
                       <div className="py-1">
-                        {(["All", "Pending", "Approved", "Rejected"] as const).map((status) => (
+                        {(["All", "Pending", "Past Due", "Approved", "Rejected"] as const).map((status) => (
                           <button
                             key={status}
                             type="button"
@@ -685,14 +666,17 @@ const LeaveManagement = () => {
                         </div>
                       <div className="shrink-0">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${row.status === "Pending" ?
-                            theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            row.status === "Past Due" ?
+                              theme === 'dark' ? 'bg-orange-950/60 text-orange-300 border border-orange-700/50' : 'bg-orange-100 text-orange-800 border border-orange-200' :
+                            row.status === "Pending" ?
+                              theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
                             row.status === "Approved" ?
                               theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' :
-                              row.status.startsWith("Endorsed") ?
-                                theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700' :
-                                theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
-                          }>
+                            row.status.startsWith("Endorsed") ?
+                              theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700' :
+                              theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'
+                          }`}>
                           {row.status}
                         </span>
                       </div>
@@ -794,8 +778,8 @@ const LeaveManagement = () => {
                       </div> :
 
                       <div className="pt-2 text-center border-t border-border/30">
-                        <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          {row.status === "Endorsed (Pending Principal)" ? "Endorsed (Forwarded to Principal)" : "No action needed"}
+                        <span className={`text-xs ${row.status === "Past Due" ? (theme === 'dark' ? 'text-orange-400 font-medium' : 'text-orange-600 font-medium') : (theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500')}`}>
+                          {row.status === "Past Due" ? "Action Expired" : row.status.startsWith("Endorsed") ? "Endorsed (Forwarded to Next Authority)" : "No action needed"}
                         </span>
                       </div>
                     }
@@ -921,14 +905,17 @@ const LeaveManagement = () => {
 
                         <td className="py-4 px-2 md:px-4 text-sm text-center">
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${row.status === "Pending" ?
-                              theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              row.status === "Past Due" ?
+                                theme === 'dark' ? 'bg-orange-950/60 text-orange-300 border border-orange-700/50' : 'bg-orange-100 text-orange-800 border border-orange-200' :
+                              row.status === "Pending" ?
+                                theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
                               row.status === "Approved" ?
                                 theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' :
-                                row.status.startsWith("Endorsed") ?
-                                  theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700' :
-                                  theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
-                            }>
+                              row.status.startsWith("Endorsed") ?
+                                theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700' :
+                                theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'
+                            }`}>
                             {row.status}
                           </span>
                         </td>
@@ -958,8 +945,8 @@ const LeaveManagement = () => {
                               </Button>
                             </div> :
 
-                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                              {row.status.startsWith("Endorsed") ? "Endorsed (Forwarded to Next Authority)" : "No action needed"}
+                            <span className={`text-xs ${row.status === "Past Due" ? (theme === 'dark' ? 'text-orange-400 font-medium' : 'text-orange-600 font-medium') : (theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500')}`}>
+                              {row.status === "Past Due" ? "Action Expired" : row.status.startsWith("Endorsed") ? "Endorsed (Forwarded to Next Authority)" : "No action needed"}
                             </span>
                           }
                         </td>
@@ -975,7 +962,7 @@ const LeaveManagement = () => {
           {totalPages > 1 &&
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6 pt-6 border-t">
               <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                Showing {Math.min((currentPage - 1) * 50 + 1, totalCount)} to {Math.min(currentPage * 50, totalCount)} of {totalCount}
+                Showing {totalCount === 0 ? 0 : Math.min((currentPage - 1) * PAGE_SIZE + 1, totalCount)} to {Math.min(currentPage * PAGE_SIZE, totalCount)} of {totalCount}
               </div>
               <div className="flex gap-2 items-center justify-center sm:justify-end">
                 <Button

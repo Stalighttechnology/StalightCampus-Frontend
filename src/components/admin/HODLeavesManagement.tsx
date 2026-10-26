@@ -67,6 +67,8 @@ const getStatusBadge = (status: string, theme: string) => {
   switch (status) {
     case "Pending":
       return <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700'}`}>Pending</span>;
+    case "Past Due":
+      return <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-orange-950/60 text-orange-300 border border-orange-700/50' : 'bg-orange-100 text-orange-800 border border-orange-200'}`}>Past Due</span>;
     case "Approved":
     case "APPROVE":
       return <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700'}`}>Approved</span>;
@@ -160,6 +162,7 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
   };
 
   const getActionPendingLabel = (leave: LeaveRequest) => {
+    if (leave.status === "Past Due") return "Action Expired";
     if (leave.status !== "Pending") return null;
     const role = (userRole || "").toLowerCase();
     const stage = (leave.current_stage || "").toLowerCase();
@@ -212,7 +215,7 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
         params.month = month;
       }
       if (statusFilter !== "All") {
-        params.status = statusFilter;
+        params.status = statusFilter === "Past Due" ? "PAST_DUE" : statusFilter;
       }
       if (roleFilter !== "All") {
         params.role = roleFilter;
@@ -231,41 +234,68 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
       const dataSource = hasResults ? (response as any).results : response as any;
 
       if (dataSource && dataSource.success) {
+        const today = new Date();
+        const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
         const leaveData = Array.isArray(dataSource.leaves) ?
-          dataSource.leaves.map((leave: any) => ({
-            id: leave.id,
-            title: leave.title || (leave.leave_type === 'short_permission' ? 'Short Permission' : 'Leave Request'),
-            name: leave.applicant_name || ((leave.hod?.first_name || leave.hod?.last_name)
-              ? `${leave.hod?.first_name || ""} ${leave.hod?.last_name || ""}`.trim()
-              : leave.hod?.username || leave.hod_name || "N/A"),
-            role: leave.role || "staff",
-            department: leave.branch || "N/A",
-            leave_type: leave.leave_type || "casual",
-            start_time: leave.start_time,
-            end_time: leave.end_time,
-            is_half_day: leave.is_half_day,
-            half_day_session: leave.half_day_session,
-            from: leave.start_date || "N/A",
-            to: leave.end_date || "N/A",
-            reason: leave.reason || "N/A",
-            initial_document_url: leave.initial_document_url || null,
-            completion_document_url: leave.completion_document_url || null,
-            od_purpose_category: leave.od_purpose_category || null,
-            od_completion_verified: Boolean(leave.od_completion_verified),
-            current_stage: leave.current_stage,
-            alternate_faculty_name: leave.alternate_faculty_name,
-            alternate_duty_status: leave.alternate_duty_status,
-            alternate_duty_remarks: leave.alternate_duty_remarks,
-            hod_approval_status: leave.hod_approval_status,
-            hod_reviewed_by_name: leave.hod_reviewed_by_name,
-            intermediate_approval_status: leave.intermediate_approval_status,
-            intermediate_reviewed_by_name: leave.intermediate_reviewed_by_name,
-            principal_approval_status: leave.principal_approval_status,
-            status: leave.status === "APPROVED" ? "Approved" :
-              leave.status === "REJECTED" ? "Rejected" :
-                leave.status === "PENDING" ? "Pending" :
-                  leave.status?.charAt(0).toUpperCase() + leave.status?.slice(1).toLowerCase() || "Unknown"
-          })) :
+          dataSource.leaves.map((leave: any) => {
+            const isPending = leave.status === "PENDING" || leave.status === "Pending";
+            let isPastDue = false;
+            if (isPending && leave.end_date) {
+              try {
+                const end = new Date(leave.end_date);
+                const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+                isPastDue = endDateOnly < todayDateOnly;
+              } catch {
+                isPastDue = false;
+              }
+            }
+
+            let displayStatus = "Unknown";
+            if (leave.status === "APPROVED") {
+              displayStatus = "Approved";
+            } else if (leave.status === "REJECTED") {
+              displayStatus = "Rejected";
+            } else if (isPastDue) {
+              displayStatus = "Past Due";
+            } else if (leave.status === "PENDING") {
+              displayStatus = "Pending";
+            } else {
+              displayStatus = leave.status?.charAt(0).toUpperCase() + leave.status?.slice(1).toLowerCase() || "Unknown";
+            }
+
+            return {
+              id: leave.id,
+              title: leave.title || (leave.leave_type === 'short_permission' ? 'Short Permission' : 'Leave Request'),
+              name: leave.applicant_name || ((leave.hod?.first_name || leave.hod?.last_name)
+                ? `${leave.hod?.first_name || ""} ${leave.hod?.last_name || ""}`.trim()
+                : leave.hod?.username || leave.hod_name || "N/A"),
+              role: leave.role || "staff",
+              department: leave.branch || "N/A",
+              leave_type: leave.leave_type || "casual",
+              start_time: leave.start_time,
+              end_time: leave.end_time,
+              is_half_day: leave.is_half_day,
+              half_day_session: leave.half_day_session,
+              from: leave.start_date || "N/A",
+              to: leave.end_date || "N/A",
+              reason: leave.reason || "N/A",
+              initial_document_url: leave.initial_document_url || null,
+              completion_document_url: leave.completion_document_url || null,
+              od_purpose_category: leave.od_purpose_category || null,
+              od_completion_verified: Boolean(leave.od_completion_verified),
+              current_stage: leave.current_stage,
+              alternate_faculty_name: leave.alternate_faculty_name,
+              alternate_duty_status: leave.alternate_duty_status,
+              alternate_duty_remarks: leave.alternate_duty_remarks,
+              hod_approval_status: leave.hod_approval_status,
+              hod_reviewed_by_name: leave.hod_reviewed_by_name,
+              intermediate_approval_status: leave.intermediate_approval_status,
+              intermediate_reviewed_by_name: leave.intermediate_reviewed_by_name,
+              principal_approval_status: leave.principal_approval_status,
+              status: displayStatus
+            };
+          }) :
           [];
         setLeaveRequests(leaveData);
 
@@ -636,6 +666,7 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
                     <SelectItem value="All">All Statuses</SelectItem>
                     <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Past Due">Past Due</SelectItem>
                     <SelectItem value="Approved">Approved</SelectItem>
                     <SelectItem value="Rejected">Rejected</SelectItem>
                   </SelectContent>
@@ -768,7 +799,7 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                           </div> :
 
                           <div className="pt-2 text-center border-t border-border/30">
-                            <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            <span className={`text-xs font-semibold ${leave.status === "Past Due" ? (theme === 'dark' ? 'text-orange-400' : 'text-orange-600') : (theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500')}`}>
                               {getActionPendingLabel(leave) || "No action needed"}
                             </span>
                           </div>
@@ -920,7 +951,7 @@ const HODLeavesManagement = ({ setError, toast, userRole }: HODLeavesManagementP
                                 </Button>
                               </div> :
 
-                              <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              <span className={`text-xs ${leave.status === "Past Due" ? (theme === 'dark' ? 'text-orange-400 font-medium' : 'text-orange-600 font-medium') : (theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500')}`}>
                                 {getActionPendingLabel(leave) || "No action needed"}
                               </span>
                             }

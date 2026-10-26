@@ -10,7 +10,7 @@ import { SkeletonTable, SkeletonCard } from "@/components/ui/skeleton";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
 import { getHodStudentLeaves, manageHodStudentLeave, HodStudentLeave } from "@/utils/hod_api";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 interface DepartmentStudentLeavesProps {
   onPendingCountChange?: (count: number) => void;
@@ -20,7 +20,7 @@ interface DepartmentStudentLeavesProps {
 
 export const DepartmentStudentLeaves = ({
   onPendingCountChange,
-  pageSize = 20,
+  pageSize = 10,
   hidePagination = false,
 }: DepartmentStudentLeavesProps) => {
   const { theme } = useTheme();
