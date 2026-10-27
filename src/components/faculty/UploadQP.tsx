@@ -547,9 +547,11 @@ const UploadQP = () => {
           // If any branch is rejected, prioritize that QP so rejection comments and resubmission are front and center!
           const rejectedQP = isMulti
             ? res.data.find((q: QuestionPaper) => {
+                const qpBranchId = typeof q.branch === 'object' ? (q.branch as any)?.id : q.branch;
+                const matchBranch = !selected.branch_id || Number(qpBranchId) === Number(selected.branch_id);
                 const matchTest = String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase();
                 const matchSet = String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase();
-                return q.status === 'rejected' && matchTest && matchSet;
+                return q.status === 'rejected' && matchBranch && matchTest && matchSet;
               })
             : null;
 
@@ -562,7 +564,7 @@ const UploadQP = () => {
             const matchTest = String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase();
             const matchSet = String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase();
             return matchBranch && matchSection && matchTest && matchSet;
-          }) || res.data[0];
+          });
 
           if (qp) {
             // build flat question rows from nested questions/subparts
@@ -1082,12 +1084,15 @@ const UploadQP = () => {
         mine_only: true
       });
       if (res?.success && Array.isArray(res.data)) {
-        // Find exact match on Subject, Test Type, Set Number
-        return res.data.find((q: QuestionPaper) =>
-          (String(q.subject) === String(effectiveSubjId) || String(q.subject) === String(selected.subject_id)) &&
-          String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase() &&
-          String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase()
-        ) || null;
+        // Find exact match on Branch, Subject, Test Type, Set Number
+        return res.data.find((q: QuestionPaper) => {
+          const qpBranchId = typeof q.branch === 'object' ? (q.branch as any)?.id : q.branch;
+          const matchBranch = !selected.branch_id || Number(qpBranchId) === Number(selected.branch_id);
+          const matchSubject = String(q.subject) === String(effectiveSubjId) || String(q.subject) === String(selected.subject_id);
+          const matchTest = String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase();
+          const matchSet = String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase();
+          return matchBranch && matchSubject && matchTest && matchSet;
+        }) || null;
       }
     } catch (err) {
 
