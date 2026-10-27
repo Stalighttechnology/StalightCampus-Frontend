@@ -282,6 +282,56 @@ export const getFilterOptions = async (): Promise<{
 };
 
 /**
+ * Fetch all batches for COE
+ */
+export const getBatches = async (): Promise<Batch[]> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/batches/`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (result.success && Array.isArray(result.data)) {
+      return result.data;
+    }
+    return [];
+  } catch (error) {
+    return [];
+  }
+};
+
+/**
+ * Fetch branches for COE, optionally filtered by batch_id
+ */
+export const getBranches = async (batchId?: string | number): Promise<Branch[]> => {
+  try {
+    const query = batchId && batchId !== 'all' ? `?batch_id=${batchId}` : '';
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/branches/${query}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (result.success && Array.isArray(result.data)) {
+      return result.data;
+    }
+    return [];
+  } catch (error) {
+    return [];
+  }
+};
+
+
+/**
  * Fetch semesters for a specific branch
  */
 export const getSemesters = async (branchId: number): Promise<Semester[]> => {

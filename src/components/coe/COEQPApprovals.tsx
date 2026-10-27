@@ -13,7 +13,14 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { CheckCircle, XCircle, Eye, Download, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { CheckCircle, XCircle, Eye, Download, ChevronLeft, ChevronRight, Loader2, Filter, X } from "lucide-react";
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
@@ -21,6 +28,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
+import { getBatches, getBranches } from "../../utils/coe_api";
 import { SkeletonList, SkeletonCard } from '../ui/skeleton';
 import { sanitizeHtml } from "../../utils/sanitize";
 import { translateTerminology } from "../../utils/institutionConfig";
@@ -238,6 +246,7 @@ interface QPPending {
   exam_date?: string;
   exam_time?: string;
   branch?: any;
+  batch?: { id?: number; name?: string } | null;
   semester?: any;
   section?: any;
   status?: string;
@@ -277,6 +286,14 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
   const { theme } = useTheme();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  // Filter states
+  const [batches, setBatches] = useState<{ id: number; name: string }[]>([]);
+  const [branches, setBranches] = useState<{ id: number; name: string; branch_code?: string }[]>([]);
+  const [selectedBatch, setSelectedBatch] = useState<string>("");
+  const [selectedBranch, setSelectedBranch] = useState<string>("");
+  const [filtersLoading, setFiltersLoading] = useState(false);
+  const initialLoadDone = useRef(false);
 
   const downloadPDF = async () => {
     if (!qpDetail) return;
@@ -353,22 +370,201 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
     return 'Faculty';
   };
 
+  const fetchBatchesList = async () => {
+    try {
+      const data = await getBatches();
+      setBatches(data || []);
+      return data || [];
+    } catch {
+      setBatches([]);
+      return [];
+    }
+  };
+
+  const fetchBranchesList = async (batchId: string = selectedBatch) => {
+    if (!batchId) {
+      setBranches([]);
+      return [];
+    }
+    try {
+      const data = await getBranches(batchId);
+      setBranches(data || []);
+      return data || [];
+    } catch {
+      setBranches([]);
+      return [];
+    }
+  };
+
+  const fetchPendingQPs = async (
+    page: number = pendingPage,
+    batch: string = selectedBatch,
+    branch: string = selectedBranch
+  ) => {
+    if (!batch || !branch) {
+      setPendingQPs([]);
+      setLoading(false);
+      return;
+    }
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        page_size: "10"
+      });
+      if (batch && batch !== "all") params.append("batch_id", batch);
+      if (branch && branch !== "all") params.append("branch_id", branch);
+
+      const response = await fetch(`${API_ENDPOINT}/admin/qps/coe-pending/?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
+        }
+      });
+      const data = await response.json();
+      const norm = normalizePaginatedResponse(data, 'results');
+      const items = Array.isArray(norm.items) ? norm.items : [];
+      setPendingQPs(items);
+      const count = norm.meta.totalItems ?? data.count ?? items.length;
+      setPendingPagination({
+        count,
+        next: norm.meta.next ?? data.next ?? null,
+        previous: norm.meta.previous ?? data.previous ?? null,
+        current_page: norm.meta.currentPage ?? data.current_page ?? page,
+        total_pages: norm.meta.totalPages ?? data.total_pages ?? Math.max(1, Math.ceil(count / 10)),
+        page_size: 10
+      });
+    } catch (error) {
+      setPendingQPs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFinalizedQPs = async (
+    page: number = finalizedPage,
+    batch: string = selectedBatch,
+    branch: string = selectedBranch
+  ) => {
+    if (!batch || !branch) {
+      setFinalizedQPs([]);
+      return;
+    }
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        page_size: "10"
+      });
+      if (batch && batch !== "all") params.append("batch_id", batch);
+      if (branch && branch !== "all") params.append("branch_id", branch);
+
+      const response = await fetch(`${API_ENDPOINT}/admin/qps/coe-finalized/?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
+        }
+      });
+      const data = await response.json();
+      const norm = normalizePaginatedResponse(data, 'results');
+      const items = Array.isArray(norm.items) ? norm.items : [];
+      setFinalizedQPs(items);
+      const count = norm.meta.totalItems ?? data.count ?? items.length;
+      setFinalizedPagination({
+        count,
+        next: norm.meta.next ?? data.next ?? null,
+        previous: norm.meta.previous ?? data.previous ?? null,
+        current_page: norm.meta.currentPage ?? data.current_page ?? page,
+        total_pages: norm.meta.totalPages ?? data.total_pages ?? Math.max(1, Math.ceil(count / 10)),
+        page_size: 10
+      });
+    } catch (error) {
+      setFinalizedQPs([]);
+    }
+  };
+
+  // Initial load: Call for batch first. Do not fetch branches or papers until user selects filters.
   useEffect(() => {
     fetchApprovalChain();
+    const initializeData = async () => {
+      setLoading(false);
+      setFiltersLoading(true);
+      try {
+        // 1. Call for batch first (only network call on initial page load)
+        await fetchBatchesList();
+      } catch (err) {
+        console.error("Initialization error:", err);
+      } finally {
+        initialLoadDone.current = true;
+        setFiltersLoading(false);
+      }
+    };
+    initializeData();
   }, []);
 
+  // Pagination changes (only if both batch and branch are selected)
   useEffect(() => {
-    fetchPendingQPs();
+    if (!initialLoadDone.current || !selectedBatch || !selectedBranch) return;
+    fetchPendingQPs(pendingPage, selectedBatch, selectedBranch);
   }, [pendingPage]);
 
   useEffect(() => {
-    if (activeTab === "finalized") {
-      fetchFinalizedQPs();
+    if (!initialLoadDone.current || !selectedBatch || !selectedBranch) return;
+    fetchFinalizedQPs(finalizedPage, selectedBatch, selectedBranch);
+  }, [finalizedPage]);
+
+  const handleBatchChange = async (batchId: string) => {
+    setSelectedBatch(batchId);
+    setSelectedBranch("");
+    setPendingQPs([]);
+    setFinalizedQPs([]);
+    setPendingPagination(null);
+    setFinalizedPagination(null);
+    setPendingPage(1);
+    setFinalizedPage(1);
+    if (!batchId) {
+      setBranches([]);
+      return;
     }
-  }, [finalizedPage, activeTab]);
+    setFiltersLoading(true);
+    try {
+      // 1. Call for branches in that batch only
+      await fetchBranchesList(batchId);
+    } finally {
+      setFiltersLoading(false);
+    }
+  };
+
+  const handleBranchChange = async (branchId: string) => {
+    setSelectedBranch(branchId);
+    setPendingPage(1);
+    setFinalizedPage(1);
+    if (!branchId || !selectedBatch) {
+      setPendingQPs([]);
+      setFinalizedQPs([]);
+      return;
+    }
+    setFiltersLoading(true);
+    try {
+      // 2. Then according to that filter, fetch all the pending and finalized papers from the response
+      await Promise.all([
+        fetchPendingQPs(1, selectedBatch, branchId),
+        fetchFinalizedQPs(1, selectedBatch, branchId)
+      ]);
+    } finally {
+      setFiltersLoading(false);
+    }
+  };
+
+  const handleResetFilters = () => {
+    setSelectedBatch("");
+    setSelectedBranch("");
+    setBranches([]);
+    setPendingQPs([]);
+    setFinalizedQPs([]);
+    setPendingPagination(null);
+    setFinalizedPagination(null);
+    setPendingPage(1);
+    setFinalizedPage(1);
+  };
 
   useEffect(() => {
-
     // Ensure SweetAlert appears above the dialog and is interactive
     try {
       const styleId = 'swal2-global-fix';
@@ -384,63 +580,9 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         document.head.appendChild(style);
       }
     } catch (e) {
-
       // ignore when DOM not available
-    }}, []);
-
-  const fetchPendingQPs = async () => {
-    try {
-      const response = await fetch(`${API_ENDPOINT}/admin/qps/coe-pending/?page=${pendingPage}&page_size=10`, {
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
-        }
-      });
-      const data = await response.json();
-      const norm = normalizePaginatedResponse(data, 'results');
-      const items = Array.isArray(norm.items) ? norm.items : [];
-      setPendingQPs(items);
-      const count = norm.meta.totalItems ?? data.count ?? items.length;
-      setPendingPagination({
-        count,
-        next: norm.meta.next ?? data.next ?? null,
-        previous: norm.meta.previous ?? data.previous ?? null,
-        current_page: norm.meta.currentPage ?? data.current_page ?? pendingPage,
-        total_pages: norm.meta.totalPages ?? data.total_pages ?? Math.max(1, Math.ceil(count / 10)),
-        page_size: 10
-      });
-    } catch (error) {
-
-    } finally {
-      setLoading(false);
     }
-  };
-
-  const fetchFinalizedQPs = async () => {
-    try {
-      const response = await fetch(`${API_ENDPOINT}/admin/qps/coe-finalized/?page=${finalizedPage}&page_size=10`, {
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
-        }
-      });
-      const data = await response.json();
-      // Debug log
-      const norm = normalizePaginatedResponse(data, 'results');
-      const items = Array.isArray(norm.items) ? norm.items : [];
-      setFinalizedQPs(items);
-      const count = norm.meta.totalItems ?? data.count ?? items.length;
-      setFinalizedPagination({
-        count,
-        next: norm.meta.next ?? data.next ?? null,
-        previous: norm.meta.previous ?? data.previous ?? null,
-        current_page: norm.meta.currentPage ?? data.current_page ?? finalizedPage,
-        total_pages: norm.meta.totalPages ?? data.total_pages ?? Math.max(1, Math.ceil(count / 10)),
-        page_size: 10
-      });
-    } catch (error) {
-
-      setFinalizedQPs([]);
-    }
-  };
+  }, []);
 
   const handleFinalize = async (qpId: number) => {
     const nextRole = getNextRole('coe');
@@ -815,20 +957,93 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
               </TabsList>
             </div>
           </CardHeader>
+
+          {/* Filters Bar: Batch & Branch */}
+          <div className="px-6 py-3 border-y border-border/50 bg-muted/20">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <Filter className="w-4 h-4 text-primary" />
+                <span>Filter Question Papers:</span>
+                {filtersLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Batch Filter */}
+                <div className="w-full sm:w-60">
+                  <Select value={selectedBatch} onValueChange={handleBatchChange}>
+                    <SelectTrigger className="h-9 text-xs sm:text-sm bg-background">
+                      <SelectValue placeholder="Select Batch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Batches</SelectItem>
+                      {batches.map((b) => (
+                        <SelectItem key={b.id} value={String(b.id)}>
+                          Batch {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Branch Filter */}
+                <div className="w-full sm:w-64">
+                  <Select value={selectedBranch} onValueChange={handleBranchChange} disabled={!selectedBatch}>
+                    <SelectTrigger className="h-9 text-xs sm:text-sm bg-background">
+                      <SelectValue placeholder={!selectedBatch ? "Select Batch first" : "Select Branch"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{translateTerminology("All Branches")}</SelectItem>
+                      {branches.map((br) => (
+                        <SelectItem key={br.id} value={String(br.id)}>
+                          {br.name} {br.branch_code ? `(${br.branch_code})` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <TabsContent value="pending" className="flex-1 mt-0">
             <CardContent>
-              {pendingQPs.length === 0 ?
-              <Card className="border-dashed border-2 shadow-none bg-transparent">
-                    <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-                      <div className="bg-primary/5 p-6 rounded-full mb-4">
-                        <CheckCircle className="w-12 h-12 text-primary/40" />
-                      </div>
-                      <h3 className="text-xl font-semibold mb-2">No pending approvals</h3>
-                      <p className="text-muted-foreground max-w-sm mx-auto">
-                        All question papers have been processed. New submissions will appear here for review and approval.
-                      </p>
-                    </CardContent>
-                 </Card> :
+              {!selectedBatch ? (
+                <Card className="border-dashed border-2 shadow-none bg-transparent">
+                  <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="bg-primary/5 p-6 rounded-full mb-4">
+                      <Filter className="w-12 h-12 text-primary/40" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Select a Batch to view question papers</h3>
+                    <p className="text-muted-foreground max-w-sm mx-auto">
+                      No default filter applied. Please select a batch from the filter above to load branches.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : !selectedBranch ? (
+                <Card className="border-dashed border-2 shadow-none bg-transparent">
+                  <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="bg-primary/5 p-6 rounded-full mb-4">
+                      <Filter className="w-12 h-12 text-primary/40" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Select a Branch to view question papers</h3>
+                    <p className="text-muted-foreground max-w-sm mx-auto">
+                      Please select a branch from the filter above to load question papers.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : pendingQPs.length === 0 ? (
+                <Card className="border-dashed border-2 shadow-none bg-transparent">
+                  <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="bg-primary/5 p-6 rounded-full mb-4">
+                      <CheckCircle className="w-12 h-12 text-primary/40" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">No pending approvals</h3>
+                    <p className="text-muted-foreground max-w-sm mx-auto">
+                      No question papers found matching the selected filters.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
               <div className="space-y-4">
                   {Array.isArray(pendingQPs) && pendingQPs.map((qp) =>
                 <Card key={qp.id} className="p-4 sm:p-5 hover:shadow-md transition-all">
@@ -851,6 +1066,9 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                             <p>Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
                             {qp.branch &&
                               <p>Branch: {qp.branch.name}</p>
+                            }
+                            {qp.batch &&
+                              <p>Batch: {qp.batch.name}</p>
                             }
                           </div>
 
@@ -884,7 +1102,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </Card>
                 )}
                 </div>
-              }
+              )}
             </CardContent>
             {pendingPagination && (pendingPagination.next || pendingPagination.previous) && (
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
@@ -921,18 +1139,43 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
           </TabsContent>
           <TabsContent value="finalized" className="flex-1 mt-0">
             <CardContent>
-              {finalizedQPs.length === 0 ?
-              <Card className="border-dashed border-2 shadow-none bg-transparent">
+              {!selectedBatch ? (
+                <Card className="border-dashed border-2 shadow-none bg-transparent">
+                  <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="bg-primary/5 p-6 rounded-full mb-4">
+                      <Filter className="w-12 h-12 text-primary/40" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Select a Batch to view question papers</h3>
+                    <p className="text-muted-foreground max-w-sm mx-auto">
+                      No default filter applied. Please select a batch from the filter above to load branches.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : !selectedBranch ? (
+                <Card className="border-dashed border-2 shadow-none bg-transparent">
+                  <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="bg-primary/5 p-6 rounded-full mb-4">
+                      <Filter className="w-12 h-12 text-primary/40" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Select a Branch to view question papers</h3>
+                    <p className="text-muted-foreground max-w-sm mx-auto">
+                      Please select a branch from the filter above to load question papers.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : finalizedQPs.length === 0 ? (
+                <Card className="border-dashed border-2 shadow-none bg-transparent">
                     <CardContent className="flex flex-col items-center justify-center py-20 text-center">
                       <div className="bg-primary/5 p-6 rounded-full mb-4">
                         <CheckCircle className="w-12 h-12 text-primary/40" />
                       </div>
                       <h3 className="text-xl font-semibold mb-2">No finalized papers</h3>
                       <p className="text-muted-foreground max-w-sm mx-auto">
-                        Approved question papers will be archived here for examination management.
+                        No finalized question papers found matching the selected filters.
                       </p>
                     </CardContent>
-                 </Card> :
+                 </Card>
+              ) : (
               <div className="space-y-4">
                   {Array.isArray(finalizedQPs) && finalizedQPs.map((qp) =>
                 <Card key={qp.id} className="p-4 sm:p-5 hover:shadow-md transition-all">
@@ -955,6 +1198,9 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                             <p>Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
                             {qp.branch &&
                               <p>Branch: {qp.branch.name}</p>
+                            }
+                            {qp.batch &&
+                              <p>Batch: {qp.batch.name}</p>
                             }
                           </div>
 
@@ -993,7 +1239,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </Card>
                 )}
                 </div>
-              }
+              )}
             </CardContent>
             {finalizedPagination && (finalizedPagination.next || finalizedPagination.previous) && (
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
