@@ -1,5 +1,5 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
-import React, { useEffect, useState, useRef, Fragment } from "react";
+import React, { useEffect, useState, useRef, Fragment, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { Plus, Trash2, Layers, Loader2, FileDown, Image, Image as ImageIcon, Eraser, RotateCcw, Check, X, Undo, Redo, AlertCircle, CalendarIcon, ChevronDown, Table as TableIcon, Edit3, Pi } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -250,7 +250,7 @@ const UploadQP = () => {
     batch: [] as { id: number; name: string; }[],
     branch: [] as { id: number; name: string; }[],
     semester: [] as { id: number; number: number; }[],
-    section: [] as { id: number; name: string; }[],
+    section: [] as { id: number; name: string; rawName?: string; branch_id?: number; branch_name?: string; }[],
     subject: [] as { id: number; name: string; code?: string; subject_code?: string; subject_type?: string; }[],
     testType: ["IA1", "IA2", "IA3", "IA4", "IA5", "SEE"],
     setNumber: ["Set 1", "Set 2"]
@@ -302,6 +302,8 @@ const UploadQP = () => {
   const [activeEditingBlockIndex, setActiveEditingBlockIndex] = useState<number | null>(null);
   const [startWithNewBox, setStartWithNewBox] = useState<boolean>(false);
   const lastActivePromptRef = useRef<{ questionId: string; start: number; end: number } | null>(null);
+  const prevActiveBranchIdsRef = useRef<number[]>([]);
+  const prevSubjectIdRef = useRef<number | null>(null);
 
   const [tabValue, setTabValue] = useState('questionFormat');
   const [qpId, setQpId] = useState<number | null>(null);
@@ -429,17 +431,23 @@ const UploadQP = () => {
     loadBatches();
   }, []);
 
-  // Derive available sections based on selected Subject and Branch
+  // Derive available sections based on selected Subject and Branch(es)
   useEffect(() => {
     if (!selected.subject_id) {
       setDropdownData((prev) => ({ ...prev, section: [] }));
       setSelectedSectionIds([]);
+      prevActiveBranchIdsRef.current = [];
+      prevSubjectIdRef.current = null;
       return;
     }
 
     const currentSubjObj = dropdownData.subject.find((s) => s.id === selected.subject_id);
+    const activeBranchIds = isElectiveOrOpenElective && selectedBranchIds.length > 0
+      ? selectedBranchIds
+      : (selected.branch_id ? [selected.branch_id] : []);
+
     const relevantAssignments = assignments.filter((a) =>
-      (!selected.branch_id || a.branch_id === selected.branch_id) &&
+      (activeBranchIds.length === 0 || activeBranchIds.includes(a.branch_id)) &&
       (a.subject_id === selected.subject_id || (currentSubjObj && a.subject_name.trim().toLowerCase() === currentSubjObj.name.trim().toLowerCase()))
     );
 
@@ -450,7 +458,14 @@ const UploadQP = () => {
           .map((a) => {
             const rawName = a.section || '';
             const displayName = rawName ? (rawName.toLowerCase().startsWith('section') ? rawName : `Section ${rawName}`) : `Section ${a.section_id}`;
-            return [a.section_id, { id: a.section_id, name: displayName }];
+            const branchName = a.branch || dropdownData.branch.find((b) => b.id === a.branch_id)?.name || '';
+            return [a.section_id, {
+              id: a.section_id,
+              name: displayName,
+              rawName: rawName || `${a.section_id}`,
+              branch_id: a.branch_id,
+              branch_name: branchName,
+            }];
           })
       ).values()
     );
@@ -458,20 +473,55 @@ const UploadQP = () => {
     setDropdownData((prev) => ({ ...prev, section: sections }));
 
     if (sections.length > 0) {
-      // If none selected, or selected IDs are not in current sections, default to all sections
-      const validSelected = selectedSectionIds.filter((id) => sections.some((s) => s.id === id));
-      if (validSelected.length === 0) {
+      const subjectChanged = prevSubjectIdRef.current !== selected.subject_id;
+      prevSubjectIdRef.current = selected.subject_id;
+
+      // Identify newly added branches to activeBranchIds
+      const prevBranchIds = prevActiveBranchIdsRef.current;
+      const addedBranchIds = subjectChanged ? [] : activeBranchIds.filter((bId) => !prevBranchIds.includes(bId));
+      prevActiveBranchIdsRef.current = activeBranchIds;
+
+      // Preserve valid selections from existing branches
+      const validSelected = subjectChanged
+        ? []
+        : selectedSectionIds.filter((id) => sections.some((s) => s.id === id));
+
+      // Newly available sections from re-added branch(es)
+      const newlyAvailableSections = sections
+        .filter((s) => s.branch_id && addedBranchIds.includes(s.branch_id))
+        .map((s) => s.id);
+
+      if (validSelected.length === 0 && newlyAvailableSections.length === 0) {
+        // Default to all sections when none were previously selected
         const allSecIds = sections.map((s) => s.id);
         setSelectedSectionIds(allSecIds);
         setSelected((s) => ({ ...s, section_id: allSecIds[0] }));
       } else {
-        setSelectedSectionIds(validSelected);
-        setSelected((s) => ({ ...s, section_id: validSelected[0] }));
+        // Preserve valid selections and include newly available sections from re-added branches
+        const nextSelected = Array.from(new Set([...validSelected, ...newlyAvailableSections]));
+        setSelectedSectionIds(nextSelected);
+        setSelected((s) => ({ ...s, section_id: nextSelected[0] }));
       }
     } else {
       setSelectedSectionIds([]);
+      prevActiveBranchIdsRef.current = activeBranchIds;
     }
-  }, [selected.subject_id, selected.branch_id, assignments, dropdownData.subject]);
+  }, [selected.subject_id, selected.branch_id, selectedBranchIds, isElectiveOrOpenElective, assignments, dropdownData.subject, dropdownData.branch]);
+
+  const groupedSectionsByBranch = useMemo(() => {
+    const groups: Array<{ branchId: number; branchName: string; sections: typeof dropdownData.section }> = [];
+    dropdownData.section.forEach((sec) => {
+      const bId = sec.branch_id || 0;
+      const bName = sec.branch_name || dropdownData.branch.find((b) => b.id === bId)?.name || 'Branch';
+      let group = groups.find((g) => g.branchId === bId);
+      if (!group) {
+        group = { branchId: bId, branchName: bName, sections: [] };
+        groups.push(group);
+      }
+      group.sections.push(sec);
+    });
+    return groups;
+  }, [dropdownData.section, dropdownData.branch]);
 
   // Load existing QP when Batch + Branch + Subject + Test Type are selected
   useEffect(() => {
@@ -1021,7 +1071,7 @@ const UploadQP = () => {
     return true;
   };
 
-  const buildPayload = (branch: number | undefined, semester: number | undefined, section: number | undefined) => {
+  const buildPayload = (branch: number | undefined, semester: number | undefined, section: number | undefined): CreateQPPayload | null => {
     const questions_data = questions.map((q) => ({
       question_number: q.number,
       part_name: q.partName || 'PART-A',
@@ -1038,29 +1088,90 @@ const UploadQP = () => {
     }));
 
     const effectiveSubjId = getEffectiveSubjectId();
-    const isAllSections = dropdownData.section.length > 0 && selectedSectionIds.length === dropdownData.section.length;
-    const applicableSectionsStr = isAllSections
-      ? 'ALL'
-      : dropdownData.section
-          .filter((s) => selectedSectionIds.includes(s.id))
-          .map((s) => s.name.replace(/^Section\s*/i, ''))
-          .join(', ');
 
-    const chosenSectionId = selectedSectionIds[0] || section;
+    // Identify candidate branches
+    const candidateBranchIds = isElectiveOrOpenElective && selectedBranchIds.length > 0
+      ? selectedBranchIds
+      : (branch ? [branch] : []);
+
+    // Filter candidate branches to only those that have at least one section selected
+    const branchesWithSelectedSections = candidateBranchIds.filter((bId) =>
+      dropdownData.section.some((s) => s.branch_id === bId && selectedSectionIds.includes(s.id))
+    );
+
+    // If the requested payload branch has selected sections, keep it.
+    // Otherwise, adjust payload branch to the first branch that has selected sections.
+    const requestedBranchHasSections = branch && dropdownData.section.some(
+      (s) => s.branch_id === branch && selectedSectionIds.includes(s.id)
+    );
+
+    let payloadBranch = branch;
+    let payloadSemester = semester;
+
+    if (!requestedBranchHasSections && branchesWithSelectedSections.length > 0) {
+      payloadBranch = branchesWithSelectedSections[0];
+      const adjustedAssign = assignments.find(
+        (a) =>
+          a.branch_id === payloadBranch &&
+          (a.subject_id === effectiveSubjId ||
+            (currentSubjectObj &&
+              a.subject_name.trim().toLowerCase() === currentSubjectObj.name.trim().toLowerCase()))
+      );
+      if (adjustedAssign?.semester_id) {
+        payloadSemester = adjustedAssign.semester_id;
+      }
+    }
+
+    // Adjust target branches to only those that have sections selected
+    const adjustedTargetBranches =
+      isElectiveOrOpenElective && selectedBranchIds.length > 1
+        ? (branchesWithSelectedSections.length > 1 ? branchesWithSelectedSections : undefined)
+        : undefined;
+
+    // Filter target_section_ids so they stay strictly consistent with adjusted target branches (or payload branch)
+    const consistentTargetSectionIds = selectedSectionIds.filter((id) => {
+      const sec = dropdownData.section.find((s) => s.id === id);
+      if (!sec) return false;
+      if (adjustedTargetBranches && adjustedTargetBranches.length > 0) {
+        return sec.branch_id ? adjustedTargetBranches.includes(sec.branch_id) : true;
+      }
+      return !payloadBranch || sec.branch_id === payloadBranch;
+    });
+
+    // Sections belonging to the payload branch
+    const payloadBranchSections = dropdownData.section.filter((s) => !payloadBranch || s.branch_id === payloadBranch);
+    const payloadSelectedInBranch = payloadBranchSections.filter((s) => consistentTargetSectionIds.includes(s.id));
+    const isAllInPayloadBranch = payloadBranchSections.length > 0 && payloadSelectedInBranch.length === payloadBranchSections.length;
+
+    // Keep applicable_sections consistent with that same payload branch (never fall back to sections of other branches)
+    const applicableSectionsStr = isAllInPayloadBranch
+      ? 'ALL'
+      : (payloadSelectedInBranch.length > 0
+          ? payloadSelectedInBranch.map((s) => s.name.replace(/^Section\s*/i, '')).join(', ')
+          : '');
+
+    // chosenSectionId MUST only select a section from the payload branch
+    const chosenSectionId = payloadSelectedInBranch.length > 0
+      ? payloadSelectedInBranch[0].id
+      : (section && payloadBranchSections.some((s) => s.id === section) ? section : undefined);
+
+    if (!payloadBranch || !payloadSemester || !chosenSectionId || !selected.batch_id || !selected.testType || !selected.setNumber) {
+      return null;
+    }
 
     return {
-      subject: effectiveSubjId || selected.subject_id,
+      subject: (effectiveSubjId || selected.subject_id) as number,
       test_type: selected.testType,
       set_number: selected.setNumber as string,
       exam_date: examDate || undefined,
       exam_time: examTime || undefined,
       questions_data,
       batch: selected.batch_id,
-      branch,
-      semester,
+      branch: payloadBranch,
+      semester: payloadSemester,
       section: chosenSectionId,
-      target_branch_ids: isElectiveOrOpenElective && selectedBranchIds.length > 1 ? selectedBranchIds : undefined,
-      target_section_ids: selectedSectionIds.length > 0 ? selectedSectionIds : undefined,
+      target_branch_ids: adjustedTargetBranches,
+      target_section_ids: consistentTargetSectionIds.length > 0 ? consistentTargetSectionIds : undefined,
       applicable_sections: applicableSectionsStr,
     };
   };
@@ -1137,13 +1248,16 @@ const UploadQP = () => {
     );
     const ids = getDerivedIds(assignForSubject || assignments.find((a) => a.subject_id === effectiveSubjId || a.subject_id === selected.subject_id));
 
-    const secId = selectedSectionIds[0] || ids.section;
-    if (!validateDerivedIds(ids.branch, ids.semester, secId)) {
-      alert('Please select or ensure assignment provides Branch, Semester and Section before saving the QP format.');
+    const payload = buildPayload(ids.branch, ids.semester, ids.section);
+
+    if (!payload) {
+      MySwal.fire(
+        'Validation Error',
+        'Please select at least one valid section for the selected branch before saving the QP format.',
+        'error'
+      );
       return;
     }
-
-    const payload = buildPayload(ids.branch, ids.semester, secId);
 
     try {
       // Prioritize local qpId if we already loaded one, otherwise double check with server
@@ -1164,8 +1278,8 @@ const UploadQP = () => {
         setReloadTick((t) => t + 1);
 
         setTabValue('questionPaper');
-        if (isElectiveOrOpenElective && selectedBranchIds.length > 1) {
-          MySwal.fire('Success!', `Question format saved and published for all ${selectedBranchIds.length} departments!`, 'success');
+        if (isElectiveOrOpenElective && payload.target_branch_ids && payload.target_branch_ids.length > 1) {
+          MySwal.fire('Success!', `Question format saved and published for all ${payload.target_branch_ids.length} departments!`, 'success');
         } else {
           MySwal.fire('Success!', 'Question format saved successfully!', 'success');
         }
@@ -1511,6 +1625,8 @@ const UploadQP = () => {
                             ? "No Section"
                             : selectedSectionIds.length === dropdownData.section.length
                             ? `All Sections (${selectedSectionIds.length})`
+                            : isElectiveOrOpenElective && selectedBranchIds.length > 1
+                            ? `${selectedSectionIds.length} Sections Selected`
                             : selectedSectionIds.length > 0
                             ? dropdownData.section
                                 .filter((s) => selectedSectionIds.includes(s.id))
@@ -1521,7 +1637,7 @@ const UploadQP = () => {
                         <ChevronDown className="h-4 w-4 shrink-0 opacity-50 ml-1" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-56 p-2 shadow-lg" align="start">
+                    <PopoverContent className={`${isElectiveOrOpenElective && selectedBranchIds.length > 1 ? 'w-64' : 'w-56'} p-2 shadow-lg`} align="start">
                       <div className="space-y-2">
                         <div
                           className="flex items-center space-x-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer border-b pb-2"
@@ -1545,40 +1661,117 @@ const UploadQP = () => {
                           />
                           <span className="text-xs font-semibold">Select All Sections</span>
                         </div>
-                        <div className="max-h-48 overflow-y-auto space-y-1">
-                          {dropdownData.section.map((sec) => {
-                            const isChecked = selectedSectionIds.includes(sec.id);
-                            return (
-                              <div
-                                key={sec.id}
-                                className="flex items-center space-x-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-xs"
-                                onClick={() => {
-                                  let nextIds: number[];
-                                  if (isChecked) {
-                                    if (selectedSectionIds.length <= 1) {
-                                      toast({
-                                        title: "At least one section required",
-                                        description: "You must select at least one section for this question paper.",
-                                        variant: "destructive",
-                                      });
-                                      return;
+                        <div className="max-h-56 overflow-y-auto space-y-2">
+                          {isElectiveOrOpenElective && selectedBranchIds.length > 1 && groupedSectionsByBranch.length > 1 ? (
+                            groupedSectionsByBranch.map(({ branchId, branchName, sections }) => {
+                              const branchSelected = sections.filter((s) => selectedSectionIds.includes(s.id));
+                              const allInBranch = branchSelected.length === sections.length;
+                              return (
+                                <div key={branchId} className="space-y-1">
+                                  <div
+                                    className="flex items-center justify-between px-2 py-1 bg-muted/60 dark:bg-muted/30 rounded text-xs font-semibold text-foreground cursor-pointer hover:bg-muted transition-colors"
+                                    onClick={() => {
+                                      let nextIds: number[];
+                                      if (allInBranch) {
+                                        const remaining = selectedSectionIds.filter((id) => !sections.some((s) => s.id === id));
+                                        if (remaining.length === 0) {
+                                          toast({
+                                            title: "At least one section required",
+                                            description: "You must keep at least one section selected.",
+                                            variant: "destructive",
+                                          });
+                                          return;
+                                        }
+                                        nextIds = remaining;
+                                      } else {
+                                        const branchSecIds = sections.map((s) => s.id);
+                                        nextIds = Array.from(new Set([...selectedSectionIds, ...branchSecIds]));
+                                      }
+                                      setSelectedSectionIds(nextIds);
+                                      setSelected((s) => ({ ...s, section_id: nextIds[0] }));
+                                      setQuestions([]);
+                                      setQpId(null);
+                                      setCurrentQPMeta(null);
+                                    }}
+                                  >
+                                    <span className="truncate pr-1">{branchName}</span>
+                                    <span className="text-[10px] text-muted-foreground font-medium">
+                                      {branchSelected.length}/{sections.length}
+                                    </span>
+                                  </div>
+                                  <div className="pl-2 space-y-1">
+                                    {sections.map((sec) => {
+                                      const isChecked = selectedSectionIds.includes(sec.id);
+                                      return (
+                                        <div
+                                          key={sec.id}
+                                          className="flex items-center space-x-2 px-2 py-1 rounded hover:bg-accent cursor-pointer text-xs"
+                                          onClick={() => {
+                                            let nextIds: number[];
+                                            if (isChecked) {
+                                              if (selectedSectionIds.length <= 1) {
+                                                toast({
+                                                  title: "At least one section required",
+                                                  description: "You must select at least one section for this question paper.",
+                                                  variant: "destructive",
+                                                });
+                                                return;
+                                              }
+                                              nextIds = selectedSectionIds.filter((id) => id !== sec.id);
+                                            } else {
+                                              nextIds = [...selectedSectionIds, sec.id];
+                                            }
+                                            setSelectedSectionIds(nextIds);
+                                            setSelected((s) => ({ ...s, section_id: nextIds[0] }));
+                                            setQuestions([]);
+                                            setQpId(null);
+                                            setCurrentQPMeta(null);
+                                          }}
+                                        >
+                                          <Checkbox checked={isChecked} />
+                                          <span className="truncate">{sec.name}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            dropdownData.section.map((sec) => {
+                              const isChecked = selectedSectionIds.includes(sec.id);
+                              return (
+                                <div
+                                  key={sec.id}
+                                  className="flex items-center space-x-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-xs"
+                                  onClick={() => {
+                                    let nextIds: number[];
+                                    if (isChecked) {
+                                      if (selectedSectionIds.length <= 1) {
+                                        toast({
+                                          title: "At least one section required",
+                                          description: "You must select at least one section for this question paper.",
+                                          variant: "destructive",
+                                        });
+                                        return;
+                                      }
+                                      nextIds = selectedSectionIds.filter((id) => id !== sec.id);
+                                    } else {
+                                      nextIds = [...selectedSectionIds, sec.id];
                                     }
-                                    nextIds = selectedSectionIds.filter((id) => id !== sec.id);
-                                  } else {
-                                    nextIds = [...selectedSectionIds, sec.id];
-                                  }
-                                  setSelectedSectionIds(nextIds);
-                                  setSelected((s) => ({ ...s, section_id: nextIds[0] }));
-                                  setQuestions([]);
-                                  setQpId(null);
-                                  setCurrentQPMeta(null);
-                                }}
-                              >
-                                <Checkbox checked={isChecked} />
-                                <span className="truncate">{sec.name}</span>
-                              </div>
-                            );
-                          })}
+                                    setSelectedSectionIds(nextIds);
+                                    setSelected((s) => ({ ...s, section_id: nextIds[0] }));
+                                    setQuestions([]);
+                                    setQpId(null);
+                                    setCurrentQPMeta(null);
+                                  }}
+                                >
+                                  <Checkbox checked={isChecked} />
+                                  <span className="truncate">{sec.name}</span>
+                                </div>
+                              );
+                            })
+                          )}
                         </div>
                       </div>
                     </PopoverContent>
