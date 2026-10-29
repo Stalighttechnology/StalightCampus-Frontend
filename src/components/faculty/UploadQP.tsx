@@ -1875,19 +1875,19 @@ const UploadQP = () => {
                 </div>
               </div>
               {isElectiveOrOpenElective && selectedBranchIds.length > 1 && (
-                <div className={`mb-4 p-3 rounded-lg flex items-center justify-between text-xs sm:text-sm border transition-all ${
+                <div className={`mb-4 p-3 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 text-xs sm:text-sm border transition-all ${
                   theme === 'dark' ? 'bg-purple-950/20 border-purple-800/60 text-purple-200' : 'bg-purple-50/80 border-purple-200 text-purple-900'
                 }`}>
-                  <div className="flex items-center gap-2">
-                    <span>
+                  <div className="flex items-start sm:items-center gap-2">
+                    <span className="leading-relaxed">
                       <strong>Single Upload Enabled:</strong> Saving once will publish this Question Paper to all <strong>{selectedBranchIds.length} departments</strong> ({dropdownData.branch.filter(b => selectedBranchIds.includes(b.id)).map(b => b.name).join(', ')}).
                     </span>
                   </div>
                 </div>
               )}
-              <TabsList>
-                <TabsTrigger value="questionFormat">Question Format</TabsTrigger>
-                <TabsTrigger value="questionPaper">Question Paper</TabsTrigger>
+              <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex h-10">
+                <TabsTrigger value="questionFormat" className="text-xs sm:text-sm">Question Format</TabsTrigger>
+                <TabsTrigger value="questionPaper" className="text-xs sm:text-sm">Question Paper</TabsTrigger>
               </TabsList>
             </CardContent>
           </div>
@@ -2001,36 +2001,36 @@ const UploadQP = () => {
                             ) : null}
 
                             {hasApprovedBranch && !hasExamStarted && (
-                              <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 rounded-lg">
-                                <div className="font-semibold text-sm text-emerald-700 dark:text-emerald-400 flex items-center justify-between">
+                              <div className="mb-4 p-3 sm:p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 rounded-lg">
+                                <div className="font-semibold text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
                                   <span>ℹ️ Approved Paper (Editing Enabled)</span>
-                                  <Badge variant="outline" className="border-emerald-300 text-emerald-700 dark:text-emerald-300 text-[10px]">Re-approval Required on Save</Badge>
+                                  <Badge variant="outline" className="border-emerald-300 text-emerald-700 dark:text-emerald-300 text-[10px] w-fit shrink-0 self-start sm:self-auto">Re-approval Required on Save</Badge>
                                 </div>
-                                <div className="text-xs text-emerald-600 dark:text-emerald-300 mt-1">
+                                <div className="text-xs text-emerald-600 dark:text-emerald-300 mt-1.5 leading-relaxed">
                                   This question paper has already been approved. You can edit questions and sections below. Saving changes will automatically reset the paper back to <strong>Pending Approval</strong> and route it for review according to the organization's approval workflow.
                                 </div>
                               </div>
                             )}
 
                             {isPendingApproval && !hasApprovedBranch && !hasRejectedBranch && !hasExamStarted && (
-                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                                <div className="font-semibold text-sm text-blue-700 dark:text-blue-400 flex items-center justify-between">
+                              <div className="mb-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                <div className="font-semibold text-xs sm:text-sm text-blue-700 dark:text-blue-400 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
                                   <span>ℹ️ Under Review (Editing Enabled)</span>
-                                  <Badge variant="outline" className="border-blue-300 text-blue-700 dark:text-blue-300 text-[10px]">Re-submission on Save</Badge>
+                                  <Badge variant="outline" className="border-blue-300 text-blue-700 dark:text-blue-300 text-[10px] w-fit shrink-0 self-start sm:self-auto">Re-submission on Save</Badge>
                                 </div>
-                                <div className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                                <div className="text-xs text-blue-600 dark:text-blue-300 mt-1.5 leading-relaxed">
                                   This question paper is currently under review {currentQPMeta?.status ? `(${currentQPMeta.status.replace('pending_', '').toUpperCase()})` : ''}. You can make revisions below. Saving changes will automatically reset the paper back to <strong>Pending Approval</strong> and route it for review according to the organization's approval workflow.
                                 </div>
                               </div>
                             )}
 
                             {hasRejectedBranch && !hasExamStarted && (
-                              <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/60 rounded-lg">
-                                <div className="font-semibold text-sm text-red-700 dark:text-red-400 flex items-center justify-between">
+                              <div className="mb-4 p-3 sm:p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/60 rounded-lg">
+                                <div className="font-semibold text-xs sm:text-sm text-red-700 dark:text-red-400 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
                                   <span>⚠️ Revision Needed for Rejected Paper</span>
-                                  <Badge variant="destructive" className="text-[10px]">Editing Enabled</Badge>
+                                  <Badge variant="destructive" className="text-[10px] w-fit shrink-0 self-start sm:self-auto">Editing Enabled</Badge>
                                 </div>
-                                <div className="text-xs text-red-600 dark:text-red-300 mt-1.5 space-y-1">
+                                <div className="text-xs text-red-600 dark:text-red-300 mt-1.5 space-y-1 leading-relaxed">
                                   {rejectedBranches.map((rb, idx) => (
                                     <div key={idx}>
                                       <strong>{rb.branchName}:</strong> Rejected by {rb.last_action?.actor || rb.last_action?.role || 'HOD'}
@@ -2046,8 +2046,8 @@ const UploadQP = () => {
                               </div>
                             )}
                             
-                            <div className="flex flex-wrap gap-4 mb-4">
-                              <div className="flex flex-col gap-1 min-w-[200px] sm:w-56">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 max-w-xl">
+                              <div className="flex flex-col gap-1 w-full">
                                 <label className="text-sm font-semibold">Exam Date</label>
                                 <Popover>
                                   <PopoverTrigger asChild>
@@ -2056,7 +2056,7 @@ const UploadQP = () => {
                                       variant="outline"
                                       disabled={isLocked}
                                       className={cn(
-                                        "h-9 w-full justify-between text-left font-normal bg-background px-3 py-1 text-sm shadow-sm transition-colors hover:bg-accent/50",
+                                        "h-10 w-full justify-between text-left font-normal bg-background px-3 py-1 text-sm shadow-sm transition-colors hover:bg-accent/50",
                                         !examDate && "text-muted-foreground",
                                         isLocked && "cursor-not-allowed opacity-50"
                                       )}
@@ -2095,7 +2095,7 @@ const UploadQP = () => {
                                   </PopoverContent>
                                 </Popover>
                               </div>
-                              <div className="flex flex-col gap-1 min-w-[240px] sm:w-64">
+                              <div className="flex flex-col gap-1 w-full">
                                 <label className="text-sm font-semibold">Exam Time</label>
                                 <TimeRangePicker
                                   value={examTime}
@@ -2106,9 +2106,8 @@ const UploadQP = () => {
                               </div>
                             </div>
 
-
-                            <div className="flex justify-between items-center mb-4 mt-6">
-                              <h3 className="text-xl font-bold tracking-tight text-primary">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 mt-6">
+                              <h3 className="text-base sm:text-xl font-bold tracking-tight text-primary break-words leading-tight">
                                 {selected.testType ? selected.testType.replace('_', ' ') : 'Question Paper'}
                                 {selected.setNumber ? ` - ${selected.setNumber}` : ''}
                                 {selected.subject_id && dropdownData.subject.find(s => String(s.id) === String(selected.subject_id)) && ` (${dropdownData.subject.find(s => String(s.id) === String(selected.subject_id))?.name})`}
@@ -2120,7 +2119,7 @@ const UploadQP = () => {
                                     .map((s) => s.name.replace(/^Section\s*/i, ''))
                                     .join(', ');
                                   if (!secNames) return null;
-                                  return <span className="ml-2 font-semibold text-sm text-foreground">[{`Section: ${secNames}`}]</span>;
+                                  return <span className="ml-1 sm:ml-2 font-semibold text-xs sm:text-sm text-foreground block sm:inline mt-1 sm:mt-0">[{`Section: ${secNames}`}]</span>;
                                 })()}
                               </h3>
                             </div>
@@ -2972,9 +2971,9 @@ const UploadQP = () => {
 
                   {isElectiveOrOpenElective && selectedBranchIds.length > 1 && branchStatuses.length > 0 ? (
                     <div className="mb-4 space-y-2">
-                      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
                         <span>Department Approval Status ({branchStatuses.length} branches)</span>
-                        <Badge variant="outline" className="text-[10px] font-normal">Independent Branch Workflow</Badge>
+                        <Badge variant="outline" className="text-[10px] font-normal w-fit shrink-0 self-start sm:self-auto">Independent Branch Workflow</Badge>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {branchStatuses.map((bs) => {
@@ -3001,9 +3000,9 @@ const UploadQP = () => {
 
                           return (
                             <div key={bs.branchId} className={`p-3 rounded-lg border ${cardBg} transition-all`}>
-                              <div className="flex items-center justify-between gap-2">
+                              <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
                                 <span className="font-semibold text-xs sm:text-sm text-foreground truncate">{bs.branchName}</span>
-                                <Badge variant={badgeVariant} className="text-[11px] shrink-0 font-medium">
+                                <Badge variant={badgeVariant} className="text-[11px] shrink-0 font-medium self-start sm:self-auto">
                                   {statusDisplay}
                                 </Badge>
                               </div>
@@ -3045,11 +3044,15 @@ const UploadQP = () => {
                   ) : null}
 
                   {/* Question Paper Preview Sheet */}
-                  <div className="overflow-x-auto p-1 custom-scrollbar">
-                    {loading ? (
-                      <SkeletonList items={4} />
-                    ) : (
-                      <div className={`min-w-[650px] max-w-4xl mx-auto ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-slate-900 border-slate-300'} border rounded-xl shadow-lg p-6 sm:p-8 space-y-4`}>
+                  <div className="w-full">
+                    <div className="block sm:hidden text-[11px] text-muted-foreground text-center mb-1.5 italic font-medium">
+                      ↔ Swipe horizontally to view full question paper
+                    </div>
+                    <div className="overflow-x-auto p-1 custom-scrollbar">
+                      {loading ? (
+                        <SkeletonList items={4} />
+                      ) : (
+                        <div className={`min-w-[650px] max-w-4xl mx-auto ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-slate-900 border-slate-300'} border rounded-xl shadow-lg p-4 sm:p-8 space-y-4`}>
                         {/* Header */}
                         <div className={`flex items-center justify-between pb-3 border-b-2 ${theme === 'dark' ? 'border-border' : 'border-slate-900'}`}>
                           <div className="w-20 sm:w-24 flex-shrink-0 flex items-center justify-start">
