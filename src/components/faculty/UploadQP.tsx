@@ -1225,17 +1225,28 @@ const UploadQP = () => {
   const saveFormat = async () => {
     if (!validateSelection()) return;
 
+    const isMulti = isElectiveOrOpenElective && selectedBranchIds.length > 1;
+    const isSubmittedOrApproved = isMulti
+      ? branchStatuses.some((bs) => bs.status && bs.status !== 'draft')
+      : Boolean(currentQPMeta?.status && currentQPMeta.status !== 'draft');
+
+    let confirmText = isElectiveOrOpenElective && selectedBranchIds.length > 1
+      ? `This will save and publish the question paper format across ${selectedBranchIds.length} branches. Do you want to continue?`
+      : 'This will save the question paper format. Do you want to continue?';
+
+    if (isSubmittedOrApproved) {
+      confirmText = 'This question paper was submitted/approved. Saving changes will automatically reset its status back to Pending Approval and send it for review according to the organization\'s approval workflow. Do you want to continue?';
+    }
+
     const MySwal = withReactContent(Swal);
     const confirmResult = await MySwal.fire({
-      title: 'Save Question Format?',
-      text: isElectiveOrOpenElective && selectedBranchIds.length > 1
-        ? `This will save and publish the question paper format across ${selectedBranchIds.length} branches. Do you want to continue?`
-        : 'This will save the question paper format. Do you want to continue?',
-      icon: 'question',
+      title: isSubmittedOrApproved ? 'Save Changes & Resubmit?' : 'Save Question Format?',
+      text: confirmText,
+      icon: isSubmittedOrApproved ? 'warning' : 'question',
       showCancelButton: true,
       confirmButtonColor: 'hsl(var(--primary))',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Yes, Save',
+      confirmButtonText: isSubmittedOrApproved ? 'Yes, Save & Resubmit' : 'Yes, Save',
       cancelButtonText: 'Cancel'
     });
 
@@ -1278,7 +1289,9 @@ const UploadQP = () => {
         setReloadTick((t) => t + 1);
 
         setTabValue('questionPaper');
-        if (isElectiveOrOpenElective && payload.target_branch_ids && payload.target_branch_ids.length > 1) {
+        if (isSubmittedOrApproved) {
+          MySwal.fire('Revised & Resubmitted!', 'Question paper saved and submitted for approval according to the workflow.', 'success');
+        } else if (isElectiveOrOpenElective && payload.target_branch_ids && payload.target_branch_ids.length > 1) {
           MySwal.fire('Success!', `Question format saved and published for all ${payload.target_branch_ids.length} departments!`, 'success');
         } else {
           MySwal.fire('Success!', 'Question format saved successfully!', 'success');
@@ -1387,7 +1400,8 @@ const UploadQP = () => {
         });
 
         // optimistically set pending status so submit button disables immediately
-        setCurrentQPMeta({ status: 'pending_hod', last_action: { actor: null, role: 'faculty', action: 'submitted', comment: '' } });
+        const nextStatus = result.status || 'pending_approval';
+        setCurrentQPMeta({ status: nextStatus, last_action: { actor: null, role: 'faculty', action: 'submitted', comment: '' } });
         setReloadTick((t) => t + 1);
         // refresh metadata from server to reflect pending status
         try {
@@ -1918,9 +1932,17 @@ const UploadQP = () => {
                           ? branchStatuses.some((bs) => !bs.status || bs.status === 'draft')
                           : (!currentQPMeta?.status || currentQPMeta.status === 'draft');
 
-                        // Editing is enabled if any selected branch is rejected or in draft!
-                        const canEdit = hasRejectedBranch || hasDraftBranch;
-                        const isLocked = (!canEdit && Boolean(currentQPMeta?.status)) || hasExamStarted;
+                        const hasApprovedBranch = isMulti
+                          ? branchStatuses.some((bs) => bs.status === 'approved')
+                          : currentQPMeta?.status === 'approved';
+
+                        const isPendingApproval = isMulti
+                          ? branchStatuses.some((bs) => bs.status && bs.status.startsWith('pending'))
+                          : Boolean(currentQPMeta?.status && currentQPMeta.status.startsWith('pending'));
+
+                        // Strictly lock ONLY when exam has started!
+                        // Before the scheduled exam start date and time, faculty is ALWAYS in editing mode.
+                        const isLocked = Boolean(hasExamStarted);
 
                         const rejectedBranches = isMulti
                           ? branchStatuses.filter((bs) => bs.status === 'rejected')
@@ -1930,10 +1952,34 @@ const UploadQP = () => {
 
                         return (
                           <>
-                            {isLocked && (
-                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
-                                <div className="font-semibold text-sm text-blue-700 dark:text-blue-400">Locked</div>
-                                <div className="text-sm text-muted-foreground">This question paper has been submitted for approval and cannot be edited.</div>
+                            {hasExamStarted ? (
+                              <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 rounded-lg">
+                                <div className="font-semibold text-sm text-amber-700 dark:text-amber-400">🔒 Examination Locked</div>
+                                <div className="text-sm text-muted-foreground mt-0.5">The scheduled examination date and time has started. This question paper is strictly locked and cannot be edited.</div>
+                              </div>
+                            ) : null}
+
+                            {hasApprovedBranch && !hasExamStarted && (
+                              <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 rounded-lg">
+                                <div className="font-semibold text-sm text-emerald-700 dark:text-emerald-400 flex items-center justify-between">
+                                  <span>ℹ️ Approved Paper (Editing Enabled)</span>
+                                  <Badge variant="outline" className="border-emerald-300 text-emerald-700 dark:text-emerald-300 text-[10px]">Re-approval Required on Save</Badge>
+                                </div>
+                                <div className="text-xs text-emerald-600 dark:text-emerald-300 mt-1">
+                                  This question paper has already been approved. You can edit questions and sections below. Saving changes will automatically reset the paper back to <strong>Pending Approval</strong> and route it for review according to the organization's approval workflow.
+                                </div>
+                              </div>
+                            )}
+
+                            {isPendingApproval && !hasApprovedBranch && !hasRejectedBranch && !hasExamStarted && (
+                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                <div className="font-semibold text-sm text-blue-700 dark:text-blue-400 flex items-center justify-between">
+                                  <span>ℹ️ Under Review (Editing Enabled)</span>
+                                  <Badge variant="outline" className="border-blue-300 text-blue-700 dark:text-blue-300 text-[10px]">Re-submission on Save</Badge>
+                                </div>
+                                <div className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                                  This question paper is currently under review {currentQPMeta?.status ? `(${currentQPMeta.status.replace('pending_', '').toUpperCase()})` : ''}. You can make revisions below. Saving changes will automatically reset the paper back to <strong>Pending Approval</strong> and route it for review according to the organization's approval workflow.
+                                </div>
                               </div>
                             )}
 
@@ -1953,7 +1999,7 @@ const UploadQP = () => {
                                     </div>
                                   ))}
                                   <div className="text-muted-foreground mt-1 text-[11px]">
-                                    You can revise the questions below and click <strong>Submit for Approval</strong> to resubmit only the rejected department. Approved departments will remain approved.
+                                    You can revise the questions below and click <strong>Save Format</strong> or <strong>Submit for Approval</strong> to resubmit only the rejected department. Approved departments will remain approved.
                                   </div>
                                 </div>
                               </div>

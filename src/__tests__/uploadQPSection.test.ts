@@ -579,6 +579,88 @@ describe('UploadQP Section Selection & Header TDD Unit & Integration Tests', () 
       expect(payload.applicable_sections).toBe('ALL');
     });
   });
+
+  describe('Question Paper Edit & Lock Rules', () => {
+    function computeEditAndLockState(params: {
+      status?: string;
+      branchStatuses?: Array<{ branchId: number; status?: string }>;
+      isMulti?: boolean;
+      hasExamStarted: boolean;
+    }) {
+      const { status, branchStatuses = [], isMulti = false, hasExamStarted } = params;
+
+      const hasApprovedBranch = isMulti
+        ? branchStatuses.some((bs) => bs.status === 'approved')
+        : status === 'approved';
+
+      const isPendingApproval = isMulti
+        ? branchStatuses.some((bs) => bs.status && bs.status.startsWith('pending'))
+        : Boolean(status && status.startsWith('pending'));
+
+      const isLocked = Boolean(hasExamStarted);
+      const canEdit = !hasExamStarted;
+
+      return { canEdit, isLocked, hasApprovedBranch, isPendingApproval };
+    }
+
+    it('allows editing an approved question paper before exam starts', () => {
+      const state = computeEditAndLockState({
+        status: 'approved',
+        hasExamStarted: false
+      });
+      expect(state.canEdit).toBe(true);
+      expect(state.isLocked).toBe(false);
+      expect(state.hasApprovedBranch).toBe(true);
+    });
+
+    it('strictly locks an approved question paper once the exam has started', () => {
+      const state = computeEditAndLockState({
+        status: 'approved',
+        hasExamStarted: true
+      });
+      expect(state.canEdit).toBe(false);
+      expect(state.isLocked).toBe(true);
+    });
+
+    it('allows editing a paper currently under review (pending_hod, pending_coe, etc.) before exam starts', () => {
+      const state = computeEditAndLockState({
+        status: 'pending_coe',
+        hasExamStarted: false
+      });
+      expect(state.canEdit).toBe(true);
+      expect(state.isLocked).toBe(false);
+      expect(state.isPendingApproval).toBe(true);
+    });
+
+    it('allows editing multi-branch elective if branches are approved or draft', () => {
+      const state = computeEditAndLockState({
+        isMulti: true,
+        branchStatuses: [
+          { branchId: 1, status: 'approved' },
+          { branchId: 2, status: 'approved' }
+        ],
+        status: 'approved',
+        hasExamStarted: false
+      });
+      expect(state.canEdit).toBe(true);
+      expect(state.isLocked).toBe(false);
+    });
+
+    it('locks multi-branch elective paper once exam starts even if approved', () => {
+      const state = computeEditAndLockState({
+        isMulti: true,
+        branchStatuses: [
+          { branchId: 1, status: 'approved' },
+          { branchId: 2, status: 'approved' }
+        ],
+        status: 'approved',
+        hasExamStarted: true
+      });
+      expect(state.canEdit).toBe(false);
+      expect(state.isLocked).toBe(true);
+    });
+  });
 });
+
 
 
