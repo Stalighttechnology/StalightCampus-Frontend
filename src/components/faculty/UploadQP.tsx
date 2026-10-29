@@ -198,6 +198,7 @@ interface QPMetadata {
   org_logo?: string | null;
   org_name?: string | null;
   last_action?: { actor?: string; role: string; action: string; comment: string; };
+  section_id?: number | null;
 }
 
 interface QuestionPaper {
@@ -622,7 +623,14 @@ const UploadQP = () => {
             if (rows.length) {
               setQuestions(rows);
               setQpId(qp.id);
-              setCurrentQPMeta({ status: qp.status, org_logo: qp.org_logo, org_name: qp.org_name, last_action: qp.last_action });
+              const qpSecId = typeof qp.section === 'object' ? (qp.section as any)?.id : qp.section;
+              setCurrentQPMeta({
+                status: qp.status,
+                org_logo: qp.org_logo,
+                org_name: qp.org_name,
+                last_action: qp.last_action,
+                section_id: qpSecId ? Number(qpSecId) : null,
+              });
               setExamDate(qp.exam_date || '');
               setExamTime(qp.exam_time || '');
             } else {
@@ -1150,10 +1158,17 @@ const UploadQP = () => {
           ? payloadSelectedInBranch.map((s) => s.name.replace(/^Section\s*/i, '')).join(', ')
           : '');
 
-    // chosenSectionId MUST only select a section from the payload branch
-    const chosenSectionId = payloadSelectedInBranch.length > 0
-      ? payloadSelectedInBranch[0].id
-      : (section && payloadBranchSections.some((s) => s.id === section) ? section : undefined);
+    // chosenSectionId MUST only select a section from the payload branch.
+    // If the currently loaded QP belongs to one of the selected sections in this branch,
+    // preserve its section_id as chosenSectionId to maintain exact 1:1 identity when updating!
+    const loadedSectionId = currentQPMeta?.section_id;
+    const canUseLoadedSection = loadedSectionId && payloadSelectedInBranch.some((s) => s.id === loadedSectionId);
+
+    const chosenSectionId = canUseLoadedSection
+      ? loadedSectionId
+      : (payloadSelectedInBranch.length > 0
+          ? payloadSelectedInBranch[0].id
+          : (section && payloadBranchSections.some((s) => s.id === section) ? section : undefined));
 
     if (!payloadBranch || !payloadSemester || !chosenSectionId || !selected.batch_id || !selected.testType || !selected.setNumber) {
       return null;
@@ -1180,14 +1195,16 @@ const UploadQP = () => {
     return !!(branch && semester && section);
   };
 
-  const findExistingQP = async (): Promise<QuestionPaper | null> => {
+  const findExistingQP = async (targetSectionId?: number): Promise<QuestionPaper | null> => {
     const effectiveSubjId = getEffectiveSubjectId();
     try {
+      const secToMatch = targetSectionId || selected.section_id;
       const res = await getQuestionPapers({
         batch_id: selected.batch_id?.toString(),
         branch_id: selected.branch_id?.toString(),
         semester_id: selected.semester_id?.toString(),
-        section_id: selected.section_id?.toString(),
+        section_id: secToMatch?.toString(),
+        section_ids: selectedSectionIds.length > 0 ? selectedSectionIds.join(',') : undefined,
         subject_id: effectiveSubjId?.toString(),
         test_type: selected.testType,
         set_number: selected.setNumber,
@@ -1195,7 +1212,19 @@ const UploadQP = () => {
         mine_only: true
       });
       if (res?.success && Array.isArray(res.data)) {
-        // Find exact match on Branch, Subject, Test Type, Set Number
+        // Find exact match on Branch, Subject, Test Type, Set Number, AND Section!
+        const matchWithSection = res.data.find((q: QuestionPaper) => {
+          const qpBranchId = typeof q.branch === 'object' ? (q.branch as any)?.id : q.branch;
+          const qpSectionId = typeof q.section === 'object' ? (q.section as any)?.id : q.section;
+          const matchBranch = !selected.branch_id || Number(qpBranchId) === Number(selected.branch_id);
+          const matchSubject = String(q.subject) === String(effectiveSubjId) || String(q.subject) === String(selected.subject_id);
+          const matchTest = String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase();
+          const matchSet = String(q.set_number || '').trim().toLowerCase() === String(selected.setNumber || '').trim().toLowerCase();
+          const matchSection = !secToMatch || Number(qpSectionId) === Number(secToMatch);
+          return matchBranch && matchSubject && matchTest && matchSet && matchSection;
+        });
+        if (matchWithSection) return matchWithSection;
+
         return res.data.find((q: QuestionPaper) => {
           const qpBranchId = typeof q.branch === 'object' ? (q.branch as any)?.id : q.branch;
           const matchBranch = !selected.branch_id || Number(qpBranchId) === Number(selected.branch_id);
@@ -1273,8 +1302,11 @@ const UploadQP = () => {
     try {
       // Prioritize local qpId if we already loaded one, otherwise double check with server
       let existingId = qpId;
-      if (!existingId) {
-        const existing = await findExistingQP();
+      if (currentQPMeta?.section_id && payload.section && currentQPMeta.section_id !== payload.section) {
+        const existingForSec = await findExistingQP(payload.section);
+        existingId = existingForSec?.id || null;
+      } else if (!existingId) {
+        const existing = await findExistingQP(payload.section);
         existingId = existing?.id || null;
       }
 
@@ -1283,8 +1315,17 @@ const UploadQP = () => {
       if (res?.success) {
         // Update local ID and metadata after save
         if (res.data?.id) setQpId(res.data.id);
-        if (res.data?.status) {
-          setCurrentQPMeta({ status: res.data.status, org_logo: res.data.org_logo, org_name: res.data.org_name, last_action: res.data.last_action });
+        const savedSecId = res.data?.section
+          ? (typeof res.data.section === 'object' ? (res.data.section as any)?.id : res.data.section)
+          : payload.section;
+        if (res.data?.status || savedSecId) {
+          setCurrentQPMeta({
+            status: res.data?.status || currentQPMeta?.status || 'draft',
+            org_logo: res.data?.org_logo || currentQPMeta?.org_logo,
+            org_name: res.data?.org_name || currentQPMeta?.org_name,
+            last_action: res.data?.last_action || currentQPMeta?.last_action,
+            section_id: savedSecId ? Number(savedSecId) : null,
+          });
         }
         setReloadTick((t) => t + 1);
 
