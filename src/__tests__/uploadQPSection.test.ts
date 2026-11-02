@@ -597,19 +597,24 @@ describe('UploadQP Section Selection & Header TDD Unit & Integration Tests', () 
         ? branchStatuses.some((bs) => bs.status && bs.status.startsWith('pending'))
         : Boolean(status && status.startsWith('pending'));
 
-      const isLocked = Boolean(hasExamStarted);
-      const canEdit = !hasExamStarted;
+      const isLocked = Boolean(
+        hasExamStarted ||
+        (isMulti
+          ? (branchStatuses.length > 0 && !branchStatuses.some((bs) => !bs.status || bs.status === 'draft' || bs.status === 'rejected'))
+          : (isPendingApproval || hasApprovedBranch))
+      );
+      const canEdit = !isLocked;
 
       return { canEdit, isLocked, hasApprovedBranch, isPendingApproval };
     }
 
-    it('allows editing an approved question paper before exam starts', () => {
+    it('strictly locks an approved question paper before exam starts', () => {
       const state = computeEditAndLockState({
         status: 'approved',
         hasExamStarted: false
       });
-      expect(state.canEdit).toBe(true);
-      expect(state.isLocked).toBe(false);
+      expect(state.canEdit).toBe(false);
+      expect(state.isLocked).toBe(true);
       expect(state.hasApprovedBranch).toBe(true);
     });
 
@@ -622,22 +627,55 @@ describe('UploadQP Section Selection & Header TDD Unit & Integration Tests', () 
       expect(state.isLocked).toBe(true);
     });
 
-    it('allows editing a paper currently under review (pending_hod, pending_coe, etc.) before exam starts', () => {
+    it('locks a paper currently under review (pending_hod, pending_coe, etc.) before exam starts', () => {
       const state = computeEditAndLockState({
         status: 'pending_coe',
         hasExamStarted: false
       });
-      expect(state.canEdit).toBe(true);
-      expect(state.isLocked).toBe(false);
+      expect(state.canEdit).toBe(false);
+      expect(state.isLocked).toBe(true);
       expect(state.isPendingApproval).toBe(true);
     });
 
-    it('allows editing multi-branch elective if branches are approved or draft', () => {
+    it('allows editing a rejected paper before exam starts', () => {
+      const state = computeEditAndLockState({
+        status: 'rejected',
+        hasExamStarted: false
+      });
+      expect(state.canEdit).toBe(true);
+      expect(state.isLocked).toBe(false);
+      expect(state.isPendingApproval).toBe(false);
+    });
+
+    it('allows editing a draft paper before exam starts', () => {
+      const state = computeEditAndLockState({
+        status: 'draft',
+        hasExamStarted: false
+      });
+      expect(state.canEdit).toBe(true);
+      expect(state.isLocked).toBe(false);
+    });
+
+    it('locks multi-branch elective if all branches are approved or pending review', () => {
       const state = computeEditAndLockState({
         isMulti: true,
         branchStatuses: [
           { branchId: 1, status: 'approved' },
-          { branchId: 2, status: 'approved' }
+          { branchId: 2, status: 'pending_coe' }
+        ],
+        status: 'approved',
+        hasExamStarted: false
+      });
+      expect(state.canEdit).toBe(false);
+      expect(state.isLocked).toBe(true);
+    });
+
+    it('allows editing multi-branch elective if at least one branch is rejected', () => {
+      const state = computeEditAndLockState({
+        isMulti: true,
+        branchStatuses: [
+          { branchId: 1, status: 'approved' },
+          { branchId: 2, status: 'rejected' }
         ],
         status: 'approved',
         hasExamStarted: false
@@ -646,14 +684,14 @@ describe('UploadQP Section Selection & Header TDD Unit & Integration Tests', () 
       expect(state.isLocked).toBe(false);
     });
 
-    it('locks multi-branch elective paper once exam starts even if approved', () => {
+    it('locks multi-branch elective paper once exam starts even if rejected', () => {
       const state = computeEditAndLockState({
         isMulti: true,
         branchStatuses: [
-          { branchId: 1, status: 'approved' },
-          { branchId: 2, status: 'approved' }
+          { branchId: 1, status: 'rejected' },
+          { branchId: 2, status: 'rejected' }
         ],
-        status: 'approved',
+        status: 'rejected',
         hasExamStarted: true
       });
       expect(state.canEdit).toBe(false);
