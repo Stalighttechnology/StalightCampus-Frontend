@@ -23,6 +23,7 @@ export function DateTimePicker({
   disabled?: boolean;
   className?: string;
 }) {
+  const [open, setOpen] = React.useState(false);
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(value);
   const [time, setTime] = React.useState<string>(
     value ? format(value, "HH:mm") : ""
@@ -82,7 +83,7 @@ export function DateTimePicker({
   };
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
@@ -97,22 +98,45 @@ export function DateTimePicker({
           {value ? format(value, "MMM d, yyyy h:mm a") : <span>Pick a date & time</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0 z-[70]" align="start">
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={handleSelect}
           initialFocus
         />
-        <div className="p-3 border-t flex items-center justify-between gap-2">
-          <span className="text-sm font-medium">Time</span>
+        <div className="p-3 border-t border-border flex items-center justify-between gap-2">
+          <span className="text-xs font-medium text-muted-foreground">Time</span>
           <TimePicker 
             value={time}
             onChange={(newTime) => {
-              // Create a synthetic event-like object to match the previous handler
               handleTimeChange({ target: { value: newTime } } as any);
             }}
           />
+        </div>
+        <div className="p-2 border-t border-border flex items-center justify-between gap-2 bg-muted/20">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs px-2 text-muted-foreground hover:text-foreground"
+            onClick={() => {
+              const now = new Date();
+              setSelectedDate(now);
+              setTime(format(now, "HH:mm"));
+              onChange(now);
+            }}
+          >
+            Today / Now
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            className="h-7 text-xs px-3"
+            onClick={() => setOpen(false)}
+          >
+            Done
+          </Button>
         </div>
       </PopoverContent>
     </Popover>
