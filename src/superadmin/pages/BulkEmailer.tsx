@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Mail, Send, AlertCircle, Search, Eye, ChevronLeft, ChevronRight, 
-  Clock, CheckCircle2, Building, Calendar as CalendarIcon, CreditCard, RefreshCw 
+import {
+  Mail, Send, AlertCircle, Search, Eye, ChevronLeft, ChevronRight,
+  Clock, CheckCircle2, Building, Calendar as CalendarIcon, CreditCard, RefreshCw
 } from "lucide-react";
 import { format, parse, isValid } from "date-fns";
 
@@ -39,10 +39,10 @@ import { cn } from "../../lib/utils";
 
 const MAX_EMAILS = 20;
 
-const DEFAULT_PAYMENT_DETAILS = `Bank Name: HDFC Bank
+const DEFAULT_PAYMENT_DETAILS = `Bank Name: CANARA BANK
 Beneficiary Name: Stalight Technologies Private Limited
-Account Number: 50200088991122
-IFSC Code: HDFC0001234
+Account Number: 120041965653
+IFSC Code: CNRB0001145
 Account Type: Current Account`;
 
 interface HistoryItem {
@@ -79,7 +79,7 @@ const BulkEmailer = () => {
   const [orgsLoading, setOrgsLoading] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState("");
   const [selectedOrgName, setSelectedOrgName] = useState("");
-  
+
   // Date selection state
   const [dueDateObj, setDueDateObj] = useState<Date | undefined>(undefined);
   const [dueDateText, setDueDateText] = useState("");
@@ -94,7 +94,7 @@ const BulkEmailer = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  
+
   const [selectedHistory, setSelectedHistory] = useState<HistoryItem | null>(null);
 
   const fetchOrganizations = async () => {
@@ -221,23 +221,23 @@ const BulkEmailer = () => {
   const handleEmailsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
     const currentEmails = getValidEmails(text);
-    
+
     if (currentEmails.length > MAX_EMAILS) {
       setError(`You can only enter up to ${MAX_EMAILS} emails.`);
       const truncated = currentEmails.slice(0, MAX_EMAILS).join(", ");
       setEmailsText(truncated);
       return;
     }
-    
+
     setError(null);
     setEmailsText(text);
   };
 
   const handleSendEmails = async () => {
     setError(null);
-    
+
     const emails = getValidEmails(emailsText);
-    
+
     if (emails.length === 0) {
       setError("Please enter at least one recipient email address.");
       return;
@@ -297,13 +297,13 @@ const BulkEmailer = () => {
         },
         body: JSON.stringify(payload),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || "Failed to send emails");
       }
-      
+
       showSuccessAlert("Success", data.message || `Successfully sent ${emails.length} emails.`);
       setEmailsText("");
       // Refresh history
@@ -434,7 +434,7 @@ const BulkEmailer = () => {
                         <CalendarIcon size={16} className="text-gray-500" />
                         Payment Due Date <span className="text-red-500">*</span>
                       </Label>
-                      
+
                       <div className="flex items-center gap-2">
                         <div className="relative flex-1">
                           <Input
@@ -573,8 +573,8 @@ const BulkEmailer = () => {
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <Input 
-                  placeholder="Search history..." 
+                <Input
+                  placeholder="Search history..."
                   className="pl-9 w-[250px] rounded-full"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -621,11 +621,10 @@ const BulkEmailer = () => {
                         {item.subject}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-md text-xs font-medium ${
-                          item.template === "payment_due" 
-                            ? "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200/50" 
+                        <span className={`px-2.5 py-1 rounded-md text-xs font-medium ${item.template === "payment_due"
+                            ? "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200/50"
                             : "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                        }`}>
+                          }`}>
                           {item.template === "payment_due" ? "Payment Due" : item.template}
                         </span>
                       </td>
@@ -645,9 +644,9 @@ const BulkEmailer = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="text-primary hover:text-primary hover:bg-primary/10"
                           onClick={() => setSelectedHistory(item)}
                         >
@@ -661,24 +660,24 @@ const BulkEmailer = () => {
               </tbody>
             </table>
           </div>
-          
+
           {totalPages > 1 && (
             <div className="p-4 border-t border-gray-100 dark:border-border flex items-center justify-between">
               <p className="text-sm text-gray-500">
                 Page <span className="font-medium text-gray-900 dark:text-gray-100">{page}</span> of <span className="font-medium text-gray-900 dark:text-gray-100">{totalPages}</span>
               </p>
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
                 >
                   <ChevronLeft size={16} />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                 >
