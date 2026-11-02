@@ -45,6 +45,7 @@ import CollegeIssuedItemsPage from "../issued_items/CollegeIssuedItemsPage";
 import { PrincipalFieldVisitsView } from "../admin/PrincipalFieldVisitsView";
 import LowAttendance from "../hod/LowAttendance";
 import SportsWellnessPage from "../sports_wellness/SportsWellnessPage";
+import AuditoriumManagement from "../admin/AuditoriumManagement";
 
 import {
   Users,
@@ -320,6 +321,8 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return <ComplianceReports />;
       case "inventory":
         return <InventoryHub role={user?.role || "principal"} />;
+      case "auditoriums":
+        return <AuditoriumManagement />;
       case "external-links":
         return <ExternalLinksPage userRole={user?.role || "principal"} />;
       default:

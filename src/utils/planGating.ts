@@ -1,4 +1,3 @@
-
 export const PLAN_TIERS: Record<string, number> = {
   'basic': 1,
   'pro': 2,
@@ -7,6 +6,8 @@ export const PLAN_TIERS: Record<string, number> = {
 
 export const PAGE_REQUIRED_TIERS: Record<string, number> = {
   'inventory': 1,
+  'auditoriums': 1,
+  'auditorium-booking': 1,
 
   // Pro Features (Tier 2)
   'components': 2,
@@ -123,20 +124,3 @@ export const isPageAllowed = (page: string, orgPlan: string, role?: string): boo
 
   return userTier >= requiredTier;
 };
-
-
-//1. The Rule
-// The number you assign represents the minimum plan needed to see that page:
-
-// 1 = Basic (or just don't list it at all, as it defaults to 1)
-// 2 = Pro
-// 3 = Advance
-// 2. How to Edit
-// The "Key" (e.g., 'fees') must exactly match the page name used in the Sidebar.tsx menu items.
-
-// To make a feature BASIC: Either delete its line from this list or change its number to 1.
-// Example: Remove 'leaves': 2 $\rightarrow$ Leaves are now available to everyone.
-// To make a feature PRO: Add it to the list with a : 2.
-// Example: 'attendance-records': 2 $\rightarrow$ Only Pro and Advance can see attendance history.
-// To make a feature ADVANCE: Add it to the list with a : 3.
-// Example: 'exams': 3 $\rightarrow$ Only Advance users can access the Exams page.

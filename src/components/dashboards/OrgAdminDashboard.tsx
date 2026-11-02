@@ -37,6 +37,7 @@ import { InventoryHub } from "../inventory/InventoryHub";
 import CollegeDetailsPage from "../college_details/CollegeDetailsPage";
 import CollegeIssuedItemsPage from "../issued_items/CollegeIssuedItemsPage";
 import SportsWellnessPage from "../sports_wellness/SportsWellnessPage";
+import AuditoriumManagement from "../admin/AuditoriumManagement";
 
 interface OrgAdminDashboardProps {
   user: any;
@@ -137,6 +138,8 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
         return <SportsWellnessPage userRole="org_admin" readOnly={true} />;
       case "inventory":
         return <InventoryHub role="org_admin" />;
+      case "auditoriums":
+        return <AuditoriumManagement />;
       case "external-links":
         return <ExternalLinksPage userRole={user?.role || "org_admin"} />;
       default:

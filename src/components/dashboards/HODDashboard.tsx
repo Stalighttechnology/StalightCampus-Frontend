@@ -50,6 +50,7 @@ import ScheduleMeeting from "../common/ScheduleMeeting";
 import StaffTaskTracker from "../common/StaffTaskTracker";
 import AlumniDirectory from "../common/AlumniDirectory";
 import { InventoryHub } from "../inventory/InventoryHub";
+import HODAuditoriumBooking from "../hod/HODAuditoriumBooking";
 
 interface HODUser {
   username: string;
@@ -228,7 +229,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'schedule-meeting': '/hod/schedule-meeting',
       'staff-tasks': '/hod/staff-tasks',
       'alumni-directory': '/hod/alumni-directory',
-      'external-links': '/hod/external-links'
+      'external-links': '/hod/external-links',
+      'auditorium-booking': '/hod/auditorium-booking'
     };
 
     const path = pathMap[page] || `/hod/${page}`;
@@ -337,6 +339,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <StaffTaskTracker />;
       case "inventory":
         return <InventoryHub role="hod" />;
+      case "auditorium-booking":
+        return <HODAuditoriumBooking />;
       case "external-links":
         return <ExternalLinksPage userRole={user?.role || "hod"} />;
       default:
