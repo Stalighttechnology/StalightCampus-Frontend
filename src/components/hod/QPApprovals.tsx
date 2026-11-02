@@ -571,16 +571,19 @@ const QPApprovals = () => {
 
   const handleReject = async (qpId: number) => {
     const prevRoleName = getPrevRole('hod');
+    const isApprovedRevoke = selectedQP?.status === 'approved';
     const result = await MySwal.fire({
-      title: 'Confirm Rejection',
-      text: `Are you sure you want to reject this question paper and send it back to ${prevRoleName}?`,
+      title: isApprovedRevoke ? 'Confirm Revoke & Send Back' : 'Confirm Rejection',
+      text: isApprovedRevoke
+        ? `Are you sure you want to revoke this approved question paper and send it back to ${prevRoleName}?`
+        : `Are you sure you want to reject this question paper and send it back to ${prevRoleName}?`,
       icon: 'warning',
       showCancelButton: true,
       showCloseButton: true,
       allowOutsideClick: true,
       allowEscapeKey: true,
       reverseButtons: true,
-      confirmButtonText: 'Yes, Reject & Send Back',
+      confirmButtonText: isApprovedRevoke ? 'Yes, Revoke & Send Back' : 'Yes, Reject & Send Back',
       cancelButtonText: 'Cancel',
       target: document.body
     });
@@ -604,11 +607,12 @@ const QPApprovals = () => {
       if (data.success) {
         try { MySwal.close(); } catch (e) { }
         const t = toast({
-          title: 'Rejected & Sent Back',
+          title: isApprovedRevoke ? 'Revoked & Sent Back' : 'Rejected & Sent Back',
           description: data.message || `QP rejected and sent back to ${prevRoleName} for edits.`
         });
         setTimeout(() => t.dismiss(), 3000);
         fetchPendingQPs(currentPage);
+        if (isHistoryView) fetchHistoryQPs(historyPage);
         setSelectedQP(null);
         setQpDetail(null);
         setComment("");
@@ -1139,13 +1143,13 @@ const QPApprovals = () => {
                 )
               )}
 
-              {!isHistoryView && (
+              {(!isHistoryView || (selectedQP?.status === 'approved' && !selectedQP?.has_exam_started)) && (
                 <div>
                   <label className="block text-sm font-medium mb-2">Comment (optional)</label>
                   <Textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    placeholder={!getNextRole('hod') ? "Add a final comment..." : `Add a comment for ${getNextRole('hod')}...`}
+                    placeholder={selectedQP?.status === 'approved' ? "Add a reason for revoking and sending back to faculty..." : (!getNextRole('hod') ? "Add a final comment..." : `Add a comment for ${getNextRole('hod')}...`)}
                     rows={3} />
                 </div>
               )}
@@ -1183,10 +1187,27 @@ const QPApprovals = () => {
                   </>
                 )}
                 {isHistoryView && (
-                  <div className="flex items-center justify-center text-sm font-semibold text-muted-foreground bg-muted px-3 py-1.5 rounded-lg border border-border w-full sm:w-auto">
-                    <CheckCircle className="w-4 h-4 mr-1.5 text-blue-500" />
-                    <span>Archived Request (Read Only)</span>
-                  </div>
+                  <>
+                    {selectedQP?.status === 'approved' && !selectedQP?.has_exam_started ? (
+                      <Button
+                        onClick={() => selectedQP && handleReject(selectedQP.id)}
+                        disabled={actionLoading}
+                        className={`action-btn-mobile flex-1 sm:w-auto justify-center transition-none font-medium ${
+                          theme === 'dark'
+                            ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border'
+                            : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'
+                        }`}
+                      >
+                        <XCircle className={`w-4 h-4 mr-1.5 shrink-0 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                        <span className="whitespace-normal">Revoke & Send Back</span>
+                      </Button>
+                    ) : (
+                      <div className="flex items-center justify-center text-sm font-semibold text-muted-foreground bg-muted px-3 py-1.5 rounded-lg border border-border w-full sm:w-auto">
+                        <CheckCircle className="w-4 h-4 mr-1.5 text-blue-500" />
+                        <span>Archived Request (Read Only)</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
               <div className="w-full sm:w-auto sm:ml-auto">

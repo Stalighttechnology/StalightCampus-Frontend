@@ -3263,8 +3263,9 @@ const UploadQP = () => {
                     )}
                   </div>
                 </div>
-              )}
-            </TabsContent>
+              </div>
+            )}
+          </TabsContent>
           </CardContent>
         </Tabs>
       </Card>
