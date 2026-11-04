@@ -548,6 +548,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   const isRoleAllowed = !(advanceRoles.includes(role) && userTier < 3);
 
+  const orgType = getInstitutionType();
+  const institutionLabel = orgType === 'school' ? 'School' : orgType === 'medical' ? 'Medical College' : 'College';
+
   const menuItems: { [key: string]: { name: string; page: string }[] } = {
     fees_manager: [
       { name: "Dashboard", page: "dashboard" },
@@ -579,7 +582,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Batches", page: "batches" },
       { name: "Faculty Assignments", page: "teacher-assignments" },
       { name: "Syllabus Monitor", page: "syllabus-monitor" },
-      { name: "Branch Transfer", page: "student-transfer" },
+      { name: `${getTerm("branch")} Transfer`, page: "student-transfer" },
       { name: "Enroll Staff", page: "enroll-user" },
       { name: "Users", page: "users" },
       { name: "Bulk Upload Faculty", page: "bulk-upload" },
@@ -594,12 +597,12 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "My Attendance", page: "my-attendance" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Reports", page: "reports" },
-      { name: "School Inspections / Field Reports", page: "field-visits" },
-      { name: "College Profile & Report Card", page: "college-details" },
+      { name: `${institutionLabel} Inspections / Field Reports`, page: "field-visits" },
+      { name: `${institutionLabel} Profile & Report Card`, page: "college-details" },
       { name: "Finance", page: "finance" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Staff Tasks", page: "staff-tasks" },
-      { name: "College-Issued Items", page: "issued-items" },
+      { name: `${institutionLabel}-Issued Items`, page: "issued-items" },
       { name: "Sports & Wellness", page: "sports-wellness" },
       { name: "Campus Locations", page: "campus-locations" },
       { name: "Campus Monitoring", page: "campus-monitoring" },
@@ -627,7 +630,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Payments", page: "payments" },
       { name: "Invoices", page: "invoices" },
       { name: "Reports", page: "reports" },
-      { name: "College Profile & Report Card", page: "college-details" },
+      { name: `${institutionLabel} Profile & Report Card`, page: "college-details" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Campus Locations", page: "campus-locations" },
@@ -636,7 +639,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Alumni Directory", page: "alumni-directory" },
       { name: "Staff Tasks", page: "staff-tasks" },
-      { name: "College-Issued Items", page: "issued-items" },
+      { name: `${institutionLabel}-Issued Items`, page: "issued-items" },
       { name: "Sports & Wellness", page: "sports-wellness" },
       { name: "Inventory Management", page: "inventory" },
       { name: "Auditorium Management", page: "auditoriums" },
@@ -660,7 +663,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Attendance Records", page: "attendance-records" },
       { name: "Low Attendance & Performance", page: "low-attendance" },
       { name: "Announcement Management", page: "announcement-management" },
-      { name: "College Profile & Report Card", page: "college-details" },
+      { name: `${institutionLabel} Profile & Report Card`, page: "college-details" },
       { name: "Leave Requests", page: "hod-leaves" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "My Attendance", page: "my-attendance" },
@@ -668,7 +671,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "My Salary & Payroll", page: "my-payroll" },
       { name: "Schedule Meeting", page: "schedule-meeting" },
       { name: "Staff Tasks", page: "staff-tasks" },
-      { name: "College-Issued Items", page: "issued-items" },
+      { name: `${institutionLabel}-Issued Items`, page: "issued-items" },
       { name: "Sports & Wellness", page: "sports-wellness" },
       { name: "Inventory Management", page: "inventory" },
       { name: "Auditorium Management", page: "auditoriums" },
@@ -805,7 +808,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       // { name: translateTerminology("HOD & Admin Attendance"), page: "attendance" },
       { name: "Faculty Attendance", page: "faculty-attendance" },
       { name: "Reports", page: "reports" },
-      { name: "College Profile & Report Card", page: "college-details" },
+      { name: `${institutionLabel} Profile & Report Card`, page: "college-details" },
       { name: "Enroll Staff", page: "enroll-user" },
       { name: "Announcement Management", page: "announcement-management" },
       { name: "Finance", page: "finance" },
@@ -933,7 +936,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
     counsellor: [
       { name: "Dashboard", page: "admission-dashboard" },
-      { name: "College-Issued Items", page: "issued-items" },
+      { name: `${institutionLabel}-Issued Items`, page: "issued-items" },
       { name: "Sports & Wellness", page: "sports-wellness" },
       { name: "Announcements", page: "announcements" },
       { name: "Enquiries", page: "admission-enquiries" },
@@ -948,7 +951,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Profile", page: "profile" },
     ],
     field_visitor: [
-      { name: "Record School Visit", page: "new-visit" },
+      { name: `Record ${institutionLabel} Visit`, page: "new-visit" },
       { name: "Inspection History", page: "visit-history" },
       { name: "Officer Profile", page: "profile" },
     ],

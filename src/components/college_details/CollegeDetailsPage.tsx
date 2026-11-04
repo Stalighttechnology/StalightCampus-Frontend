@@ -70,6 +70,7 @@ import {
   X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTerminology } from "@/utils/institutionConfig";
 import {
   getCollegeDetails,
   updateCollegeDetails,
@@ -95,6 +96,7 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
   orgId
 }) => {
   const { toast } = useToast();
+  const { isSchool, isMedical, isOther, branch, semester, hod, usn } = useTerminology();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -399,6 +401,18 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
     const cleanedPayload = cleanFormDataBeforeSave(formData);
     const res = await updateCollegeDetails(cleanedPayload, orgId);
     if (res.success) {
+      try {
+        const userStr = sessionStorage.getItem('user');
+        if (userStr) {
+          const u = JSON.parse(userStr);
+          if (cleanedPayload.institution_type) u.org_institution_type = cleanedPayload.institution_type;
+          if (cleanedPayload.custom_terminology) u.org_custom_terminology = cleanedPayload.custom_terminology;
+          sessionStorage.setItem('user', JSON.stringify(u));
+          window.dispatchEvent(new Event('storage'));
+        }
+      } catch (err) {
+        console.error('Failed to update session with terminology', err);
+      }
       toast({
         title: "Changes Saved Successfully",
         description: "Institutional report card profile, compliance parameters, and achievements updated."
@@ -429,6 +443,18 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
     const cleanedPayload = cleanFormDataBeforeSave(formData);
     const res = await updateCollegeDetails(cleanedPayload, orgId);
     if (res.success) {
+      try {
+        const userStr = sessionStorage.getItem('user');
+        if (userStr) {
+          const u = JSON.parse(userStr);
+          if (cleanedPayload.institution_type) u.org_institution_type = cleanedPayload.institution_type;
+          if (cleanedPayload.custom_terminology) u.org_custom_terminology = cleanedPayload.custom_terminology;
+          sessionStorage.setItem('user', JSON.stringify(u));
+          window.dispatchEvent(new Event('storage'));
+        }
+      } catch (err) {
+        console.error('Failed to update session with terminology', err);
+      }
       toast({
         title: `${sectionTitle} Saved Successfully`,
         description: `Your updates to ${sectionTitle.toLowerCase()} have been saved.`
@@ -809,8 +835,19 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               <h1 className="text-base sm:text-xl font-bold tracking-tight text-foreground leading-snug break-words">
-                {formData.college_name || formData.org_name || "Engineering College Details"}
+                {formData.college_name || formData.org_name || (isSchool ? "School Profile & Report Card" : isMedical ? "Medical College Profile & Report Card" : isOther ? "Institution Profile & Report Card" : "College Profile & Report Card")}
               </h1>
+              <Badge variant="outline" className={`text-[11px] sm:text-xs shrink-0 font-semibold uppercase ${
+                (formData.institution_type || (isSchool ? 'school' : isMedical ? 'medical' : 'engineering')) === 'school' ? 'border-amber-500/40 text-amber-600 bg-amber-500/10' :
+                (formData.institution_type || (isSchool ? 'school' : isMedical ? 'medical' : 'engineering')) === 'medical' ? 'border-emerald-500/40 text-emerald-600 bg-emerald-500/10' :
+                (formData.institution_type || (isSchool ? 'school' : isMedical ? 'medical' : 'engineering')) === 'other' ? 'border-purple-500/40 text-purple-600 bg-purple-500/10' :
+                'border-blue-500/40 text-blue-600 bg-blue-500/10'
+              }`}>
+                {(formData.institution_type || (isSchool ? 'school' : isMedical ? 'medical' : 'engineering')) === 'school' ? 'School / K-12' :
+                 (formData.institution_type || (isSchool ? 'school' : isMedical ? 'medical' : 'engineering')) === 'medical' ? 'Medical College' :
+                 (formData.institution_type || (isSchool ? 'school' : isMedical ? 'medical' : 'engineering')) === 'other' ? 'Other Institution' :
+                 'Engineering College'}
+              </Badge>
               <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-[11px] sm:text-xs shrink-0">
                 Code: {formData.college_code || "ENG-001"}
               </Badge>
@@ -1133,6 +1170,96 @@ export const CollegeDetailsPage: React.FC<CollegeDetailsPageProps> = ({
                     Address exceeds 50 words limit by {countWords(formData.school_address) - 50} words.
                   </p>
                 )}
+              </div>
+
+              {/* Campus Classification & Custom Terminology Preferences */}
+              <div className="col-span-full pt-4 border-t border-border/60 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase text-foreground tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-primary" />
+                      <span>Campus Category & Terminology Preferences</span>
+                    </h4>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Classifies your institution structure and customizes terminology across faculty, student, and admin views.
+                    </p>
+                  </div>
+                  <div className="w-full sm:w-64">
+                    <Select
+                      value={formData.institution_type || (isSchool ? 'school' : isMedical ? 'medical' : 'engineering')}
+                      onValueChange={(val) => handleInputChange("institution_type", val)}
+                    >
+                      <SelectTrigger className="h-9 text-xs bg-background">
+                        <SelectValue placeholder="Institution Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="engineering">Engineering College</SelectItem>
+                        <SelectItem value="medical">Medical College</SelectItem>
+                        <SelectItem value="school">School / K-12</SelectItem>
+                        <SelectItem value="other">Other Institution</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-muted/20 p-3.5 rounded-xl border border-border/60">
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-medium text-muted-foreground">
+                      Division Term (e.g. {isSchool ? "Grade" : isMedical ? "Year/Phase" : "Semester"})
+                    </Label>
+                    <Input
+                      className="h-8 text-xs bg-background"
+                      value={formData.custom_terminology?.semester || ""}
+                      onChange={(e) => handleInputChange("custom_terminology", {
+                        ...(formData.custom_terminology || {}),
+                        semester: e.target.value
+                      })}
+                      placeholder={isSchool ? "Class / Grade" : isMedical ? "Year / Phase" : "Semester"}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-medium text-muted-foreground">
+                      Academic Unit (e.g. {isSchool ? "Stream" : isMedical ? "Course" : "Branch"})
+                    </Label>
+                    <Input
+                      className="h-8 text-xs bg-background"
+                      value={formData.custom_terminology?.branch || ""}
+                      onChange={(e) => handleInputChange("custom_terminology", {
+                        ...(formData.custom_terminology || {}),
+                        branch: e.target.value
+                      })}
+                      placeholder={isSchool ? "Stream" : isMedical ? "Course" : "Branch"}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-medium text-muted-foreground">
+                      Student ID (e.g. {isSchool ? "Roll No" : "USN"})
+                    </Label>
+                    <Input
+                      className="h-8 text-xs bg-background"
+                      value={formData.custom_terminology?.usn || ""}
+                      onChange={(e) => handleInputChange("custom_terminology", {
+                        ...(formData.custom_terminology || {}),
+                        usn: e.target.value
+                      })}
+                      placeholder={isSchool ? "Roll No" : "USN"}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-medium text-muted-foreground">
+                      Lead Coordinator (e.g. {isSchool ? "Coordinator" : "HOD"})
+                    </Label>
+                    <Input
+                      className="h-8 text-xs bg-background"
+                      value={formData.custom_terminology?.hod || ""}
+                      onChange={(e) => handleInputChange("custom_terminology", {
+                        ...(formData.custom_terminology || {}),
+                        hod: e.target.value
+                      })}
+                      placeholder={isSchool ? "Coordinator" : "HOD"}
+                    />
+                  </div>
+                </div>
               </div>
             </CardContent>
             {renderSectionSaveFooter("profile", "Profile Details", "recognition")}

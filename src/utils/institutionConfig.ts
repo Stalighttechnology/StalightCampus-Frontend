@@ -1,5 +1,5 @@
 import * as React from "react";
-export type InstitutionType = 'engineering' | 'medical' | 'school';
+export type InstitutionType = 'engineering' | 'medical' | 'school' | 'other';
 
 interface InstitutionTerminology {
   branch: string;
@@ -50,6 +50,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     labs: 'Clinical Postings',
     electives: 'Electives',
     proctor: 'Mentor',
+    mentoring: 'Mentoring',
     admin: 'Admin',
     admins: 'Admins',
     activeBranches: 'Active courses',
@@ -73,25 +74,74 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     activeBranches: 'Active streams',
     acrossBranches: 'Across streams',
     coordinators: 'Coordinators',
+  },
+  other: {
+    branch: 'Department',
+    branches: 'Departments',
+    semester: 'Term / Semester',
+    semesters: 'Terms / Semesters',
+    hod: 'Department Head',
+    usn: 'Student ID',
+    coAttainment: 'Learning Outcomes',
+    labs: 'Labs',
+    electives: 'Electives',
+    proctor: 'Mentor',
+    mentoring: 'Mentoring',
+    admin: 'Admin',
+    admins: 'Admins',
+    activeBranches: 'Active departments',
+    acrossBranches: 'Across departments',
+    coordinators: 'Coordinators',
   }
 };
+
+let cachedInstitutionType: InstitutionType | null = null;
+let lastUserStr: string | null = null;
 
 export const getInstitutionType = (): InstitutionType => {
   try {
     const userStr = sessionStorage.getItem('user');
+    if (userStr === lastUserStr && cachedInstitutionType !== null) {
+      return cachedInstitutionType;
+    }
+    lastUserStr = userStr;
     if (userStr) {
       const user = JSON.parse(userStr);
-      return (user.org_institution_type || 'engineering') as InstitutionType;
+      const raw = (user.org_institution_type || 'engineering').toString().trim().toLowerCase();
+      if (raw === 'engineering' || raw === 'medical' || raw === 'school' || raw === 'other') {
+        cachedInstitutionType = raw;
+        return raw;
+      }
     }
   } catch (e) {
     console.error('Failed to parse user from session storage', e);
   }
+  cachedInstitutionType = 'engineering';
   return 'engineering';
+};
+
+export const getCustomTerminology = (): Record<string, string> => {
+  try {
+    const userStr = sessionStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      return (
+        user.org_custom_terminology ||
+        user.org_active_modules?._custom_terminology ||
+        {}
+      ) as Record<string, string>;
+    }
+  } catch (e) {
+    console.error('Failed to parse custom terminology', e);
+  }
+  return {};
 };
 
 export const getTerminology = (type?: InstitutionType): InstitutionTerminology => {
   const currentType = type || getInstitutionType();
-  return TERMINOLOGY_MAP[currentType] || TERMINOLOGY_MAP.engineering;
+  const base = TERMINOLOGY_MAP[currentType] || TERMINOLOGY_MAP.engineering;
+  const custom = getCustomTerminology();
+  return { ...base, ...custom };
 };
 
 export const getTerm = (key: keyof InstitutionTerminology, type?: InstitutionType): string => {
@@ -111,6 +161,43 @@ export const hasFeature = (feature: 'labs' | 'electives' | 'coAttainment', type?
     }
   }
   return true;
+};
+
+export interface UseTerminologyReturn extends InstitutionTerminology {
+  institutionType: InstitutionType;
+  t: (key: keyof InstitutionTerminology | string) => string;
+  hasFeature: (feature: 'labs' | 'electives' | 'coAttainment') => boolean;
+  isSchool: boolean;
+  isMedical: boolean;
+  isEngineering: boolean;
+  isOther: boolean;
+}
+
+export const useTerminology = (): UseTerminologyReturn => {
+  const [instType, setInstType] = React.useState<InstitutionType>(() => getInstitutionType());
+
+  React.useEffect(() => {
+    const handleStorage = () => {
+      cachedInstitutionType = null;
+      lastUserStr = null;
+      setInstType(getInstitutionType());
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  const terms = getTerminology(instType);
+
+  return React.useMemo(() => ({
+    ...terms,
+    institutionType: instType,
+    t: (key: keyof InstitutionTerminology | string) => (terms as any)[key] || key,
+    hasFeature: (feature: 'labs' | 'electives' | 'coAttainment') => hasFeature(feature, instType),
+    isSchool: instType === 'school',
+    isMedical: instType === 'medical',
+    isEngineering: instType === 'engineering',
+    isOther: instType === 'other',
+  }), [instType, terms]);
 };
 
 export const translateTerminology = (content: any): any => {

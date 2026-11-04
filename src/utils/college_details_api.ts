@@ -54,6 +54,9 @@ export interface CollegeDetailsData {
   organization_id?: number;
   org_name?: string;
   org_logo?: string;
+  institution_type?: string;
+  custom_terminology?: Record<string, string>;
+  terminology?: Record<string, string>;
 
   // 1. Profile
   college_code: string;

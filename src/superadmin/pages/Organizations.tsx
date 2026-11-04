@@ -294,6 +294,19 @@ const Organizations = () => {
     }
   };
 
+  const getInstitutionTypeBadge = (type?: string) => {
+    switch (type) {
+      case 'school':
+        return <Badge variant="outline" className="border-amber-500/50 text-amber-700 dark:text-amber-400 bg-amber-500/10">School / K-12</Badge>;
+      case 'medical':
+        return <Badge variant="outline" className="border-emerald-500/50 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10">Medical</Badge>;
+      case 'other':
+        return <Badge variant="outline" className="border-purple-500/50 text-purple-700 dark:text-purple-400 bg-purple-500/10">Other</Badge>;
+      default:
+        return <Badge variant="outline" className="border-blue-500/50 text-blue-700 dark:text-blue-400 bg-blue-500/10">Engineering</Badge>;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card className={`shadow-sm backdrop-blur-sm transition-all duration-300 border ${theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}>
@@ -327,7 +340,8 @@ const Organizations = () => {
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow>
-                  <TableHead className="w-[300px]">Organization Name</TableHead>
+                  <TableHead className="w-[280px]">Organization Name</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Plan</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Users</TableHead>
@@ -338,11 +352,11 @@ const Organizations = () => {
               <TableBody>
                 {loading ?
                 <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell>
+                    <TableCell colSpan={7} className="h-24 text-center">Loading...</TableCell>
                   </TableRow> :
                 filteredOrgs.length === 0 ?
                 <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No organizations found.</TableCell>
+                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">No organizations found.</TableCell>
                   </TableRow> :
 
                 filteredOrgs.map((org) =>
@@ -355,6 +369,7 @@ const Organizations = () => {
                           {org.name}
                         </div>
                       </TableCell>
+                      <TableCell>{getInstitutionTypeBadge(org.institution_type)}</TableCell>
                       <TableCell>{getPlanBadge(org.plan_type)}</TableCell>
                       <TableCell>{getStatusBadge(org)}</TableCell>
                       <TableCell className="text-muted-foreground">{org.user_count} users</TableCell>
@@ -611,6 +626,12 @@ const Organizations = () => {
                   <div>
                     <span className="text-[11px] text-muted-foreground block uppercase font-medium">Accreditation ID</span>
                     <span className="font-medium text-foreground">{viewOrg.accreditation_id || "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Institution Type</span>
+                    <div className="mt-1">
+                      {getInstitutionTypeBadge(viewOrg.institution_type)}
+                    </div>
                   </div>
                   <div>
                     <span className="text-[11px] text-muted-foreground block uppercase font-medium">Tax / GSTIN ID</span>

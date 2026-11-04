@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
+import { getInstitutionType } from "../../utils/institutionConfig";
 import {
   getFieldVisits,
   getFieldVisitDetail,
@@ -63,6 +64,8 @@ const getStatusBadge = (status: string, theme: string) => {
 
 export const PrincipalFieldVisitsView: React.FC<PrincipalFieldVisitsViewProps> = () => {
   const { theme } = useTheme();
+  const orgType = getInstitutionType();
+  const institutionLabel = orgType === 'school' ? 'School' : orgType === 'medical' ? 'Medical College' : 'College';
   const [visits, setVisits] = useState<FieldVisitInspection[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -138,7 +141,7 @@ export const PrincipalFieldVisitsView: React.FC<PrincipalFieldVisitsViewProps> =
   const handlePrint = async () => {
     if (!selectedVisit?.id) return;
     setDownloadingPdf(true);
-    const cleanSchool = (selectedVisit.school_name || selectedVisit.org_name || 'School').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const cleanSchool = (selectedVisit.school_name || selectedVisit.org_name || institutionLabel).replace(/[^a-zA-Z0-9_-]/g, '_');
     const filename = `Inspection_Report_${cleanSchool}_${selectedVisit.visit_date}_${selectedVisit.id}.pdf`;
     await downloadFieldVisitPdf(selectedVisit.id, filename);
     setDownloadingPdf(false);
@@ -162,7 +165,7 @@ export const PrincipalFieldVisitsView: React.FC<PrincipalFieldVisitsViewProps> =
           <CardHeader className="users-card-header border-b pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <CardTitle className={`users-card-title text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                School Inspections & Field Visit Reports
+                {institutionLabel} Inspections & Field Visit Reports
               </CardTitle>
               <p className={`users-card-desc text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 Official records filed by visiting officers and inspectors for your institution.
