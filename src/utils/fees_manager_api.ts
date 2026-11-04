@@ -734,7 +734,18 @@ export const getFeesManagerDashboard = async () => {
   }
 };
 
-// Payment settings (Razorpay)
+// Payment settings (Razorpay & SBIePay)
+export interface PaymentSettingsPayload {
+  active_collection_gateway?: 'razorpay' | 'sbi_epay' | 'both';
+  razorpay_key_id?: string;
+  razorpay_key_secret?: string;
+  razorpayx_account_number?: string;
+  sbi_epay_merchant_id?: string;
+  sbi_epay_encryption_key?: string;
+  sbi_epay_aggregator_id?: string;
+  sbi_epay_environment?: 'uat' | 'prod';
+}
+
 export const getPaymentSettings = async () => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payment-settings/`, {
@@ -746,7 +757,7 @@ export const getPaymentSettings = async () => {
   }
 };
 
-export const savePaymentSettings = async (data: { razorpay_key_id: string; razorpay_key_secret: string }) => {
+export const savePaymentSettings = async (data: PaymentSettingsPayload) => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payment-settings/`, {
       method: 'POST',
@@ -756,6 +767,20 @@ export const savePaymentSettings = async (data: { razorpay_key_id: string; razor
     return await response.json();
   } catch (error) {
     return { success: false, message: 'Network error' };
+  }
+};
+
+export const uploadSBIMISReport = async (file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payments/sbi/reconcile-mis/`, {
+      method: 'POST',
+      body: formData
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error uploading MIS file' };
   }
 };
 

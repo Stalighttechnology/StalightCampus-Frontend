@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
-import { Loader2, CreditCard, Receipt, AlertCircle, CheckCircle, Calendar, IndianRupee, Download, TrendingUp, TrendingDown, FileDown } from 'lucide-react';
+import { Loader2, CreditCard, Receipt, AlertCircle, CheckCircle, Calendar, IndianRupee, Download, TrendingUp, TrendingDown, FileDown, Landmark, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -91,6 +91,7 @@ interface FeeDataResponse {
   invoices: InvoiceData[];
   payments: PaymentData[];
   receipts: ReceiptData[];
+  active_collection_gateway?: 'razorpay' | 'sbi_epay' | 'both';
   statistics: {
     total_invoices: number;
     total_payments: number;
@@ -117,8 +118,39 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
   const [exportingPDF, setExportingPDF] = useState(false);
   const [exportingPaymentsPDF, setExportingPaymentsPDF] = useState(false);
   const [downloadingReceiptId, setDownloadingReceiptId] = useState<number | null>(null);
+  const [selectedGateway, setSelectedGateway] = useState<'razorpay' | 'sbi_epay'>('razorpay');
   const { theme } = useTheme();
   const queryClient = useQueryClient();
+
+  // Handle redirect callback from payment gateway (e.g. SBI double-verification return)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const statusParam = params.get('status');
+    const reason = params.get('reason');
+
+    if (statusParam) {
+      if (statusParam === 'success') {
+        showSuccessAlert(
+          'Payment Successful', 
+          'Your fee payment was verified with the bank and credited to your account!'
+        );
+        queryClient.invalidateQueries({ queryKey: ['studentCompleteFeeData'] });
+      } else if (statusParam === 'review') {
+        showSuccessAlert(
+          'Payment Under Review', 
+          'Your bank transfer was received and is awaiting administrative finance review.'
+        );
+        queryClient.invalidateQueries({ queryKey: ['studentCompleteFeeData'] });
+      } else if (statusParam === 'failed') {
+        showErrorAlert(
+          'Payment Not Completed', 
+          reason ? `The transaction could not be completed: ${reason}` : 'The transaction was cancelled or declined by the bank.'
+        );
+      }
+      // Remove query params from address bar
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [queryClient]);
 
   useEffect(() => {
     const handleChanged = () => {
@@ -305,10 +337,18 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
     setSelectedComponents(newSet);
   };
 
-  const initiateRazorpayPayment = async () => {
+  const initiatePayment = async () => {
     try {
       setIsProcessingPayment(true);
       if (selectedInvoiceId === null) return;
+
+      const effectiveGateway = (
+        feeData?.active_collection_gateway === 'sbi_epay'
+          ? 'sbi_epay'
+          : feeData?.active_collection_gateway === 'both'
+            ? selectedGateway
+            : 'razorpay'
+      );
 
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/payments/create-checkout-session/${selectedInvoiceId}/`, {
         method: 'POST',
@@ -316,8 +356,9 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          gateway: effectiveGateway,
           payment_type: paymentType,
-              student_usn: feeData?.student?.usn,
+          student_usn: feeData?.student?.usn,
           selected_components: paymentType === 'component' && currentInvoice?.components ?
             Array.from(selectedComponents).map((idx: any) => currentInvoice.components[idx as number]?.id) :
             null
@@ -329,7 +370,39 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
         throw new Error(errorData.error || 'Failed to create checkout session');
       }
 
-      const { order_id, razorpay_key_id } = await response.json();
+      const resData = await response.json();
+
+      // SBIePay Gateway Flow (Hosted Aggregator Portal POST)
+      if (resData.gateway === 'sbi_epay') {
+        const { sbi_post_url, encrypted_trans, merch_id_val } = resData;
+        if (!sbi_post_url || !encrypted_trans || !merch_id_val) {
+          showErrorAlert('SBI Configuration Error', 'Missing SBIePay checkout parameters.');
+          return;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = sbi_post_url;
+
+        const encInput = document.createElement('input');
+        encInput.type = 'hidden';
+        encInput.name = 'EncryptTrans';
+        encInput.value = encrypted_trans;
+        form.appendChild(encInput);
+
+        const merchInput = document.createElement('input');
+        merchInput.type = 'hidden';
+        merchInput.name = 'merchIdVal';
+        merchInput.value = merch_id_val;
+        form.appendChild(merchInput);
+
+        document.body.appendChild(form);
+        setPaymentModalOpen(false);
+        form.submit();
+        return;
+      }
+
+      const { order_id, razorpay_key_id } = resData;
 
       const keyId = razorpay_key_id || import.meta.env.VITE_RAZORPAY_KEY_ID;
       if (!order_id || !keyId) {
@@ -1099,9 +1172,44 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
                       {formatCurrency(currentInvoice?.balance_amount || 0)}
                     </p>
                   </div>
+
+                  {feeData?.active_collection_gateway === 'both' && (
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">
+                        Select Payment Method
+                      </Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div 
+                          onClick={() => setSelectedGateway('razorpay')}
+                          className={`p-3 rounded-lg border-2 cursor-pointer flex items-center justify-between transition-all ${
+                            selectedGateway === 'razorpay' ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-border'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4 text-primary" />
+                            <span className="text-xs font-semibold">Razorpay</span>
+                          </div>
+                          {selectedGateway === 'razorpay' && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                        </div>
+                        <div 
+                          onClick={() => setSelectedGateway('sbi_epay')}
+                          className={`p-3 rounded-lg border-2 cursor-pointer flex items-center justify-between transition-all ${
+                            selectedGateway === 'sbi_epay' ? 'border-blue-600 bg-blue-500/5' : 'border-border/60 hover:border-border'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Landmark className="h-4 w-4 text-blue-600" />
+                            <span className="text-xs font-semibold">SBIePay</span>
+                          </div>
+                          {selectedGateway === 'sbi_epay' && <CheckCircle2 className="h-4 w-4 text-blue-600" />}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
-                      onClick={initiateRazorpayPayment}
+                      onClick={initiatePayment}
                       disabled={isProcessingPayment}
                       className={`bg-primary hover:bg-primary/90 text-white w-full font-semibold py-6 text-base disabled:opacity-50`}>
 
@@ -1171,9 +1279,43 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user, readOnly = false }) => 
                     </motion.div>
                   }
 
+                  {feeData?.active_collection_gateway === 'both' && selectedComponents.size > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">
+                        Select Payment Method
+                      </Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div 
+                          onClick={() => setSelectedGateway('razorpay')}
+                          className={`p-3 rounded-lg border-2 cursor-pointer flex items-center justify-between transition-all ${
+                            selectedGateway === 'razorpay' ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-border'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4 text-primary" />
+                            <span className="text-xs font-semibold">Razorpay</span>
+                          </div>
+                          {selectedGateway === 'razorpay' && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                        </div>
+                        <div 
+                          onClick={() => setSelectedGateway('sbi_epay')}
+                          className={`p-3 rounded-lg border-2 cursor-pointer flex items-center justify-between transition-all ${
+                            selectedGateway === 'sbi_epay' ? 'border-blue-600 bg-blue-500/5' : 'border-border/60 hover:border-border'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Landmark className="h-4 w-4 text-blue-600" />
+                            <span className="text-xs font-semibold">SBIePay</span>
+                          </div>
+                          {selectedGateway === 'sbi_epay' && <CheckCircle2 className="h-4 w-4 text-blue-600" />}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
-                      onClick={initiateRazorpayPayment}
+                      onClick={initiatePayment}
                       disabled={isProcessingPayment || selectedComponents.size === 0}
                       className={`bg-primary hover:bg-primary/90 text-white w-full font-semibold py-6 text-base disabled:opacity-50`}>
 
