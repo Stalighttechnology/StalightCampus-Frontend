@@ -31,7 +31,8 @@ import {
   setActiveFeedbackCycle
 } from "@/utils/faculty_api";
 import { FeedbackReviewModal } from "@/components/common/FeedbackReviewModal";
-import { BookOpen, BarChart3, Users, Clock, AlertCircle, Eye, FileDown, Loader2, Star, Calendar, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
+import { FeedbackQuestionnaireModal } from "./FeedbackQuestionnaireModal";
+import { BookOpen, BarChart3, Users, Clock, AlertCircle, Eye, FileDown, Loader2, Star, Calendar, ChevronDown, ChevronUp, CheckCircle2, ClipboardList } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -124,6 +125,7 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
   const [exportingSemester, setExportingSemester] = useState(false);
   const [togglingSubjectId, setTogglingSubjectId] = useState<number | null>(null);
   const [selectedSurveySubject, setSelectedSurveySubject] = useState<any | null>(null);
+  const [isQuestionnaireModalOpen, setIsQuestionnaireModalOpen] = useState(false);
   const [selectedSectionProgressModal, setSelectedSectionProgressModal] = useState<{
     subjectId: number;
     subjectName: string;
@@ -560,28 +562,43 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
               </CardDescription>
             </div>
 
-            {monitorData && monitorData.subjects && monitorData.subjects.length > 0 && (
+            <div className="flex items-center gap-2 shrink-0">
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
-                onClick={handleExportSemesterPDF}
-                disabled={exportingSemester}
-                title="Export Semester PDF"
-                className="bg-transparent hover:bg-primary/10 text-primary border-border/80 sm:bg-primary sm:hover:bg-primary/90 sm:text-white sm:hover:text-white sm:border-primary h-9 w-9 p-0 sm:w-auto sm:px-4 transition-all text-sm flex items-center justify-center gap-2 shrink-0 rounded-lg shadow-xs"
+                onClick={() => setIsQuestionnaireModalOpen(true)}
+                title="Configure Theory & Lab Feedback Questionnaires"
+                className="h-9 px-3 text-xs sm:text-sm font-medium flex items-center gap-1.5 rounded-lg border shadow-xs hover:bg-muted"
               >
-                {exportingSemester ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="hidden sm:inline">Exporting...</span>
-                  </>
-                ) : (
-                  <>
-                    <FileDown className="w-4 h-4" />
-                    <span className="hidden sm:inline">Export Semester PDF</span>
-                  </>
-                )}
+                <ClipboardList className="w-4 h-4 text-primary shrink-0" />
+                <span className="hidden sm:inline">Feedback Questionnaires</span>
+                <span className="inline sm:hidden">Questionnaires</span>
               </Button>
-            )}
+
+              {monitorData && monitorData.subjects && monitorData.subjects.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportSemesterPDF}
+                  disabled={exportingSemester}
+                  title="Export Semester PDF"
+                  className="bg-transparent hover:bg-primary/10 text-primary border-border/80 sm:bg-primary sm:hover:bg-primary/90 sm:text-white sm:hover:text-white sm:border-primary h-9 w-9 p-0 sm:w-auto sm:px-4 transition-all text-sm flex items-center justify-center gap-2 shrink-0 rounded-lg shadow-xs"
+                >
+                  {exportingSemester ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="hidden sm:inline">Exporting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileDown className="w-4 h-4" />
+                      <span className="hidden sm:inline">Export Semester PDF</span>
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Top Filter Bar */}
@@ -749,10 +766,21 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
                       
                       <div className="flex flex-col gap-2 border-t pt-3">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="text-sm font-medium">Faculty Feedback</span>
                             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                               Cycle {subj.active_feedback_cycle || 1}
+                            </span>
+                            <span
+                              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                                (subj.subject_type === 'lab' || (subj.subject_name || '').toLowerCase().includes('lab'))
+                                  ? 'border-emerald-300 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20'
+                                  : 'border-blue-300 text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20'
+                              }`}
+                            >
+                              {(subj.subject_type === 'lab' || (subj.subject_name || '').toLowerCase().includes('lab'))
+                                ? '🔬 Lab (13 Qs)'
+                                : '📘 Theory (13 Qs)'}
                             </span>
                           </div>
                           {!isPrincipalUser && (
@@ -1256,6 +1284,13 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
         )}
       </CardContent>
     </Card>
+
+    {/* Feedback Questionnaire Configuration Modal */}
+    <FeedbackQuestionnaireModal
+      isOpen={isQuestionnaireModalOpen}
+      onClose={() => setIsQuestionnaireModalOpen(false)}
+      branchId={monitorData?.branch_id || branchId}
+    />
   </div>
   );
 };

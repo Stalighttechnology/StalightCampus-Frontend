@@ -3002,18 +3002,151 @@ export const getStudentCourseExitSurveys = async () => {
   }
 };
 
-export const submitCourseExitSurvey = async (subjectId: string, ratings: { [key: string]: number }, feedbackCycle?: number) => {
+export const submitCourseExitSurvey = async (
+  subjectId: string,
+  ratings: { [key: string]: number | string },
+  feedbackCycle?: number,
+  suggestions?: string
+) => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/course-exit-surveys/submit/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ subject_id: subjectId, ratings, feedback_cycle: feedbackCycle })
+      body: JSON.stringify({
+        subject_id: subjectId,
+        ratings,
+        feedback_cycle: feedbackCycle,
+        suggestions: suggestions || '',
+      })
     });
     return await response.json();
   } catch (error) {
     return { success: false, message: 'Network error submitting course exit survey' };
+  }
+};
+
+// ==========================================
+// Course Feedback Questionnaires APIs
+// ==========================================
+
+export const getFeedbackQuestionnaires = async (branchId?: number | string | null) => {
+  try {
+    const url = branchId
+      ? `${API_ENDPOINT}/feedback/questionnaires/?branch_id=${branchId}`
+      : `${API_ENDPOINT}/feedback/questionnaires/`;
+    const response = await fetchWithTokenRefresh(url, { method: 'GET' });
+    return await response.json();
+  } catch {
+    return { success: false, message: 'Failed to fetch questionnaires' };
+  }
+};
+
+export const saveFeedbackQuestionnaire = async (payload: {
+  questionnaire_type: 'theory' | 'lab';
+  title?: string;
+  instructions?: string;
+  questions: Array<{ id: string; text: string }>;
+  branch_id?: number | string | null;
+}) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/feedback/questionnaires/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return await response.json();
+  } catch {
+    return { success: false, message: 'Failed to save questionnaire' };
+  }
+};
+
+export const getSubjectQuestionnaire = async (subjectId: number | string) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/feedback/questionnaires/subject/${subjectId}/`, {
+      method: 'GET',
+    });
+    return await response.json();
+  } catch {
+    return { success: false, message: 'Failed to fetch subject questionnaire' };
+  }
+};
+
+export interface FeedbackStudentSubmissionsResponse {
+  success: boolean;
+  message?: string;
+  subject_id?: number;
+  subject_name?: string;
+  subject_code?: string;
+  feedback_cycle?: number;
+  section_id?: number | null;
+  stats?: {
+    total_enrolled: number;
+    total_submitted: number;
+    total_pending: number;
+    submission_rate: number;
+  };
+  all_pending_usns?: string[];
+  pagination?: {
+    page: number;
+    page_size: number;
+    total_pages: number;
+    total_count: number;
+    has_next: boolean;
+    has_prev: boolean;
+  };
+  students?: Array<{
+    student_id: number;
+    name: string;
+    usn: string;
+    section_name: string;
+    is_submitted: boolean;
+    submitted_at: string | null;
+    has_suggestions: boolean;
+  }>;
+  submitted_students?: Array<{
+    student_id: number;
+    name: string;
+    usn: string;
+    section_name: string;
+    submitted_at: string | null;
+    has_suggestions: boolean;
+  }>;
+  pending_students?: Array<{
+    student_id: number;
+    name: string;
+    usn: string;
+    section_name: string;
+  }>;
+}
+
+export const getFeedbackStudentSubmissions = async (
+  subjectId: number | string,
+  cycle: number = 1,
+  sectionId?: number | string | null,
+  page: number = 1,
+  pageSize: number = 15,
+  tab: 'all' | 'submitted' | 'pending' = 'all',
+  search: string = ''
+): Promise<FeedbackStudentSubmissionsResponse> => {
+  try {
+    const params = new URLSearchParams();
+    params.append('cycle', String(cycle));
+    if (sectionId !== undefined && sectionId !== null && String(sectionId) !== 'null' && String(sectionId) !== 'undefined' && String(sectionId) !== 'All') {
+      params.append('section_id', String(sectionId));
+    }
+    params.append('page', String(page));
+    params.append('page_size', String(pageSize));
+    params.append('tab', tab);
+    if (search && search.trim()) {
+      params.append('search', search.trim());
+    }
+    const url = `${API_ENDPOINT}/feedback/student-submissions/${subjectId}/?${params.toString()}`;
+    const response = await fetchWithTokenRefresh(url, { method: 'GET' });
+    return await response.json();
+  } catch {
+    return { success: false, message: 'Failed to fetch student feedback submissions' };
   }
 };
 

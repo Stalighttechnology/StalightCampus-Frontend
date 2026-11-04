@@ -708,7 +708,7 @@ const SyllabusTracker = () => {
                         size="sm"
                         className="w-full mt-3 h-8 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/20"
                       >
-                        View Question Breakdown
+                        View Breakdown & Student Submissions
                       </Button>
                     </div>
                   </div>

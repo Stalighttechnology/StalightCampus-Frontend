@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Star, AlertCircle, CheckCircle2, Clock, Send, User, Award, FileText, ArrowRight, Check } from "lucide-react";
+import { Star, AlertCircle, CheckCircle2, Clock, Send, User, Award, FileText, ArrowRight, Check, MessageSquare, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,27 +7,50 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
+import { StudentFeedbackSubmissionsModal } from "./StudentFeedbackSubmissionsModal";
 import {
   getFacultyFeedbackReviews,
   getHODFeedbackReviews,
   getPrincipalFeedbackOverview,
   submitFacultyFeedbackRemarks,
   submitHODFeedbackRemarks,
-  acknowledgePrincipalFeedback
+  acknowledgePrincipalFeedback,
+  getSubjectQuestionnaire,
 } from "@/utils/faculty_api";
 
-export const SURVEY_QUESTIONS = [
-  { id: "Q1", text: "The faculty explains concepts clearly and effectively." },
-  { id: "Q2", text: "The course content is delivered at an appropriate pace." },
-  { id: "Q3", text: "The faculty engages students and encourages class participation." },
-  { id: "Q4", text: "The teaching methods (lectures, presentations, examples) are effective." },
-  { id: "Q5", text: "The faculty is approachable for doubts and clarifications." },
-  { id: "Q6", text: "The course materials provided (notes, slides, resources) are helpful for understanding." },
-  { id: "Q7", text: "The assessment methods (tests, quizzes, assignments) are fair and appropriate." },
-  { id: "Q8", text: "The faculty integrates real-world examples or practical applications." },
-  { id: "Q9", text: "I am able to understand the subject and apply the concepts learned." },
-  { id: "Q10", text: "Overall, I am satisfied with the faculty's teaching and course delivery." },
+export const DEFAULT_THEORY_QUESTIONS = [
+  { id: "Q1", text: "The faculty member explains the prescribed course concepts clearly and systematically." },
+  { id: "Q2", text: "The faculty member is well-prepared, follows a logical sequence and completes the course content as planned." },
+  { id: "Q3", text: "The pace of teaching is appropriate and sufficient time is given to understand difficult concepts." },
+  { id: "Q4", text: "The faculty member uses effective teaching methods, examples, illustrations or teaching aids to make the topics understandable." },
+  { id: "Q5", text: "The faculty member encourages questions, discussion and active participation during class." },
+  { id: "Q6", text: "The faculty member relates course concepts to practical, industrial or real-life applications." },
+  { id: "Q7", text: "The faculty member provides appropriate learning resources, practice questions or references to support learning beyond class hours." },
+  { id: "Q8", text: "The faculty member is accessible for course-related doubts and provides clarification outside regular classroom sessions when required." },
+  { id: "Q9", text: "Internal assessment tests, assignments and quizzes are relevant to the prescribed course content and test understanding and application." },
+  { id: "Q10", text: "Internal assessment answer scripts / assignments are evaluated fairly, returned or discussed in a reasonable time, and mistakes are explained." },
+  { id: "Q11", text: "The faculty member provides useful feedback and guidance on how to improve performance in subsequent assessments." },
+  { id: "Q12", text: "Remedial / additional classes or learning support are provided for difficult topics, and the sessions help improve my understanding." },
+  { id: "Q13", text: "The faculty member introduces relevant knowledge, current developments or applications beyond the prescribed syllabus to enrich learning." },
 ];
+
+export const DEFAULT_LAB_QUESTIONS = [
+  { id: "Q1", text: "The faculty member explains the objective, principle, procedure and expected outcome of each experiment before the laboratory session." },
+  { id: "Q2", text: "The faculty member demonstrates the correct use of instruments, equipment, software, tools and safety procedures." },
+  { id: "Q3", text: "Every student gets adequate opportunity to perform the experiments personally rather than only observe demonstrations." },
+  { id: "Q4", text: "The laboratory sessions provide sufficient hands-on practice and meaningful time for students to complete the experiments." },
+  { id: "Q5", text: "The faculty member guides students when required while allowing them to perform tasks independently." },
+  { id: "Q6", text: "The faculty member encourages students to understand results, analyse errors, troubleshoot problems and explain observations." },
+  { id: "Q7", text: "Students are encouraged to explore alternative methods, vary parameters and learn through experimentation." },
+  { id: "Q8", text: "The faculty member provides opportunities for self-learning through manuals, reference material, simulation tools, software or independent tasks." },
+  { id: "Q9", text: "Laboratory exercises include open-ended problems or design / application tasks that require students to think, investigate and develop their own solutions." },
+  { id: "Q10", text: "The experiments are connected to real-world, industrial, research or practical engineering applications." },
+  { id: "Q11", text: "The faculty member assesses individual practical understanding and skills through observation, viva, records, demonstrations or performance—not only completion of the record." },
+  { id: "Q12", text: "Feedback on laboratory performance, errors and reports is timely, fair and helps me improve my practical skills." },
+  { id: "Q13", text: "The laboratory sessions provide opportunities to use relevant advanced tools, equipment, software or techniques beyond routine prescribed experiments." },
+];
+
+export const SURVEY_QUESTIONS = DEFAULT_THEORY_QUESTIONS;
 
 export interface FeedbackReviewModalProps {
   isOpen: boolean;
@@ -66,11 +89,15 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
 
   // Workflow data state
   const [workflow, setWorkflow] = useState<any | null>(null);
+  const [questionnaireQuestions, setQuestionnaireQuestions] = useState<Array<{ id: string; text: string }>>(DEFAULT_THEORY_QUESTIONS);
+  const [questionnaireTitle, setQuestionnaireTitle] = useState<string>("Course Teaching Feedback Questionnaire");
+  const [isLabCourse, setIsLabCourse] = useState<boolean>(false);
 
   // Form remarks state
   const [facultyRemarksInput, setFacultyRemarksInput] = useState<string>("");
   const [hodRemarksInput, setHodRemarksInput] = useState<string>("");
   const [principalRemarksInput, setPrincipalRemarksInput] = useState<string>("");
+  const [showSubmissionsModal, setShowSubmissionsModal] = useState<boolean>(false);
 
   const loadWorkflowData = async () => {
     setLoading(true);
@@ -119,6 +146,25 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
         } else {
           setWorkflow(null);
         }
+      }
+
+      // Load specific questionnaire for this subject
+      try {
+        const qRes = await getSubjectQuestionnaire(subjectId);
+        if (qRes.success && qRes.questionnaire?.questions) {
+          setQuestionnaireQuestions(qRes.questionnaire.questions);
+          setQuestionnaireTitle(qRes.questionnaire.title || "Course Teaching Feedback");
+          setIsLabCourse(qRes.questionnaire_type === 'lab');
+        } else {
+          const isLab = (subjectName || '').toLowerCase().includes('lab');
+          setIsLabCourse(isLab);
+          setQuestionnaireQuestions(isLab ? DEFAULT_LAB_QUESTIONS : DEFAULT_THEORY_QUESTIONS);
+          setQuestionnaireTitle(isLab ? "LABORATORY TEACHING FEEDBACK QUESTIONNAIRE" : "COURSE TEACHING FEEDBACK QUESTIONNAIRE");
+        }
+      } catch {
+        const isLab = (subjectName || '').toLowerCase().includes('lab');
+        setIsLabCourse(isLab);
+        setQuestionnaireQuestions(isLab ? DEFAULT_LAB_QUESTIONS : DEFAULT_THEORY_QUESTIONS);
       }
     } catch (err) {
       console.error("Error loading feedback workflow:", err);
@@ -342,14 +388,26 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                   <Star className="w-8 h-8 fill-current text-yellow-500/30" />
                 </div>
 
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold text-muted-foreground uppercase">Total Submissions</span>
-                    <div className="text-2xl font-black text-primary mt-0.5">
-                      {totalResponses} <span className="text-xs font-normal text-muted-foreground">Students</span>
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-semibold text-muted-foreground uppercase">Total Submissions</span>
+                      <div className="text-2xl font-black text-primary mt-0.5">
+                        {totalResponses} <span className="text-xs font-normal text-muted-foreground">Students</span>
+                      </div>
                     </div>
+                    <User className="w-8 h-8 text-primary/30" />
                   </div>
-                  <User className="w-8 h-8 text-primary/30" />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowSubmissionsModal(true)}
+                    className="mt-2.5 h-7 text-[11px] font-semibold gap-1.5 w-full bg-background/80 hover:bg-primary hover:text-white border-primary/30 transition-all cursor-pointer shadow-2xs"
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    <span>View Student Submissions</span>
+                  </Button>
                 </div>
 
                 <div className="p-4 rounded-xl bg-muted/40 border border-border flex items-center justify-between">
@@ -365,15 +423,27 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                 </div>
               </div>
 
-              {/* 10 Questions Rating Breakdown */}
+              {/* Questions Rating Breakdown */}
               <div className="space-y-3">
-                <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-primary" />
-                  10-Point Student Evaluation Breakdown
-                </h4>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-primary" />
+                    <span>{questionnaireTitle} ({questionnaireQuestions.length} Questions)</span>
+                  </h4>
+                  <Badge
+                    variant="outline"
+                    className={`text-[10px] ${
+                      isLabCourse
+                        ? "border-emerald-300 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/20"
+                        : "border-blue-300 text-blue-700 bg-blue-50 dark:bg-blue-950/20"
+                    }`}
+                  >
+                    {isLabCourse ? "🔬 Laboratory Course" : "📘 Theory Course"}
+                  </Badge>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {SURVEY_QUESTIONS.map((q, idx) => {
+                  {questionnaireQuestions.map((q, idx) => {
                     const rating = questionAverages[q.id] || 0.0;
                     const percentage = (rating / 5) * 100;
                     return (
@@ -402,6 +472,27 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                   })}
                 </div>
               </div>
+
+              {/* Student Suggestions Section if any exist */}
+              {workflow?.suggestions && Array.isArray(workflow.suggestions) && workflow.suggestions.length > 0 && (
+                <div className="p-4 rounded-xl border border-border bg-card space-y-2.5">
+                  <h4 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-primary shrink-0" />
+                    <span>Student Improvement Suggestions ({workflow.suggestions.length})</span>
+                  </h4>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {workflow.suggestions.map((s: string, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-lg border bg-muted/20 text-xs text-foreground italic flex items-start gap-2"
+                      >
+                        <span className="font-mono text-primary font-bold not-italic">#{idx + 1}</span>
+                        <p className="flex-1 not-italic text-muted-foreground">{s}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Sequential Remarks Pipeline */}
               <div className="space-y-4 pt-2">
@@ -579,6 +670,20 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
           <Button variant="outline" onClick={onClose}>Close</Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Student Feedback Submissions Roster Modal */}
+      {showSubmissionsModal && (
+        <StudentFeedbackSubmissionsModal
+          isOpen={showSubmissionsModal}
+          onClose={() => setShowSubmissionsModal(false)}
+          subjectId={subjectId}
+          subjectName={subjectName}
+          subjectCode={subjectCode}
+          sectionId={sectionId}
+          sectionName={sectionName}
+          cycle={cycle}
+        />
+      )}
     </Dialog>
   );
 };
