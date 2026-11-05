@@ -1389,7 +1389,7 @@ const UploadQP = () => {
           setUploadingDoc(false);
           return;
         }
-        fileUrl = uploadedUrl ? encodeURI(uploadedUrl) : null;
+        fileUrl = uploadedUrl || null;
         fileName = docFile.name;
         fileType = docFile.name.substring(docFile.name.lastIndexOf('.') + 1).toLowerCase();
       }
@@ -3576,34 +3576,7 @@ const UploadQP = () => {
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => window.open(currentQPMeta.uploaded_file_url!, '_blank')}
-                              className="h-8 text-xs gap-1.5"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                              <span>Open in New Tab</span>
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const a = document.createElement('a');
-                                a.href = currentQPMeta.uploaded_file_url!;
-                                a.download = currentQPMeta.uploaded_file_name || 'QuestionPaper';
-                                a.target = '_blank';
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
-                              }}
-                              className="h-8 text-xs gap-1.5"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              <span>Download</span>
-                            </Button>
-                          </div>
+
                         </div>
 
                         {currentQPMeta.uploaded_file_type?.toLowerCase() === 'pdf' || (currentQPMeta.uploaded_file_url && currentQPMeta.uploaded_file_url.toLowerCase().endsWith('.pdf')) ? (
@@ -3618,13 +3591,32 @@ const UploadQP = () => {
                             <div className="space-y-1">
                               <h4 className="font-bold text-base text-foreground">{currentQPMeta.uploaded_file_name || 'Word Document Question Paper'}</h4>
                               <p className="text-xs text-muted-foreground max-w-md">
-                                This question paper is stored in Word (.docx / .doc) format. Click below to download or view the complete document.
+                                This question paper is in {(currentQPMeta.uploaded_file_type || currentQPMeta.uploaded_file_name?.split('.').pop() || 'document').toUpperCase()} format — download it to view the full content.
                               </p>
                             </div>
-                            <Button onClick={() => window.open(currentQPMeta.uploaded_file_url!, '_blank')} className="gap-2">
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const res = await fetch(currentQPMeta.uploaded_file_url!);
+                                  const blob = await res.blob();
+                                  const u = window.URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = u;
+                                  a.download = currentQPMeta.uploaded_file_name || 'QuestionPaper';
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  a.remove();
+                                  setTimeout(() => window.URL.revokeObjectURL(u), 1000);
+                                } catch {
+                                  window.open(currentQPMeta.uploaded_file_url!, '_blank');
+                                }
+                              }}
+                              className="mt-2 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+                            >
                               <Download className="w-4 h-4" />
-                              <span>Download Question Paper Document</span>
-                            </Button>
+                              Download to View
+                            </button>
+
                           </div>
                         )}
                       </div>

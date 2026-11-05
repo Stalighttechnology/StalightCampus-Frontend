@@ -92,7 +92,7 @@ export const performR2Upload = async (
       return null;
     }
 
-    return file_url ? encodeURI(file_url) : null;
+    return file_url ? file_url : null;
   } catch (error) {
     console.error("performR2Upload error:", error);
     return null;

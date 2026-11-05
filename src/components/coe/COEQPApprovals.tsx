@@ -301,16 +301,28 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [filtersLoading, setFiltersLoading] = useState(false);
   const initialLoadDone = useRef(false);
 
-  const downloadPDF = async () => {
-    if (!qpDetail) return;
-    if (qpDetail.uploaded_file_url) {
-      const a = document.createElement("a");
-      a.href = qpDetail.uploaded_file_url;
-      a.download = qpDetail.uploaded_file_name || `QP_${qpDetail.id}`;
-      a.target = "_blank";
+  const handleDownloadDocument = async (fileUrl: string, fileName?: string) => {
+    try {
+      const res = await fetch(fileUrl);
+      if (!res.ok) throw new Error('Fetch failed');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName || 'QuestionPaper';
       document.body.appendChild(a);
       a.click();
       a.remove();
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+    } catch {
+      window.open(fileUrl, '_blank');
+    }
+  };
+
+  const downloadPDF = async () => {
+    if (!qpDetail) return;
+    if (qpDetail.uploaded_file_url) {
+      handleDownloadDocument(qpDetail.uploaded_file_url, qpDetail.uploaded_file_name || `QP_${qpDetail.id}`);
       return;
     }
     setDownloadingPDF(true);
@@ -1345,34 +1357,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(qpDetail.uploaded_file_url!, '_blank')}
-                        className="h-8 text-xs gap-1.5"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span>Open in New Tab</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const a = document.createElement('a');
-                          a.href = qpDetail.uploaded_file_url!;
-                          a.download = qpDetail.uploaded_file_name || 'QuestionPaper';
-                          a.target = '_blank';
-                          document.body.appendChild(a);
-                          a.click();
-                          document.body.removeChild(a);
-                        }}
-                        className="h-8 text-xs gap-1.5"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        <span>Download</span>
-                      </Button>
-                    </div>
+
                   </div>
 
                   {qpDetail.uploaded_file_type?.toLowerCase() === 'pdf' || (qpDetail.uploaded_file_url && qpDetail.uploaded_file_url.toLowerCase().endsWith('.pdf')) ? (
@@ -1387,13 +1372,17 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                       <div className="space-y-1">
                         <h4 className="font-bold text-base text-foreground">{qpDetail.uploaded_file_name || 'Word Document Question Paper'}</h4>
                         <p className="text-xs text-muted-foreground max-w-md">
-                          This question paper was uploaded in Word (.docx / .doc) format. Reviewers can download or open the document to inspect the content before approving.
+                          This question paper is in {(qpDetail.uploaded_file_type || qpDetail.uploaded_file_name?.split('.').pop() || 'document').toUpperCase()} format — download it to view the full content before approving.
                         </p>
                       </div>
-                      <Button onClick={() => window.open(qpDetail.uploaded_file_url!, '_blank')} className="gap-2">
+                      <button
+                        onClick={() => handleDownloadDocument(qpDetail.uploaded_file_url!, qpDetail.uploaded_file_name || 'QuestionPaper')}
+                        className="mt-2 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+                      >
                         <Download className="w-4 h-4" />
-                        <span>Download Question Paper Document</span>
-                      </Button>
+                        Download to View
+                      </button>
+
                     </div>
                   )}
                 </div>
