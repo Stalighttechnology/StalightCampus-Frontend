@@ -1389,7 +1389,7 @@ const UploadQP = () => {
           setUploadingDoc(false);
           return;
         }
-        fileUrl = uploadedUrl;
+        fileUrl = uploadedUrl ? encodeURI(uploadedUrl) : null;
         fileName = docFile.name;
         fileType = docFile.name.substring(docFile.name.lastIndexOf('.') + 1).toLowerCase();
       }
@@ -1454,10 +1454,11 @@ const UploadQP = () => {
           confirmButtonColor: 'hsl(var(--primary))',
         });
       } else {
+        const errDetail = res?.message || (res?.errors ? (typeof res.errors === 'string' ? res.errors : Object.entries(res.errors).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join(' | ')) : 'Failed to save question paper document.');
         toast({
           variant: 'destructive',
           title: 'Save Failed',
-          description: res?.message || 'Failed to save question paper document.',
+          description: errDetail,
         });
       }
     } catch (err: any) {
