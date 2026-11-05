@@ -1,7 +1,7 @@
 import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import React, { useEffect, useState, useRef, Fragment, useMemo } from "react";
 import { useLocation } from "react-router-dom";
-import { Plus, Trash2, Layers, Loader2, FileDown, Image, Image as ImageIcon, Eraser, RotateCcw, Check, X, Undo, Redo, AlertCircle, CalendarIcon, ChevronDown, Table as TableIcon, Edit3, Pi } from "lucide-react";
+import { Plus, Trash2, Layers, Loader2, FileDown, Image, Image as ImageIcon, Eraser, RotateCcw, Check, X, Undo, Redo, AlertCircle, CalendarIcon, ChevronDown, Table as TableIcon, Edit3, Pi, UploadCloud, FileText, Download, ExternalLink, FileCheck, CheckCircle2, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -199,6 +199,10 @@ interface QPMetadata {
   org_name?: string | null;
   last_action?: { actor?: string; role: string; action: string; comment: string; };
   section_id?: number | null;
+  paper_mode?: 'format' | 'document';
+  uploaded_file_url?: string | null;
+  uploaded_file_name?: string | null;
+  uploaded_file_type?: string | null;
 }
 
 interface QuestionPaper {
@@ -216,6 +220,10 @@ interface QuestionPaper {
   org_logo?: string | null;
   org_name?: string | null;
   last_action?: { actor?: string; role: string; action: string; comment: string; };
+  paper_mode?: 'format' | 'document';
+  uploaded_file_url?: string | null;
+  uploaded_file_name?: string | null;
+  uploaded_file_type?: string | null;
   questions?: QuestionData[];
   questions_data?: QuestionData[];
 }
@@ -241,6 +249,10 @@ interface CreateQPPayload {
   target_branch_ids?: number[];
   target_section_ids?: number[];
   applicable_sections?: string;
+  paper_mode?: 'format' | 'document';
+  uploaded_file_url?: string | null;
+  uploaded_file_name?: string | null;
+  uploaded_file_type?: string | null;
 }
 
 const UploadQP = () => {
@@ -320,6 +332,34 @@ const UploadQP = () => {
   const [isTestTypeOpen, setIsTestTypeOpen] = useState(false);
   const [isSetNumberOpen, setIsSetNumberOpen] = useState(false);
   const { theme } = useTheme();
+
+  // Direct Document Upload State (.pdf, .docx, .doc up to 2MB)
+  const [docFile, setDocFile] = useState<File | null>(null);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const docInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleDocFileSelect = (file: File) => {
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    if (!['.pdf', '.docx', '.doc'].includes(ext)) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid File Format',
+        description: 'Only PDF (.pdf) and Word (.docx, .doc) files are accepted.',
+      });
+      return;
+    }
+    // Max 2MB limit
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        variant: 'destructive',
+        title: 'File Too Large',
+        description: `File size exceeds 2MB limit (Selected: ${(file.size / (1024 * 1024)).toFixed(2)} MB). Please upload a file under 2MB.`,
+      });
+      return;
+    }
+    setDocFile(file);
+  };
 
   const toggleExpanded = (key: string) => {
     setExpanded((p) => ({ ...p, [key]: !p[key] }));
@@ -410,6 +450,32 @@ const UploadQP = () => {
   const currentAssignment = assignments.find((a) => a.subject_id === selected.subject_id || (currentSubjectObj && a.subject_name.trim().toLowerCase() === currentSubjectObj.name.trim().toLowerCase()));
   const currentSubjectType = currentSubjectObj?.subject_type || currentAssignment?.subject_type;
   const isElectiveOrOpenElective = (currentSubjectType === 'open_elective' || currentSubjectType === 'elective') && dropdownData.branch.length > 1;
+
+  const isMulti = isElectiveOrOpenElective && selectedBranchIds.length > 1;
+  const hasRejectedBranch = isMulti
+    ? branchStatuses.some((bs) => bs.status === 'rejected')
+    : currentQPMeta?.status === 'rejected';
+
+  const hasDraftBranch = isMulti
+    ? branchStatuses.some((bs) => !bs.status || bs.status === 'draft')
+    : (!currentQPMeta?.status || currentQPMeta.status === 'draft');
+
+  const hasApprovedBranch = isMulti
+    ? (branchStatuses.length > 0 && branchStatuses.some((bs) => bs.status === 'approved'))
+    : currentQPMeta?.status === 'approved';
+
+  const isPendingApproval = isMulti
+    ? branchStatuses.some((bs) => bs.status && bs.status.startsWith('pending'))
+    : Boolean(currentQPMeta?.status && currentQPMeta.status.startsWith('pending'));
+
+  // Strictly locked when exam has started, OR when approved (and not rejected), OR when pending approval (and not rejected)
+  const isLocked = Boolean(hasExamStarted || (hasApprovedBranch && !hasRejectedBranch) || (isPendingApproval && !hasRejectedBranch));
+
+  const rejectedBranches = isMulti
+    ? branchStatuses.filter((bs) => bs.status === 'rejected')
+    : currentQPMeta?.status === 'rejected'
+    ? [{ branchId: selected.branch_id || 0, branchName: currentSubjectObj?.name || 'Question Paper', last_action: currentQPMeta.last_action }]
+    : [];
 
   // Resolves the exact subject_id corresponding to the active branch for this faculty
   const getEffectiveSubjectId = () => {
@@ -620,8 +686,9 @@ const UploadQP = () => {
           if (qp) {
             // build flat question rows from nested questions/subparts
             const rows = buildQuestionRowsFromQP(qp);
-            if (rows.length) {
-              setQuestions(rows);
+            const hasDocument = Boolean(qp.uploaded_file_url);
+            if (rows.length || hasDocument) {
+              setQuestions(rows.length ? rows : defaultTemplate);
               setQpId(qp.id);
               const qpSecId = typeof qp.section === 'object' ? (qp.section as any)?.id : qp.section;
               setCurrentQPMeta({
@@ -630,9 +697,16 @@ const UploadQP = () => {
                 org_name: qp.org_name,
                 last_action: qp.last_action,
                 section_id: qpSecId ? Number(qpSecId) : null,
+                paper_mode: qp.paper_mode || (hasDocument ? 'document' : 'format'),
+                uploaded_file_url: qp.uploaded_file_url,
+                uploaded_file_name: qp.uploaded_file_name,
+                uploaded_file_type: qp.uploaded_file_type,
               });
               setExamDate(qp.exam_date || '');
               setExamTime(qp.exam_time || '');
+              if (hasDocument && (!rows.length || qp.paper_mode === 'document')) {
+                setTabValue('uploadDoc');
+              }
             } else {
               setQuestions(defaultTemplate);
               setQpId(null);
@@ -1240,6 +1314,163 @@ const UploadQP = () => {
     return null;
   };
 
+  const saveUploadedDocument = async () => {
+    if (!validateSelection()) return;
+    if (!docFile && !currentQPMeta?.uploaded_file_url) {
+      toast({
+        variant: 'destructive',
+        title: 'No Document Selected',
+        description: 'Please select a PDF or Word document up to 2MB to upload.',
+      });
+      return;
+    }
+
+    if (hasExamStarted) {
+      toast({
+        variant: 'destructive',
+        title: 'Exam Locked',
+        description: 'The scheduled examination time has started. Modifications are disabled.',
+      });
+      return;
+    }
+
+    if (hasApprovedBranch && !hasRejectedBranch) {
+      toast({
+        variant: 'destructive',
+        title: 'Question Paper Approved',
+        description: 'This question paper has already been approved and finalized. Document uploads and edits are locked.',
+      });
+      return;
+    }
+
+    if (isPendingApproval && !hasRejectedBranch) {
+      toast({
+        variant: 'destructive',
+        title: 'Question Paper Under Review',
+        description: 'This question paper is currently under review. Document replacement is locked until review completes.',
+      });
+      return;
+    }
+
+    const isResubmission = hasRejectedBranch;
+    let confirmText = isResubmission
+      ? 'This question paper was rejected for revision. Saving changes will resubmit the revised document for review. Do you want to continue?'
+      : isMulti
+      ? `This will upload and publish the question paper document across ${selectedBranchIds.length} branches. Do you want to continue?`
+      : 'This will save and upload the question paper document. Do you want to continue?';
+
+    const MySwal = withReactContent(Swal);
+    const confirmResult = await MySwal.fire({
+      title: isResubmission ? 'Resubmit Revised Document?' : 'Upload Question Paper Document?',
+      text: confirmText,
+      icon: isResubmission ? 'warning' : 'question',
+      showCancelButton: true,
+      confirmButtonColor: 'hsl(var(--primary))',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: isResubmission ? 'Yes, Resubmit Document' : 'Yes, Upload Document',
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    setUploadingDoc(true);
+    try {
+      let fileUrl = currentQPMeta?.uploaded_file_url || null;
+      let fileName = currentQPMeta?.uploaded_file_name || null;
+      let fileType = currentQPMeta?.uploaded_file_type || null;
+
+      if (docFile) {
+        const uploadedUrl = await performR2Upload(docFile, 'question_papers');
+        if (!uploadedUrl) {
+          toast({
+            variant: 'destructive',
+            title: 'Upload Failed',
+            description: 'Failed to upload document to storage. Please check your network and try again.',
+          });
+          setUploadingDoc(false);
+          return;
+        }
+        fileUrl = uploadedUrl;
+        fileName = docFile.name;
+        fileType = docFile.name.substring(docFile.name.lastIndexOf('.') + 1).toLowerCase();
+      }
+
+      const effectiveSubjId = getEffectiveSubjectId();
+      const assignForSubject = assignments.find((a) =>
+        (!selected.branch_id || a.branch_id === selected.branch_id) &&
+        (a.subject_id === effectiveSubjId || (currentSubjectObj && a.subject_name.trim().toLowerCase() === currentSubjectObj.name.trim().toLowerCase()))
+      );
+      const ids = getDerivedIds(assignForSubject || assignments.find((a) => a.subject_id === effectiveSubjId || a.subject_id === selected.subject_id));
+      const basePayload = buildPayload(ids.branch, ids.semester, ids.section);
+
+      if (!basePayload) {
+        toast({
+          variant: 'destructive',
+          title: 'Validation Error',
+          description: 'Please select at least one valid section for the selected branch before saving.',
+        });
+        setUploadingDoc(false);
+        return;
+      }
+
+      const payload: CreateQPPayload = {
+        ...basePayload,
+        paper_mode: 'document',
+        uploaded_file_url: fileUrl,
+        uploaded_file_name: fileName,
+        uploaded_file_type: fileType,
+        questions_data: [],
+      };
+
+      let existingId = qpId;
+      if (currentQPMeta?.section_id && payload.section && currentQPMeta.section_id !== payload.section) {
+        const existingForSec = await findExistingQP(payload.section);
+        existingId = existingForSec?.id || null;
+      } else if (!existingId) {
+        const existing = await findExistingQP(payload.section);
+        existingId = existing?.id || null;
+      }
+
+      const res = await saveOrUpdateQP(payload, existingId || undefined);
+      if (res?.success) {
+        if (res.data?.id) setQpId(res.data.id);
+        setCurrentQPMeta((prev) => ({
+          status: res.data?.status || prev?.status || 'draft',
+          org_logo: prev?.org_logo,
+          org_name: prev?.org_name,
+          last_action: prev?.last_action,
+          section_id: prev?.section_id,
+          paper_mode: 'document',
+          uploaded_file_url: fileUrl,
+          uploaded_file_name: fileName,
+          uploaded_file_type: fileType,
+        }));
+        setDocFile(null);
+        setReloadTick((t) => t + 1);
+        setTabValue('questionPaper');
+        MySwal.fire({
+          icon: 'success',
+          title: 'Document Uploaded!',
+          text: 'Question paper document has been saved successfully.',
+          confirmButtonColor: 'hsl(var(--primary))',
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Save Failed',
+          description: res?.message || 'Failed to save question paper document.',
+        });
+      }
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: err?.message || 'An unexpected error occurred during upload.',
+      });
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
+
   const saveOrUpdateQP = async (payload: CreateQPPayload, existingId?: number) => {
     if (existingId) {
       const res = await updateQuestionPaper(existingId, payload);
@@ -1254,28 +1485,49 @@ const UploadQP = () => {
   const saveFormat = async () => {
     if (!validateSelection()) return;
 
-    const isMulti = isElectiveOrOpenElective && selectedBranchIds.length > 1;
-    const isSubmittedOrApproved = isMulti
-      ? branchStatuses.some((bs) => bs.status && bs.status !== 'draft')
-      : Boolean(currentQPMeta?.status && currentQPMeta.status !== 'draft');
+    if (hasExamStarted) {
+      toast({
+        variant: 'destructive',
+        title: 'Exam Locked',
+        description: 'The scheduled examination date and time has started. Modifications are disabled.',
+      });
+      return;
+    }
 
-    let confirmText = isElectiveOrOpenElective && selectedBranchIds.length > 1
+    if (hasApprovedBranch && !hasRejectedBranch) {
+      toast({
+        variant: 'destructive',
+        title: 'Question Paper Approved',
+        description: 'This question paper has already been approved and finalized. Modifications are not allowed.',
+      });
+      return;
+    }
+
+    if (isPendingApproval && !hasRejectedBranch) {
+      toast({
+        variant: 'destructive',
+        title: 'Question Paper Under Review',
+        description: 'This question paper is currently under review. Editing is disabled until a reviewer requests changes.',
+      });
+      return;
+    }
+
+    const isResubmission = hasRejectedBranch;
+    let confirmText = isResubmission
+      ? 'This question paper was rejected for revision. Saving changes will resubmit the revised questions for review. Do you want to continue?'
+      : isMulti
       ? `This will save and publish the question paper format across ${selectedBranchIds.length} branches. Do you want to continue?`
       : 'This will save the question paper format. Do you want to continue?';
 
-    if (isSubmittedOrApproved) {
-      confirmText = 'This question paper was submitted/approved. Saving changes will automatically reset its status back to Pending Approval and send it for review according to the organization\'s approval workflow. Do you want to continue?';
-    }
-
     const MySwal = withReactContent(Swal);
     const confirmResult = await MySwal.fire({
-      title: isSubmittedOrApproved ? 'Save Changes & Resubmit?' : 'Save Question Format?',
+      title: isResubmission ? 'Resubmit Revised Format?' : 'Save Question Format?',
       text: confirmText,
-      icon: isSubmittedOrApproved ? 'warning' : 'question',
+      icon: isResubmission ? 'warning' : 'question',
       showCancelButton: true,
       confirmButtonColor: 'hsl(var(--primary))',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: isSubmittedOrApproved ? 'Yes, Save & Resubmit' : 'Yes, Save',
+      confirmButtonText: isResubmission ? 'Yes, Save & Resubmit' : 'Yes, Save',
       cancelButtonText: 'Cancel'
     });
 
@@ -1885,8 +2137,12 @@ const UploadQP = () => {
                   </div>
                 </div>
               )}
-              <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex h-10">
+              <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:inline-flex h-10">
                 <TabsTrigger value="questionFormat" className="text-xs sm:text-sm">Question Format</TabsTrigger>
+                <TabsTrigger value="uploadDoc" className="text-xs sm:text-sm flex items-center gap-1.5">
+                  <UploadCloud className="w-4 h-4 shrink-0" />
+                  <span>Upload Document</span>
+                </TabsTrigger>
                 <TabsTrigger value="questionPaper" className="text-xs sm:text-sm">Question Paper</TabsTrigger>
               </TabsList>
             </CardContent>
@@ -1964,33 +2220,6 @@ const UploadQP = () => {
 
                     <>
                       {(() => {
-                        const isMulti = isElectiveOrOpenElective && selectedBranchIds.length > 1;
-                        const hasRejectedBranch = isMulti
-                          ? branchStatuses.some((bs) => bs.status === 'rejected')
-                          : currentQPMeta?.status === 'rejected';
-
-                        const hasDraftBranch = isMulti
-                          ? branchStatuses.some((bs) => !bs.status || bs.status === 'draft')
-                          : (!currentQPMeta?.status || currentQPMeta.status === 'draft');
-
-                        const hasApprovedBranch = isMulti
-                          ? branchStatuses.some((bs) => bs.status === 'approved')
-                          : currentQPMeta?.status === 'approved';
-
-                        const isPendingApproval = isMulti
-                          ? branchStatuses.some((bs) => bs.status && bs.status.startsWith('pending'))
-                          : Boolean(currentQPMeta?.status && currentQPMeta.status.startsWith('pending'));
-
-                        // Strictly lock ONLY when exam has started!
-                        // Before the scheduled exam start date and time, faculty is ALWAYS in editing mode.
-                        const isLocked = Boolean(hasExamStarted);
-
-                        const rejectedBranches = isMulti
-                          ? branchStatuses.filter((bs) => bs.status === 'rejected')
-                          : currentQPMeta?.status === 'rejected'
-                          ? [{ branchId: selected.branch_id || 0, branchName: currentSubjectObj?.name || 'Question Paper', last_action: currentQPMeta.last_action }]
-                          : [];
-
                         return (
                           <>
                             {hasExamStarted ? (
@@ -2000,14 +2229,17 @@ const UploadQP = () => {
                               </div>
                             ) : null}
 
-                            {hasApprovedBranch && !hasExamStarted && (
+                            {hasApprovedBranch && !hasExamStarted && !hasRejectedBranch && (
                               <div className="mb-4 p-3 sm:p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 rounded-lg">
-                                <div className="font-semibold text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
-                                  <span>ℹ️ Approved Paper (Editing Enabled)</span>
-                                  <Badge variant="outline" className="border-emerald-300 text-emerald-700 dark:text-emerald-300 text-[10px] w-fit shrink-0 self-start sm:self-auto">Re-approval Required on Save</Badge>
+                                <div className="font-semibold text-xs sm:text-sm text-emerald-800 dark:text-emerald-300 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                    <span>🔒 Question Paper Approved & Locked</span>
+                                  </div>
+                                  <Badge variant="outline" className="border-emerald-500 bg-emerald-100/50 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 text-[10px] w-fit shrink-0 self-start sm:self-auto font-medium">Approved ✅</Badge>
                                 </div>
-                                <div className="text-xs text-emerald-600 dark:text-emerald-300 mt-1.5 leading-relaxed">
-                                  This question paper has already been approved. You can edit questions and sections below. Saving changes will automatically reset the paper back to <strong>Pending Approval</strong> and route it for review according to the organization's approval workflow.
+                                <div className="text-xs text-emerald-700 dark:text-emerald-300 mt-1.5 leading-relaxed">
+                                  This question paper has been formally approved {currentQPMeta?.last_action?.actor ? `by ${currentQPMeta.last_action.actor}` : ''} and finalized. Question paper questions, marks, and modifications are strictly locked.
                                 </div>
                               </div>
                             )}
@@ -2015,11 +2247,14 @@ const UploadQP = () => {
                             {isPendingApproval && !hasApprovedBranch && !hasRejectedBranch && !hasExamStarted && (
                               <div className="mb-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                                 <div className="font-semibold text-xs sm:text-sm text-blue-700 dark:text-blue-400 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
-                                  <span>ℹ️ Under Review (Editing Enabled)</span>
-                                  <Badge variant="outline" className="border-blue-300 text-blue-700 dark:text-blue-300 text-[10px] w-fit shrink-0 self-start sm:self-auto">Re-submission on Save</Badge>
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                                    <span>⏳ Under Review (Locked for Review)</span>
+                                  </div>
+                                  <Badge variant="outline" className="border-blue-300 text-blue-700 dark:text-blue-300 text-[10px] w-fit shrink-0 self-start sm:self-auto">Pending {currentQPMeta?.status ? currentQPMeta.status.replace('pending_', '').toUpperCase() : 'Review'}</Badge>
                                 </div>
                                 <div className="text-xs text-blue-600 dark:text-blue-300 mt-1.5 leading-relaxed">
-                                  This question paper is currently under review {currentQPMeta?.status ? `(${currentQPMeta.status.replace('pending_', '').toUpperCase()})` : ''}. You can make revisions below. Saving changes will automatically reset the paper back to <strong>Pending Approval</strong> and route it for review according to the organization's approval workflow.
+                                  This question paper is currently under review {currentQPMeta?.status ? `(${currentQPMeta.status.replace('pending_', '').toUpperCase()})` : ''}. Modifications are disabled while review is in progress.
                                 </div>
                               </div>
                             )}
@@ -2905,6 +3140,258 @@ const UploadQP = () => {
                 }
               </div>
             </TabsContent>
+
+            {/* DIRECT DOCUMENT UPLOAD TAB (.pdf, .docx, .doc max 2MB) */}
+            <TabsContent value="uploadDoc" className="w-full max-w-full overflow-hidden mt-0">
+              {!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber || (dropdownData.section.length > 0 && selectedSectionIds.length === 0) ? (
+                <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                  <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <Layers className="w-12 h-12 opacity-80" />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
+                  <p className="max-w-xs text-base leading-relaxed">
+                    Please select Batch, Subject, Branch, Section, Test Type, and Set Number to upload a question paper document.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-5 pt-2">
+                  {/* Exam Locked Banner */}
+                  {hasExamStarted && (
+                    <div className={`p-4 rounded-xl flex items-start gap-3 ${theme === 'dark' ? 'bg-red-900/20 border border-red-800 text-red-300' : 'bg-red-50 border border-red-200 text-red-800'}`}>
+                      <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-semibold text-sm sm:text-base">⚠️ Exam Locked</h4>
+                        <p className="text-xs sm:text-sm mt-1">This exam started on {examStart ? new Date(examStart).toLocaleString() : 'its scheduled time'}. Question paper uploads and modifications are disabled.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Approved & Locked Banner */}
+                  {hasApprovedBranch && !hasExamStarted && !hasRejectedBranch && (
+                    <div className="p-4 rounded-xl border flex items-start gap-3 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/60 text-emerald-900 dark:text-emerald-200">
+                      <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-sm sm:text-base">🔒 Question Paper Approved & Locked</h4>
+                          <Badge variant="outline" className="border-emerald-500 bg-emerald-100/50 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 text-[10px] font-medium">Approved ✅</Badge>
+                        </div>
+                        <p className="text-xs sm:text-sm mt-1 text-emerald-700 dark:text-emerald-300">
+                          This question paper has been formally approved {currentQPMeta?.last_action?.actor ? `by ${currentQPMeta.last_action.actor}` : ''} and finalized. Re-uploading and document modifications are strictly locked.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pending Review Banner */}
+                  {isPendingApproval && !hasApprovedBranch && !hasRejectedBranch && !hasExamStarted && (
+                    <div className="p-4 rounded-xl border flex items-start gap-3 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200">
+                      <Clock className="w-5 h-5 flex-shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-sm sm:text-base">⏳ Under Review (Locked)</h4>
+                          <Badge variant="outline" className="border-blue-300 text-blue-700 dark:text-blue-300 text-[10px]">
+                            Pending {currentQPMeta?.status ? currentQPMeta.status.replace('pending_', '').toUpperCase() : 'Review'}
+                          </Badge>
+                        </div>
+                        <p className="text-xs sm:text-sm mt-1 text-blue-600 dark:text-blue-300">
+                          This question paper is currently under review. Document replacement is locked until the reviewer approves or requests changes.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Rejected Revision Banner */}
+                  {hasRejectedBranch && !hasExamStarted && (
+                    <div className="p-4 rounded-xl border flex items-start gap-3 bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/60 text-red-900 dark:text-red-200">
+                      <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-sm sm:text-base">⚠️ Revision Needed for Rejected Paper</h4>
+                          <Badge variant="destructive" className="text-[10px]">Editing Enabled</Badge>
+                        </div>
+                        <p className="text-xs sm:text-sm mt-1 text-red-700 dark:text-red-300">
+                          You can upload a revised question paper document to replace the rejected submission.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Previously Uploaded Document Info Card */}
+                  {currentQPMeta?.uploaded_file_url && (
+                    <div className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${theme === 'dark' ? 'bg-emerald-950/20 border-emerald-800/50 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-900'}`}>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="p-2.5 rounded-lg bg-emerald-500/15 text-emerald-600 shrink-0">
+                          <FileCheck className="w-6 h-6" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm truncate">{currentQPMeta.uploaded_file_name || 'Active Question Paper Document'}</span>
+                            <Badge variant="outline" className="text-[10px] uppercase font-bold border-emerald-500/30 text-emerald-600 bg-emerald-500/10">
+                              {currentQPMeta.uploaded_file_type || 'PDF'}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Attached to this Question Paper ({selected.testType} - {selected.setNumber})
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(currentQPMeta.uploaded_file_url!, '_blank')}
+                          className="h-8 text-xs gap-1.5 flex-1 sm:flex-initial"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Preview</span>
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const a = document.createElement('a');
+                            a.href = currentQPMeta.uploaded_file_url!;
+                            a.download = currentQPMeta.uploaded_file_name || 'QuestionPaper';
+                            a.target = '_blank';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }}
+                          className="h-8 text-xs gap-1.5 flex-1 sm:flex-initial"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download</span>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload Dropzone */}
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg">Direct Document Upload</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                        Upload your completed question paper directly in PDF or Word (.docx, .doc) format (maximum 2MB).
+                      </p>
+                    </div>
+
+                    <input
+                      type="file"
+                      ref={docInputRef}
+                      accept=".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
+                      className="hidden"
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files && files[0]) {
+                          handleDocFileSelect(files[0]);
+                        }
+                        e.target.value = '';
+                      }}
+                      disabled={isLocked || uploadingDoc}
+                    />
+
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        if (!isLocked && !uploadingDoc) setIsDragOver(true);
+                      }}
+                      onDragLeave={() => setIsDragOver(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDragOver(false);
+                        if (!isLocked && !uploadingDoc && e.dataTransfer.files?.[0]) {
+                          handleDocFileSelect(e.dataTransfer.files[0]);
+                        }
+                      }}
+                      onClick={() => {
+                        if (!isLocked && !uploadingDoc) docInputRef.current?.click();
+                      }}
+                      className={`border-2 border-dashed rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 ${
+                        isLocked
+                          ? 'opacity-60 cursor-not-allowed bg-muted/20 border-border'
+                          : isDragOver
+                          ? 'border-primary bg-primary/10 shadow-lg scale-[1.005]'
+                          : theme === 'dark'
+                          ? 'border-border/80 bg-muted/10 hover:bg-muted/20 hover:border-primary/60'
+                          : 'border-gray-200 bg-gray-50/60 hover:bg-gray-50 hover:border-primary/60'
+                      }`}
+                    >
+                      <div className={`p-4 rounded-full mb-3 transition-transform ${isDragOver ? 'scale-110' : ''} ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                        <UploadCloud className="w-8 h-8" />
+                      </div>
+                      <p className="font-semibold text-sm sm:text-base text-foreground mb-1">
+                        {isDragOver ? 'Drop question paper file here' : 'Click to browse or drag & drop document here'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Supports <strong>PDF (.pdf)</strong> and <strong>Word (.docx, .doc)</strong>
+                      </p>
+                      <Badge variant="outline" className="text-[11px] px-3 py-1 font-semibold rounded-full bg-background border-border/70">
+                        Maximum File Size: 2 MB
+                      </Badge>
+                    </div>
+
+                    {/* Selected File Card */}
+                    {docFile && (
+                      <div className="p-4 rounded-xl border bg-muted/30 flex items-center justify-between gap-3 animate-in fade-in-50 duration-200">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2.5 rounded-lg bg-primary/10 text-primary shrink-0">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-xs sm:text-sm text-foreground truncate">{docFile.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(docFile.size / 1024).toFixed(1)} KB • {docFile.name.substring(docFile.name.lastIndexOf('.')).toUpperCase()}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDocFile(null);
+                          }}
+                          className="text-xs text-destructive hover:bg-destructive/10 h-8 px-2.5"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          <span>Remove</span>
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Action Bar */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t">
+                      <p className="text-xs text-muted-foreground italic">
+                        Saving uploads the document and prepares it for HOD & COE review.
+                      </p>
+                      {!isLocked && (
+                        <Button
+                          type="button"
+                          onClick={saveUploadedDocument}
+                          disabled={(!docFile && !currentQPMeta?.uploaded_file_url) || uploadingDoc || isLocked}
+                          className="w-full sm:w-auto bg-primary text-white hover:bg-primary/90 gap-2 h-10 px-6 font-semibold"
+                        >
+                          {uploadingDoc ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>Uploading Document...</span>
+                            </>
+                          ) : (
+                            <>
+                              <UploadCloud className="w-4 h-4" />
+                              <span>{currentQPMeta?.uploaded_file_url ? 'Update Question Paper Document' : 'Save & Upload Question Paper'}</span>
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
             <TabsContent value="questionPaper" className="w-full max-w-full overflow-hidden mt-0">
               {!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber || (dropdownData.section.length > 0 && selectedSectionIds.length === 0) ? (
                 <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
@@ -2922,30 +3409,52 @@ const UploadQP = () => {
                     <div className="flex items-center justify-between w-full sm:w-auto">
                       <h3 className="font-semibold text-lg">Question Paper Preview</h3>
                       {/* Mobile Download PDF Icon Button */}
-                      <Button
-                        onClick={downloadPDF}
-                        disabled={downloadingPDF}
-                        size="icon"
-                        variant="outline"
-                        className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
-                      >
-                        {downloadingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-                      </Button>
+                      {currentQPMeta?.uploaded_file_url ? (
+                        <Button
+                          onClick={() => window.open(currentQPMeta.uploaded_file_url!, '_blank')}
+                          size="icon"
+                          variant="outline"
+                          className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                          title="Download Document"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={downloadPDF}
+                          disabled={downloadingPDF}
+                          size="icon"
+                          variant="outline"
+                          className="flex sm:hidden h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
+                        >
+                          {downloadingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+                        </Button>
+                      )}
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                      {/* Desktop Download PDF Button */}
-                      <Button
-                        onClick={downloadPDF}
-                        disabled={downloadingPDF}
-                        className="hidden sm:flex w-full sm:w-auto bg-primary text-white hover:bg-primary/90 transition-all duration-200 items-center justify-center gap-2"
-                      >
-                        {downloadingPDF ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <FileDown className="h-4 w-4" />
-                        )}
-                        {downloadingPDF ? "Downloading..." : "Download PDF"}
-                      </Button>
+                      {/* Desktop Download PDF / Document Button */}
+                      {currentQPMeta?.uploaded_file_url ? (
+                        <Button
+                          onClick={() => window.open(currentQPMeta.uploaded_file_url!, '_blank')}
+                          className="hidden sm:flex w-full sm:w-auto bg-primary text-white hover:bg-primary/90 transition-all duration-200 items-center justify-center gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          <span>Download Document</span>
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={downloadPDF}
+                          disabled={downloadingPDF}
+                          className="hidden sm:flex w-full sm:w-auto bg-primary text-white hover:bg-primary/90 transition-all duration-200 items-center justify-center gap-2"
+                        >
+                          {downloadingPDF ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <FileDown className="h-4 w-4" />
+                          )}
+                          {downloadingPDF ? "Downloading..." : "Download PDF"}
+                        </Button>
+                      )}
                       {qpId ? (() => {
                         const isMulti = isElectiveOrOpenElective && selectedBranchIds.length > 1;
                         const allApprovedOrPending = isMulti && branchStatuses.length > 0
@@ -3045,10 +3554,85 @@ const UploadQP = () => {
 
                   {/* Question Paper Preview Sheet */}
                   <div className="w-full">
-                    <div className="block sm:hidden text-[11px] text-muted-foreground text-center mb-1.5 italic font-medium">
-                      ↔ Swipe horizontally to view full question paper
-                    </div>
-                    <div className="overflow-x-auto p-1 custom-scrollbar">
+                    {currentQPMeta?.uploaded_file_url ? (
+                      <div className="w-full rounded-2xl border overflow-hidden bg-card shadow-sm p-4 space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                              <FileText className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="font-bold text-sm sm:text-base text-foreground">
+                                  {currentQPMeta.uploaded_file_name || 'Uploaded Question Paper Document'}
+                                </h4>
+                                <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/30">
+                                  {currentQPMeta.uploaded_file_type || 'PDF'}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {selected.testType} • {selected.setNumber} • {dropdownData.subject.find(s => s.id === selected.subject_id)?.name || ''}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(currentQPMeta.uploaded_file_url!, '_blank')}
+                              className="h-8 text-xs gap-1.5"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              <span>Open in New Tab</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const a = document.createElement('a');
+                                a.href = currentQPMeta.uploaded_file_url!;
+                                a.download = currentQPMeta.uploaded_file_name || 'QuestionPaper';
+                                a.target = '_blank';
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                              }}
+                              className="h-8 text-xs gap-1.5"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>Download</span>
+                            </Button>
+                          </div>
+                        </div>
+
+                        {currentQPMeta.uploaded_file_type?.toLowerCase() === 'pdf' || (currentQPMeta.uploaded_file_url && currentQPMeta.uploaded_file_url.toLowerCase().endsWith('.pdf')) ? (
+                          <iframe
+                            src={currentQPMeta.uploaded_file_url}
+                            className="w-full h-[700px] rounded-xl border bg-white shadow-inner"
+                            title="Question Paper Document Preview"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-16 px-4 text-center space-y-4 bg-muted/20 rounded-xl border border-dashed">
+                            <FileText className="w-16 h-16 text-blue-500 opacity-80" />
+                            <div className="space-y-1">
+                              <h4 className="font-bold text-base text-foreground">{currentQPMeta.uploaded_file_name || 'Word Document Question Paper'}</h4>
+                              <p className="text-xs text-muted-foreground max-w-md">
+                                This question paper is stored in Word (.docx / .doc) format. Click below to download or view the complete document.
+                              </p>
+                            </div>
+                            <Button onClick={() => window.open(currentQPMeta.uploaded_file_url!, '_blank')} className="gap-2">
+                              <Download className="w-4 h-4" />
+                              <span>Download Question Paper Document</span>
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <div className="block sm:hidden text-[11px] text-muted-foreground text-center mb-1.5 italic font-medium">
+                          ↔ Swipe horizontally to view full question paper
+                        </div>
+                        <div className="overflow-x-auto p-1 custom-scrollbar">
                       {loading ? (
                         <SkeletonList items={4} />
                       ) : (
@@ -3262,10 +3846,12 @@ const UploadQP = () => {
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
-            )}
-          </TabsContent>
+                </>
+              )}
+            </div>
+          </div>
+      )}
+    </TabsContent>
           </CardContent>
         </Tabs>
       </Card>

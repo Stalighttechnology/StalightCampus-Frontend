@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { CheckCircle, XCircle, Eye, Download, ChevronLeft, ChevronRight, Loader2, Filter, X } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Download, ChevronLeft, ChevronRight, Loader2, Filter, X, FileText, ExternalLink, FileCheck } from "lucide-react";
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
@@ -254,6 +254,12 @@ interface QPPending {
   last_action?: {actor?: string;role?: string;action?: string;comment?: string; timestamp?: string;} | null;
   exam_start?: string;
   has_exam_started?: boolean;
+  paper_mode?: 'format' | 'document';
+  uploaded_file_url?: string | null;
+  uploaded_file_name?: string | null;
+  uploaded_file_type?: string | null;
+  org_name?: string | null;
+  org_logo?: string | null;
 }
 
 interface PaginationInfo {
@@ -297,6 +303,16 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   const downloadPDF = async () => {
     if (!qpDetail) return;
+    if (qpDetail.uploaded_file_url) {
+      const a = document.createElement("a");
+      a.href = qpDetail.uploaded_file_url;
+      a.download = qpDetail.uploaded_file_name || `QP_${qpDetail.id}`;
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return;
+    }
     setDownloadingPDF(true);
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/qps/${qpDetail.id}/export-pdf/`, {
@@ -1308,6 +1324,80 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <SkeletonList items={3} />
               </div> :
             qpDetail ?
+              qpDetail.uploaded_file_url ? (
+                <div className="w-full rounded-2xl border overflow-hidden bg-card shadow-sm p-4 sm:p-6 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-bold text-sm sm:text-base text-foreground">
+                            {qpDetail.uploaded_file_name || 'Uploaded Question Paper Document'}
+                          </h4>
+                          <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/30 bg-primary/5">
+                            {qpDetail.uploaded_file_type || 'PDF'}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Faculty: <span className="font-medium text-foreground">{qpDetail.faculty || 'Faculty'}</span> • {qpDetail.test_type} • {qpDetail.set_number ? `Set ${qpDetail.set_number}` : ''} • {qpDetail.subject}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(qpDetail.uploaded_file_url!, '_blank')}
+                        className="h-8 text-xs gap-1.5"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Open in New Tab</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const a = document.createElement('a');
+                          a.href = qpDetail.uploaded_file_url!;
+                          a.download = qpDetail.uploaded_file_name || 'QuestionPaper';
+                          a.target = '_blank';
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                        }}
+                        className="h-8 text-xs gap-1.5"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download</span>
+                      </Button>
+                    </div>
+                  </div>
+
+                  {qpDetail.uploaded_file_type?.toLowerCase() === 'pdf' || (qpDetail.uploaded_file_url && qpDetail.uploaded_file_url.toLowerCase().endsWith('.pdf')) ? (
+                    <iframe
+                      src={qpDetail.uploaded_file_url}
+                      className="w-full h-[650px] rounded-xl border bg-white shadow-inner"
+                      title="Question Paper Document Preview"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-16 px-4 text-center space-y-4 bg-muted/20 rounded-xl border border-dashed">
+                      <FileText className="w-16 h-16 text-blue-500 opacity-80" />
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-base text-foreground">{qpDetail.uploaded_file_name || 'Word Document Question Paper'}</h4>
+                        <p className="text-xs text-muted-foreground max-w-md">
+                          This question paper was uploaded in Word (.docx / .doc) format. Reviewers can download or open the document to inspect the content before approving.
+                        </p>
+                      </div>
+                      <Button onClick={() => window.open(qpDetail.uploaded_file_url!, '_blank')} className="gap-2">
+                        <Download className="w-4 h-4" />
+                        <span>Download Question Paper Document</span>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
             <div className="overflow-x-auto p-1 custom-scrollbar">
               <div className={`min-w-[650px] max-w-4xl mx-auto ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-slate-900 border-slate-300'} border rounded-xl shadow-lg p-6 sm:p-8 space-y-4`}>
                 {/* Header */}
@@ -1476,7 +1566,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                   </table>
                 </div>
               </div>
-            </div> :
+            </div>) :
 
             <div className="text-center py-4 text-muted-foreground">Failed to load QP details</div>
             }
@@ -1558,7 +1648,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                   className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50 h-10 sm:h-9 text-xs font-medium"
                 >
                   {downloadingPDF ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Download className="w-4 h-4 mr-1.5" />}
-                  <span>{downloadingPDF ? "Exporting..." : "Export PDF"}</span>
+                  <span>{qpDetail?.uploaded_file_url ? (downloadingPDF ? "Downloading..." : "Download Document") : (downloadingPDF ? "Exporting..." : "Export PDF")}</span>
                 </Button>
               </div>
             )}

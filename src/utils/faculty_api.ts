@@ -2308,6 +2308,10 @@ export interface CreateQPRequest {
   target_branch_ids?: number[];
   target_section_ids?: number[];
   applicable_sections?: string;
+  paper_mode?: 'format' | 'document';
+  uploaded_file_url?: string | null;
+  uploaded_file_name?: string | null;
+  uploaded_file_type?: string | null;
   questions_data: Array<{
     question_number: string;
     co: string;
