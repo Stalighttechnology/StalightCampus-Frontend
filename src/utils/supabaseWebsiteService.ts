@@ -3,7 +3,11 @@
  * Fetches form submissions and leads from Stalight website Supabase database
  */
 
-import { getSuperAdminWebsiteLeads } from "./admin_api";
+import {
+  getSuperAdminWebsiteLeads,
+  updateSuperAdminWebsiteLeadStatus,
+  deleteSuperAdminWebsiteLead,
+} from "./admin_api";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://jkzucjenrihvdwkibljn.supabase.co";
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_jlyS7VC_CVyYmuD_5hEWeQ_zu6aGTR6";
@@ -22,6 +26,47 @@ export interface FormConfig {
   description: string;
   color: string;
 }
+
+export const LEAD_STATUS_OPTIONS = [
+  {
+    value: "New",
+    label: "New",
+    badgeClass: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800",
+    dotClass: "bg-blue-500",
+  },
+  {
+    value: "Contacted",
+    label: "Contacted",
+    badgeClass: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800",
+    dotClass: "bg-amber-500",
+  },
+  {
+    value: "Interested",
+    label: "Interested",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800",
+    dotClass: "bg-emerald-500",
+  },
+  {
+    value: "In Progress",
+    label: "In Progress",
+    badgeClass: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800",
+    dotClass: "bg-purple-500",
+  },
+  {
+    value: "Not Interested",
+    label: "Not Interested",
+    badgeClass: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800",
+    dotClass: "bg-rose-500",
+  },
+  {
+    value: "Closed",
+    label: "Closed / Converted",
+    badgeClass: "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800",
+    dotClass: "bg-teal-500",
+  },
+] as const;
+
+export type LeadStatusType = typeof LEAD_STATUS_OPTIONS[number]["value"];
 
 export const FORM_CONFIGS: Record<FormTableKey, FormConfig> = {
   contact_inquiries: {
@@ -71,6 +116,7 @@ export interface WebsiteLeadItem {
   phone?: string;
   companyOrOrg?: string;
   summary: string;
+  status: string;
   createdAt: string;
   raw: Record<string, any>;
 }
@@ -111,6 +157,7 @@ function normalizeRecord(formType: FormTableKey, row: Record<string, any>): Webs
   const config = FORM_CONFIGS[formType];
   const id = row.id ?? `${formType}_${Math.random()}`;
   const createdAt = row.created_at || row.applied_at || new Date().toISOString();
+  const status = row.status || "New";
 
   switch (formType) {
     case "contact_inquiries":
@@ -123,6 +170,7 @@ function normalizeRecord(formType: FormTableKey, row: Record<string, any>): Webs
         phone: row.phone || "",
         companyOrOrg: row.company || "",
         summary: row.message || "",
+        status,
         createdAt,
         raw: row,
       };
@@ -137,6 +185,7 @@ function normalizeRecord(formType: FormTableKey, row: Record<string, any>): Webs
         phone: row.phone || "",
         companyOrOrg: row.interested_track ? `Track: ${row.interested_track}` : "",
         summary: row.highest_qualification ? `Qualification: ${row.highest_qualification}` : "",
+        status,
         createdAt,
         raw: row,
       };
@@ -157,6 +206,7 @@ function normalizeRecord(formType: FormTableKey, row: Record<string, any>): Webs
         ]
           .filter(Boolean)
           .join(" | "),
+        status,
         createdAt,
         raw: row,
       };
@@ -177,6 +227,7 @@ function normalizeRecord(formType: FormTableKey, row: Record<string, any>): Webs
         ]
           .filter(Boolean)
           .join(" | "),
+        status,
         createdAt,
         raw: row,
       };
@@ -199,6 +250,7 @@ function normalizeRecord(formType: FormTableKey, row: Record<string, any>): Webs
         ]
           .filter(Boolean)
           .join(" | "),
+        status,
         createdAt,
         raw: row,
       };
@@ -222,6 +274,7 @@ function normalizeRecord(formType: FormTableKey, row: Record<string, any>): Webs
         ]
           .filter(Boolean)
           .join(" | "),
+        status,
         createdAt,
         raw: row,
       };
@@ -236,6 +289,7 @@ function normalizeRecord(formType: FormTableKey, row: Record<string, any>): Webs
         phone: row.phone || "",
         companyOrOrg: "",
         summary: JSON.stringify(row),
+        status,
         createdAt,
         raw: row,
       };
@@ -246,11 +300,15 @@ function normalizeRecord(formType: FormTableKey, row: Record<string, any>): Webs
  * Fetch submissions for one or all forms
  */
 export async function getWebsiteLeads(
-  filterType: FormTableKey | "all" = "all"
+  filterType: FormTableKey | "all" = "all",
+  statusFilter: string = "all"
 ): Promise<{ success: boolean; data: WebsiteLeadItem[]; counts: Record<string, number> }> {
   try {
     // 1. First try fetching via Campus SuperAdmin Backend (using credentials in Django .env)
-    const backendRes = await getSuperAdminWebsiteLeads({ form_type: filterType });
+    const backendRes = await getSuperAdminWebsiteLeads({
+      form_type: filterType,
+      status: statusFilter !== "all" ? statusFilter : undefined,
+    });
     if (backendRes && backendRes.success && Array.isArray(backendRes.data)) {
       return {
         success: true,
@@ -288,7 +346,14 @@ export async function getWebsiteLeads(
       })
     );
 
-    const merged = results.flat();
+    let merged = results.flat();
+
+    // Filter by status if requested
+    if (statusFilter && statusFilter !== "all") {
+      merged = merged.filter(
+        (item) => item.status?.toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
 
     // Sort by createdAt descending
     merged.sort((a, b) => {
@@ -313,6 +378,43 @@ export async function getWebsiteLeads(
         neurosync_inquiries: 0,
       },
     };
+  }
+}
+
+/**
+ * Update the status of a website lead directly in Supabase
+ */
+export async function updateWebsiteLeadStatus(
+  formType: FormTableKey,
+  leadId: string | number,
+  status: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await updateSuperAdminWebsiteLeadStatus(formType, leadId, status);
+    if (res && res.success) {
+      return { success: true, message: res.message || `Status updated to ${status}` };
+    }
+    return { success: false, message: res?.message || "Failed to update status in Supabase" };
+  } catch (err: any) {
+    return { success: false, message: err?.message || "Network error updating status" };
+  }
+}
+
+/**
+ * Permanently delete a website lead from Supabase
+ */
+export async function deleteWebsiteLead(
+  formType: FormTableKey,
+  leadId: string | number
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await deleteSuperAdminWebsiteLead(formType, leadId);
+    if (res && res.success) {
+      return { success: true, message: res.message || "Lead deleted successfully from Supabase" };
+    }
+    return { success: false, message: res?.message || "Failed to delete lead from Supabase" };
+  } catch (err: any) {
+    return { success: false, message: err?.message || "Network error deleting lead" };
   }
 }
 

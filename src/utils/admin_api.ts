@@ -1942,13 +1942,14 @@ export const getAdminStudentAttendanceSummary = async (params: {
   }
 };
 
-export const getSuperAdminWebsiteLeads = async (params?: { form_type?: string; search?: string }): Promise<any> => {
+export const getSuperAdminWebsiteLeads = async (params?: { form_type?: string; search?: string; status?: string }): Promise<any> => {
   try {
     let url = `${API_ENDPOINT}/superadmin/website-leads/`;
     if (params) {
       const searchParams = new URLSearchParams();
       if (params.form_type) searchParams.append('form_type', params.form_type);
       if (params.search) searchParams.append('search', params.search);
+      if (params.status) searchParams.append('status', params.status);
       if (searchParams.toString()) url += `?${searchParams.toString()}`;
     }
     const response = await fetchWithSuperadminTokenRefresh(url, {
@@ -1962,4 +1963,48 @@ export const getSuperAdminWebsiteLeads = async (params?: { form_type?: string; s
     return { success: false, message: "Network error" };
   }
 };
+
+export const updateSuperAdminWebsiteLeadStatus = async (
+  formKey: string,
+  leadId: string | number,
+  status: string
+): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(
+      `${API_ENDPOINT}/superadmin/website-leads/${formKey}/${leadId}/status/`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      }
+    );
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error updating status" };
+  }
+};
+
+export const deleteSuperAdminWebsiteLead = async (
+  formKey: string,
+  leadId: string | number
+): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(
+      `${API_ENDPOINT}/superadmin/website-leads/${formKey}/${leadId}/`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+        },
+      }
+    );
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error deleting lead" };
+  }
+};
+
 

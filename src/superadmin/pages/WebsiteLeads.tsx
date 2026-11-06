@@ -18,6 +18,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -42,14 +52,18 @@ import {
   Cpu,
   Building2,
   Activity,
+  Trash2,
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import toast from "react-hot-toast";
 import {
   getWebsiteLeads,
+  updateWebsiteLeadStatus,
+  deleteWebsiteLead,
   WebsiteLeadItem,
   FORM_CONFIGS,
   FormTableKey,
+  LEAD_STATUS_OPTIONS,
 } from "@/utils/supabaseWebsiteService";
 
 const getBadgeClasses = (formType: FormTableKey) => {
@@ -69,6 +83,23 @@ const getBadgeClasses = (formType: FormTableKey) => {
     default:
       return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700";
   }
+};
+
+const getStatusBadgeClass = (statusStr?: string) => {
+  const match = LEAD_STATUS_OPTIONS.find(
+    (opt) => opt.value.toLowerCase() === (statusStr || "new").toLowerCase()
+  );
+  return (
+    match?.badgeClass ||
+    "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+  );
+};
+
+const getStatusDotClass = (statusStr?: string) => {
+  const match = LEAD_STATUS_OPTIONS.find(
+    (opt) => opt.value.toLowerCase() === (statusStr || "new").toLowerCase()
+  );
+  return match?.dotClass || "bg-gray-400";
 };
 
 const formatDate = (isoString?: string) => {
@@ -95,7 +126,13 @@ const WebsiteLeads: React.FC = () => {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedForm, setSelectedForm] = useState<FormTableKey | "all">("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Action states
+  const [leadToDelete, setLeadToDelete] = useState<WebsiteLeadItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [updatingLeadKey, setUpdatingLeadKey] = useState<string | null>(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -107,7 +144,7 @@ const WebsiteLeads: React.FC = () => {
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      const res = await getWebsiteLeads(selectedForm);
+      const res = await getWebsiteLeads(selectedForm, selectedStatus);
       if (res.success) {
         setLeads(res.data);
         if (res.counts && Object.keys(res.counts).length > 0) {
@@ -130,24 +167,129 @@ const WebsiteLeads: React.FC = () => {
   useEffect(() => {
     fetchLeads();
     setCurrentPage(1);
-  }, [selectedForm]);
+  }, [selectedForm, selectedStatus]);
 
-  // Filtered leads based on search query
+  // Handle status update directly to Supabase
+  const handleStatusChange = async (lead: WebsiteLeadItem, newStatus: string) => {
+    const leadKey = `${lead.formType}_${lead.id}`;
+    const prevStatus = lead.status;
+    // Optimistic update
+    setLeads((prev) =>
+      prev.map((item) =>
+        item.id === lead.id && item.formType === lead.formType
+          ? { ...item, status: newStatus }
+          : item
+      )
+    );
+    if (selectedLead && selectedLead.id === lead.id && selectedLead.formType === lead.formType) {
+      setSelectedLead((prev) => (prev ? { ...prev, status: newStatus } : null));
+    }
+
+    setUpdatingLeadKey(leadKey);
+    try {
+      const res = await updateWebsiteLeadStatus(lead.formType, lead.id, newStatus);
+      if (res.success) {
+        toast.success(`Status updated to ${newStatus}`);
+      } else {
+        toast.error(res.message || "Failed to update status in Supabase");
+        // Revert on failure
+        setLeads((prev) =>
+          prev.map((item) =>
+            item.id === lead.id && item.formType === lead.formType
+              ? { ...item, status: prevStatus }
+              : item
+          )
+        );
+        if (selectedLead && selectedLead.id === lead.id && selectedLead.formType === lead.formType) {
+          setSelectedLead((prev) => (prev ? { ...prev, status: prevStatus } : null));
+        }
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Error updating status");
+      // Revert on failure
+      setLeads((prev) =>
+        prev.map((item) =>
+          item.id === lead.id && item.formType === lead.formType
+            ? { ...item, status: prevStatus }
+            : item
+        )
+      );
+    } finally {
+      setUpdatingLeadKey(null);
+    }
+  };
+
+  // Handle permanent deletion from Supabase
+  const handleConfirmDelete = async () => {
+    if (!leadToDelete) return;
+    setIsDeleting(true);
+    try {
+      const res = await deleteWebsiteLead(leadToDelete.formType, leadToDelete.id);
+      if (res.success) {
+        toast.success("Lead permanently deleted from Supabase");
+        // Remove from list
+        setLeads((prev) =>
+          prev.filter((l) => !(l.id === leadToDelete.id && l.formType === leadToDelete.formType))
+        );
+        // Decrement counts
+        setCounts((prev) => ({
+          ...prev,
+          all: Math.max(0, (prev.all || 1) - 1),
+          [leadToDelete.formType]: Math.max(0, (prev[leadToDelete.formType] || 1) - 1),
+        }));
+        if (selectedLead && selectedLead.id === leadToDelete.id && selectedLead.formType === leadToDelete.formType) {
+          setSelectedLead(null);
+        }
+        setLeadToDelete(null);
+      } else {
+        toast.error(res.message || "Failed to delete lead from Supabase");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Error deleting lead");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Filtered leads based on search query and status
   const filteredLeads = useMemo(() => {
-    if (!searchQuery.trim()) return leads;
-    const q = searchQuery.toLowerCase().trim();
-    return leads.filter((item) => {
-      const matchName = item.name?.toLowerCase().includes(q);
-      const matchEmail = item.email?.toLowerCase().includes(q);
-      const matchPhone = item.phone?.toLowerCase().includes(q);
-      const matchCompany = item.companyOrOrg?.toLowerCase().includes(q);
-      const matchSummary = item.summary?.toLowerCase().includes(q);
-      return matchName || matchEmail || matchPhone || matchCompany || matchSummary;
-    });
-  }, [leads, searchQuery]);
+    let result = leads;
+    if (selectedStatus && selectedStatus !== "all") {
+      result = result.filter(
+        (item) => item.status?.toLowerCase() === selectedStatus.toLowerCase()
+      );
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter((item) => {
+        const matchName = item.name?.toLowerCase().includes(q);
+        const matchEmail = item.email?.toLowerCase().includes(q);
+        const matchPhone = item.phone?.toLowerCase().includes(q);
+        const matchCompany = item.companyOrOrg?.toLowerCase().includes(q);
+        const matchSummary = item.summary?.toLowerCase().includes(q);
+        const matchStatus = item.status?.toLowerCase().includes(q);
+        return (
+          matchName ||
+          matchEmail ||
+          matchPhone ||
+          matchCompany ||
+          matchSummary ||
+          matchStatus
+        );
+      });
+    }
+    return result;
+  }, [leads, searchQuery, selectedStatus]);
 
   // Pagination slice
   const totalPages = Math.ceil(filteredLeads.length / pageSize) || 1;
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
   const paginatedLeads = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredLeads.slice(start, start + pageSize);
@@ -330,7 +472,7 @@ const WebsiteLeads: React.FC = () => {
                 value={selectedForm}
                 onValueChange={(val) => setSelectedForm(val as FormTableKey | "all")}
               >
-                <SelectTrigger className="w-[200px] h-9 text-xs font-semibold">
+                <SelectTrigger className="w-[180px] h-9 text-xs font-semibold">
                   <SelectValue placeholder="All Forms" />
                 </SelectTrigger>
                 <SelectContent>
@@ -342,6 +484,27 @@ const WebsiteLeads: React.FC = () => {
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Status Filter */}
+              <Select
+                value={selectedStatus}
+                onValueChange={setSelectedStatus}
+              >
+                <SelectTrigger className="w-[160px] h-9 text-xs font-semibold">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {LEAD_STATUS_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${opt.dotClass}`} />
+                        <span>{opt.label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Search Input */}
@@ -349,7 +512,7 @@ const WebsiteLeads: React.FC = () => {
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search by name, email, phone..."
+                placeholder="Search by name, email, phone, status..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -376,14 +539,17 @@ const WebsiteLeads: React.FC = () => {
                   <TableHead className="text-xs font-semibold uppercase tracking-wider">
                     Organization / Focus
                   </TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
+                    Status
+                  </TableHead>
                   <TableHead className="text-xs font-semibold uppercase tracking-wider hidden lg:table-cell">
                     Summary / Message
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase tracking-wider">
                     Submitted Date
                   </TableHead>
-                  <TableHead className="w-20 text-right pr-6 text-xs font-semibold uppercase tracking-wider">
-                    Action
+                  <TableHead className="w-24 text-right pr-6 text-xs font-semibold uppercase tracking-wider">
+                    Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -391,19 +557,19 @@ const WebsiteLeads: React.FC = () => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="p-0">
-                      <SkeletonTable rows={5} cols={7} />
+                    <TableCell colSpan={8} className="p-0">
+                      <SkeletonTable rows={5} cols={8} />
                     </TableCell>
                   </TableRow>
                 ) : paginatedLeads.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-48 text-center">
+                    <TableCell colSpan={8} className="h-48 text-center">
                       <div className="flex flex-col items-center justify-center gap-2 opacity-60">
                         <Inbox className="w-8 h-8 text-muted-foreground" />
                         <span className="text-sm font-semibold">No submissions found</span>
                         <span className="text-xs text-muted-foreground">
-                          {searchQuery
-                            ? "Try adjusting your search criteria"
+                          {searchQuery || selectedStatus !== "all"
+                            ? "Try adjusting your search or filter criteria"
                             : "No responses collected yet for this form"}
                         </span>
                       </div>
@@ -455,6 +621,40 @@ const WebsiteLeads: React.FC = () => {
                           </span>
                         </TableCell>
 
+                        {/* Status Dropdown in Table Row */}
+                        <TableCell className="whitespace-nowrap">
+                          <Select
+                            value={item.status || "New"}
+                            onValueChange={(val) => handleStatusChange(item, val)}
+                            disabled={updatingLeadKey === `${item.formType}_${item.id}`}
+                          >
+                            <SelectTrigger
+                              className={`h-7 w-[130px] text-[11px] font-semibold border rounded-lg px-2 shadow-none focus:ring-1 ${getStatusBadgeClass(
+                                item.status || "New"
+                              )}`}
+                            >
+                              <div className="flex items-center gap-1.5 truncate">
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${getStatusDotClass(
+                                    item.status || "New"
+                                  )}`}
+                                />
+                                <span className="truncate">{item.status || "New"}</span>
+                              </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {LEAD_STATUS_OPTIONS.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`w-2 h-2 rounded-full ${opt.dotClass}`} />
+                                    <span>{opt.label}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+
                         <TableCell className="hidden lg:table-cell max-w-xs">
                           <p className="text-xs text-muted-foreground line-clamp-2">
                             {item.summary || "—"}
@@ -465,16 +665,28 @@ const WebsiteLeads: React.FC = () => {
                           {formatDate(item.createdAt)}
                         </TableCell>
 
-                        <TableCell className="text-right pr-6 whitespace-nowrap">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setSelectedLead(item)}
-                            className="h-8 w-8 hover:bg-primary/10 hover:text-primary rounded-lg transition-all"
-                            title="View Full Submission"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
+                        {/* Actions (View + Delete) */}
+                        <TableCell className="text-right pr-4 whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setSelectedLead(item)}
+                              className="h-8 w-8 hover:bg-primary/10 hover:text-primary rounded-lg transition-all"
+                              title="View Full Submission"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setLeadToDelete(item)}
+                              className="h-8 w-8 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 text-muted-foreground rounded-lg transition-all"
+                              title="Delete Submission"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -540,14 +752,49 @@ const WebsiteLeads: React.FC = () => {
           {selectedLead && (
             <>
               <DialogHeader className="p-5 sm:p-6 pb-4 border-b border-border/50 bg-muted/20">
-                <div className="flex items-center justify-between gap-2">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${getBadgeClasses(
-                      selectedLead.formType
-                    )}`}
-                  >
-                    {selectedLead.formLabel}
-                  </span>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${getBadgeClasses(
+                        selectedLead.formType
+                      )}`}
+                    >
+                      {selectedLead.formLabel}
+                    </span>
+
+                    {/* Status Dropdown in Detail Modal Header */}
+                    <Select
+                      value={selectedLead.status || "New"}
+                      onValueChange={(val) => handleStatusChange(selectedLead, val)}
+                      disabled={updatingLeadKey === `${selectedLead.formType}_${selectedLead.id}`}
+                    >
+                      <SelectTrigger
+                        className={`h-7 w-[130px] text-[11px] font-semibold border rounded-lg px-2 shadow-none focus:ring-1 ${getStatusBadgeClass(
+                          selectedLead.status || "New"
+                        )}`}
+                      >
+                        <div className="flex items-center gap-1.5 truncate">
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${getStatusDotClass(
+                              selectedLead.status || "New"
+                            )}`}
+                          />
+                          <span className="truncate">{selectedLead.status || "New"}</span>
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LEAD_STATUS_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className={`w-2 h-2 rounded-full ${opt.dotClass}`} />
+                              <span>{opt.label}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     {formatDate(selectedLead.createdAt)}
@@ -630,7 +877,7 @@ const WebsiteLeads: React.FC = () => {
                     {Object.entries(selectedLead.raw)
                       .filter(
                         ([key]) =>
-                          !["id", "full_name", "first_name", "last_name", "name", "email", "phone"].includes(
+                          !["id", "full_name", "first_name", "last_name", "name", "email", "phone", "status"].includes(
                             key
                           )
                       )
@@ -648,34 +895,17 @@ const WebsiteLeads: React.FC = () => {
                 </div>
               </div>
 
-              <DialogFooter className="p-4 sm:p-5 border-t border-border/50 flex sm:justify-between items-center gap-2">
-                <div className="flex items-center gap-2">
-                  {selectedLead.email && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="h-8 text-xs gap-1"
-                      onClick={() => window.open(`mailto:${selectedLead.email}`)}
-                    >
-                      <Mail className="w-3 h-3" />
-                      Email Lead
-                    </Button>
-                  )}
-                  {selectedLead.phone && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="h-8 text-xs gap-1"
-                      onClick={() => window.open(`tel:${selectedLead.phone}`)}
-                    >
-                      <Phone className="w-3 h-3" />
-                      Call Lead
-                    </Button>
-                  )}
-                </div>
-
+              <DialogFooter className="p-4 sm:p-5 border-t border-border/50 flex items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLeadToDelete(selectedLead)}
+                  className="h-8 text-xs text-rose-600 border-rose-200 hover:bg-rose-50 dark:border-rose-900/60 dark:hover:bg-rose-950/40 gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Delete
+                </Button>
                 <Button
                   type="button"
                   variant="default"
@@ -690,6 +920,49 @@ const WebsiteLeads: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog
+        open={!!leadToDelete}
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) {
+            setLeadToDelete(null);
+          }
+        }}
+      >
+        <AlertDialogContent className="rounded-2xl max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
+              <Trash2 className="w-5 h-5 text-rose-500" />
+              Delete Inquiry Submission?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs leading-relaxed text-muted-foreground mt-2">
+              Are you sure you want to permanently delete this inquiry from{" "}
+              <strong className="text-foreground">{leadToDelete?.name}</strong> (
+              {leadToDelete?.formLabel})?
+              <br />
+              <span className="text-rose-500 font-semibold block mt-1.5">
+                This will permanently remove the record directly from Supabase and cannot be recovered.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4 gap-2">
+            <AlertDialogCancel disabled={isDeleting} className="h-8 text-xs">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmDelete();
+              }}
+              disabled={isDeleting}
+              className="h-8 text-xs bg-rose-600 hover:bg-rose-700 text-white"
+            >
+              {isDeleting ? "Deleting..." : "Permanently Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
