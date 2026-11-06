@@ -393,16 +393,6 @@ const DeveloperLeavePolicySettings: React.FC = () => {
           )}
           <Button
             type="button"
-            onClick={fetchPolicy}
-            variant="outline"
-            size="sm"
-            className="h-9 text-xs"
-          >
-            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-            Reload
-          </Button>
-          <Button
-            type="button"
             onClick={handleSaveAll}
             disabled={savingAll}
             size="sm"

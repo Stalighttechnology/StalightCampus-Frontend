@@ -27,6 +27,7 @@ interface AuditSummary {
   total_days: number;
   present: number;
   absent: number;
+  on_leave?: number;
   attendance_percentage: number;
 }
 
@@ -48,6 +49,10 @@ interface DetailRecord {
     distance_meters: number | null;
     campus_name: string | null;
   } | null;
+  leave_type?: string | null;
+  leave_type_display?: string | null;
+  is_half_day?: boolean;
+  half_day_session?: string | null;
 }
 
 const DeveloperAttendanceAudit: React.FC = () => {
@@ -155,6 +160,12 @@ const DeveloperAttendanceAudit: React.FC = () => {
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
             <CheckCircle className="w-3 h-3" /> Present
+          </span>
+        );
+      case 'on_leave':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+            <CalendarIcon className="w-3 h-3" /> On Leave
           </span>
         );
       case 'absent':
@@ -311,6 +322,7 @@ const DeveloperAttendanceAudit: React.FC = () => {
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Total Days</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-green-600">Present</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-red-600">Absent</TableHead>
+                  <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-purple-600">On Leave</TableHead>
                   <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Percentage</TableHead>
                   <TableHead className="px-6 py-4 text-right pr-6 text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Actions</TableHead>
                 </TableRow>
@@ -318,8 +330,8 @@ const DeveloperAttendanceAudit: React.FC = () => {
               <TableBody>
                 {loading ?
                   <TableRow>
-                    <TableCell colSpan={6} className="p-0">
-                      <SkeletonTable rows={5} cols={6} />
+                    <TableCell colSpan={7} className="p-0">
+                      <SkeletonTable rows={5} cols={7} />
                     </TableCell>
                   </TableRow> :
                   records.length > 0 ?
@@ -354,6 +366,11 @@ const DeveloperAttendanceAudit: React.FC = () => {
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
+                          <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 font-semibold text-sm">
+                            {item.on_leave || 0}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
                           <div className="flex flex-col items-center gap-1">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">{item.attendance_percentage}%</div>
                             <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
@@ -381,7 +398,7 @@ const DeveloperAttendanceAudit: React.FC = () => {
                     )) :
                     !startDate || !endDate || !filtersApplied ?
                       <TableRow>
-                        <TableCell colSpan={6} className="h-72 text-center">
+                        <TableCell colSpan={7} className="h-72 text-center">
                           <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
                             <div className="bg-primary/10 p-4 rounded-full">
                               <Filter className="h-8 w-8 text-primary" />
@@ -394,7 +411,7 @@ const DeveloperAttendanceAudit: React.FC = () => {
                         </TableCell>
                       </TableRow> :
                       <TableRow>
-                        <TableCell colSpan={6} className="h-72 text-center">
+                        <TableCell colSpan={7} className="h-72 text-center">
                           <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
                             <div className="bg-muted p-4 rounded-full">
                               <Users className="h-8 w-8 text-muted-foreground" />
@@ -456,9 +473,11 @@ const DeveloperAttendanceAudit: React.FC = () => {
                       "flex items-center justify-between p-3 rounded-xl border transition-all",
                       rec.status === 'present'
                         ? "border-green-200 dark:border-green-900/30 bg-green-50/50 dark:bg-green-900/10"
-                        : rec.status === 'absent'
-                          ? "border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10"
-                          : "border-border/50 bg-muted/10"
+                        : rec.status === 'on_leave'
+                          ? "border-purple-200 dark:border-purple-900/30 bg-purple-50/50 dark:bg-purple-900/10"
+                          : rec.status === 'absent'
+                            ? "border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10"
+                            : "border-border/50 bg-muted/10"
                     )}
                   >
                     <div className="flex items-center gap-3">
@@ -466,7 +485,9 @@ const DeveloperAttendanceAudit: React.FC = () => {
                         "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold",
                         rec.status === 'present'
                           ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400"
-                          : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400"
+                          : rec.status === 'on_leave'
+                            ? "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400"
+                            : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400"
                       )}>
                         {new Date(rec.date + 'T00:00:00').toLocaleDateString('en-US', { day: '2-digit' })}
                       </div>
@@ -475,7 +496,26 @@ const DeveloperAttendanceAudit: React.FC = () => {
                           {new Date(rec.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                          {rec.status === 'absent' ? (
+                          {rec.status === 'on_leave' ? (
+                            <>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                                <CalendarIcon className="w-3 h-3" /> On Leave
+                              </span>
+                              {rec.leave_type_display && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/40">
+                                  {rec.leave_type_display}
+                                </span>
+                              )}
+                              {rec.is_half_day && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                                  Half-Day ({rec.half_day_session === 'forenoon' ? 'Morning' : 'Afternoon'})
+                                </span>
+                              )}
+                              {rec.notes && (
+                                <span className="text-[11px] text-muted-foreground italic">({rec.notes})</span>
+                              )}
+                            </>
+                          ) : rec.status === 'absent' ? (
                             <>
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
                                 Absent

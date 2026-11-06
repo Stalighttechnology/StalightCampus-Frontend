@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, Filter, FileText, ExternalLink, Calendar as CalendarIcon, Search, Loader2, CalendarDays, Sliders, CalendarCheck2 } from "lucide-react";
+import { CheckCircle, XCircle, Filter, FileText, ExternalLink, Calendar as CalendarIcon, Search, Loader2, CalendarCheck2 } from "lucide-react";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import { useTheme } from "../../context/ThemeContext";
@@ -19,8 +19,6 @@ import {
   actionSuperAdminDeveloperLeave,
   DeveloperLeaveAdminRecord
 } from "../../utils/admin_api";
-import DeveloperLeavePolicySettings from "./DeveloperLeavePolicySettings";
-import DeveloperHolidayCalendar from "./DeveloperHolidayCalendar";
 
 const getStatusBadge = (status: string, theme: string) => {
   switch (status?.toUpperCase()) {
@@ -108,7 +106,6 @@ const formatDateString = (dateStr: string) => {
 const DeveloperLeaveApprovals: React.FC = () => {
   const { theme } = useTheme();
 
-  const [activeTab, setActiveTab] = useState<'requests' | 'policy' | 'holidays'>('requests');
   const [leaves, setLeaves] = useState<DeveloperLeaveAdminRecord[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -277,60 +274,7 @@ const DeveloperLeaveApprovals: React.FC = () => {
 
   return (
     <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Top Section Segmented Tabs */}
-      <div className="flex flex-wrap items-center gap-2 mb-4 p-1 rounded-xl bg-muted/40 w-fit border border-border/50">
-        <button
-          type="button"
-          onClick={() => setActiveTab('requests')}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-            activeTab === 'requests'
-              ? 'bg-primary text-white shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <CalendarIcon className="w-3.5 h-3.5" />
-          <span>Leave Requests</span>
-          {totalCount > 0 && (
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-              activeTab === 'requests' ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'
-            }`}>
-              {totalCount}
-            </span>
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('policy')}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-            activeTab === 'policy'
-              ? 'bg-primary text-white shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Sliders className="w-3.5 h-3.5" />
-          <span>Leave Policy Configuration</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('holidays')}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-            activeTab === 'holidays'
-              ? 'bg-primary text-white shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <CalendarDays className="w-3.5 h-3.5" />
-          <span>Annual Holiday Calendar</span>
-        </button>
-      </div>
-
-      {activeTab === 'policy' && <DeveloperLeavePolicySettings />}
-      {activeTab === 'holidays' && <DeveloperHolidayCalendar />}
-
-      {activeTab === 'requests' && (
-        <Card id="developer-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
+      <Card id="developer-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
         <CardHeader id="developer-leaves-header-section" className="leave-card-header border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6">
           <div className="flex flex-col gap-1">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -821,7 +765,6 @@ const DeveloperLeaveApprovals: React.FC = () => {
           </CardFooter>
         )}
       </Card>
-      )}
 
       {/* View Reason Dialog matching HODLeavesManagement */}
       <Dialog open={!!selectedLeaveForReason} onOpenChange={() => setSelectedLeaveForReason(null)}>
