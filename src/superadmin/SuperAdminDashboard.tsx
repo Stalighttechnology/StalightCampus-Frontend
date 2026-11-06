@@ -24,6 +24,7 @@ import HQChatPage from "./pages/HQChatPage";
 import DeveloperLeaveApprovals from "./pages/DeveloperLeaveApprovals";
 import DeveloperLeavePolicySettings from "./pages/DeveloperLeavePolicySettings";
 import DeveloperHolidayCalendar from "./pages/DeveloperHolidayCalendar";
+import WebsiteLeads from "./pages/WebsiteLeads";
 
 import { useTheme } from "../context/ThemeContext";
 import { Sun, Moon, Menu } from "lucide-react";
@@ -166,6 +167,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
               <Route path="reports" element={<Reports />} />
               <Route path="nda" element={<NDASubmissions />} />
               <Route path="marketing" element={<BulkEmailer />} />
+              <Route path="website-leads" element={<WebsiteLeads />} />
               <Route path="profile" element={<Profile />} />
               <Route path="certificates" element={<CertificateManagement />} />
               <Route path="offer-letters" element={<OfferLetterManagement />} />

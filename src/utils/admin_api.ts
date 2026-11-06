@@ -1942,3 +1942,24 @@ export const getAdminStudentAttendanceSummary = async (params: {
   }
 };
 
+export const getSuperAdminWebsiteLeads = async (params?: { form_type?: string; search?: string }): Promise<any> => {
+  try {
+    let url = `${API_ENDPOINT}/superadmin/website-leads/`;
+    if (params) {
+      const searchParams = new URLSearchParams();
+      if (params.form_type) searchParams.append('form_type', params.form_type);
+      if (params.search) searchParams.append('search', params.search);
+      if (searchParams.toString()) url += `?${searchParams.toString()}`;
+    }
+    const response = await fetchWithSuperadminTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+      },
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+

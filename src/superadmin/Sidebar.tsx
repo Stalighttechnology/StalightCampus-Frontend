@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Capacitor } from "@capacitor/core";
 import { 
@@ -22,7 +22,8 @@ import {
   Briefcase,
   Calendar,
   CalendarCheck2,
-  CalendarDays
+  CalendarDays,
+  Globe
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useTheme } from "../context/ThemeContext";
@@ -36,6 +37,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../components/ui/alert-dialog";
+import { getWebsiteLeads } from "../utils/supabaseWebsiteService";
+import { getSuperAdminDeveloperLeaves } from "../utils/admin_api";
 
 interface SidebarProps {
   activePage: string;
@@ -67,6 +70,7 @@ const allMenuItems = [
   { id: "chat", label: "HQ Chat", icon: <MessageSquare size={20} /> },
   { id: "nda", label: "NDA & Consents", icon: <FileText size={20} /> },
   { id: "marketing", label: "Marketing Emails", icon: <Mail size={20} /> },
+  { id: "website-leads", label: "Website Leads", icon: <Globe size={20} /> },
   { id: "certificates", label: "Certificates", icon: <FileText size={20} /> },
   { id: "offer-letters", label: "Offer Letters", icon: <Briefcase size={20} /> },
   { id: "profile", label: "My Profile", icon: <UserCircle2 size={20} /> },
@@ -87,6 +91,89 @@ const Sidebar = ({ activePage, setActivePage, onLogout, collapsed, toggleCollaps
   const { theme } = useTheme();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const userRole = localStorage.getItem("superadmin_role");
+
+  // Notification states
+  const [totalWebsiteLeadsCount, setTotalWebsiteLeadsCount] = useState<number>(0);
+  const [newWebsiteLeadsCount, setNewWebsiteLeadsCount] = useState<number>(0);
+  const [pendingLeavesCount, setPendingLeavesCount] = useState<number>(0);
+
+  const fetchWebsiteLeadsCount = async () => {
+    try {
+      const res = await getWebsiteLeads("all");
+      if (res && res.success) {
+        const total = res.counts?.all ?? (res.total ?? (Array.isArray(res.data) ? res.data.length : 0));
+        setTotalWebsiteLeadsCount(total);
+
+        // If currently viewing website-leads, keep viewed in sync
+        if (activePage === "website-leads") {
+          localStorage.setItem("stalight_website_leads_last_viewed_count", total.toString());
+          setNewWebsiteLeadsCount(0);
+          return;
+        }
+
+        const savedSeenCountStr = localStorage.getItem("stalight_website_leads_last_viewed_count");
+        if (savedSeenCountStr !== null) {
+          const savedSeenCount = parseInt(savedSeenCountStr, 10);
+          const diff = Math.max(0, total - (isNaN(savedSeenCount) ? 0 : savedSeenCount));
+          setNewWebsiteLeadsCount(diff);
+        } else {
+          // If first time loading and there are existing leads
+          setNewWebsiteLeadsCount(total);
+        }
+      }
+    } catch {
+      // Ignore background fetch error
+    }
+  };
+
+  const fetchPendingDeveloperLeaves = async () => {
+    try {
+      const res = await getSuperAdminDeveloperLeaves({ status: "PENDING", page_size: 1 });
+      if (res && res.success) {
+        const count = res.total ?? (res.data?.length ?? 0);
+        setPendingLeavesCount(count);
+      }
+    } catch {
+      // Ignore background fetch error
+    }
+  };
+
+  useEffect(() => {
+    fetchWebsiteLeadsCount();
+    fetchPendingDeveloperLeaves();
+
+    const interval = setInterval(() => {
+      fetchWebsiteLeadsCount();
+      fetchPendingDeveloperLeaves();
+    }, 30000);
+
+    const handleFocus = () => {
+      fetchWebsiteLeadsCount();
+      fetchPendingDeveloperLeaves();
+    };
+    window.addEventListener("focus", handleFocus);
+
+    const handleLeadsViewed = () => {
+      setNewWebsiteLeadsCount(0);
+    };
+    window.addEventListener("stalight_website_leads_viewed", handleLeadsViewed);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("stalight_website_leads_viewed", handleLeadsViewed);
+    };
+  }, [activePage]);
+
+  // When activePage changes to website-leads, mark as viewed immediately
+  useEffect(() => {
+    if (activePage === "website-leads") {
+      setNewWebsiteLeadsCount(0);
+      if (totalWebsiteLeadsCount > 0) {
+        localStorage.setItem("stalight_website_leads_last_viewed_count", totalWebsiteLeadsCount.toString());
+      }
+    }
+  }, [activePage, totalWebsiteLeadsCount]);
   
   const menuItems = userRole === "developer" 
     ? allMenuItems.filter(item => developerAllowedPages.includes(item.id))
@@ -120,27 +207,76 @@ const Sidebar = ({ activePage, setActivePage, onLogout, collapsed, toggleCollaps
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-4 thin-scrollbar">
         <div className="space-y-1 px-3">
-          {menuItems.map((item) => (
-            <Button
-              key={item.id}
-              variant={activePage === item.id ? "default" : "ghost"}
-              className={`w-full justify-start h-10 transition-all duration-200 ${
-                activePage === item.id 
-                  ? "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" 
-                  : theme === 'dark' ? "text-muted-foreground hover:text-foreground hover:bg-accent" : "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-              } ${(collapsed && window.innerWidth >= 1024) ? "px-2 justify-center" : "px-3 gap-3"}`}
-              onClick={() => {
-                setActivePage(item.id);
-                if (window.innerWidth < 1024) {
-                  toggleCollapse();
-                }
-              }}
-              title={(collapsed && window.innerWidth >= 1024) ? item.label : undefined}
-            >
-              {item.icon}
-              {(!collapsed || window.innerWidth < 1024) && <span>{item.label}</span>}
-            </Button>
-          ))}
+          {menuItems.map((item) => {
+            const isWebsiteLeads = item.id === "website-leads";
+            const isDeveloperLeaves = item.id === "developer-leaves";
+
+            const showDot =
+              (isWebsiteLeads && newWebsiteLeadsCount > 0 && activePage !== "website-leads") ||
+              (isDeveloperLeaves && pendingLeavesCount > 0 && activePage !== "developer-leaves");
+            const badgeCount = isWebsiteLeads ? newWebsiteLeadsCount : (isDeveloperLeaves ? pendingLeavesCount : 0);
+
+            return (
+              <Button
+                key={item.id}
+                variant={activePage === item.id ? "default" : "ghost"}
+                className={`w-full justify-start h-10 transition-all duration-200 relative ${
+                  activePage === item.id 
+                    ? "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" 
+                    : theme === 'dark' ? "text-muted-foreground hover:text-foreground hover:bg-accent" : "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                } ${(collapsed && window.innerWidth >= 1024) ? "px-2 justify-center" : "px-3 gap-3"}`}
+                onClick={() => {
+                  if (item.id === "website-leads") {
+                    setNewWebsiteLeadsCount(0);
+                    if (totalWebsiteLeadsCount > 0) {
+                      localStorage.setItem("stalight_website_leads_last_viewed_count", totalWebsiteLeadsCount.toString());
+                    }
+                  }
+                  setActivePage(item.id);
+                  if (window.innerWidth < 1024) {
+                    toggleCollapse();
+                  }
+                }}
+                title={(collapsed && window.innerWidth >= 1024) ? item.label : undefined}
+              >
+                <div className="relative flex items-center justify-center shrink-0">
+                  {item.icon}
+                  {showDot && (collapsed && window.innerWidth >= 1024) && (
+                    <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 z-10 pointer-events-none">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
+                    </span>
+                  )}
+                </div>
+
+                {(!collapsed || window.innerWidth < 1024) && (
+                  <>
+                    <span className="truncate flex-1 text-left">{item.label}</span>
+                    {showDot && (
+                      <div className="ml-auto flex items-center shrink-0 pl-1 z-10 pointer-events-none">
+                        {badgeCount > 0 ? (
+                          <span
+                            className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none border shadow-sm ${
+                              activePage === item.id
+                                ? "bg-white text-primary border-white/60 font-extrabold"
+                                : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
+                            }`}
+                          >
+                            {badgeCount}
+                          </span>
+                        ) : (
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </Button>
+            );
+          })}
         </div>
       </div>
 
