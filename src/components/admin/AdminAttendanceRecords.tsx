@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { DateRange } from "react-day-picker";
 import { format, subDays, startOfMonth } from "date-fns";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonTable } from "@/components/ui/skeleton";
@@ -124,6 +125,7 @@ const AdminAttendanceRecords: React.FC = () => {
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -337,6 +339,7 @@ const AdminAttendanceRecords: React.FC = () => {
     setSelectedSubject("");
     setStartDate(undefined);
     setEndDate(undefined);
+    setTempDateRange(undefined);
     setSearchTerm("");
     setDebouncedSearch("");
     setPage(1);
@@ -346,6 +349,55 @@ const AdminAttendanceRecords: React.FC = () => {
     setFacultyInfo(null);
     setTotalRecordsCount(0);
     loadFilters();
+  };
+
+  const handleOpenDatePickerChange = (open: boolean) => {
+    setIsDatePickerOpen(open);
+    if (open) {
+      if (startDate) {
+        setTempDateRange({
+          from: startDate,
+          to: endDate || startDate
+        });
+      } else {
+        setTempDateRange(undefined);
+      }
+    }
+  };
+
+  const handleCalendarSelect = (range: DateRange | undefined) => {
+    setTempDateRange(range);
+  };
+
+  const handleApplyDateRange = () => {
+    if (!tempDateRange?.from) return;
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    if (tempDateRange.from > today) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Date Range",
+        description: "Date cannot be in the future."
+      });
+      return;
+    }
+
+    const fromDate = tempDateRange.from;
+    const toDate = tempDateRange.to ? (tempDateRange.to > today ? today : tempDateRange.to) : fromDate;
+
+    setStartDate(fromDate);
+    setEndDate(toDate);
+    setIsDatePickerOpen(false);
+    setPage(1);
+  };
+
+  const handleClearDateRange = () => {
+    setTempDateRange(undefined);
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setIsDatePickerOpen(false);
+    setPage(1);
   };
 
   // Date Presets (Strictly capped at today)
@@ -2350,91 +2402,103 @@ const AdminAttendanceRecords: React.FC = () => {
               <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">
                 Date Range<span className="text-rose-500 ml-1 font-semibold">*</span>
               </label>
-              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+              <Popover open={isDatePickerOpen} onOpenChange={handleOpenDatePickerChange}>
                 <PopoverTrigger asChild>
                   <Button
                     id="date-range-picker-btn"
                     variant="outline"
                     size="sm"
                     className={cn(
-                      "w-full h-10 justify-start text-left font-normal bg-background px-3 border-input text-sm",
+                      "w-full h-10 justify-between text-left font-normal bg-background px-3 border-input text-sm",
                       !startDate && !endDate && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4 shrink-0 text-primary" />
-                    <span className="truncate">
-                      {startDate && endDate
-                        ? `${format(startDate, "dd/MM/yyyy")}  –  ${format(endDate, "dd/MM/yyyy")}`
-                        : startDate
-                        ? format(startDate, "dd/MM/yyyy")
-                        : "Choose Date Range"}
-                    </span>
+                    <div className="flex items-center min-w-0 overflow-hidden">
+                      <CalendarIcon className="mr-2 h-4 w-4 shrink-0 text-primary" />
+                      <span className="truncate font-medium text-foreground">
+                        {startDate && endDate
+                          ? startDate.getTime() === endDate.getTime()
+                            ? format(startDate, "dd/MM/yyyy")
+                            : `${format(startDate, "dd/MM/yyyy")}  –  ${format(endDate, "dd/MM/yyyy")}`
+                          : startDate
+                          ? format(startDate, "dd/MM/yyyy")
+                          : "Choose Date Range"}
+                      </span>
+                    </div>
+                    {(startDate || endDate) && (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClearDateRange();
+                        }}
+                        className="ml-1 rounded-full p-0.5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                        title="Clear date filter"
+                      >
+                        <X className="w-3 h-3" />
+                      </span>
+                    )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
                   align="end"
                   sideOffset={6}
                   collisionPadding={16}
-                  className="w-auto p-0 z-50 rounded-xl border shadow-lg overflow-hidden bg-popover max-w-[calc(100vw-2rem)]"
+                  className="w-auto p-0 z-50 rounded-xl border border-border shadow-lg overflow-hidden bg-popover max-w-[calc(100vw-2rem)]"
                 >
-                  {/* Date Range Calendar Picker */}
+                  <div className="px-3 py-2 border-b border-border bg-muted/20 flex items-center justify-between text-xs">
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      Date Range
+                    </span>
+                    <span className="font-medium text-foreground text-xs">
+                      {tempDateRange?.from && tempDateRange?.to ? (
+                        tempDateRange.from.getTime() === tempDateRange.to.getTime() ? (
+                          format(tempDateRange.from, "dd/MM/yyyy")
+                        ) : (
+                          `${format(tempDateRange.from, "dd/MM/yyyy")}  –  ${format(tempDateRange.to, "dd/MM/yyyy")}`
+                        )
+                      ) : tempDateRange?.from ? (
+                        <span className="text-primary font-normal">
+                          {format(tempDateRange.from, "dd/MM/yyyy")} → <span className="italic text-muted-foreground text-[11px]">Select end date</span>
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground italic text-[11px]">Pick start & end date</span>
+                      )}
+                    </span>
+                  </div>
 
-                  {/* Compact Calendar */}
                   <div className="p-1.5 flex justify-center">
                     <Calendar
                       mode="range"
-                      selected={
-                        startDate
-                          ? {
-                              from: startDate,
-                              to: endDate || startDate
-                            }
-                          : undefined
-                      }
-                      onSelect={(range) => {
-                        const today = new Date();
-                        today.setHours(23, 59, 59, 999);
-                        if (range?.from) {
-                          if (range.from > today) {
-                            toast({
-                              variant: "destructive",
-                              title: "Invalid Date Range",
-                              description: "Date cannot be in the future."
-                            });
-                            return;
-                          }
-                          setStartDate(range.from);
-                        }
-                        if (range?.to) {
-                          if (range.to > today) {
-                            setEndDate(today);
-                          } else {
-                            setEndDate(range.to);
-                          }
-                        } else if (range?.from) {
-                          setEndDate(range.from);
-                        }
-                        setPage(1);
-                      }}
+                      selected={tempDateRange}
+                      onSelect={handleCalendarSelect}
+                      numberOfMonths={1}
                       disabled={(date) => {
                         const today = new Date();
                         today.setHours(23, 59, 59, 999);
                         return date > today;
                       }}
-                      numberOfMonths={1}
-                      className="p-1"
-                      classNames={{
-                        months: "space-y-2",
-                        month: "space-y-2",
-                        caption: "flex justify-center pt-0 pb-1 relative items-center",
-                        caption_label: "text-xs font-semibold",
-                        nav_button: "h-6 w-6 bg-transparent p-0 opacity-60 hover:opacity-100",
-                        head_cell: "text-muted-foreground rounded-md w-8 h-8 font-medium text-[11px] flex items-center justify-center",
-                        row: "flex w-full mt-1",
-                        cell: "h-8 w-8 text-xs flex items-center justify-center p-0 relative",
-                        day: "h-8 w-8 text-xs font-normal"
-                      }}
+                      initialFocus
                     />
+                  </div>
+
+                  <div className="flex items-center justify-between p-2.5 border-t border-border bg-muted/20">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs h-7.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 px-2.5 rounded-lg"
+                      onClick={handleClearDateRange}
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      Clear Dates
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={!tempDateRange?.from}
+                      className="text-xs h-7.5 px-3.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs font-medium rounded-lg disabled:opacity-50"
+                      onClick={handleApplyDateRange}
+                    >
+                      Apply
+                    </Button>
                   </div>
                 </PopoverContent>
               </Popover>
