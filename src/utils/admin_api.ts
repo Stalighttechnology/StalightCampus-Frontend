@@ -1964,6 +1964,33 @@ export const getSuperAdminWebsiteLeads = async (params?: { form_type?: string; s
   }
 };
 
+export const createSuperAdminWebsiteLead = async (payload: {
+  form_type: string;
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  message?: string;
+  status?: string;
+}): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(
+      `${API_ENDPOINT}/superadmin/website-leads/create/`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error creating lead" };
+  }
+};
+
 export const updateSuperAdminWebsiteLeadStatus = async (
   formKey: string,
   leadId: string | number,
@@ -1984,6 +2011,36 @@ export const updateSuperAdminWebsiteLeadStatus = async (
     return await response.json();
   } catch (error) {
     return { success: false, message: "Network error updating status" };
+  }
+};
+
+export const editSuperAdminWebsiteLead = async (
+  formKey: string,
+  leadId: string | number,
+  payload: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    company?: string;
+    summary?: string;
+    status?: string;
+  }
+): Promise<any> => {
+  try {
+    const response = await fetchWithSuperadminTokenRefresh(
+      `${API_ENDPOINT}/superadmin/website-leads/${formKey}/${leadId}/edit/`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error editing lead" };
   }
 };
 

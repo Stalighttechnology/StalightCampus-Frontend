@@ -168,6 +168,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
               <Route path="nda" element={<NDASubmissions />} />
               <Route path="marketing" element={<BulkEmailer />} />
               <Route path="website-leads" element={<WebsiteLeads />} />
+              <Route path="lead-management" element={<WebsiteLeads />} />
               <Route path="profile" element={<Profile />} />
               <Route path="certificates" element={<CertificateManagement />} />
               <Route path="offer-letters" element={<OfferLetterManagement />} />

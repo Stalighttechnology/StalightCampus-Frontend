@@ -23,7 +23,8 @@ import {
   Calendar,
   CalendarCheck2,
   CalendarDays,
-  Globe
+  Globe,
+  Kanban
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useTheme } from "../context/ThemeContext";
@@ -70,7 +71,7 @@ const allMenuItems = [
   { id: "chat", label: "HQ Chat", icon: <MessageSquare size={20} /> },
   { id: "nda", label: "NDA & Consents", icon: <FileText size={20} /> },
   { id: "marketing", label: "Marketing Emails", icon: <Mail size={20} /> },
-  { id: "website-leads", label: "Website Leads", icon: <Globe size={20} /> },
+  { id: "website-leads", label: "Lead Management", icon: <Kanban size={20} /> },
   { id: "certificates", label: "Certificates", icon: <FileText size={20} /> },
   { id: "offer-letters", label: "Offer Letters", icon: <Briefcase size={20} /> },
   { id: "profile", label: "My Profile", icon: <UserCircle2 size={20} /> },

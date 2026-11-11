@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,10 +13,9 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -27,16 +27,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { SkeletonTable } from "@/components/ui/skeleton";
-import {
+  Kanban,
+  ListFilter,
+  Plus,
   Search,
   Eye,
   Mail,
@@ -53,20 +48,82 @@ import {
   Building2,
   Activity,
   Trash2,
+  SlidersHorizontal,
+  Clock,
+  Download,
+  ExternalLink,
+  User as UserIcon,
+  Pencil,
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import toast from "react-hot-toast";
+import { cn } from "@/lib/utils";
 import {
   getWebsiteLeads,
   updateWebsiteLeadStatus,
+  editWebsiteLead,
   deleteWebsiteLead,
+  createWebsiteLead,
   WebsiteLeadItem,
   FORM_CONFIGS,
   FormTableKey,
   LEAD_STATUS_OPTIONS,
 } from "@/utils/supabaseWebsiteService";
 
-const getBadgeClasses = (formType: FormTableKey) => {
+export interface ServicePipelineStage {
+  id: string;
+  label: string;
+  badgeClass: string;
+  dotColor: string;
+  borderColor: string;
+}
+
+const SERVICE_STAGES: ServicePipelineStage[] = [
+  {
+    id: "New",
+    label: "New Enquiry",
+    badgeClass: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+    dotColor: "bg-blue-500",
+    borderColor: "#3b82f6",
+  },
+  {
+    id: "Contacted",
+    label: "Contacted",
+    badgeClass: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800",
+    dotColor: "bg-purple-500",
+    borderColor: "#a855f7",
+  },
+  {
+    id: "Interested",
+    label: "Interested",
+    badgeClass: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+    dotColor: "bg-amber-500",
+    borderColor: "#f59e0b",
+  },
+  {
+    id: "In Progress",
+    label: "In Progress",
+    badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800",
+    dotColor: "bg-indigo-500",
+    borderColor: "#6366f1",
+  },
+  {
+    id: "Not Interested",
+    label: "Not Interested",
+    badgeClass: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800",
+    dotColor: "bg-rose-500",
+    borderColor: "#f43f5e",
+  },
+  {
+    id: "Closed",
+    label: "Closed / Converted",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
+    dotColor: "bg-emerald-500",
+    borderColor: "#10b981",
+  },
+];
+
+const getFormBadgeClasses = (formType: FormTableKey) => {
   switch (formType) {
     case "contact_inquiries":
       return "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-900";
@@ -85,21 +142,23 @@ const getBadgeClasses = (formType: FormTableKey) => {
   }
 };
 
-const getStatusBadgeClass = (statusStr?: string) => {
-  const match = LEAD_STATUS_OPTIONS.find(
-    (opt) => opt.value.toLowerCase() === (statusStr || "new").toLowerCase()
-  );
-  return (
-    match?.badgeClass ||
-    "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
-  );
-};
-
-const getStatusDotClass = (statusStr?: string) => {
-  const match = LEAD_STATUS_OPTIONS.find(
-    (opt) => opt.value.toLowerCase() === (statusStr || "new").toLowerCase()
-  );
-  return match?.dotClass || "bg-gray-400";
+const getFormIcon = (formType: FormTableKey) => {
+  switch (formType) {
+    case "contact_inquiries":
+      return <Mail className="w-3.5 h-3.5" />;
+    case "admission_applications":
+      return <GraduationCap className="w-3.5 h-3.5" />;
+    case "project_inquiries":
+      return <Briefcase className="w-3.5 h-3.5" />;
+    case "it_assessments":
+      return <Cpu className="w-3.5 h-3.5" />;
+    case "neurocampus_inquiries":
+      return <Building2 className="w-3.5 h-3.5" />;
+    case "neurosync_inquiries":
+      return <Activity className="w-3.5 h-3.5" />;
+    default:
+      return <Mail className="w-3.5 h-3.5" />;
+  }
 };
 
 const formatDate = (isoString?: string) => {
@@ -119,32 +178,150 @@ const formatDate = (isoString?: string) => {
   }
 };
 
+const PAGE_SIZE = 10;
+
 const WebsiteLeads: React.FC = () => {
   const { theme } = useTheme();
 
+  // Core Data States
   const [leads, setLeads] = useState<WebsiteLeadItem[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedForm, setSelectedForm] = useState<FormTableKey | "all">("all");
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Action states
+  // View Mode: 'pipeline' (Sliding Kanban) or 'filtered_list' (Rows by Filter)
+  const [viewMode, setViewMode] = useState<"pipeline" | "filtered_list">("pipeline");
+
+  // Filtering Controls
+  const [selectedForm, setSelectedForm] = useState<FormTableKey | "all">("all");
+  const [activeFilterStage, setActiveFilterStage] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [listPage, setListPage] = useState<number>(1);
+
+  // Detail Modal & Action States
+  const [selectedLead, setSelectedLead] = useState<WebsiteLeadItem | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
   const [leadToDelete, setLeadToDelete] = useState<WebsiteLeadItem | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [updatingLeadKey, setUpdatingLeadKey] = useState<string | null>(null);
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(10);
+  // Add Manual Lead Modal
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [newLeadFormType, setNewLeadFormType] = useState<FormTableKey>("contact_inquiries");
+  const [newLeadName, setNewLeadName] = useState<string>("");
+  const [newLeadEmail, setNewLeadEmail] = useState<string>("");
+  const [newLeadPhone, setNewLeadPhone] = useState<string>("");
+  const [newLeadCompany, setNewLeadCompany] = useState<string>("");
+  const [newLeadSummary, setNewLeadSummary] = useState<string>("");
+  const [newLeadStatus, setNewLeadStatus] = useState<string>("New");
+  const [isSubmittingLead, setIsSubmittingLead] = useState<boolean>(false);
 
-  // Detail Modal
-  const [selectedLead, setSelectedLead] = useState<WebsiteLeadItem | null>(null);
+  // Edit Lead Modal States
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [leadToEdit, setLeadToEdit] = useState<WebsiteLeadItem | null>(null);
+  const [editName, setEditName] = useState<string>("");
+  const [editEmail, setEditEmail] = useState<string>("");
+  const [editPhone, setEditPhone] = useState<string>("");
+  const [editCompany, setEditCompany] = useState<string>("");
+  const [editSummary, setEditSummary] = useState<string>("");
+  const [editStatus, setEditStatus] = useState<string>("New");
+  const [isSubmittingEdit, setIsSubmittingEdit] = useState<boolean>(false);
+
+  const openEditModal = (lead: WebsiteLeadItem) => {
+    setLeadToEdit(lead);
+    setEditName(lead.name || "");
+    setEditEmail(lead.email || "");
+    setEditPhone(lead.phone || "");
+    setEditCompany(lead.companyOrOrg || "");
+    setEditSummary(lead.summary || "");
+    setEditStatus(lead.status || "New");
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!leadToEdit) return;
+    if (!editName.trim() || !editEmail.trim()) {
+      toast.error("Name and Email are required");
+      return;
+    }
+
+    setIsSubmittingEdit(true);
+    try {
+      const res = await editWebsiteLead(leadToEdit.formType, leadToEdit.id, {
+        name: editName.trim(),
+        email: editEmail.trim(),
+        phone: editPhone.trim(),
+        companyOrOrg: editCompany.trim(),
+        summary: editSummary.trim(),
+        status: editStatus,
+      });
+
+      if (res.success) {
+        toast.success("Lead updated successfully!");
+        setLeads((prev) =>
+          prev.map((item) =>
+            item.id === leadToEdit.id && item.formType === leadToEdit.formType
+              ? {
+                  ...item,
+                  name: editName.trim(),
+                  email: editEmail.trim(),
+                  phone: editPhone.trim(),
+                  companyOrOrg: editCompany.trim(),
+                  summary: editSummary.trim(),
+                  status: editStatus,
+                }
+              : item
+          )
+        );
+        if (selectedLead && selectedLead.id === leadToEdit.id && selectedLead.formType === leadToEdit.formType) {
+          setSelectedLead({
+            ...selectedLead,
+            name: editName.trim(),
+            email: editEmail.trim(),
+            phone: editPhone.trim(),
+            companyOrOrg: editCompany.trim(),
+            summary: editSummary.trim(),
+            status: editStatus,
+          });
+        }
+        setShowEditModal(false);
+        setLeadToEdit(null);
+      } else {
+        toast.error(res.message || "Failed to update lead");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Error updating lead");
+    } finally {
+      setIsSubmittingEdit(false);
+    }
+  };
+
+  // Horizontal Edge Scroll Ref for Sliding Kanban
+  const scrollRef = useRef<{ id: number | null }>({ id: null });
+  const startScrolling = (container: HTMLDivElement, direction: "left" | "right") => {
+    if (scrollRef.current.id) return;
+    const scrollSpeed = 8;
+    const step = () => {
+      if (direction === "left") {
+        container.scrollLeft -= scrollSpeed;
+      } else {
+        container.scrollLeft += scrollSpeed;
+      }
+      scrollRef.current.id = requestAnimationFrame(step);
+    };
+    scrollRef.current.id = requestAnimationFrame(step);
+  };
+  const stopScrolling = () => {
+    if (scrollRef.current.id) {
+      cancelAnimationFrame(scrollRef.current.id);
+      scrollRef.current.id = null;
+    }
+  };
 
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      const res = await getWebsiteLeads(selectedForm, selectedStatus);
+      const res = await getWebsiteLeads(selectedForm, "all");
       if (res.success) {
         setLeads(res.data);
         if (res.counts && Object.keys(res.counts).length > 0) {
@@ -166,33 +343,36 @@ const WebsiteLeads: React.FC = () => {
 
   useEffect(() => {
     fetchLeads();
-    setCurrentPage(1);
-  }, [selectedForm, selectedStatus]);
+    setListPage(1);
+  }, [selectedForm]);
 
-  // Handle status update directly to Supabase
-  const handleStatusChange = async (lead: WebsiteLeadItem, newStatus: string) => {
+  // Handle stage change with optimistic update
+  const handleStatusChange = async (lead: WebsiteLeadItem, newStageId: string) => {
+    if (lead.status === newStageId) return;
+
     const leadKey = `${lead.formType}_${lead.id}`;
     const prevStatus = lead.status;
-    // Optimistic update
+
+    // Optimistic UI update
     setLeads((prev) =>
       prev.map((item) =>
         item.id === lead.id && item.formType === lead.formType
-          ? { ...item, status: newStatus }
+          ? { ...item, status: newStageId }
           : item
       )
     );
     if (selectedLead && selectedLead.id === lead.id && selectedLead.formType === lead.formType) {
-      setSelectedLead((prev) => (prev ? { ...prev, status: newStatus } : null));
+      setSelectedLead((prev) => (prev ? { ...prev, status: newStageId } : null));
     }
 
     setUpdatingLeadKey(leadKey);
     try {
-      const res = await updateWebsiteLeadStatus(lead.formType, lead.id, newStatus);
+      const res = await updateWebsiteLeadStatus(lead.formType, lead.id, newStageId);
       if (res.success) {
-        toast.success(`Status updated to ${newStatus}`);
+        toast.success(`Lead moved to "${newStageId}"`);
       } else {
         toast.error(res.message || "Failed to update status in Supabase");
-        // Revert on failure
+        // Revert on error
         setLeads((prev) =>
           prev.map((item) =>
             item.id === lead.id && item.formType === lead.formType
@@ -205,8 +385,8 @@ const WebsiteLeads: React.FC = () => {
         }
       }
     } catch (err: any) {
-      toast.error(err?.message || "Error updating status");
-      // Revert on failure
+      toast.error(err?.message || "Error updating lead status");
+      // Revert on error
       setLeads((prev) =>
         prev.map((item) =>
           item.id === lead.id && item.formType === lead.formType
@@ -219,7 +399,47 @@ const WebsiteLeads: React.FC = () => {
     }
   };
 
-  // Handle permanent deletion from Supabase
+  // Handle Manual Add Lead
+  const handleAddManualLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLeadName.trim() || !newLeadEmail.trim()) {
+      toast.error("Name and Email are required");
+      return;
+    }
+
+    setIsSubmittingLead(true);
+    try {
+      const res = await createWebsiteLead({
+        formType: newLeadFormType,
+        name: newLeadName.trim(),
+        email: newLeadEmail.trim(),
+        phone: newLeadPhone.trim(),
+        companyOrOrg: newLeadCompany.trim(),
+        summary: newLeadSummary.trim(),
+        status: newLeadStatus,
+      });
+
+      if (res.success) {
+        toast.success("Lead added successfully!");
+        setShowAddModal(false);
+        setNewLeadName("");
+        setNewLeadEmail("");
+        setNewLeadPhone("");
+        setNewLeadCompany("");
+        setNewLeadSummary("");
+        setNewLeadStatus("New");
+        fetchLeads();
+      } else {
+        toast.error(res.message || "Failed to add lead");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Error adding lead");
+    } finally {
+      setIsSubmittingLead(false);
+    }
+  };
+
+  // Handle Confirm Delete
   const handleConfirmDelete = async () => {
     if (!leadToDelete) return;
     setIsDeleting(true);
@@ -227,17 +447,16 @@ const WebsiteLeads: React.FC = () => {
       const res = await deleteWebsiteLead(leadToDelete.formType, leadToDelete.id);
       if (res.success) {
         toast.success("Lead permanently deleted from Supabase");
-        // Remove from list
         setLeads((prev) =>
           prev.filter((l) => !(l.id === leadToDelete.id && l.formType === leadToDelete.formType))
         );
-        // Decrement counts
         setCounts((prev) => ({
           ...prev,
           all: Math.max(0, (prev.all || 1) - 1),
           [leadToDelete.formType]: Math.max(0, (prev[leadToDelete.formType] || 1) - 1),
         }));
         if (selectedLead && selectedLead.id === leadToDelete.id && selectedLead.formType === leadToDelete.formType) {
+          setIsDetailsOpen(false);
           setSelectedLead(null);
         }
         setLeadToDelete(null);
@@ -251,51 +470,55 @@ const WebsiteLeads: React.FC = () => {
     }
   };
 
-  // Filtered leads based on search query and status
+  // Helper to count leads for each stage dynamically
+  const getStageCount = (stageId: string) => {
+    if (stageId === "all") return leads.length;
+    return leads.filter((l) => (l.status || "New").toLowerCase() === stageId.toLowerCase()).length;
+  };
+
+  // Filtered leads for the views
   const filteredLeads = useMemo(() => {
-    let result = leads;
-    if (selectedStatus && selectedStatus !== "all") {
-      result = result.filter(
-        (item) => item.status?.toLowerCase() === selectedStatus.toLowerCase()
-      );
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter((item) => {
-        const matchName = item.name?.toLowerCase().includes(q);
-        const matchEmail = item.email?.toLowerCase().includes(q);
-        const matchPhone = item.phone?.toLowerCase().includes(q);
-        const matchCompany = item.companyOrOrg?.toLowerCase().includes(q);
-        const matchSummary = item.summary?.toLowerCase().includes(q);
-        const matchStatus = item.status?.toLowerCase().includes(q);
-        return (
-          matchName ||
-          matchEmail ||
-          matchPhone ||
-          matchCompany ||
-          matchSummary ||
-          matchStatus
-        );
-      });
-    }
-    return result;
-  }, [leads, searchQuery, selectedStatus]);
+    return leads.filter((lead) => {
+      // Stage filter (used in list view)
+      if (activeFilterStage !== "all") {
+        if ((lead.status || "New").toLowerCase() !== activeFilterStage.toLowerCase()) {
+          return false;
+        }
+      }
 
-  // Pagination slice
-  const totalPages = Math.ceil(filteredLeads.length / pageSize) || 1;
+      // Search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchName = lead.name?.toLowerCase().includes(q);
+        const matchEmail = lead.email?.toLowerCase().includes(q);
+        const matchPhone = lead.phone?.toLowerCase().includes(q);
+        const matchCompany = lead.companyOrOrg?.toLowerCase().includes(q);
+        const matchSummary = lead.summary?.toLowerCase().includes(q);
+        const matchForm = lead.formLabel?.toLowerCase().includes(q);
+        const matchStatus = lead.status?.toLowerCase().includes(q);
+        if (!matchName && !matchEmail && !matchPhone && !matchCompany && !matchSummary && !matchForm && !matchStatus) {
+          return false;
+        }
+      }
 
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [totalPages, currentPage]);
+      return true;
+    });
+  }, [leads, activeFilterStage, searchQuery]);
+
+  // Pagination for Filtering List
+  const totalListCount = filteredLeads.length;
+  const totalListPages = Math.ceil(totalListCount / PAGE_SIZE) || 1;
 
   const paginatedLeads = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredLeads.slice(start, start + pageSize);
-  }, [filteredLeads, currentPage, pageSize]);
+    const start = (listPage - 1) * PAGE_SIZE;
+    return filteredLeads.slice(start, start + PAGE_SIZE);
+  }, [filteredLeads, listPage]);
 
-  // Export to CSV
+  useEffect(() => {
+    setListPage(1);
+  }, [activeFilterStage, searchQuery, selectedForm]);
+
+  // Export CSV
   const handleExportCSV = () => {
     if (filteredLeads.length === 0) {
       toast.error("No records to export");
@@ -304,11 +527,12 @@ const WebsiteLeads: React.FC = () => {
 
     const headers = [
       "ID",
-      "Form Type",
+      "Form Category",
       "Name",
       "Email",
       "Phone",
-      "Company/Organization",
+      "Company / Organization",
+      "Status",
       "Summary / Message",
       "Submitted At",
     ];
@@ -320,6 +544,7 @@ const WebsiteLeads: React.FC = () => {
       `"${(item.email || "").replace(/"/g, '""')}"`,
       `"${(item.phone || "").replace(/"/g, '""')}"`,
       `"${(item.companyOrOrg || "").replace(/"/g, '""')}"`,
+      `"${item.status || "New"}"`,
       `"${(item.summary || "").replace(/"/g, '""')}"`,
       `"${item.createdAt}"`,
     ]);
@@ -333,7 +558,7 @@ const WebsiteLeads: React.FC = () => {
     link.setAttribute("href", encodedUri);
     link.setAttribute(
       "download",
-      `stalight_website_leads_${selectedForm}_${new Date().toISOString().split("T")[0]}.csv`
+      `stalight_leads_${selectedForm}_${new Date().toISOString().split("T")[0]}.csv`
     );
     document.body.appendChild(link);
     link.click();
@@ -341,631 +566,967 @@ const WebsiteLeads: React.FC = () => {
     toast.success(`Exported ${filteredLeads.length} leads successfully`);
   };
 
-  const statCards: {
-    key: FormTableKey;
-    title: string;
-    icon: React.ReactNode;
-    desc: string;
-    iconColor: string;
-  }[] = [
-    {
-      key: "contact_inquiries",
-      title: "Contact Inquiries",
-      icon: <Mail className="w-5 h-5" />,
-      desc: "General contact & support messages",
-      iconColor: "text-blue-500",
-    },
-    {
-      key: "admission_applications",
-      title: "Admission Applications",
-      icon: <GraduationCap className="w-5 h-5" />,
-      desc: "Campus course & student applications",
-      iconColor: "text-purple-500",
-    },
-    {
-      key: "project_inquiries",
-      title: "Project Inquiries",
-      icon: <Briefcase className="w-5 h-5" />,
-      desc: "Client & development projects",
-      iconColor: "text-emerald-500",
-    },
-    {
-      key: "it_assessments",
-      title: "IT Assessments",
-      icon: <Cpu className="w-5 h-5" />,
-      desc: "Infrastructure & technical assessments",
-      iconColor: "text-amber-500",
-    },
-    {
-      key: "neurocampus_inquiries",
-      title: "NeuroCampus Inquiries",
-      icon: <Building2 className="w-5 h-5" />,
-      desc: "Institutional AI campus inquiries",
-      iconColor: "text-indigo-500",
-    },
-    {
-      key: "neurosync_inquiries",
-      title: "NeuroSync Inquiries",
-      icon: <Activity className="w-5 h-5" />,
-      desc: "Integration & sync inquiries",
-      iconColor: "text-rose-500",
-    },
-  ];
+  const getStageBadge = (statusStr?: string) => {
+    const stage = SERVICE_STAGES.find(
+      (s) => s.id.toLowerCase() === (statusStr || "New").toLowerCase()
+    ) || {
+      label: statusStr || "New",
+      badgeClass: "bg-muted text-muted-foreground border-border",
+    };
+    return (
+      <Badge variant="outline" className={cn("text-xs font-semibold px-2.5 py-0.5 border capitalize", stage.badgeClass)}>
+        {stage.label}
+      </Badge>
+    );
+  };
+
+  if (loading && leads.length === 0) {
+    return (
+      <Card className="flex flex-col h-[calc(100vh-140px)] overflow-hidden border-border">
+        <CardHeader className="border-b pb-4 flex flex-row justify-between items-center">
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-80" />
+          </div>
+        </CardHeader>
+        <CardContent className="flex-1 min-h-0 p-6 flex gap-0 overflow-x-auto overflow-y-hidden items-stretch">
+          {[1, 2, 3, 4].map((id) => (
+            <div key={id} className="min-w-[280px] w-[280px] flex flex-col h-full border-r border-border last:border-r-0 px-4">
+              <div className="flex justify-between items-center mb-4 border-b border-border/50 pb-3">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-8" />
+              </div>
+              <div className="space-y-3 flex-1 overflow-y-auto">
+                {[1, 2, 3].map((cardId) => (
+                  <Card key={cardId} className="border border-border">
+                    <CardContent className="p-3 flex flex-col gap-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-3 w-2/3" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className={`space-y-8 w-full ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>
-      {/* Page Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Website Leads & Forms</h1>
-        <p className="text-xs sm:text-sm text-muted-foreground">
-          Live database of all inquiries and submissions collected across Stalight website forms
-        </p>
-      </div>
+    <Card id="lead-pipeline-container" className="flex flex-col h-[calc(100vh-140px)] overflow-hidden border border-border shadow-sm">
+      {/* Top Header with Switch Controls */}
+      <CardHeader id="lead-pipeline-header" className="border-b pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 bg-card">
+        <div>
+          <CardTitle className="text-xl sm:text-2xl font-semibold flex items-center gap-2">
+            <span>Lead Management</span>
+            <Badge variant="secondary" className="text-xs font-normal bg-primary/10 text-primary">
+              {leads.length} Enquiries
+            </Badge>
+          </CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            {viewMode === "pipeline"
+              ? "Manage applicant pipeline visually with drag-and-drop sliding stages."
+              : "Filter and review applicant leads stage by stage in organized rows (10 per page)."}
+          </p>
+        </div>
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {statCards.map((card) => {
-          const isSelected = selectedForm === card.key;
-          const count = counts[card.key] ?? 0;
-          return (
-            <div key={card.key} className="rounded-lg">
-              <Card
-                onClick={() => setSelectedForm(isSelected ? "all" : card.key)}
-                className={`h-full flex flex-col transition-all duration-300 cursor-pointer backdrop-blur-sm shadow-sm hover:shadow-md ${
-                  isSelected
-                    ? theme === "dark"
-                      ? "bg-card/70 border-primary ring-2 ring-primary"
-                      : "bg-blue-50/80 border-blue-500 ring-2 ring-blue-500/40"
-                    : theme === "dark"
-                    ? "bg-card/40 border-border hover:bg-card/60 hover:border-primary/40"
-                    : "bg-white border-gray-100 hover:bg-gray-50/80 hover:border-blue-200"
-                }`}
-              >
-                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                  <CardTitle
-                    className={`text-sm font-medium ${
-                      theme === "dark" ? "text-foreground" : "text-gray-700"
-                    }`}
-                  >
-                    {card.title}
-                  </CardTitle>
-                  <div className={theme === "dark" ? "w-5 h-5 text-primary" : `w-5 h-5 ${card.iconColor}`}>
-                    {card.icon}
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <div
-                    className={`text-2xl font-bold ${
-                      theme === "dark" ? "text-foreground" : "text-gray-900"
-                    }`}
-                  >
-                    {count}
-                  </div>
-                  <p
-                    className={`text-xs mt-2 ${
-                      theme === "dark" ? "text-muted-foreground" : "text-gray-500"
-                    }`}
-                  >
-                    {card.desc}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          );
-        })}
-      </div>
+        <div className="flex flex-wrap items-center gap-2.5 self-end sm:self-auto">
+          {/* Service / Form Category Selector */}
+          <Select
+            value={selectedForm}
+            onValueChange={(val) => setSelectedForm(val as FormTableKey | "all")}
+          >
+            <SelectTrigger className="w-[170px] h-8 text-xs font-medium bg-background">
+              <SelectValue placeholder="All Services" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Services ({counts.all || leads.length})</SelectItem>
+              {(Object.keys(FORM_CONFIGS) as FormTableKey[]).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {FORM_CONFIGS[key].label} ({counts[key] || 0})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-      {/* Main Table Card */}
-      <Card
-        className={`border shadow-sm overflow-hidden ${
-          theme === "dark" ? "bg-card border-border" : "bg-white border-gray-200"
-        }`}
-      >
-        <CardHeader className="p-4 sm:p-5 border-b border-border/50">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            {/* Filter Pills / Selector */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                <Filter className="w-3.5 h-3.5" /> Filter:
-              </span>
+          {/* Switch Button for Pipeline Sliding vs Filtering List */}
+          <div className="flex items-center bg-muted p-1 rounded-lg border border-border">
+            <Button
+              variant={viewMode === "pipeline" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("pipeline")}
+              className={cn(
+                "h-8 px-3 text-xs font-medium gap-1.5 transition-all",
+                viewMode === "pipeline" ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Kanban className="w-3.5 h-3.5" />
+              <span>Pipeline Sliding</span>
+            </Button>
+            <Button
+              variant={viewMode === "filtered_list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("filtered_list")}
+              className={cn(
+                "h-8 px-3 text-xs font-medium gap-1.5 transition-all",
+                viewMode === "filtered_list" ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <ListFilter className="w-3.5 h-3.5" />
+              <span>Filtering List</span>
+            </Button>
+          </div>
+
+          {/* Export CSV Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCSV}
+            className="h-8 px-2.5 text-xs gap-1 border-border"
+            title="Export CSV"
+          >
+            <Download size={14} />
+            <span className="hidden md:inline">Export</span>
+          </Button>
+
+          {/* Add Lead Button */}
+          <Button
+            onClick={() => setShowAddModal(true)}
+            size="sm"
+            className="shadow-sm bg-primary hover:bg-primary/90 text-white h-8 px-3 text-xs gap-1.5"
+          >
+            <Plus size={15} />
+            <span>Add Lead</span>
+          </Button>
+        </div>
+      </CardHeader>
+
+      {/* Manual Add Lead Dialog */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Add New Lead</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddManualLead} className="space-y-3.5 pt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">Service / Form Category</label>
               <Select
-                value={selectedForm}
-                onValueChange={(val) => setSelectedForm(val as FormTableKey | "all")}
+                value={newLeadFormType}
+                onValueChange={(val) => setNewLeadFormType(val as FormTableKey)}
               >
-                <SelectTrigger className="w-[180px] h-9 text-xs font-semibold">
-                  <SelectValue placeholder="All Forms" />
+                <SelectTrigger className="w-full text-xs">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Website Forms ({counts.all || 0})</SelectItem>
                   {(Object.keys(FORM_CONFIGS) as FormTableKey[]).map((key) => (
                     <SelectItem key={key} value={key}>
-                      {FORM_CONFIGS[key].label} ({counts[key] || 0})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Status Filter */}
-              <Select
-                value={selectedStatus}
-                onValueChange={setSelectedStatus}
-              >
-                <SelectTrigger className="w-[160px] h-9 text-xs font-semibold">
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  {LEAD_STATUS_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${opt.dotClass}`} />
-                        <span>{opt.label}</span>
-                      </div>
+                      {FORM_CONFIGS[key].label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Search Input */}
-            <div className="relative w-full md:w-72">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">Applicant / Client Name *</label>
               <Input
+                required
                 type="text"
-                placeholder="Search by name, email, phone, status..."
+                value={newLeadName}
+                onChange={(e) => setNewLeadName(e.target.value)}
+                placeholder="Full Name"
+                className="text-xs"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium">Email Address *</label>
+                <Input
+                  required
+                  type="email"
+                  value={newLeadEmail}
+                  onChange={(e) => setNewLeadEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium">Phone Number</label>
+                <Input
+                  type="tel"
+                  value={newLeadPhone}
+                  onChange={(e) => setNewLeadPhone(e.target.value)}
+                  placeholder="+91 9876543210"
+                  className="text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium">Company / Organization</label>
+                <Input
+                  type="text"
+                  value={newLeadCompany}
+                  onChange={(e) => setNewLeadCompany(e.target.value)}
+                  placeholder="e.g. Acme Corp / College"
+                  className="text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium">Initial Stage</label>
+                <Select value={newLeadStatus} onValueChange={setNewLeadStatus}>
+                  <SelectTrigger className="text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SERVICE_STAGES.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn("w-2 h-2 rounded-full", s.dotColor)} />
+                          <span>{s.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">Requirements / Notes / Message</label>
+              <textarea
+                rows={3}
+                value={newLeadSummary}
+                onChange={(e) => setNewLeadSummary(e.target.value)}
+                placeholder="Client inquiry details or requirements..."
+                className="w-full p-2.5 border border-input rounded-md bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-xs"
+              />
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setShowAddModal(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" disabled={isSubmittingLead}>
+                {isSubmittingLead ? "Adding..." : "Add Lead"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Lead Dialog */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Edit Lead Details</DialogTitle>
+          </DialogHeader>
+          {leadToEdit && (
+            <form onSubmit={handleSaveEdit} className="space-y-3.5 pt-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium">Service / Category</label>
+                <div className="p-2 border rounded bg-muted/40 text-xs font-semibold text-muted-foreground flex items-center justify-between">
+                  <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border", getFormBadgeClasses(leadToEdit.formType))}>
+                    {getFormIcon(leadToEdit.formType)}
+                    {leadToEdit.formLabel}
+                  </span>
+                  <span>ID: {leadToEdit.id}</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium">Client / Institution Name *</label>
+                <Input
+                  required
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Full Name"
+                  className="text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium">Email Address *</label>
+                  <Input
+                    required
+                    type="email"
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    placeholder="email@domain.com"
+                    className="text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium">Phone Number</label>
+                  <Input
+                    type="tel"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    placeholder="+91 9876543210"
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium">Company / Location</label>
+                  <Input
+                    type="text"
+                    value={editCompany}
+                    onChange={(e) => setEditCompany(e.target.value)}
+                    placeholder="Location / Institution"
+                    className="text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium">Pipeline Stage</label>
+                  <Select value={editStatus} onValueChange={setEditStatus}>
+                    <SelectTrigger className="text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SERVICE_STAGES.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          <div className="flex items-center gap-1.5">
+                            <span className={cn("w-2 h-2 rounded-full", s.dotColor)} />
+                            <span>{s.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium">Message / Notes / Requirements</label>
+                <textarea
+                  rows={3}
+                  value={editSummary}
+                  onChange={(e) => setEditSummary(e.target.value)}
+                  placeholder="Lead details, priorities, or discussion notes..."
+                  className="w-full p-2.5 border border-input rounded-md bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-xs"
+                />
+              </div>
+
+              <DialogFooter className="pt-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowEditModal(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" size="sm" disabled={isSubmittingEdit}>
+                  {isSubmittingEdit ? "Saving..." : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Main Content View Switcher */}
+      {viewMode === "pipeline" ? (
+        /* ================= MODE 1: PIPELINE SLIDING WITH DRAG & DROP ================= */
+        <CardContent className="flex-1 min-h-0 p-0 flex overflow-hidden">
+          <div
+            className="flex gap-0 overflow-x-auto overflow-y-hidden p-6 flex-1 items-stretch min-h-0 custom-scrollbar"
+            onDragOver={(e) => {
+              e.preventDefault();
+              const container = e.currentTarget;
+              const scrollThreshold = 150;
+              const rect = container.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+
+              if (x < scrollThreshold) {
+                startScrolling(container, "left");
+              } else if (rect.width - x < scrollThreshold) {
+                startScrolling(container, "right");
+              } else {
+                stopScrolling();
+              }
+            }}
+            onDragLeave={stopScrolling}
+            onDrop={stopScrolling}
+          >
+            {SERVICE_STAGES.map((stage) => {
+              const stageLeads = leads.filter(
+                (l) => (l.status || "New").toLowerCase() === stage.id.toLowerCase()
+              );
+
+              return (
+                <div
+                  key={stage.id}
+                  className="min-w-[280px] w-[280px] flex flex-col h-full border-r border-border last:border-r-0 px-4"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    const leadKey = e.dataTransfer.getData("leadKey");
+                    if (leadKey) {
+                      const [formType, leadId] = leadKey.split(":::");
+                      const lead = leads.find(
+                        (l) => l.formType === formType && l.id.toString() === leadId
+                      );
+                      if (lead) {
+                        handleStatusChange(lead, stage.id);
+                      }
+                    }
+                  }}
+                >
+                  <div className="flex justify-between items-center mb-4 border-b border-border/50 pb-3">
+                    <div className="flex items-center gap-1.5">
+                      <span className={cn("w-2 h-2 rounded-full", stage.dotColor)} />
+                      <h3 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">
+                        {stage.label}
+                      </h3>
+                    </div>
+                    <Badge variant="secondary" className="bg-primary/10 text-primary text-[10px] px-1.5 py-0.5">
+                      {stageLeads.length}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-1 pb-2">
+                    {stageLeads.map((lead) => {
+                      const borderColor = stage.borderColor || "#3b82f6";
+                      return (
+                        <Card
+                          key={`${lead.formType}_${lead.id}`}
+                          draggable
+                          onDragStart={(e) =>
+                            e.dataTransfer.setData("leadKey", `${lead.formType}:::${lead.id}`)
+                          }
+                          onDragEnd={stopScrolling}
+                          onClick={() => {
+                            setSelectedLead(lead);
+                            setIsDetailsOpen(true);
+                          }}
+                          className="cursor-move hover:border-primary/50 transition-colors bg-card shadow-sm border border-l-4"
+                          style={{ borderLeftColor: borderColor }}
+                        >
+                          <CardContent className="p-3 flex flex-col gap-1.5">
+                            <div className="flex justify-between items-start gap-2">
+                              <p className="font-medium text-sm truncate flex-1">{lead.name}</p>
+                              <span
+                                className={cn(
+                                  "inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold border shrink-0",
+                                  getFormBadgeClasses(lead.formType)
+                                )}
+                              >
+                                {lead.formLabel}
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                              <Mail className="w-3 h-3 shrink-0" />
+                              <span className="truncate">{lead.email || "No email"}</span>
+                            </p>
+
+                            {lead.phone && (
+                              <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                                <Phone className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{lead.phone}</span>
+                              </p>
+                            )}
+
+                            {lead.companyOrOrg && (
+                              <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                                <Building className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{lead.companyOrOrg}</span>
+                              </p>
+                            )}
+
+                            {lead.summary && (
+                              <p className="text-[11px] text-muted-foreground/80 line-clamp-2 bg-muted/30 p-1.5 rounded text-xs mt-0.5">
+                                {lead.summary}
+                              </p>
+                            )}
+
+                            <div className="flex justify-between items-center text-[10px] text-muted-foreground mt-1 pt-1 border-t border-border/40">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-2.5 h-2.5" />
+                                {formatDate(lead.createdAt).split(",")[0]}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openEditModal(lead);
+                                  }}
+                                  className="p-1 hover:text-primary transition-colors rounded hover:bg-muted"
+                                  title="Edit Lead"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setLeadToDelete(lead);
+                                  }}
+                                  className="p-1 hover:text-red-600 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-950/30"
+                                  title="Delete Lead"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+
+                    {stageLeads.length === 0 && (
+                      <div className="text-xs text-muted-foreground text-center p-6 border border-dashed border-border rounded bg-muted/5">
+                        Drop leads here
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      ) : (
+        /* ================= MODE 2: FILTERING LIST VIEW IN ROWS (10 per page + indexing) ================= */
+        <CardContent className="flex-1 min-h-0 p-4 sm:p-6 flex flex-col overflow-hidden space-y-4">
+          {/* Stage Filter Buttons Bar (Pills with Counts) */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1.5 custom-scrollbar shrink-0">
+            <button
+              onClick={() => setActiveFilterStage("all")}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 border",
+                activeFilterStage === "all"
+                  ? "bg-primary text-white border-primary shadow-sm"
+                  : "bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted"
+              )}
+            >
+              <span>All Enquiries</span>
+              <span
+                className={cn(
+                  "text-[10px] px-1.5 py-0.2 rounded-full",
+                  activeFilterStage === "all" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
+                )}
+              >
+                {getStageCount("all")}
+              </span>
+            </button>
+
+            {SERVICE_STAGES.map((stage) => {
+              const count = getStageCount(stage.id);
+              const isActive = activeFilterStage === stage.id;
+              return (
+                <button
+                  key={stage.id}
+                  onClick={() => setActiveFilterStage(stage.id)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1.5 border",
+                    isActive
+                      ? "bg-primary text-white border-primary shadow-sm font-semibold"
+                      : "bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted"
+                  )}
+                >
+                  <span className={cn("w-2 h-2 rounded-full", stage.dotColor)} />
+                  <span>{stage.label}</span>
+                  <span
+                    className={cn(
+                      "text-[10px] px-1.5 py-0.2 rounded-full",
+                      isActive ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Search Toolbar */}
+          <div className="flex items-center justify-between gap-3 shrink-0 bg-muted/20 p-3 rounded-lg border border-border">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by client name, email, phone, company, service or requirements..."
                 value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="pl-9 h-9 text-xs"
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9 text-xs bg-background w-full"
               />
             </div>
           </div>
-        </CardHeader>
 
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-muted/40">
-                <TableRow className="border-b border-border/50">
-                  <TableHead className="w-12 text-center text-xs font-semibold">#</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
-                    Form Category
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
-                    Lead / Contact
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
-                    Organization / Focus
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
-                    Status
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wider hidden lg:table-cell">
-                    Summary / Message
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wider">
-                    Submitted Date
-                  </TableHead>
-                  <TableHead className="w-24 text-right pr-6 text-xs font-semibold uppercase tracking-wider">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
+          {/* Leads Listed in Rows with Indexing */}
+          <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar border rounded-lg border-border bg-card">
+            {paginatedLeads.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center space-y-3">
+                <div className="p-3 rounded-full bg-muted">
+                  <SlidersHorizontal className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">No Leads Found</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {searchQuery || activeFilterStage !== "all"
+                      ? "No applicant enquiries match the active filter criteria."
+                      : "No leads available yet in this view."}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {paginatedLeads.map((lead, index) => {
+                  const itemIndex = (listPage - 1) * PAGE_SIZE + index + 1;
+                  return (
+                    <div
+                      key={`${lead.formType}_${lead.id}`}
+                      className="p-3.5 sm:p-4 hover:bg-muted/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3 group"
+                    >
+                      {/* Left: Indexing & Applicant Details */}
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                        {/* Index Number Badge */}
+                        <div className="w-8 h-8 rounded-lg bg-muted/60 border border-border text-foreground font-semibold flex items-center justify-center text-xs shrink-0 mt-0.5">
+                          #{itemIndex}
+                        </div>
 
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="p-0">
-                      <SkeletonTable rows={5} cols={8} />
-                    </TableCell>
-                  </TableRow>
-                ) : paginatedLeads.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="h-48 text-center">
-                      <div className="flex flex-col items-center justify-center gap-2 opacity-60">
-                        <Inbox className="w-8 h-8 text-muted-foreground" />
-                        <span className="text-sm font-semibold">No submissions found</span>
-                        <span className="text-xs text-muted-foreground">
-                          {searchQuery || selectedStatus !== "all"
-                            ? "Try adjusting your search or filter criteria"
-                            : "No responses collected yet for this form"}
-                        </span>
+                        <div className="w-9 h-9 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-sm shrink-0 uppercase mt-0.5">
+                          {lead.name ? lead.name.charAt(0) : "L"}
+                        </div>
+
+                        <div className="space-y-1 min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedLead(lead);
+                                setIsDetailsOpen(true);
+                              }}
+                              className="font-semibold text-sm text-foreground hover:text-primary transition-colors text-left truncate"
+                            >
+                              {lead.name}
+                            </button>
+                            {getStageBadge(lead.status)}
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border",
+                                getFormBadgeClasses(lead.formType)
+                              )}
+                            >
+                              {getFormIcon(lead.formType)}
+                              {lead.formLabel}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                            {lead.email && (
+                              <span className="flex items-center gap-1">
+                                <Mail className="w-3 h-3" />
+                                {lead.email}
+                              </span>
+                            )}
+                            {lead.phone && (
+                              <span className="flex items-center gap-1">
+                                <Phone className="w-3 h-3" />
+                                {lead.phone}
+                              </span>
+                            )}
+                            {lead.companyOrOrg && (
+                              <span className="flex items-center gap-1 font-medium text-foreground/80">
+                                <Building className="w-3 h-3" />
+                                {lead.companyOrOrg}
+                              </span>
+                            )}
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {formatDate(lead.createdAt)}
+                            </span>
+                          </div>
+
+                          {lead.summary && (
+                            <p className="text-xs text-muted-foreground line-clamp-1 italic">
+                              "{lead.summary}"
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedLeads.map((item, index) => {
-                    const rowNumber = (currentPage - 1) * pageSize + index + 1;
-                    return (
-                      <TableRow
-                        key={`${item.formType}_${item.id}`}
-                        className="hover:bg-muted/30 transition-colors border-b border-border/40"
-                      >
-                        <TableCell className="text-center font-mono text-xs text-muted-foreground">
-                          {rowNumber}
-                        </TableCell>
 
-                        <TableCell className="whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${getBadgeClasses(
-                              item.formType
-                            )}`}
-                          >
-                            {item.formLabel}
-                          </span>
-                        </TableCell>
+                      {/* Right: Stage Changer Select & Actions */}
+                      <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                        <Select
+                          value={lead.status || "New"}
+                          onValueChange={(val) => handleStatusChange(lead, val)}
+                          disabled={updatingLeadKey === `${lead.formType}_${lead.id}`}
+                        >
+                          <SelectTrigger className="w-36 h-8 text-xs bg-background">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SERVICE_STAGES.map((s) => (
+                              <SelectItem key={s.id} value={s.id}>
+                                <div className="flex items-center gap-1.5">
+                                  <span className={cn("w-2 h-2 rounded-full", s.dotColor)} />
+                                  <span>{s.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
 
-                        <TableCell>
-                          <div className="font-semibold text-xs sm:text-sm">{item.name}</div>
-                          <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
-                            {item.email && (
-                              <span className="flex items-center gap-1">
-                                <Mail className="w-3 h-3 opacity-70" />
-                                {item.email}
-                              </span>
-                            )}
-                            {item.phone && (
-                              <span className="flex items-center gap-1">
-                                <Phone className="w-3 h-3 opacity-70" />
-                                {item.phone}
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          onClick={() => {
+                            setSelectedLead(lead);
+                            setIsDetailsOpen(true);
+                          }}
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
 
-                        <TableCell>
-                          <span className="text-xs text-foreground font-medium">
-                            {item.companyOrOrg || "—"}
-                          </span>
-                        </TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          onClick={() => openEditModal(lead)}
+                          title="Edit Lead"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
 
-                        {/* Status Dropdown in Table Row */}
-                        <TableCell className="whitespace-nowrap">
-                          <Select
-                            value={item.status || "New"}
-                            onValueChange={(val) => handleStatusChange(item, val)}
-                            disabled={updatingLeadKey === `${item.formType}_${item.id}`}
-                          >
-                            <SelectTrigger
-                              className={`h-7 w-[130px] text-[11px] font-semibold border rounded-lg px-2 shadow-none focus:ring-1 ${getStatusBadgeClass(
-                                item.status || "New"
-                              )}`}
-                            >
-                              <div className="flex items-center gap-1.5 truncate">
-                                <span
-                                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${getStatusDotClass(
-                                    item.status || "New"
-                                  )}`}
-                                />
-                                <span className="truncate">{item.status || "New"}</span>
-                              </div>
-                            </SelectTrigger>
-                            <SelectContent>
-                              {LEAD_STATUS_OPTIONS.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                                  <div className="flex items-center gap-2">
-                                    <span className={`w-2 h-2 rounded-full ${opt.dotClass}`} />
-                                    <span>{opt.label}</span>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-
-                        <TableCell className="hidden lg:table-cell max-w-xs">
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {item.summary || "—"}
-                          </p>
-                        </TableCell>
-
-                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                          {formatDate(item.createdAt)}
-                        </TableCell>
-
-                        {/* Actions (View + Delete) */}
-                        <TableCell className="text-right pr-4 whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setSelectedLead(item)}
-                              className="h-8 w-8 hover:bg-primary/10 hover:text-primary rounded-lg transition-all"
-                              title="View Full Submission"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setLeadToDelete(item)}
-                              className="h-8 w-8 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 text-muted-foreground rounded-lg transition-all"
-                              title="Delete Submission"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                          onClick={() => setLeadToDelete(lead)}
+                          title="Delete Lead"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Pagination Footer */}
-          {!loading && filteredLeads.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-border/50 text-xs text-muted-foreground">
+          {/* Pagination Controls */}
+          {totalListCount > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 pt-2 border-t border-border/50 text-xs text-muted-foreground">
               <div>
-                Showing{" "}
-                <span className="font-semibold text-foreground">
-                  {(currentPage - 1) * pageSize + 1}
-                </span>{" "}
-                to{" "}
-                <span className="font-semibold text-foreground">
-                  {Math.min(currentPage * pageSize, filteredLeads.length)}
-                </span>{" "}
-                of <span className="font-semibold text-foreground">{filteredLeads.length}</span>{" "}
-                entries
+                Showing {(listPage - 1) * PAGE_SIZE + 1} to{" "}
+                {Math.min(listPage * PAGE_SIZE, totalListCount)} of {totalListCount} leads
               </div>
 
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="h-8 px-2 text-xs"
+                  onClick={() => setListPage((p) => Math.max(1, p - 1))}
+                  disabled={listPage <= 1}
+                  className="h-8 px-2.5 text-xs gap-1"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5 mr-1" /> Prev
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Previous</span>
                 </Button>
 
                 <span className="px-2 font-medium">
-                  Page {currentPage} of {totalPages}
+                  Page {listPage} of {totalListPages}
                 </span>
 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="h-8 px-2 text-xs"
+                  onClick={() => setListPage((p) => Math.min(totalListPages, p + 1))}
+                  disabled={listPage >= totalListPages}
+                  className="h-8 px-2.5 text-xs gap-1"
                 >
-                  Next <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                  <span>Next</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
               </div>
             </div>
           )}
         </CardContent>
-      </Card>
+      )}
 
-      {/* Detail Dialog */}
-      <Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
-        <DialogContent
-          className={`w-[95%] sm:max-w-xl max-h-[85vh] overflow-y-auto rounded-2xl p-0 ${
-            theme === "dark" ? "bg-card text-foreground border-border" : "bg-white text-gray-900 border-gray-200"
-          }`}
-        >
-          {selectedLead && (
-            <>
-              <DialogHeader className="p-5 sm:p-6 pb-4 border-b border-border/50 bg-muted/20">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${getBadgeClasses(
-                        selectedLead.formType
-                      )}`}
-                    >
-                      {selectedLead.formLabel}
-                    </span>
-
-                    {/* Status Dropdown in Detail Modal Header */}
-                    <Select
-                      value={selectedLead.status || "New"}
-                      onValueChange={(val) => handleStatusChange(selectedLead, val)}
-                      disabled={updatingLeadKey === `${selectedLead.formType}_${selectedLead.id}`}
-                    >
-                      <SelectTrigger
-                        className={`h-7 w-[130px] text-[11px] font-semibold border rounded-lg px-2 shadow-none focus:ring-1 ${getStatusBadgeClass(
-                          selectedLead.status || "New"
-                        )}`}
-                      >
-                        <div className="flex items-center gap-1.5 truncate">
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${getStatusDotClass(
-                              selectedLead.status || "New"
-                            )}`}
-                          />
-                          <span className="truncate">{selectedLead.status || "New"}</span>
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LEAD_STATUS_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                            <div className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full ${opt.dotClass}`} />
-                              <span>{opt.label}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {formatDate(selectedLead.createdAt)}
-                  </span>
-                </div>
-
-                <DialogTitle className="text-lg sm:text-xl font-bold mt-2">
+      {/* Details View Modal */}
+      {selectedLead && (
+        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+          <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader className="border-b pb-3">
+              <div className="flex items-center justify-between gap-2 pr-6">
+                <DialogTitle className="text-lg font-bold">
                   {selectedLead.name}
                 </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">
-                  Submission ID: {selectedLead.id}
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="p-5 sm:p-6 space-y-4 text-xs">
-                {/* Contact Information Card */}
-                <div
-                  className={`p-3.5 rounded-xl border ${
-                    theme === "dark" ? "bg-muted/10 border-border/60" : "bg-gray-50 border-gray-200"
-                  }`}
+                <span
+                  className={cn(
+                    "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border",
+                    getFormBadgeClasses(selectedLead.formType)
+                  )}
                 >
-                  <h4 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground mb-2">
-                    Contact Details
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div>
-                      <span className="text-muted-foreground block text-[10px]">Email</span>
-                      {selectedLead.email ? (
-                        <a
-                          href={`mailto:${selectedLead.email}`}
-                          className="font-medium text-primary hover:underline flex items-center gap-1 mt-0.5"
-                        >
-                          <Mail className="w-3 h-3" />
-                          {selectedLead.email}
-                        </a>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </div>
+                  {selectedLead.formLabel}
+                </span>
+              </div>
+            </DialogHeader>
 
-                    <div>
-                      <span className="text-muted-foreground block text-[10px]">Phone</span>
-                      {selectedLead.phone ? (
-                        <a
-                          href={`tel:${selectedLead.phone}`}
-                          className="font-medium text-foreground hover:underline flex items-center gap-1 mt-0.5"
-                        >
-                          <Phone className="w-3 h-3" />
-                          {selectedLead.phone}
-                        </a>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </div>
-
-                    {selectedLead.companyOrOrg && (
-                      <div className="sm:col-span-2 mt-1">
-                        <span className="text-muted-foreground block text-[10px]">
-                          Company / Organization
-                        </span>
-                        <span className="font-medium flex items-center gap-1 mt-0.5">
-                          <Building className="w-3 h-3" />
-                          {selectedLead.companyOrOrg}
-                        </span>
-                      </div>
+            <div className="space-y-4 pt-2 text-xs">
+              {/* Contact Information */}
+              <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-muted/40 border border-border/60">
+                <div>
+                  <p className="text-muted-foreground">Email Address</p>
+                  <p className="font-semibold text-foreground break-all mt-0.5">
+                    {selectedLead.email ? (
+                      <a href={`mailto:${selectedLead.email}`} className="text-primary hover:underline">
+                        {selectedLead.email}
+                      </a>
+                    ) : (
+                      "-"
                     )}
-                  </div>
+                  </p>
                 </div>
-
-                {/* Form-specific Attributes */}
-                <div
-                  className={`p-3.5 rounded-xl border ${
-                    theme === "dark" ? "bg-muted/10 border-border/60" : "bg-gray-50 border-gray-200"
-                  }`}
-                >
-                  <h4 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground mb-2.5">
-                    Submission Entities
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {Object.entries(selectedLead.raw)
-                      .filter(
-                        ([key]) =>
-                          !["id", "full_name", "first_name", "last_name", "name", "email", "phone", "status"].includes(
-                            key
-                          )
-                      )
-                      .map(([key, val]) => (
-                        <div key={key} className={typeof val === "string" && val.length > 50 ? "sm:col-span-2" : ""}>
-                          <span className="text-muted-foreground block text-[10px] uppercase font-semibold">
-                            {key.replace(/_/g, " ")}
-                          </span>
-                          <span className="font-medium text-foreground whitespace-pre-wrap break-words block mt-0.5">
-                            {val !== null && val !== undefined ? String(val) : "—"}
-                          </span>
-                        </div>
-                      ))}
-                  </div>
+                <div>
+                  <p className="text-muted-foreground">Phone Number</p>
+                  <p className="font-semibold text-foreground mt-0.5">
+                    {selectedLead.phone ? (
+                      <a href={`tel:${selectedLead.phone}`} className="text-primary hover:underline">
+                        {selectedLead.phone}
+                      </a>
+                    ) : (
+                      "-"
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Company / Organization</p>
+                  <p className="font-semibold text-foreground mt-0.5">
+                    {selectedLead.companyOrOrg || "-"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Submitted At</p>
+                  <p className="font-semibold text-foreground mt-0.5">
+                    {formatDate(selectedLead.createdAt)}
+                  </p>
                 </div>
               </div>
 
-              <DialogFooter className="p-4 sm:p-5 border-t border-border/50 flex items-center justify-end gap-2">
+              {/* Status Changer */}
+              <div className="space-y-1.5">
+                <label className="font-medium text-foreground">Pipeline Stage</label>
+                <Select
+                  value={selectedLead.status || "New"}
+                  onValueChange={(val) => handleStatusChange(selectedLead, val)}
+                >
+                  <SelectTrigger className="w-full text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SERVICE_STAGES.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn("w-2 h-2 rounded-full", s.dotColor)} />
+                          <span>{s.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Summary / Message */}
+              {selectedLead.summary && (
+                <div className="space-y-1.5">
+                  <label className="font-medium text-foreground">Message / Requirements</label>
+                  <div className="p-3 rounded-lg bg-muted/30 border border-border/50 text-foreground whitespace-pre-wrap leading-relaxed">
+                    {selectedLead.summary}
+                  </div>
+                </div>
+              )}
+
+              {/* Raw Form Fields */}
+              {selectedLead.raw && Object.keys(selectedLead.raw).length > 0 && (
+                <div className="space-y-1.5">
+                  <label className="font-medium text-foreground">Complete Submission Fields</label>
+                  <div className="rounded-lg border border-border/60 overflow-hidden divide-y divide-border/50">
+                    {Object.entries(selectedLead.raw).map(([k, v]) => {
+                      if (k === "id" || k === "created_at" || k === "status") return null;
+                      return (
+                        <div key={k} className="p-2 flex justify-between gap-4">
+                          <span className="font-medium text-muted-foreground capitalize">
+                            {k.replace(/_/g, " ")}:
+                          </span>
+                          <span className="font-mono text-right break-all">
+                            {typeof v === "object" ? JSON.stringify(v) : String(v || "-")}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="pt-3 border-t flex justify-between items-center sm:justify-between">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setLeadToDelete(selectedLead)}
+                className="gap-1 text-xs"
+              >
+                <Trash2 size={13} /> Delete Lead
+              </Button>
+              <div className="flex items-center gap-2">
                 <Button
-                  type="button"
+                  size="sm"
                   variant="outline"
-                  size="sm"
-                  onClick={() => setLeadToDelete(selectedLead)}
-                  className="h-8 text-xs text-rose-600 border-rose-200 hover:bg-rose-50 dark:border-rose-900/60 dark:hover:bg-rose-950/40 gap-1.5"
+                  onClick={() => {
+                    const target = selectedLead;
+                    setIsDetailsOpen(false);
+                    openEditModal(target);
+                  }}
+                  className="gap-1 text-xs"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  Delete
+                  <Pencil size={13} /> Edit Lead
                 </Button>
-                <Button
-                  type="button"
-                  variant="default"
-                  size="sm"
-                  onClick={() => setSelectedLead(null)}
-                  className="h-8 text-xs bg-primary hover:bg-primary/90 text-white"
-                >
+                <Button size="sm" variant="outline" onClick={() => setIsDetailsOpen(false)} className="text-xs">
                   Close
                 </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
-      {/* Delete Confirmation Alert Dialog */}
-      <AlertDialog
-        open={!!leadToDelete}
-        onOpenChange={(open) => {
-          if (!open && !isDeleting) {
-            setLeadToDelete(null);
-          }
-        }}
-      >
-        <AlertDialogContent className="rounded-2xl max-w-md">
+      {/* Delete Confirmation Alert */}
+      <AlertDialog open={!!leadToDelete} onOpenChange={() => setLeadToDelete(null)}>
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
-              <Trash2 className="w-5 h-5 text-rose-500" />
-              Delete Inquiry Submission?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs leading-relaxed text-muted-foreground mt-2">
-              Are you sure you want to permanently delete this inquiry from{" "}
-              <strong className="text-foreground">{leadToDelete?.name}</strong> (
-              {leadToDelete?.formLabel})?
-              <br />
-              <span className="text-rose-500 font-semibold block mt-1.5">
-                This will permanently remove the record directly from Supabase and cannot be recovered.
-              </span>
+            <AlertDialogTitle>Delete Lead</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete the inquiry from{" "}
+              <strong>{leadToDelete?.name}</strong>? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="mt-4 gap-2">
-            <AlertDialogCancel disabled={isDeleting} className="h-8 text-xs">
-              Cancel
-            </AlertDialogCancel>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                handleConfirmDelete();
-              }}
+              onClick={handleConfirmDelete}
               disabled={isDeleting}
-              className="h-8 text-xs bg-rose-600 hover:bg-rose-700 text-white"
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
-              {isDeleting ? "Deleting..." : "Permanently Delete"}
+              {isDeleting ? "Deleting..." : "Delete Permanently"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </Card>
   );
 };
 
 export default WebsiteLeads;
-

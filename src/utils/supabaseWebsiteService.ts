@@ -5,7 +5,9 @@
 
 import {
   getSuperAdminWebsiteLeads,
+  createSuperAdminWebsiteLead,
   updateSuperAdminWebsiteLeadStatus,
+  editSuperAdminWebsiteLead,
   deleteSuperAdminWebsiteLead,
 } from "./admin_api";
 
@@ -160,7 +162,23 @@ function normalizeRecord(formType: FormTableKey, row: Record<string, any>): Webs
   const status = row.status || "New";
 
   switch (formType) {
-    case "contact_inquiries":
+    case "contact_inquiries": {
+      let comp = row.company || "";
+      if (!comp && row.message && row.message.includes("Location:")) {
+        const parts = row.message.split("|");
+        let loc = "";
+        let cat = "";
+        for (const p of parts) {
+          if (p.trim().startsWith("Location:")) {
+            loc = p.replace("Location:", "").trim();
+          } else if (p.trim().startsWith("Category:")) {
+            cat = p.replace("Category:", "").trim();
+          }
+        }
+        if (loc && cat) comp = `${loc} (${cat})`;
+        else if (loc) comp = loc;
+        else if (cat) comp = cat;
+      }
       return {
         id,
         formType,
@@ -168,12 +186,13 @@ function normalizeRecord(formType: FormTableKey, row: Record<string, any>): Webs
         name: row.full_name || row.name || "Anonymous",
         email: row.email || "",
         phone: row.phone || "",
-        companyOrOrg: row.company || "",
+        companyOrOrg: comp,
         summary: row.message || "",
         status,
         createdAt,
         raw: row,
       };
+    }
 
     case "admission_applications":
       return {
@@ -382,7 +401,7 @@ export async function getWebsiteLeads(
 }
 
 /**
- * Update the status of a website lead directly in Supabase
+ * Update the status of a website lead directly in Supabase / Backend DB
  */
 export async function updateWebsiteLeadStatus(
   formType: FormTableKey,
@@ -394,9 +413,168 @@ export async function updateWebsiteLeadStatus(
     if (res && res.success) {
       return { success: true, message: res.message || `Status updated to ${status}` };
     }
-    return { success: false, message: res?.message || "Failed to update status in Supabase" };
+    return { success: false, message: res?.message || "Failed to update status" };
   } catch (err: any) {
     return { success: false, message: err?.message || "Network error updating status" };
+  }
+}
+
+/**
+ * Edit an existing website lead details and/or stage
+ */
+export async function editWebsiteLead(
+  formType: FormTableKey,
+  leadId: string | number,
+  payload: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    companyOrOrg?: string;
+    summary?: string;
+    status?: string;
+  }
+): Promise<{ success: boolean; message: string; data?: any }> {
+  try {
+    const res = await editSuperAdminWebsiteLead(formType, leadId, {
+      name: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      company: payload.companyOrOrg,
+      summary: payload.summary,
+      status: payload.status,
+    });
+    if (res && res.success) {
+      return { success: true, message: res.message || "Lead updated successfully", data: res.data };
+    }
+    return { success: false, message: res?.message || "Failed to edit lead" };
+  } catch (err: any) {
+    return { success: false, message: err?.message || "Network error editing lead" };
+  }
+}
+
+/**
+ * Create a new website lead in Supabase via backend proxy or direct REST fallback
+ */
+export async function createWebsiteLead(payload: {
+  formType: FormTableKey;
+  name: string;
+  email: string;
+  phone?: string;
+  companyOrOrg?: string;
+  summary?: string;
+  status?: string;
+}): Promise<{ success: boolean; message: string; data?: any }> {
+  try {
+    // 1. Try Django backend endpoint
+    const res = await createSuperAdminWebsiteLead({
+      form_type: payload.formType,
+      name: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      company: payload.companyOrOrg,
+      message: payload.summary,
+      status: payload.status || "New",
+    });
+    if (res && res.success) {
+      return { success: true, message: res.message || "Lead added successfully", data: res.data };
+    }
+  } catch (e) {
+    console.warn("Backend lead creation failed, trying direct Supabase insertion fallback...", e);
+  }
+
+  // 2. Direct Supabase insertion fallback
+  try {
+    const tableName = payload.formType;
+    const url = `${SUPABASE_URL}/rest/v1/${tableName}`;
+    const statusVal = payload.status || "New";
+    let bodyData: any = {};
+    if (tableName === "contact_inquiries") {
+      bodyData = {
+        full_name: payload.name,
+        email: payload.email,
+        phone: payload.phone || "",
+        company: payload.companyOrOrg || "",
+        message: payload.summary || "",
+        status: statusVal,
+      };
+    } else if (tableName === "admission_applications") {
+      const parts = (payload.name || "").trim().split(" ");
+      bodyData = {
+        first_name: parts[0] || "",
+        last_name: parts.slice(1).join(" ") || "",
+        email: payload.email,
+        phone: payload.phone || "",
+        interested_track: payload.companyOrOrg || "",
+        highest_qualification: payload.summary || "",
+        status: statusVal,
+      };
+    } else if (tableName === "project_inquiries") {
+      bodyData = {
+        full_name: payload.name,
+        email: payload.email,
+        phone: payload.phone || "",
+        company_name: payload.companyOrOrg || "",
+        service_required: payload.companyOrOrg || "Custom Software",
+        project_requirements: payload.summary || "",
+        status: statusVal,
+      };
+    } else if (tableName === "it_assessments") {
+      bodyData = {
+        full_name: payload.name,
+        email: payload.email,
+        phone: payload.phone || "",
+        company: payload.companyOrOrg || "",
+        primary_focus: payload.companyOrOrg || "General Assessment",
+        details: payload.summary || "",
+        status: statusVal,
+      };
+    } else if (tableName === "neurocampus_inquiries") {
+      bodyData = {
+        full_name: payload.name,
+        official_email: payload.email,
+        phone: payload.phone || "",
+        organization: payload.companyOrOrg || "",
+        message: payload.summary || "",
+        status: statusVal,
+      };
+    } else if (tableName === "neurosync_inquiries") {
+      bodyData = {
+        full_name: payload.name,
+        official_email: payload.email,
+        phone: payload.phone || "",
+        organization: payload.companyOrOrg || "",
+        product_interested: "NeuroSync Platform",
+        status: statusVal,
+      };
+    } else {
+      bodyData = {
+        full_name: payload.name,
+        email: payload.email,
+        phone: payload.phone || "",
+        status: statusVal,
+      };
+    }
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify(bodyData),
+    });
+
+    if (response.ok) {
+      const created = await response.json();
+      return { success: true, message: "Lead added successfully", data: created };
+    } else {
+      const err = await response.text();
+      return { success: false, message: `Failed to add lead: ${err}` };
+    }
+  } catch (err: any) {
+    return { success: false, message: err?.message || "Error creating lead" };
   }
 }
 
