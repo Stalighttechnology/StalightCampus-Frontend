@@ -229,6 +229,7 @@ const AttendanceRecords = () => {
   const [selectedBatch, setSelectedBatch] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -727,49 +728,82 @@ const AttendanceRecords = () => {
   }, [startDate, endDate]);
 
   const handleCalendarSelect = (range: DateRange | undefined) => {
+    // Only update local temporary date range while user is picking dates
+    // DO NOT commit to startDate/endDate or trigger API fetch until Apply is clicked!
+    setTempDateRange(range);
+  };
+
+  const handleApplyDateRange = () => {
+    if (!tempDateRange?.from) return;
     const today = new Date();
     today.setHours(23, 59, 59, 999);
 
-    if (range?.from) {
-      const fromDate = range.from > today ? today : range.from;
-      const toDate = range.to ? (range.to > today ? today : range.to) : fromDate;
+    const fromDate = tempDateRange.from > today ? today : tempDateRange.from;
+    const toDate = tempDateRange.to ? (tempDateRange.to > today ? today : tempDateRange.to) : fromDate;
 
-      const fromStr = format(fromDate, "yyyy-MM-dd");
-      const toStr = format(toDate, "yyyy-MM-dd");
-      setStartDate(fromStr);
-      setEndDate(toStr);
-    } else {
-      setStartDate("");
-      setEndDate("");
-    }
+    const fromStr = format(fromDate, "yyyy-MM-dd");
+    const toStr = format(toDate, "yyyy-MM-dd");
+
+    setStartDate(fromStr);
+    setEndDate(toStr);
+    setIsDatePickerOpen(false);
     pagination.goToPage(1);
+  };
+
+  const handleClearDateRange = () => {
+    setTempDateRange(undefined);
+    setStartDate("");
+    setEndDate("");
+    setIsDatePickerOpen(false);
+    pagination.goToPage(1);
+  };
+
+  const handleOpenDatePicker = (open: boolean) => {
+    if (open) {
+      if (startDate) {
+        setTempDateRange({
+          from: new Date(startDate + "T00:00:00"),
+          to: endDate ? new Date(endDate + "T00:00:00") : new Date(startDate + "T00:00:00")
+        });
+      } else {
+        setTempDateRange(undefined);
+      }
+    }
+    setIsDatePickerOpen(open);
   };
 
   // Date Presets
   const applyDatePreset = (preset: "semester" | "30days" | "today" | "yesterday" | "week" | "month" | "all") => {
+    let s = "";
+    let e = "";
     if (preset === "semester") {
-      setStartDate(getSemesterStartString());
-      setEndDate(getTodayString());
+      s = getSemesterStartString();
+      e = getTodayString();
     } else if (preset === "month") {
-      setStartDate(getMonthStartString());
-      setEndDate(getTodayString());
+      s = getMonthStartString();
+      e = getTodayString();
     } else if (preset === "30days") {
-      setStartDate(getRelativeDateString(30));
-      setEndDate(getTodayString());
+      s = getRelativeDateString(30);
+      e = getTodayString();
     } else if (preset === "week") {
-      setStartDate(getRelativeDateString(7));
-      setEndDate(getTodayString());
+      s = getRelativeDateString(7);
+      e = getTodayString();
     } else if (preset === "today") {
-      const today = getTodayString();
-      setStartDate(today);
-      setEndDate(today);
+      s = getTodayString();
+      e = getTodayString();
     } else if (preset === "yesterday") {
-      const yest = getRelativeDateString(1);
-      setStartDate(yest);
-      setEndDate(yest);
+      s = getRelativeDateString(1);
+      e = getRelativeDateString(1);
+    }
+    setStartDate(s);
+    setEndDate(e);
+    if (s && e) {
+      setTempDateRange({
+        from: new Date(s + "T00:00:00"),
+        to: new Date(e + "T00:00:00")
+      });
     } else {
-      setStartDate("");
-      setEndDate("");
+      setTempDateRange(undefined);
     }
     pagination.goToPage(1);
   };
@@ -1822,18 +1856,18 @@ const AttendanceRecords = () => {
               <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
                 Date Range {!selectedSubject && <span className="text-[10px] text-amber-500 font-normal lowercase">(choose subject first)</span>}
               </label>
-              <Popover open={selectedSubject ? isDatePickerOpen : false} onOpenChange={selectedSubject ? setIsDatePickerOpen : undefined}>
+              <Popover open={selectedSubject ? isDatePickerOpen : false} onOpenChange={selectedSubject ? handleOpenDatePicker : undefined}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     disabled={!selectedSubject}
                     className={cn(
-                      "h-9 w-full justify-start text-xs font-normal border-input relative group",
+                      "h-9 w-full justify-start text-xs font-normal border-input bg-background relative group",
                       !selectedSubject && "opacity-50 cursor-not-allowed bg-muted/40 border-dashed",
-                      (startDate || endDate) && "border-primary/50 text-foreground bg-primary/5 font-medium"
+                      !startDate && !endDate && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="w-3.5 h-3.5 mr-1.5 text-primary flex-shrink-0" />
+                    <CalendarIcon className="w-3.5 h-3.5 mr-2 text-muted-foreground shrink-0" />
                     <span className="truncate flex-1 text-left">
                       {!selectedSubject
                         ? "Select Subject First"
@@ -1843,15 +1877,15 @@ const AttendanceRecords = () => {
                           : `${formatDateToDDMMYYYY(startDate)} - ${formatDateToDDMMYYYY(endDate)}`
                         : startDate
                         ? `From ${formatDateToDDMMYYYY(startDate)}`
-                        : "Select Date Range (Mandatory)"}
+                        : "Pick a date range"}
                     </span>
                     {(startDate || endDate) && (
                       <span
                         onClick={(e) => {
                           e.stopPropagation();
-                          applyDatePreset("all");
+                          handleClearDateRange();
                         }}
-                        className="ml-1 rounded-full p-0.5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                        className="ml-1 rounded-full p-0.5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
                         title="Clear date filter"
                       >
                         <X className="w-3 h-3" />
@@ -1859,66 +1893,62 @@ const AttendanceRecords = () => {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[calc(100vw-2rem)] sm:w-auto max-w-sm p-0 border border-border shadow-2xl rounded-2xl overflow-hidden text-xs z-50 bg-popover text-popover-foreground" align="start" sideOffset={8}>
-                  <div className="p-3 flex flex-col gap-2">
-                    <div className="flex items-center justify-between px-1">
-                      <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        <CalendarIcon className="w-3.5 h-3.5 text-primary" />
-                        Select Date Range
-                      </div>
-                      {startDate && (
-                        <Badge variant="secondary" className="text-[10px] px-2 py-0.5 h-5 font-mono font-normal">
-                          {formatDateToDDMMYYYY(startDate)} {endDate && endDate !== startDate ? `→ ${formatDateToDDMMYYYY(endDate)}` : ""}
-                        </Badge>
+                <PopoverContent
+                  align="start"
+                  sideOffset={6}
+                  className="w-auto p-0 z-50 rounded-xl border border-border shadow-lg overflow-hidden bg-popover max-w-[calc(100vw-2rem)]"
+                >
+                  <div className="px-3 py-2 border-b border-border bg-muted/20 flex items-center justify-between text-xs">
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      Date Range
+                    </span>
+                    <span className="font-medium text-foreground text-xs">
+                      {tempDateRange?.from && tempDateRange?.to ? (
+                        tempDateRange.from.getTime() === tempDateRange.to.getTime() ? (
+                          format(tempDateRange.from, "dd-MM-yyyy")
+                        ) : (
+                          `${format(tempDateRange.from, "dd-MM-yyyy")}  –  ${format(tempDateRange.to, "dd-MM-yyyy")}`
+                        )
+                      ) : tempDateRange?.from ? (
+                        <span className="text-primary font-normal">
+                          {format(tempDateRange.from, "dd-MM-yyyy")} → <span className="italic text-muted-foreground text-[11px]">Select end date</span>
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground italic text-[11px]">Pick start & end date</span>
                       )}
-                    </div>
-
-                    <div className="border border-border/70 rounded-xl overflow-hidden bg-background p-1 shadow-xs">
-                      <Calendar
-                        mode="range"
-                        selected={selectedDateRange}
-                        onSelect={handleCalendarSelect}
-                        numberOfMonths={1}
-                        toDate={new Date()}
-                        disabled={{ after: new Date() }}
-                        className="p-1"
-                        classNames={{
-                          months: "space-y-0",
-                          month: "space-y-1.5",
-                          caption: "flex justify-center pt-1 relative items-center h-7 mb-1",
-                          caption_label: "text-xs font-semibold",
-                          nav_button: "h-6 w-6 bg-transparent p-0 opacity-70 hover:opacity-100 rounded-md hover:bg-muted transition-all",
-                          table: "w-full border-collapse space-y-0",
-                          head_row: "flex",
-                          head_cell: "text-muted-foreground rounded-md w-8 h-6 flex-shrink-0 font-semibold text-[10px] flex items-center justify-center uppercase",
-                          row: "flex w-full mt-1",
-                          cell: "h-8 w-8 flex-shrink-0 flex items-center justify-center p-0 relative text-xs",
-                          day: "h-7.5 w-7.5 flex-shrink-0 p-0 font-normal text-xs rounded-lg transition-colors flex items-center justify-center hover:bg-accent",
-                          day_today: "bg-muted text-foreground font-bold",
-                          day_selected: "bg-primary text-primary-foreground font-semibold hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-lg",
-                          day_range_middle: "aria-selected:bg-primary/15 aria-selected:text-primary rounded-none",
-                          day_disabled: "text-muted-foreground/20 opacity-30 cursor-not-allowed pointer-events-none hover:bg-transparent hover:text-muted-foreground/20",
-                          day_outside: "text-muted-foreground/20 opacity-20 pointer-events-none"
-                        }}
-                      />
-                    </div>
+                    </span>
                   </div>
 
-                  {/* Footer Bar */}
-                  <div className="flex items-center justify-between p-2.5 border-t bg-muted/20">
+                  <div className="p-1.5 flex justify-center">
+                    <Calendar
+                      mode="range"
+                      selected={tempDateRange}
+                      onSelect={handleCalendarSelect}
+                      numberOfMonths={1}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(23, 59, 59, 999);
+                        return date > today;
+                      }}
+                      initialFocus
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-2.5 border-t border-border bg-muted/20">
                     <Button
                       size="sm"
                       variant="ghost"
                       className="text-xs h-7.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 px-2.5 rounded-lg"
-                      onClick={() => applyDatePreset("all")}
+                      onClick={handleClearDateRange}
                     >
                       <RotateCcw className="w-3 h-3" />
                       Clear Dates
                     </Button>
                     <Button
                       size="sm"
-                      className="text-xs h-7.5 px-3.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs font-medium rounded-lg"
-                      onClick={() => setIsDatePickerOpen(false)}
+                      disabled={!tempDateRange?.from}
+                      className="text-xs h-7.5 px-3.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs font-medium rounded-lg disabled:opacity-50"
+                      onClick={handleApplyDateRange}
                     >
                       Apply
                     </Button>
@@ -1927,27 +1957,39 @@ const AttendanceRecords = () => {
               </Popover>
             </div>
 
-            {/* 4. Search Input */}
+            {/* 4. Search Input & Apply Action */}
             <div>
               <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
                 Search
               </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  placeholder="Subject, Code, Batch, Section..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-8 h-9 text-xs"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
-                  >
-                    ×
-                  </button>
-                )}
+              <div className="flex items-center gap-1.5">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  <Input
+                    placeholder="Subject, Code, Batch, Section..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-8 h-9 text-xs"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => fetchRecords()}
+                  disabled={loading || !isFilterComplete}
+                  className="h-9 px-3 text-xs bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs font-medium shrink-0 gap-1.5"
+                  title="Apply filters and fetch records"
+                >
+                  {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+                  <span>Apply</span>
+                </Button>
               </div>
             </div>
 
@@ -1986,14 +2028,14 @@ const AttendanceRecords = () => {
               </div>
 
               {/* Chart Switcher Buttons */}
-              <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl border">
+              <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl border border-border overflow-x-auto max-w-full custom-scrollbar scrollbar-none shrink-0">
                 <Button
                   size="sm"
                   variant={activeAnalyticsTab === "subject_bars" ? "default" : "ghost"}
                   onClick={() => setActiveAnalyticsTab("subject_bars")}
-                  className="h-7 text-xs px-2.5 gap-1.5 rounded-lg"
+                  className="h-7 text-xs px-2.5 gap-1.5 rounded-lg shrink-0 whitespace-nowrap"
                 >
-                  <BarChart2 className="w-3.5 h-3.5" />
+                  <BarChart2 className="w-3.5 h-3.5 shrink-0" />
                   <span className="hidden sm:inline">Subject Comparison</span>
                   <span className="sm:hidden">Subjects</span>
                 </Button>
@@ -2001,9 +2043,9 @@ const AttendanceRecords = () => {
                   size="sm"
                   variant={activeAnalyticsTab === "timeline" ? "default" : "ghost"}
                   onClick={() => setActiveAnalyticsTab("timeline")}
-                  className="h-7 text-xs px-2.5 gap-1.5 rounded-lg"
+                  className="h-7 text-xs px-2.5 gap-1.5 rounded-lg shrink-0 whitespace-nowrap"
                 >
-                  <LineChart className="w-3.5 h-3.5" />
+                  <LineChart className="w-3.5 h-3.5 shrink-0" />
                   <span className="hidden sm:inline">Timeline Trend</span>
                   <span className="sm:hidden">Timeline</span>
                 </Button>
@@ -2011,9 +2053,9 @@ const AttendanceRecords = () => {
                   size="sm"
                   variant={activeAnalyticsTab === "distribution" ? "default" : "ghost"}
                   onClick={() => setActiveAnalyticsTab("distribution")}
-                  className="h-7 text-xs px-2.5 gap-1.5 rounded-lg"
+                  className="h-7 text-xs px-2.5 gap-1.5 rounded-lg shrink-0 whitespace-nowrap"
                 >
-                  <PieChartIcon className="w-3.5 h-3.5" />
+                  <PieChartIcon className="w-3.5 h-3.5 shrink-0" />
                   <span className="hidden sm:inline">Turnout Split</span>
                   <span className="sm:hidden">Split</span>
                 </Button>
@@ -2022,121 +2064,135 @@ const AttendanceRecords = () => {
 
             {/* CHART 1: Subject Comparison Bar Chart */}
             {activeAnalyticsTab === "subject_bars" && (
-              <div className="w-full h-64 sm:h-72">
-                {subjectAnalytics.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
-                    No subject data available to chart
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={subjectAnalytics} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                      <XAxis
-                        dataKey="shortName"
-                        tick={{ fontSize: 11 }}
-                        interval={0}
-                        angle={-15}
-                        textAnchor="end"
-                      />
-                      <YAxis yAxisId="left" domain={[0, 100]} unit="%" tick={{ fontSize: 11 }} />
-                      <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
-                      <Tooltip
-                        wrapperStyle={{ zIndex: 50 }}
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload;
-                            return (
-                              <div className="p-2.5 rounded-xl border shadow-xl text-xs space-y-1 bg-popover border-border text-popover-foreground pointer-events-none max-w-[210px] sm:max-w-xs">
-                                <p className="font-semibold border-b pb-1 text-primary">{data.subject_name}</p>
-                                <p className="text-[11px] text-muted-foreground">Code: {data.subject_code || "--"}</p>
-                                <div className="pt-1 space-y-0.5 text-[11px]">
-                                  <div className="flex justify-between gap-3 font-semibold text-emerald-600 dark:text-emerald-400">
-                                    <span>Attendance Rate:</span>
-                                    <span>{data.percentage}%</span>
-                                  </div>
-                                  <div className="flex justify-between gap-3 text-blue-600 dark:text-blue-400">
-                                    <span>Classes Taken:</span>
-                                    <span>{data.sessions}</span>
-                                  </div>
-                                  <div className="flex justify-between gap-3 text-muted-foreground">
-                                    <span>Present / Absent:</span>
-                                    <span>{data.present} / {data.absent}</span>
+              <div className="w-full overflow-x-auto visible-table-scrollbar pb-2">
+                <div
+                  className="h-64 sm:h-72"
+                  style={{
+                    minWidth: subjectAnalytics.length > 3 ? `${Math.max(480, subjectAnalytics.length * 110)}px` : "100%"
+                  }}
+                >
+                  {subjectAnalytics.length === 0 ? (
+                    <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                      No subject data available to chart
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={subjectAnalytics} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                        <XAxis
+                          dataKey="shortName"
+                          tick={{ fontSize: 11 }}
+                          interval={0}
+                          angle={-15}
+                          textAnchor="end"
+                        />
+                        <YAxis yAxisId="left" domain={[0, 100]} unit="%" tick={{ fontSize: 11 }} />
+                        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
+                        <Tooltip
+                          wrapperStyle={{ zIndex: 50 }}
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div className="p-2.5 rounded-xl border shadow-xl text-xs space-y-1 bg-popover border-border text-popover-foreground pointer-events-none max-w-[210px] sm:max-w-xs">
+                                  <p className="font-semibold border-b pb-1 text-primary">{data.subject_name}</p>
+                                  <p className="text-[11px] text-muted-foreground">Code: {data.subject_code || "--"}</p>
+                                  <div className="pt-1 space-y-0.5 text-[11px]">
+                                    <div className="flex justify-between gap-3 font-semibold text-emerald-600 dark:text-emerald-400">
+                                      <span>Attendance Rate:</span>
+                                      <span>{data.percentage}%</span>
+                                    </div>
+                                    <div className="flex justify-between gap-3 text-blue-600 dark:text-blue-400">
+                                      <span>Classes Taken:</span>
+                                      <span>{data.sessions}</span>
+                                    </div>
+                                    <div className="flex justify-between gap-3 text-muted-foreground">
+                                      <span>Present / Absent:</span>
+                                      <span>{data.present} / {data.absent}</span>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "8px" }} />
-                      <Bar yAxisId="left" dataKey="percentage" name="Attendance Rate (%)" fill="#10b981" radius={[6, 6, 0, 0]} />
-                      <Bar yAxisId="right" dataKey="sessions" name="Classes Conducted" fill="#6366f1" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "8px" }} />
+                        <Bar yAxisId="left" dataKey="percentage" name="Attendance Rate (%)" fill="#10b981" radius={[6, 6, 0, 0]} />
+                        <Bar yAxisId="right" dataKey="sessions" name="Classes Conducted" fill="#6366f1" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
               </div>
             )}
 
             {/* CHART 2: Timeline Trend Area Chart */}
             {activeAnalyticsTab === "timeline" && (
-              <div className="w-full h-64 sm:h-72">
-                {timelineAnalytics.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
-                    No chronological records recorded for this filter
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={timelineAnalytics} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
-                      <defs>
-                        <linearGradient id="attendanceGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                      <XAxis dataKey="displayDate" tick={{ fontSize: 11 }} />
-                      <YAxis domain={[0, 100]} unit="%" tick={{ fontSize: 11 }} />
-                      <Tooltip
-                        wrapperStyle={{ zIndex: 50 }}
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload;
-                            return (
-                              <div className="p-2.5 rounded-xl border shadow-xl text-xs space-y-1 bg-popover border-border text-popover-foreground pointer-events-none max-w-[210px] sm:max-w-xs">
-                                <p className="font-semibold border-b pb-1 text-primary">{data.displayDate}</p>
-                                <div className="pt-1 space-y-0.5 text-[11px]">
-                                  <div className="flex justify-between gap-3 font-semibold text-emerald-600 dark:text-emerald-400">
-                                    <span>Turnout:</span>
-                                    <span>{data.percentage}%</span>
-                                  </div>
-                                  <div className="flex justify-between gap-3 text-muted-foreground">
-                                    <span>Present:</span>
-                                    <span>{data.present} students</span>
-                                  </div>
-                                  <div className="flex justify-between gap-3 text-rose-500">
-                                    <span>Absent:</span>
-                                    <span>{data.absent} students</span>
+              <div className="w-full overflow-x-auto visible-table-scrollbar pb-2">
+                <div
+                  className="h-64 sm:h-72"
+                  style={{
+                    minWidth: timelineAnalytics.length > 5 ? `${Math.max(480, timelineAnalytics.length * 60)}px` : "100%"
+                  }}
+                >
+                  {timelineAnalytics.length === 0 ? (
+                    <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                      No chronological records recorded for this filter
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={timelineAnalytics} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
+                        <defs>
+                          <linearGradient id="attendanceGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                        <XAxis dataKey="displayDate" tick={{ fontSize: 11 }} />
+                        <YAxis domain={[0, 100]} unit="%" tick={{ fontSize: 11 }} />
+                        <Tooltip
+                          wrapperStyle={{ zIndex: 50 }}
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div className="p-2.5 rounded-xl border shadow-xl text-xs space-y-1 bg-popover border-border text-popover-foreground pointer-events-none max-w-[210px] sm:max-w-xs">
+                                  <p className="font-semibold border-b pb-1 text-primary">{data.displayDate}</p>
+                                  <div className="pt-1 space-y-0.5 text-[11px]">
+                                    <div className="flex justify-between gap-3 font-semibold text-emerald-600 dark:text-emerald-400">
+                                      <span>Turnout:</span>
+                                      <span>{data.percentage}%</span>
+                                    </div>
+                                    <div className="flex justify-between gap-3 text-muted-foreground">
+                                      <span>Present:</span>
+                                      <span>{data.present} students</span>
+                                    </div>
+                                    <div className="flex justify-between gap-3 text-rose-500">
+                                      <span>Absent:</span>
+                                      <span>{data.absent} students</span>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="percentage"
-                        name="Attendance Rate"
-                        stroke="#6366f1"
-                        strokeWidth={2.5}
-                        fillOpacity={1}
-                        fill="url(#attendanceGradient)"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="percentage"
+                          name="Attendance Rate"
+                          stroke="#6366f1"
+                          strokeWidth={2.5}
+                          fillOpacity={1}
+                          fill="url(#attendanceGradient)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
               </div>
             )}
 
