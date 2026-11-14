@@ -8,6 +8,8 @@ import ForgotPasswordMobile from "../auth/ForgotPasswordMobile";
 import ResetPassword from "../auth/ResetPassword";
 import { useAuth } from "../../context/AuthContext";
 import { AnimatePresence, motion } from "framer-motion";
+import { SplashScreen } from "@capacitor/splash-screen";
+import { Capacitor } from "@capacitor/core";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -17,6 +19,16 @@ const Index = () => {
   const [page, setPage] = useState<string>(location.pathname === "/forgot-password" ? "forgot-password" : "login");
   const [userState, setUserState] = useState<any>(authUser);
   const isMobile = useIsMobile();
+
+  // Hide the native splash screen once the first screen (Index) has actually mounted and painted
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      // Use requestAnimationFrame so hide happens after DOM paint
+      requestAnimationFrame(() => {
+        SplashScreen.hide().catch(console.error);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (isInitializing) return;

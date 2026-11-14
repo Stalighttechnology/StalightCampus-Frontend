@@ -31,7 +31,7 @@ const config: CapacitorConfig = {
       autoUpdate: 'always',
       defaultChannel: 'production',
       version: '0.0.0',
-      autoSplashscreen: true
+      autoSplashscreen: false
     },
     Keyboard: {
       resize: 'body',

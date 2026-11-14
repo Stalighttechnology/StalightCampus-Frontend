@@ -1,12 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import NetworkStatus from "./components/common/NetworkStatus";
-import { FeaturePopup } from "./components/common/FeaturePopup";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect, useRef } from "react";
-import Index from "./components/common/Index";
-import { PwaInstaller } from "./components/pwa/PwaInstaller";
-import MobileDraw from './components/common/MobileDraw';
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
 import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -18,11 +13,16 @@ import { Browser } from '@capacitor/browser';
 import { Monitor, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import ScheduledLocationTracker from "./components/faculty/ScheduledLocationTracker";
 import { useVersionControl } from "./hooks/useVersionControl";
-import { MandatoryUpdateScreen } from "./components/common/MandatoryUpdateScreen";
 
 // Lazy loaded components
+const Index = lazy(() => import("./components/common/Index"));
+const MobileDraw = lazy(() => import('./components/common/MobileDraw'));
+const ScheduledLocationTracker = lazy(() => import("./components/faculty/ScheduledLocationTracker"));
+const NetworkStatus = lazy(() => import("./components/common/NetworkStatus"));
+const FeaturePopup = lazy(() => import("./components/common/FeaturePopup").then(m => ({ default: m.FeaturePopup })));
+const MandatoryUpdateScreen = lazy(() => import("./components/common/MandatoryUpdateScreen").then(m => ({ default: m.MandatoryUpdateScreen })));
+const PwaInstaller = lazy(() => import("./components/pwa/PwaInstaller").then(m => ({ default: m.PwaInstaller })));
 const NotFound = lazy(() => import("./components/common/NotFound"));
 
 const PaymentSuccess = lazy(() => import("./components/common/PaymentSuccess"));
@@ -205,18 +205,18 @@ const AppContent = () => {
         } catch (e) { console.warn('Camera permission error:', e); }
       };
 
-      // Notify Capgo update is ready, hide splash screen, THEN request permissions
-      // so the permission dialogs are always visible to the user.
-      CapacitorUpdater.notifyAppReady()
-        .then(async () => {
-          await SplashScreen.hide();
-          await requestAllPermissions();
-        })
-        .catch(async (e) => {
-          console.error(e);
-          await SplashScreen.hide();
-          await requestAllPermissions();
-        });
+      // Notify Capgo update in background without blocking
+      CapacitorUpdater.notifyAppReady().catch(console.error);
+
+      // Safety fallback: if the route doesn't hide the splash screen, ensure it dismisses cleanly
+      const splashFallback = setTimeout(() => {
+        SplashScreen.hide().catch(console.error);
+      }, 2000);
+
+      // Defer permission requests so they don't block first paint / startup
+      setTimeout(() => {
+        requestAllPermissions();
+      }, 3500);
 
       // Listen for custom scheme deep links
       CapApp.addListener('appUrlOpen', (event) => {
@@ -792,10 +792,12 @@ const AppContent = () => {
       {/* ✅ Toast components rendered OUTSIDE routes but INSIDE AppContent */}
       <Toaster />
       <Sonner />
-      <NetworkStatus />
-      {isUpdateRequired && <MandatoryUpdateScreen storeUrl={storeUrl} />}
-      <FeaturePopup />
-      <ScheduledLocationTracker />
+      <Suspense fallback={null}>
+        <NetworkStatus />
+        {isUpdateRequired && <MandatoryUpdateScreen storeUrl={storeUrl} />}
+        <FeaturePopup />
+        <ScheduledLocationTracker />
+      </Suspense>
       {/* Exit App Premium Bottom Sheet Modal — native mobile only */}
       {showExitDialog && Capacitor.isNativePlatform() && (
         <div 

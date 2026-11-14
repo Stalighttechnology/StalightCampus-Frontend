@@ -65,7 +65,7 @@ export default defineConfig(({ mode }) => ({
   // - `chunkSizeWarningLimit` raised to avoid noisy warnings for larger legitimate chunks
   // - `manualChunks` separates heavy third-party libs into their own bundles
   build: {
-    chunkSizeWarningLimit: 2000, // KB - increased to reduce warnings for large legitimate chunks
+    chunkSizeWarningLimit: 2000,
     rollupOptions: {
       onwarn(warning, defaultHandler) {
         if (
@@ -74,20 +74,8 @@ export default defineConfig(({ mode }) => ({
         ) {
           return;
         }
+        
         defaultHandler(warning);
-      },
-      output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'vendor';
-            if (id.includes('jspdf') || id.includes('html2canvas')) return 'pdf';
-            if (id.includes('browser-image-compression')) return 'images';
-            if (id.includes('@radix-ui') || id.includes('lucide-react')) return 'ui';
-            if (id.includes('recharts')) return 'charts';
-            if (id.includes('xlsx') || id.includes('framer-motion') || id.includes('sweetalert2') || id.includes('lodash') || id.includes('date-fns')) return 'utils';
-            if (id.includes('@zxing')) return 'scanning';
-          }
-        },
       },
     },
   },
