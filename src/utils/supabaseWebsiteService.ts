@@ -478,7 +478,10 @@ export async function createWebsiteLead(payload: {
     if (res && res.success) {
       return { success: true, message: res.message || "Lead added successfully", data: res.data };
     }
-  } catch (e) {
+    if (res && (res.message || res.detail)) {
+      return { success: false, message: res.message || res.detail };
+    }
+  } catch (e: any) {
     console.warn("Backend lead creation failed, trying direct Supabase insertion fallback...", e);
   }
 
@@ -489,12 +492,18 @@ export async function createWebsiteLead(payload: {
     const statusVal = payload.status || "New";
     let bodyData: any = {};
     if (tableName === "contact_inquiries") {
+      const extraNotes: string[] = [];
+      if (payload.phone) extraNotes.push(`Phone: ${payload.phone}`);
+      if (payload.companyOrOrg) extraNotes.push(`Location: ${payload.companyOrOrg}`);
+      const fullMsg =
+        extraNotes.length > 0 && payload.summary
+          ? `${payload.summary} | ${extraNotes.join(" | ")}`
+          : (payload.summary || extraNotes.join(" | "));
+
       bodyData = {
         full_name: payload.name,
         email: payload.email,
-        phone: payload.phone || "",
-        company: payload.companyOrOrg || "",
-        message: payload.summary || "",
+        message: fullMsg || "Direct Inquiry",
         status: statusVal,
       };
     } else if (tableName === "admission_applications") {

@@ -428,6 +428,15 @@ const WebsiteLeads: React.FC = () => {
         setNewLeadCompany("");
         setNewLeadSummary("");
         setNewLeadStatus("New");
+
+        if (res.data && res.data.id) {
+          setLeads((prev) => [res.data, ...prev.filter((l) => l.id !== res.data.id)]);
+          setCounts((prev) => ({
+            ...prev,
+            all: (prev.all || 0) + 1,
+            [newLeadFormType]: (prev[newLeadFormType] || 0) + 1,
+          }));
+        }
         fetchLeads();
       } else {
         toast.error(res.message || "Failed to add lead");

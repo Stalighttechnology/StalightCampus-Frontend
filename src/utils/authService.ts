@@ -628,10 +628,13 @@ export const refreshSuperadminToken = async (): Promise<{ success: boolean; acce
 };
 
 export const fetchWithSuperadminTokenRefresh = async (url: string, options: RequestInit = {}): Promise<Response> => {
-  let accessToken = localStorage.getItem("superadmin_token");
+  let accessToken =
+    localStorage.getItem("superadmin_token") ||
+    sessionStorage.getItem("access_token") ||
+    localStorage.getItem("access_token");
   const safeHeaders = {
     ...options.headers,
-    Authorization: `Bearer ${accessToken}`,
+    Authorization: accessToken ? `Bearer ${accessToken}` : "",
   };
 
   let response = await fetch(url, { ...options, headers: safeHeaders });
@@ -646,14 +649,25 @@ export const fetchWithSuperadminTokenRefresh = async (url: string, options: Requ
       };
       response = await fetch(url, { ...options, headers: newHeaders });
     } else {
-      const role = localStorage.getItem("superadmin_role");
-      localStorage.removeItem("superadmin_token");
-      localStorage.removeItem("superadmin_refresh");
-      localStorage.removeItem("superadmin_role");
-      if (role === "developer") {
-        window.location.href = "/stalightcampus/developer";
+      // If superadmin token refresh failed, attempt standard refresh token fallback
+      const standardRefreshData = await refreshToken();
+      if (standardRefreshData?.success) {
+        accessToken = standardRefreshData.access;
+        const newHeaders = {
+          ...options.headers,
+          Authorization: `Bearer ${accessToken}`,
+        };
+        response = await fetch(url, { ...options, headers: newHeaders });
       } else {
-        window.location.href = "/stalightcampus/admin";
+        const role = localStorage.getItem("superadmin_role");
+        localStorage.removeItem("superadmin_token");
+        localStorage.removeItem("superadmin_refresh");
+        localStorage.removeItem("superadmin_role");
+        if (role === "developer") {
+          window.location.href = "/stalightcampus/developer";
+        } else {
+          window.location.href = "/stalightcampus/admin";
+        }
       }
     }
   }

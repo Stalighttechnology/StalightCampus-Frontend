@@ -1952,10 +1952,14 @@ export const getSuperAdminWebsiteLeads = async (params?: { form_type?: string; s
       if (params.status) searchParams.append('status', params.status);
       if (searchParams.toString()) url += `?${searchParams.toString()}`;
     }
+    const authToken =
+      localStorage.getItem("superadmin_token") ||
+      sessionStorage.getItem("access_token") ||
+      localStorage.getItem("access_token");
     const response = await fetchWithSuperadminTokenRefresh(url, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+        Authorization: authToken ? `Bearer ${authToken}` : "",
       },
     });
     return await response.json();
@@ -1974,12 +1978,16 @@ export const createSuperAdminWebsiteLead = async (payload: {
   status?: string;
 }): Promise<any> => {
   try {
+    const authToken =
+      localStorage.getItem("superadmin_token") ||
+      sessionStorage.getItem("access_token") ||
+      localStorage.getItem("access_token");
     const response = await fetchWithSuperadminTokenRefresh(
       `${API_ENDPOINT}/superadmin/website-leads/create/`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+          Authorization: authToken ? `Bearer ${authToken}` : "",
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
@@ -1997,12 +2005,16 @@ export const updateSuperAdminWebsiteLeadStatus = async (
   status: string
 ): Promise<any> => {
   try {
+    const authToken =
+      localStorage.getItem("superadmin_token") ||
+      sessionStorage.getItem("access_token") ||
+      localStorage.getItem("access_token");
     const response = await fetchWithSuperadminTokenRefresh(
       `${API_ENDPOINT}/superadmin/website-leads/${formKey}/${leadId}/status/`,
       {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+          Authorization: authToken ? `Bearer ${authToken}` : "",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ status }),
@@ -2027,12 +2039,16 @@ export const editSuperAdminWebsiteLead = async (
   }
 ): Promise<any> => {
   try {
+    const authToken =
+      localStorage.getItem("superadmin_token") ||
+      sessionStorage.getItem("access_token") ||
+      localStorage.getItem("access_token");
     const response = await fetchWithSuperadminTokenRefresh(
       `${API_ENDPOINT}/superadmin/website-leads/${formKey}/${leadId}/edit/`,
       {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+          Authorization: authToken ? `Bearer ${authToken}` : "",
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
@@ -2049,12 +2065,16 @@ export const deleteSuperAdminWebsiteLead = async (
   leadId: string | number
 ): Promise<any> => {
   try {
+    const authToken =
+      localStorage.getItem("superadmin_token") ||
+      sessionStorage.getItem("access_token") ||
+      localStorage.getItem("access_token");
     const response = await fetchWithSuperadminTokenRefresh(
       `${API_ENDPOINT}/superadmin/website-leads/${formKey}/${leadId}/`,
       {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("superadmin_token")}`,
+          Authorization: authToken ? `Bearer ${authToken}` : "",
         },
       }
     );
