@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,6 @@ import {
   CheckCircle2,
   Loader2,
   HelpCircle,
-  Sparkles,
 } from "lucide-react";
 
 export interface QuestionItem {
@@ -158,17 +157,35 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
 
   const handleAddQuestion = (type: "theory" | "lab") => {
     if (type === "theory") {
-      const nextId = `Q${theoryQuestions.length + 1}`;
+      const nextIndex = theoryQuestions.length;
+      const nextId = `Q${nextIndex + 1}`;
       setTheoryQuestions((prev) => [
         ...prev,
         { id: nextId, text: "" },
       ]);
+      setTimeout(() => {
+        const el = document.getElementById(`theory-statement-${nextIndex}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          const textarea = el.querySelector("textarea");
+          textarea?.focus();
+        }
+      }, 80);
     } else {
-      const nextId = `Q${labQuestions.length + 1}`;
+      const nextIndex = labQuestions.length;
+      const nextId = `Q${nextIndex + 1}`;
       setLabQuestions((prev) => [
         ...prev,
         { id: nextId, text: "" },
       ]);
+      setTimeout(() => {
+        const el = document.getElementById(`lab-statement-${nextIndex}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          const textarea = el.querySelector("textarea");
+          textarea?.focus();
+        }
+      }, 80);
     }
   };
 
@@ -273,14 +290,13 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 rounded-2xl overflow-hidden">
+      <DialogContent className="w-[92%] sm:w-full sm:max-w-3xl max-h-[85vh] sm:max-h-[90vh] flex flex-col p-0 rounded-2xl overflow-hidden custom-scrollbar">
         {/* Header */}
         <DialogHeader className="p-4 sm:p-6 pb-3 border-b bg-muted/20">
           <div className="flex items-center justify-between gap-2 pr-6">
             <div>
-              <DialogTitle className="text-lg sm:text-xl font-bold flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary shrink-0" />
-                <span>Course Feedback Questionnaires</span>
+              <DialogTitle className="text-base sm:text-xl font-bold">
+                Course Feedback Questionnaires
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm mt-1">
                 Configure separate 13-point evaluation questionnaires for Theory and Laboratory courses in your department.
@@ -290,7 +306,7 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
         </DialogHeader>
 
         {/* Body with Tabs */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-4">
           <Tabs
             value={activeTab}
             onValueChange={(val) => setActiveTab(val as "theory" | "lab")}
@@ -299,24 +315,26 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
             <TabsList className="grid grid-cols-2 w-full h-11 p-1 bg-muted/60 rounded-xl mb-4">
               <TabsTrigger
                 value="theory"
-                className="flex items-center gap-2 text-xs sm:text-sm font-medium rounded-lg"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium rounded-lg transition-all px-2 sm:px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
               >
-                <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <span>Theory Courses ({theoryQuestions.length} Qs)</span>
+                <BookOpen className="w-4 h-4 shrink-0 hidden sm:inline-block" />
+                <span className="truncate sm:hidden">Theory ({theoryQuestions.length})</span>
+                <span className="hidden sm:inline">Theory Courses ({theoryQuestions.length} Qs)</span>
                 {theoryIsCustom && (
-                  <Badge variant="secondary" className="text-[10px] py-0 px-1.5 ml-1">
+                  <Badge variant="secondary" className="hidden sm:inline-flex text-[10px] py-0 px-1.5 ml-1 bg-background/20 text-current border border-current/20">
                     Customized
                   </Badge>
                 )}
               </TabsTrigger>
               <TabsTrigger
                 value="lab"
-                className="flex items-center gap-2 text-xs sm:text-sm font-medium rounded-lg"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium rounded-lg transition-all px-2 sm:px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
               >
-                <FlaskConical className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span>Lab Courses ({labQuestions.length} Qs)</span>
+                <FlaskConical className="w-4 h-4 shrink-0 hidden sm:inline-block" />
+                <span className="truncate sm:hidden">Lab ({labQuestions.length})</span>
+                <span className="hidden sm:inline">Lab Courses ({labQuestions.length} Qs)</span>
                 {labIsCustom && (
-                  <Badge variant="secondary" className="text-[10px] py-0 px-1.5 ml-1">
+                  <Badge variant="secondary" className="hidden sm:inline-flex text-[10px] py-0 px-1.5 ml-1 bg-background/20 text-current border border-current/20">
                     Customized
                   </Badge>
                 )}
@@ -350,12 +368,12 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
                     />
                   </div>
                   {/* Rating Info Pill */}
-                  <div className="p-2.5 rounded-lg bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 text-blue-900 dark:text-blue-300 text-xs flex items-center justify-between gap-2">
+                  <div className="p-2.5 rounded-lg bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 text-blue-900 dark:text-blue-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 font-medium">
-                      <HelpCircle className="w-4 h-4 shrink-0 text-blue-600" />
+                      <HelpCircle className="w-4 h-4 shrink-0 hidden sm:inline-block text-blue-600" />
                       <span>Rating Scale: 5 (Strongly Agree) &rarr; 1 (Strongly Disagree) [5-Star Golden Rating]</span>
                     </div>
-                    <Badge variant="outline" className="text-[10px] font-mono border-blue-300">
+                    <Badge variant="outline" className="text-[10px] font-mono border-blue-300 whitespace-nowrap shrink-0 self-start sm:self-center">
                       Auto-Includes Suggestion Box
                     </Badge>
                   </div>
@@ -364,17 +382,17 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
 
               {/* Questions List */}
               <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Theory Feedback Statements ({theoryQuestions.length})
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={() => handleResetToDefault("theory")}
-                      className="text-xs h-8 gap-1 text-muted-foreground hover:text-foreground"
+                      className="text-xs h-8 gap-1 text-muted-foreground hover:text-foreground px-2"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Reset to 13 Defaults</span>
@@ -384,7 +402,7 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
                       variant="outline"
                       size="sm"
                       onClick={() => handleAddQuestion("theory")}
-                      className="text-xs h-8 gap-1"
+                      className="text-xs h-8 gap-1 px-2.5"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Statement</span>
@@ -395,6 +413,7 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
                 {theoryQuestions.map((q, idx) => (
                   <div
                     key={idx}
+                    id={`theory-statement-${idx}`}
                     className="flex items-start gap-2.5 p-3 rounded-xl border bg-card/40 hover:bg-card transition-colors shadow-2xs"
                   >
                     <Badge
@@ -429,7 +448,7 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
                 <Button
                   onClick={() => handleSave("theory")}
                   disabled={saving || loading}
-                  className="gap-2 h-10 px-6 font-medium shadow-sm rounded-lg"
+                  className="gap-2 h-10 px-6 font-medium shadow-sm rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {saving ? (
                     <>
@@ -471,12 +490,12 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
                     />
                   </div>
                   {/* Rating Info Pill */}
-                  <div className="p-2.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 text-emerald-900 dark:text-emerald-300 text-xs flex items-center justify-between gap-2">
+                  <div className="p-2.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 text-emerald-900 dark:text-emerald-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 font-medium">
-                      <HelpCircle className="w-4 h-4 shrink-0 text-emerald-600" />
+                      <HelpCircle className="w-4 h-4 shrink-0 hidden sm:inline-block text-emerald-600" />
                       <span>Rating Scale: 5 (Strongly Agree) &rarr; 1 (Strongly Disagree) [5-Star Golden Rating]</span>
                     </div>
-                    <Badge variant="outline" className="text-[10px] font-mono border-emerald-300">
+                    <Badge variant="outline" className="text-[10px] font-mono border-emerald-300 whitespace-nowrap shrink-0 self-start sm:self-center">
                       Auto-Includes Lab Suggestion Box
                     </Badge>
                   </div>
@@ -485,17 +504,17 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
 
               {/* Questions List */}
               <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Laboratory Feedback Statements ({labQuestions.length})
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={() => handleResetToDefault("lab")}
-                      className="text-xs h-8 gap-1 text-muted-foreground hover:text-foreground"
+                      className="text-xs h-8 gap-1 text-muted-foreground hover:text-foreground px-2"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Reset to 13 Defaults</span>
@@ -505,7 +524,7 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
                       variant="outline"
                       size="sm"
                       onClick={() => handleAddQuestion("lab")}
-                      className="text-xs h-8 gap-1"
+                      className="text-xs h-8 gap-1 px-2.5"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Statement</span>
@@ -516,6 +535,7 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
                 {labQuestions.map((q, idx) => (
                   <div
                     key={idx}
+                    id={`lab-statement-${idx}`}
                     className="flex items-start gap-2.5 p-3 rounded-xl border bg-card/40 hover:bg-card transition-colors shadow-2xs"
                   >
                     <Badge
@@ -550,7 +570,7 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
                 <Button
                   onClick={() => handleSave("lab")}
                   disabled={saving || loading}
-                  className="gap-2 h-10 px-6 font-medium shadow-sm rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="gap-2 h-10 px-6 font-medium shadow-sm rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {saving ? (
                     <>
@@ -568,12 +588,12 @@ export const FeedbackQuestionnaireModal: React.FC<FeedbackQuestionnaireModalProp
         </div>
 
         {/* Footer */}
-        <DialogFooter className="p-3 sm:p-4 border-t bg-muted/10 flex items-center justify-between">
+        <DialogFooter className="p-3 sm:p-4 border-t bg-muted/10 flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3">
           <div className="text-xs text-muted-foreground flex items-center gap-1.5">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
             <span>Changes will apply to all future student feedback submissions for this department.</span>
           </div>
-          <Button variant="outline" size="sm" onClick={onClose} className="rounded-lg h-9">
+          <Button variant="outline" size="sm" onClick={onClose} className="rounded-lg h-9 w-full sm:w-auto">
             Close
           </Button>
         </DialogFooter>

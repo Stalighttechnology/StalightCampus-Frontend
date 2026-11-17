@@ -546,8 +546,8 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
     <div className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'} agent`}>
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader id="hod-semester-monitor-header" className="border-b mb-3">
-          <div className="flex flex-row justify-between items-start gap-3 w-full">
-            <div className="flex-1 min-w-0 text-left">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+            <div className="w-full sm:w-auto flex-1 min-w-0 text-left">
               <CardTitle className="text-xl sm:text-2xl font-semibold mb-1 sm:mb-2">
                 {isPrincipalUser
                   ? "Institutional Syllabus Monitor"
@@ -562,14 +562,14 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
               </CardDescription>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setIsQuestionnaireModalOpen(true)}
                 title="Configure Theory & Lab Feedback Questionnaires"
-                className="h-9 px-3 text-xs sm:text-sm font-medium flex items-center gap-1.5 rounded-lg border shadow-xs hover:bg-muted"
+                className="h-9 px-3 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 rounded-lg border shadow-xs hover:bg-muted w-full sm:w-auto"
               >
                 <ClipboardList className="w-4 h-4 text-primary shrink-0" />
                 <span className="hidden sm:inline">Feedback Questionnaires</span>
@@ -583,7 +583,7 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
                   onClick={handleExportSemesterPDF}
                   disabled={exportingSemester}
                   title="Export Semester PDF"
-                  className="bg-transparent hover:bg-primary/10 text-primary border-border/80 sm:bg-primary sm:hover:bg-primary/90 sm:text-white sm:hover:text-white sm:border-primary h-9 w-9 p-0 sm:w-auto sm:px-4 transition-all text-sm flex items-center justify-center gap-2 shrink-0 rounded-lg shadow-xs"
+                  className="bg-transparent hover:bg-primary/10 text-primary border-border/80 sm:bg-primary sm:hover:bg-primary/90 sm:text-white sm:hover:text-white sm:border-primary h-9 w-full sm:w-auto sm:px-4 transition-all text-sm flex items-center justify-center gap-2 shrink-0 rounded-lg shadow-xs"
                 >
                   {exportingSemester ? (
                     <>
@@ -594,6 +594,7 @@ const HODSemesterMonitor = ({ userRole }: HODSemesterMonitorProps) => {
                     <>
                       <FileDown className="w-4 h-4" />
                       <span className="hidden sm:inline">Export Semester PDF</span>
+                      <span className="inline sm:hidden">Export PDF</span>
                     </>
                   )}
                 </Button>

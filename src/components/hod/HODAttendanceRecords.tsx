@@ -1648,47 +1648,44 @@ const HODAttendanceRecords = () => {
         )}
       >
         <div id="attendance-records-header">
-          <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 border-b">
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <CardTitle className="text-xl font-semibold">
+          <CardHeader className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50">
+            <div className="w-full sm:w-auto">
+              <div className="flex items-center justify-between sm:justify-start gap-2.5">
+                <CardTitle className="text-xl sm:text-2xl font-semibold">
                   Attendance Records
                 </CardTitle>
                 {filterMeta?.branch && (
-                  <Badge variant="outline" className="text-xs font-medium border-primary/30 text-primary">
+                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ${
+                    theme === 'dark'
+                      ? 'bg-primary/15 text-primary border border-primary/20'
+                      : 'bg-purple-50 text-purple-700 border border-purple-200'
+                  }`}>
                     {filterMeta.branch.name}
-                  </Badge>
+                  </span>
                 )}
               </div>
-              <CardDescription className="text-xs sm:text-sm text-muted-foreground mt-1">
+              <CardDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                 Select a {getInstitutionType() === "school" ? "class" : "semester"}, section, and date to view attendance records
               </CardDescription>
             </div>
 
-            {/* Desktop Export Buttons */}
-            <div className="hidden sm:flex items-center gap-2">
+            {/* Export Buttons */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <Button
                 onClick={handleExportExcel}
-                disabled={loading || students.length === 0}
+                disabled={loading || !isFilterChosen || students.length === 0}
                 variant="outline"
-                className="text-emerald-700 dark:text-emerald-400 border-emerald-600/30 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 shadow-sm transition-all duration-200 items-center justify-center gap-2 h-10 px-4 text-sm font-semibold"
+                title={
+                  !isFilterChosen
+                    ? "Select semester, section, subject, and date range to export"
+                    : students.length === 0
+                    ? "No student attendance records to export"
+                    : "Export Attendance Records to Excel"
+                }
+                className="w-full sm:w-auto text-emerald-800 dark:text-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100/90 dark:hover:bg-emerald-900/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-50/80 dark:disabled:hover:bg-emerald-950/40 shadow-xs transition-all duration-200 flex items-center justify-center gap-2 h-9 sm:h-10 px-4 text-xs sm:text-sm font-semibold rounded-lg"
               >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>Export Excel</span>
-              </Button>
-            </div>
-
-            {/* Mobile Export Buttons */}
-            <div className="flex sm:hidden items-center gap-1.5">
-              <Button
-                onClick={handleExportExcel}
-                disabled={loading || students.length === 0}
-                size="icon"
-                variant="outline"
-                className="h-10 w-10 items-center justify-center shrink-0 border border-input bg-background"
-                title="Export Excel"
-              >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
               </Button>
             </div>
           </CardHeader>
@@ -1962,20 +1959,20 @@ const HODAttendanceRecords = () => {
                       />
                     </div>
 
-                    <div className="flex items-center justify-between p-2.5 border-t border-border bg-muted/20">
+                    <div className="flex items-center justify-between p-2.5 sm:p-3 border-t border-border bg-muted/20 gap-2">
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-xs h-7.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 px-2.5 rounded-lg"
+                        className="text-xs h-8 text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 px-3 rounded-lg"
                         onClick={handleClearDateRange}
                       >
-                        <RotateCcw className="w-3 h-3" />
+                        <RotateCcw className="w-3.5 h-3.5" />
                         Clear Dates
                       </Button>
                       <Button
                         size="sm"
                         disabled={!tempDateRange?.from}
-                        className="text-xs h-7.5 px-3.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs font-medium rounded-lg disabled:opacity-50"
+                        className="text-xs h-8 px-5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm font-semibold rounded-lg disabled:opacity-50 transition-all"
                         onClick={handleApplyDateRange}
                       >
                         Apply
@@ -2133,17 +2130,17 @@ const HODAttendanceRecords = () => {
               {/* Subject & Faculty Information Banner */}
               <div
                 className={cn(
-                  "p-4 rounded-xl border transition-all duration-200 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4",
+                  "p-4 sm:p-5 rounded-2xl border transition-all duration-200 shadow-xs flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4",
                   theme === "dark"
                     ? "bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-slate-950/80 border-primary/20"
                     : "bg-gradient-to-r from-indigo-50/70 via-blue-50/40 to-slate-50 border-primary/20"
                 )}
               >
-                <div className="flex items-start sm:items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0 ring-1 ring-primary/25">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0 ring-1 ring-primary/25 mt-0.5">
                     <BookOpen className="w-5 h-5" />
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-sm sm:text-base text-foreground">
                         {facultyInfo?.subject_name || (selectedSubject === "all" ? "All Subjects" : availableSubjects.find((s) => String(s.id) === selectedSubject)?.name) || "Subject Attendance"}
@@ -2159,7 +2156,7 @@ const HODAttendanceRecords = () => {
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 flex-wrap">
                       <span>
                         Sem {filterMeta?.semesters.find((s) => String(s.id) === selectedSemester)?.number ?? selectedSemester} - Sec {availableSections.find((s) => String(s.id) === selectedSection)?.name ?? selectedSection}
                       </span>
@@ -2173,27 +2170,32 @@ const HODAttendanceRecords = () => {
 
                     {/* Included Subjects List when All Subjects is selected */}
                     {selectedSubject === "all" && (facultyInfo?.all_subjects?.length || availableSubjects.length) > 0 && (
-                      <div className="mt-2.5 flex items-center gap-1.5 flex-wrap pt-2 border-t border-border/40">
-                        <span className="text-xs font-semibold text-primary">Included Subjects ({facultyInfo?.all_subjects?.length || availableSubjects.length}):</span>
+                      <div className="mt-3 flex items-center gap-1.5 flex-wrap pt-2.5 border-t border-border/40">
+                        <span className="text-xs font-bold text-primary mr-1 whitespace-nowrap">
+                          Included Subjects ({facultyInfo?.all_subjects?.length || availableSubjects.length}):
+                        </span>
                         {(facultyInfo?.all_subjects || availableSubjects).map((subj: any) => (
-                          <Badge key={subj.id} variant="outline" className="text-[11px] font-medium bg-background/90 border-primary/30 text-foreground shadow-2xs">
+                          <span
+                            key={subj.id}
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-background border border-primary/25 text-foreground shadow-2xs whitespace-normal sm:whitespace-nowrap"
+                          >
                             {subj.full_name || (subj.code ? `${subj.name} (${subj.code})` : subj.name)}
-                          </Badge>
+                          </span>
                         ))}
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 text-xs shrink-0 border-t md:border-t-0 md:border-l border-border/60 pt-3 md:pt-0 md:pl-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5 text-xs shrink-0 border-t lg:border-t-0 lg:border-l border-border/60 pt-3 lg:pt-0 lg:pl-5">
                   {/* Assigned Faculty */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                       <UserCheck className="w-4 h-4" />
                     </div>
                     <div>
                       <span className="text-[10px] text-muted-foreground font-medium block">Assigned Faculty</span>
-                      <span className="font-semibold text-foreground">
+                      <span className="font-semibold text-foreground text-xs sm:text-sm">
                         {facultyInfo?.assigned_faculty_name || "Not Assigned"}
                       </span>
                     </div>
@@ -2202,13 +2204,13 @@ const HODAttendanceRecords = () => {
                   <div className="hidden sm:block w-px h-6 bg-border/60" />
 
                   {/* Attendance Marked By Faculty */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
                       <GraduationCap className="w-4 h-4" />
                     </div>
                     <div>
                       <span className="text-[10px] text-muted-foreground font-medium block">Attendance Marked By</span>
-                      <span className="font-semibold text-foreground">
+                      <span className="font-semibold text-foreground text-xs sm:text-sm">
                         {facultyInfo?.marked_by_faculty_name || "No sessions recorded"}
                       </span>
                     </div>
@@ -2390,7 +2392,7 @@ const HODAttendanceRecords = () => {
                             <TableCell className="text-center">
                               <span
                                 className={cn(
-                                  "inline-flex items-center justify-center font-semibold px-2.5 py-0.5 rounded-full text-xs border",
+                                  "inline-flex items-center justify-center font-semibold px-2.5 py-0.5 rounded-full text-xs border whitespace-nowrap min-w-[70px]",
                                   badgeColor
                                 )}
                               >
@@ -2398,12 +2400,14 @@ const HODAttendanceRecords = () => {
                               </span>
                             </TableCell>
                             <TableCell className="text-center">
-                              <Badge
-                                variant="outline"
-                                className={cn("text-[11px] font-semibold px-2 py-0.5", statusBadge)}
+                              <span
+                                className={cn(
+                                  "inline-flex items-center justify-center font-semibold px-2.5 py-0.5 rounded-full text-[11px] border whitespace-nowrap min-w-[80px]",
+                                  statusBadge
+                                )}
                               >
                                 {s.status}
-                              </Badge>
+                              </span>
                             </TableCell>
                             <TableCell className="text-center">
                               <Button
@@ -2430,30 +2434,30 @@ const HODAttendanceRecords = () => {
           )}
         </CardContent>
 
-        {/* Robust Pagination Controls (matching Low Attendance footer pattern) */}
+        {/* Pagination Controls (Matching Leave Approvals pattern) */}
         {isFilterChosen && totalRecordsCount > 0 && (
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 px-4 sm:px-6 py-4 border-t border-border mt-auto">
-            <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 px-4 sm:px-6 py-4 border-t border-border mt-auto">
+            <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap justify-center sm:justify-start">
               <span>
                 Showing{" "}
-                <span className="font-medium text-foreground">
+                <span className="font-semibold text-foreground">
                   {(page - 1) * pageSize + 1}
                 </span>{" "}
                 to{" "}
-                <span className="font-medium text-foreground">
+                <span className="font-semibold text-foreground">
                   {Math.min(page * pageSize, totalRecordsCount)}
                 </span>{" "}
                 of{" "}
-                <span className="font-medium text-foreground">
+                <span className="font-semibold text-foreground">
                   {totalRecordsCount}
                 </span>{" "}
                 records
               </span>
-              <span className="text-muted-foreground/60">|</span>
+              <span className="text-muted-foreground/60 hidden sm:inline">|</span>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs">Per page:</span>
+                <span className="text-xs text-muted-foreground">Per page:</span>
                 <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-                  <SelectTrigger className="h-7 w-16 text-xs">
+                  <SelectTrigger className="h-8 w-16 text-xs rounded-lg">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -2466,66 +2470,27 @@ const HODAttendanceRecords = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap justify-center">
+            <div className="flex items-center gap-2 justify-center sm:justify-end">
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(1)}
-                disabled={page <= 1 || loading}
-                className="h-8 w-8 p-0"
-                title="First Page"
-              >
-                <ChevronsLeft className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1 || loading}
-                className="h-8 px-2.5 text-xs flex items-center gap-1"
+                variant="outline"
+                className="text-sm font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed h-9"
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Prev</span>
+                Prev
               </Button>
 
-              {paginationRange.map((item, i) =>
-                item === "..." ? (
-                  <span key={`ellipsis-${i}`} className="px-1 text-xs text-muted-foreground">
-                    ...
-                  </span>
-                ) : (
-                  <Button
-                    key={`page-${item}`}
-                    variant={page === item ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setPage(Number(item))}
-                    disabled={loading}
-                    className="h-8 w-8 p-0 text-xs font-medium"
-                  >
-                    {item}
-                  </Button>
-                )
-              )}
+              <span className="px-3 text-sm sm:text-base font-semibold text-primary">
+                {page}
+              </span>
 
               <Button
-                variant="outline"
-                size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages || loading}
-                className="h-8 px-2.5 text-xs flex items-center gap-1"
-              >
-                <span className="hidden sm:inline">Next</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Button>
-              <Button
                 variant="outline"
-                size="sm"
-                onClick={() => setPage(totalPages)}
-                disabled={page >= totalPages || loading}
-                className="h-8 w-8 p-0"
-                title="Last Page"
+                className="text-sm font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed h-9"
               >
-                <ChevronsRight className="w-4 h-4" />
+                Next
               </Button>
             </div>
           </CardFooter>
@@ -2534,12 +2499,12 @@ const HODAttendanceRecords = () => {
 
       {/* View Details Student Attendance Roster Modal */}
       <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="max-w-2xl w-[95vw] max-h-[85vh] flex flex-col p-0 overflow-hidden">
+        <DialogContent className="w-[90%] sm:w-full sm:max-w-2xl max-h-[80vh] sm:max-h-[85vh] rounded-2xl flex flex-col p-0 overflow-hidden custom-scrollbar">
           <DialogHeader className="p-4 sm:p-5 pb-3 border-b border-border bg-muted/20">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3 pr-6 sm:pr-8">
               <DialogTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-primary" />
-                Lecture Attendance Breakdown
+                <BookOpen className="w-5 h-5 text-primary shrink-0" />
+                <span>Lecture Attendance Breakdown</span>
               </DialogTitle>
               {recordDetails && (
                 <Button
@@ -2547,11 +2512,12 @@ const HODAttendanceRecords = () => {
                   variant="outline"
                   size="sm"
                   onClick={handleExportModalExcel}
-                  className="h-8 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                  className="h-8 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100/90 dark:hover:bg-emerald-900/60 shadow-xs shrink-0 rounded-lg"
                   title="Export Lecture Breakdown to Excel"
                 >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   <span className="hidden sm:inline">Export Excel</span>
+                  <span className="sm:hidden">Excel</span>
                 </Button>
               )}
             </div>
@@ -2781,21 +2747,21 @@ const HODAttendanceRecords = () => {
 
       {/* Student Attendance Timeline Modal */}
       <Dialog open={studentTimelineModalOpen} onOpenChange={setStudentTimelineModalOpen}>
-        <DialogContent className="max-w-2xl w-[95vw] max-h-[85vh] flex flex-col p-0 overflow-hidden">
+        <DialogContent className="w-[90%] sm:w-full sm:max-w-2xl max-h-[80vh] sm:max-h-[85vh] rounded-2xl flex flex-col p-0 overflow-hidden custom-scrollbar">
           <DialogHeader className="p-4 sm:p-5 pb-3 border-b border-border bg-muted/20">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <History className="w-5 h-5 text-primary" />
-                <DialogTitle className="text-base sm:text-lg font-semibold">
+            <div className="flex items-center justify-between gap-2.5 pr-6 sm:pr-8">
+              <div className="flex items-center gap-2 min-w-0">
+                <History className="w-5 h-5 text-primary shrink-0" />
+                <DialogTitle className="text-base sm:text-lg font-semibold truncate">
                   Student Attendance Timeline
                 </DialogTitle>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 shrink-0">
                 {selectedStudentForTimeline && (
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-xs px-2.5 py-0.5 font-semibold hidden sm:inline-flex",
+                      "text-xs px-2.5 py-0.5 font-semibold hidden md:inline-flex",
                       selectedStudentForTimeline.attendance_percentage >= 75
                         ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                         : selectedStudentForTimeline.attendance_percentage >= 60
@@ -2810,11 +2776,12 @@ const HODAttendanceRecords = () => {
                   variant="outline"
                   size="sm"
                   onClick={handleExportStudentTimelineExcel}
-                  className="h-8 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 shrink-0"
+                  className="h-8 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100/90 dark:hover:bg-emerald-900/60 shadow-xs shrink-0 rounded-lg"
                   title="Export Student Timeline to Excel"
                 >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Export Excel</span>
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span className="hidden sm:inline">Export Excel</span>
+                  <span className="sm:hidden">Excel</span>
                 </Button>
               </div>
             </div>
