@@ -4,6 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -103,66 +105,59 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
   const [principalRemarksInput, setPrincipalRemarksInput] = useState<string>("");
   const [showSubmissionsModal, setShowSubmissionsModal] = useState<boolean>(false);
 
+  // Reset state when modal is opened for a different subject or closed
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedSecId(sectionId ? String(sectionId) : null);
+      setWorkflow(null);
+      setAvailableWorkflows([]);
+    }
+  }, [isOpen, subjectId, sectionId]);
+
   const loadWorkflowData = async () => {
     setLoading(true);
     try {
+      const activeSecId = selectedSecId ?? (sectionId ? String(sectionId) : null);
+      const querySecId = activeSecId && activeSecId !== 'all' ? activeSecId : undefined;
+
       let res: any = null;
       if (role === 'teacher') {
-        res = await getFacultyFeedbackReviews(cycle, subjectId, sectionId);
+        res = await getFacultyFeedbackReviews(cycle, subjectId, querySecId);
       } else if (role === 'hod') {
-        res = await getHODFeedbackReviews(cycle, subjectId, sectionId);
+        res = await getHODFeedbackReviews(cycle, subjectId, querySecId);
       } else {
-        res = await getPrincipalFeedbackOverview({ cycle, subject_id: subjectId, section_id: sectionId });
+        res = await getPrincipalFeedbackOverview({ cycle, subject_id: subjectId, section_id: querySecId });
       }
 
       if (res && res.success && Array.isArray(res.data)) {
         const targetSubId = String(subjectId);
         const subjectWorkflows = res.data.filter((item: any) => String(item.subject_id) === targetSubId);
-        setAvailableWorkflows(subjectWorkflows);
+        
+        // Populate or preserve available workflows for dropdown
+        if (availableWorkflows.length === 0 || !activeSecId) {
+          setAvailableWorkflows(subjectWorkflows);
+        }
 
-        // Determine which section to select
-        const currentSecId = selectedSecId ?? (sectionId ? String(sectionId) : null);
         let matched = null;
-
-        if (currentSecId) {
+        if (activeSecId) {
           matched = subjectWorkflows.find(
-            (item: any) => String(item.section_id) === currentSecId
+            (item: any) => (activeSecId === 'all' ? (item.section_id === null || item.section_name === 'All') : String(item.section_id) === activeSecId)
           );
-        }
-
-        // If no explicit section selected or not matched, prioritize entries with submitted faculty remarks or forwarded status
-        if (!matched) {
-          const submittedEntry = subjectWorkflows.find(
-            (item: any) => item.status === 'FORWARDED_TO_HOD' || item.status === 'FORWARDED_TO_PRINCIPAL' || item.status === 'COMPLETED' || !!item.faculty_remarks
-          );
-          if (submittedEntry) {
-            matched = submittedEntry;
-          }
-        }
-
-        // Fallback to highest student responses
-        if (!matched) {
-          const sortedByResponses = [...subjectWorkflows].sort((a: any, b: any) => (b.total_responses || 0) - (a.total_responses || 0));
-          if (sortedByResponses.length > 0 && (sortedByResponses[0].total_responses || 0) > 0) {
-            matched = sortedByResponses[0];
-          }
-        }
-
-        // Fallback to subject-level ("All")
-        if (!matched) {
-          matched = subjectWorkflows.find(
-            (item: any) => item.section_id === null || item.section_name === 'All' || item.section_name === 'All Sections'
-          ) || subjectWorkflows[0] || null;
+        } else if (subjectWorkflows.length === 1) {
+          matched = subjectWorkflows[0];
+          setSelectedSecId(matched.section_id ? String(matched.section_id) : 'all');
         }
 
         if (matched) {
           setWorkflow(matched);
-          setSelectedSecId(matched.section_id ? String(matched.section_id) : 'all');
           setFacultyRemarksInput(matched.faculty_remarks || "");
           setHodRemarksInput(matched.hod_remarks || "");
           setPrincipalRemarksInput(matched.principal_remarks || "");
         } else {
           setWorkflow(null);
+          setFacultyRemarksInput("");
+          setHodRemarksInput("");
+          setPrincipalRemarksInput("");
         }
       }
 
@@ -191,6 +186,7 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
     }
   };
 
+  // Re-fetch overview when modal opens, or subject/cycle/section changes
   useEffect(() => {
     if (isOpen) {
       loadWorkflowData();
@@ -351,13 +347,19 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                   {subjectName}
                 </DialogTitle>
                 {subjectCode && <span className="text-xs px-2 py-0.5 rounded-md bg-muted font-mono">{subjectCode}</span>}
+                {getStatusBadge(currentStatus)}
+              </div>
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2.5 flex-wrap">
+                <span>Faculty: <strong>{resolvedFacultyName}</strong></span>
+                <span>•</span>
+                <span>Role View: <strong className="capitalize">{role}</strong></span>
+                <span>•</span>
                 {availableWorkflows.length > 1 ? (
-                  <select
-                    value={selectedSecId || (workflow?.section_id ? String(workflow.section_id) : 'all')}
-                    onChange={(e) => {
-                      const newSecId = e.target.value;
-                      setSelectedSecId(newSecId);
-                      const target = availableWorkflows.find(w => (newSecId === 'all' ? (w.section_id === null || w.section_name === 'All') : String(w.section_id) === newSecId));
+                  <Select
+                    value={selectedSecId || (workflow?.section_id ? String(workflow.section_id) : (workflow ? 'all' : undefined))}
+                    onValueChange={(val) => {
+                      setSelectedSecId(val);
+                      const target = availableWorkflows.find(w => (val === 'all' ? (w.section_id === null || w.section_name === 'All') : String(w.section_id) === val));
                       if (target) {
                         setWorkflow(target);
                         setFacultyRemarksInput(target.faculty_remarks || "");
@@ -365,23 +367,21 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                         setPrincipalRemarksInput(target.principal_remarks || "");
                       }
                     }}
-                    className="text-xs font-semibold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 outline-none cursor-pointer"
                   >
-                    {availableWorkflows.map(wf => (
-                      <option key={wf.workflow_id} value={wf.section_id ? String(wf.section_id) : 'all'} className="bg-background text-foreground">
-                        {wf.section_name ? `Sec ${wf.section_name}` : 'All Sections'} ({wf.total_responses || 0})
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="h-7 w-auto min-w-[110px] px-2.5 text-xs font-semibold rounded-lg bg-background text-foreground border border-input shadow-2xs hover:border-primary/50 gap-2">
+                      <SelectValue placeholder="Select Section" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableWorkflows.map(wf => (
+                        <SelectItem key={wf.workflow_id} value={wf.section_id ? String(wf.section_id) : 'all'} className="text-xs font-medium cursor-pointer">
+                          {wf.section_name ? `Section ${wf.section_name}` : 'All Sections'} ({wf.total_responses || 0})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 ) : (
-                  sectionName && <span className="text-xs px-2 py-0.5 rounded-md bg-primary/10 text-primary font-semibold">Sec {sectionName}</span>
+                  sectionName && <span className="text-xs px-2 py-0.5 rounded-md border border-input bg-background text-foreground font-semibold">Section {sectionName}</span>
                 )}
-                {getStatusBadge(currentStatus)}
-              </div>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
-                <span>Faculty: <strong>{resolvedFacultyName}</strong></span>
-                <span>•</span>
-                <span>Role View: <strong className="capitalize">{role}</strong></span>
               </DialogDescription>
             </div>
 
@@ -412,9 +412,76 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-16 space-y-3">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-muted-foreground">Loading feedback metrics and remarks...</p>
+            <div className="space-y-6 animate-pulse">
+              {/* Score KPI Skeleton */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-4 rounded-xl border border-border/60 bg-muted/20 space-y-2">
+                  <Skeleton className="h-3.5 w-24" />
+                  <Skeleton className="h-8 w-20" />
+                </div>
+                <div className="p-4 rounded-xl border border-border/60 bg-muted/20 space-y-2">
+                  <Skeleton className="h-3.5 w-28" />
+                  <Skeleton className="h-8 w-24" />
+                  <Skeleton className="h-7 w-full mt-2 rounded-md" />
+                </div>
+                <div className="p-4 rounded-xl border border-border/60 bg-muted/20 space-y-2">
+                  <Skeleton className="h-3.5 w-24" />
+                  <Skeleton className="h-6 w-36 mt-1" />
+                </div>
+              </div>
+
+              {/* Questionnaire Section Skeleton */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-5 w-64" />
+                  <Skeleton className="h-5 w-24 rounded-full" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="p-3.5 rounded-xl border border-border/60 bg-muted/10 space-y-2.5">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="space-y-1.5 flex-1">
+                          <Skeleton className="h-3 w-8" />
+                          <Skeleton className="h-3.5 w-full" />
+                          <Skeleton className="h-3.5 w-4/5" />
+                        </div>
+                        <Skeleton className="h-4 w-10 shrink-0" />
+                      </div>
+                      <Skeleton className="h-1.5 w-full rounded-full" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Remarks Chain Skeleton */}
+              <div className="space-y-3 pt-2">
+                <Skeleton className="h-5 w-56" />
+                <div className="p-4 rounded-xl border border-border/60 bg-card space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-44" />
+                    <Skeleton className="h-3.5 w-28" />
+                  </div>
+                  <Skeleton className="h-14 w-full rounded-lg" />
+                </div>
+                <div className="p-4 rounded-xl border border-border/60 bg-card space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                  <Skeleton className="h-14 w-full rounded-lg" />
+                </div>
+              </div>
+            </div>
+          ) : !workflow && availableWorkflows.length > 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4 text-center space-y-3 max-w-md mx-auto">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                <Users className="w-7 h-7" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-base font-bold text-foreground">Select a Section</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  Please choose a section from the dropdown above to view the evaluation metrics, question scores, and institutional remarks.
+                </p>
+              </div>
             </div>
           ) : (
             <>
@@ -480,7 +547,7 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                         : "border-blue-300 text-blue-700 bg-blue-50 dark:bg-blue-950/20"
                     }`}
                   >
-                    {isLabCourse ? "🔬 Laboratory Course" : "📘 Theory Course"}
+                    {isLabCourse ? "Laboratory Course" : "Theory Course"}
                   </Badge>
                 </div>
 
