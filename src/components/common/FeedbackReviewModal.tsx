@@ -93,6 +93,10 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
   const [questionnaireTitle, setQuestionnaireTitle] = useState<string>("Course Teaching Feedback Questionnaire");
   const [isLabCourse, setIsLabCourse] = useState<boolean>(false);
 
+  // Section options if subject has multiple sections
+  const [availableWorkflows, setAvailableWorkflows] = useState<any[]>([]);
+  const [selectedSecId, setSelectedSecId] = useState<string | null>(sectionId ? String(sectionId) : null);
+
   // Form remarks state
   const [facultyRemarksInput, setFacultyRemarksInput] = useState<string>("");
   const [hodRemarksInput, setHodRemarksInput] = useState<string>("");
@@ -112,34 +116,48 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
       }
 
       if (res && res.success && Array.isArray(res.data)) {
-        // Find matching workflow by subject and section
         const targetSubId = String(subjectId);
-        const targetSecId = sectionId ? String(sectionId) : null;
+        const subjectWorkflows = res.data.filter((item: any) => String(item.subject_id) === targetSubId);
+        setAvailableWorkflows(subjectWorkflows);
 
+        // Determine which section to select
+        const currentSecId = selectedSecId ?? (sectionId ? String(sectionId) : null);
         let matched = null;
-        if (targetSecId) {
-          matched = res.data.find(
-            (item: any) => String(item.subject_id) === targetSubId && String(item.section_id) === targetSecId
+
+        if (currentSecId) {
+          matched = subjectWorkflows.find(
+            (item: any) => String(item.section_id) === currentSecId
           );
         }
+
+        // If no explicit section selected or not matched, prioritize entries with submitted faculty remarks or forwarded status
         if (!matched) {
-          // Look for subject-level ("All" / section_id === null)
-          matched = res.data.find(
-            (item: any) => String(item.subject_id) === targetSubId && (item.section_id === null || item.section_name === 'All' || item.section_name === 'All Sections')
+          const submittedEntry = subjectWorkflows.find(
+            (item: any) => item.status === 'FORWARDED_TO_HOD' || item.status === 'FORWARDED_TO_PRINCIPAL' || item.status === 'COMPLETED' || !!item.faculty_remarks
           );
+          if (submittedEntry) {
+            matched = submittedEntry;
+          }
         }
 
-        // Prioritize entries for this subject that have actual student responses
-        const subjectEntriesWithResponses = res.data
-          .filter((item: any) => String(item.subject_id) === targetSubId)
-          .sort((a: any, b: any) => (b.total_responses || 0) - (a.total_responses || 0));
+        // Fallback to highest student responses
+        if (!matched) {
+          const sortedByResponses = [...subjectWorkflows].sort((a: any, b: any) => (b.total_responses || 0) - (a.total_responses || 0));
+          if (sortedByResponses.length > 0 && (sortedByResponses[0].total_responses || 0) > 0) {
+            matched = sortedByResponses[0];
+          }
+        }
 
-        if (!matched || (matched.total_responses === 0 && subjectEntriesWithResponses.length > 0 && subjectEntriesWithResponses[0].total_responses > 0)) {
-          matched = subjectEntriesWithResponses[0];
+        // Fallback to subject-level ("All")
+        if (!matched) {
+          matched = subjectWorkflows.find(
+            (item: any) => item.section_id === null || item.section_name === 'All' || item.section_name === 'All Sections'
+          ) || subjectWorkflows[0] || null;
         }
 
         if (matched) {
           setWorkflow(matched);
+          setSelectedSecId(matched.section_id ? String(matched.section_id) : 'all');
           setFacultyRemarksInput(matched.faculty_remarks || "");
           setHodRemarksInput(matched.hod_remarks || "");
           setPrincipalRemarksInput(matched.principal_remarks || "");
@@ -177,7 +195,7 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
     if (isOpen) {
       loadWorkflowData();
     }
-  }, [isOpen, subjectId, sectionId, cycle]);
+  }, [isOpen, subjectId, sectionId, cycle, selectedSecId]);
 
   const handleFacultySubmit = async () => {
     if (!workflow?.workflow_id) return;
@@ -333,7 +351,31 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                   {subjectName}
                 </DialogTitle>
                 {subjectCode && <span className="text-xs px-2 py-0.5 rounded-md bg-muted font-mono">{subjectCode}</span>}
-                {sectionName && <span className="text-xs px-2 py-0.5 rounded-md bg-primary/10 text-primary font-semibold">Sec {sectionName}</span>}
+                {availableWorkflows.length > 1 ? (
+                  <select
+                    value={selectedSecId || (workflow?.section_id ? String(workflow.section_id) : 'all')}
+                    onChange={(e) => {
+                      const newSecId = e.target.value;
+                      setSelectedSecId(newSecId);
+                      const target = availableWorkflows.find(w => (newSecId === 'all' ? (w.section_id === null || w.section_name === 'All') : String(w.section_id) === newSecId));
+                      if (target) {
+                        setWorkflow(target);
+                        setFacultyRemarksInput(target.faculty_remarks || "");
+                        setHodRemarksInput(target.hod_remarks || "");
+                        setPrincipalRemarksInput(target.principal_remarks || "");
+                      }
+                    }}
+                    className="text-xs font-semibold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 outline-none cursor-pointer"
+                  >
+                    {availableWorkflows.map(wf => (
+                      <option key={wf.workflow_id} value={wf.section_id ? String(wf.section_id) : 'all'} className="bg-background text-foreground">
+                        {wf.section_name ? `Sec ${wf.section_name}` : 'All Sections'} ({wf.total_responses || 0})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  sectionName && <span className="text-xs px-2 py-0.5 rounded-md bg-primary/10 text-primary font-semibold">Sec {sectionName}</span>
+                )}
                 {getStatusBadge(currentStatus)}
               </div>
               <DialogDescription className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
