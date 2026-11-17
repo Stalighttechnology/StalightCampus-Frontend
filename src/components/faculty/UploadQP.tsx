@@ -1353,6 +1353,7 @@ const UploadQP = () => {
     }
 
     const isResubmission = hasRejectedBranch;
+    const isSubmittedOrApproved = isResubmission;
     let confirmText = isResubmission
       ? 'This question paper was rejected for revision. Saving changes will resubmit the revised document for review. Do you want to continue?'
       : isMulti
@@ -1514,6 +1515,7 @@ const UploadQP = () => {
     }
 
     const isResubmission = hasRejectedBranch;
+    const isSubmittedOrApproved = isResubmission;
     let confirmText = isResubmission
       ? 'This question paper was rejected for revision. Saving changes will resubmit the revised questions for review. Do you want to continue?'
       : isMulti
@@ -1594,9 +1596,9 @@ const UploadQP = () => {
         const errorMsg = res?.message || 'Failed to save the format. Please try again.';
         MySwal.fire('Error', errorMsg, 'error');
       }
-    } catch (err) {
-
-      MySwal.fire('Network Error', 'Network error while saving. Please check your connection.', 'error');
+    } catch (err: any) {
+      console.error('Error in saveFormat:', err);
+      MySwal.fire('Error', err?.message || 'Failed to save question paper format. Please try again.', 'error');
     }
   };
 
