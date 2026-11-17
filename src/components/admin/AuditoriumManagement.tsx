@@ -5,6 +5,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,15 +36,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { SkeletonTable } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/context/ThemeContext";
 import { uploadFileViaBackendProxy } from "@/utils/common_api";
 import { format, isValid } from "date-fns";
 import {
@@ -78,6 +74,7 @@ import {
   Wrench,
   Eye,
   SlidersHorizontal,
+  Pencil,
 } from "lucide-react";
 import {
   Auditorium,
@@ -118,6 +115,7 @@ const formatDateDisplay = (dateStr?: string): string => {
 
 export const AuditoriumManagement: React.FC = () => {
   const { toast } = useToast();
+  const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<"auditoriums" | "bookings">("auditoriums");
 
   // ================= AUDITORIUM REGISTRY STATE ================= //
@@ -129,6 +127,14 @@ export const AuditoriumManagement: React.FC = () => {
   const [auditoriumPage, setAuditoriumPage] = useState(1);
   const [totalAuditoriumPages, setTotalAuditoriumPages] = useState(1);
   const [totalAuditoriumsCount, setTotalAuditoriumsCount] = useState(0);
+  const [expandedFacilities, setExpandedFacilities] = useState<Record<number, boolean>>({});
+
+  const toggleExpandFacilities = (id: number) => {
+    setExpandedFacilities((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   // Debounce search state (350ms) to prevent network spam on every keystroke
   useEffect(() => {
@@ -553,577 +559,692 @@ export const AuditoriumManagement: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 p-3 sm:p-5 md:p-6 max-w-7xl mx-auto">
-      {/* Responsive Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Building2 className="h-6 w-6 sm:h-7 sm:w-7 text-primary shrink-0" />
-            <span>Auditorium Management</span>
-          </h1>
-          <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
-            Configure campus halls, facilities, and review department booking requests.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={handleOpenCreateModal} className="gap-2 h-10 px-4 text-xs sm:text-sm rounded-lg shadow-sm font-medium">
-            <Plus className="h-4 w-4" /> Add Auditorium
-          </Button>
-        </div>
-      </div>
+    <>
+      <style>{`
+        @media (max-width: 640px) {
+          .auditorium-mobile-row { 
+            display: flex !important; 
+            flex-direction: column !important; 
+            gap: 8px !important; 
+            width: 100% !important; 
+          }
+          .auditorium-mobile-row > button { 
+            width: 100% !important; 
+            min-height: 38px !important;
+            height: auto !important;
+            padding: 8px 12px !important;
+            white-space: normal !important;
+            text-align: center !important;
+            justify-content: center !important;
+          }
+        }
+      `}</style>
 
-      {/* Main Tabs */}
-      <Tabs
-        value={activeTab}
-        onValueChange={(val) => setActiveTab(val as "auditoriums" | "bookings")}
-        className="space-y-4"
-      >
-        <TabsList className="grid grid-cols-2 w-full sm:w-[420px] h-11 p-1 bg-muted/60 rounded-xl">
-          <TabsTrigger value="auditoriums" className="flex items-center gap-1.5 text-xs sm:text-sm font-medium rounded-lg">
-            <Building2 className="h-4 w-4" />
-            <span>Auditoriums ({totalAuditoriumsCount})</span>
-          </TabsTrigger>
-          <TabsTrigger value="bookings" className="flex items-center gap-1.5 text-xs sm:text-sm font-medium rounded-lg">
-            <Calendar className="h-4 w-4" />
-            <span>Approvals ({totalBookingsCount})</span>
-          </TabsTrigger>
-        </TabsList>
-
-        {/* TAB 1: AUDITORIUM REGISTRY */}
-        <TabsContent value="auditoriums" className="space-y-4">
-          {/* Search & Filter Bar */}
-          <Card className="rounded-xl border">
-            <CardContent className="pt-4 pb-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="relative sm:col-span-2">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search auditorium name or location..."
-                    value={auditoriumSearch}
-                    onChange={(e) => {
-                      setAuditoriumSearch(e.target.value);
-                      setAuditoriumPage(1);
-                    }}
-                    className="pl-9 h-10 text-xs sm:text-sm rounded-lg"
-                  />
-                </div>
-                <div>
-                  <Select
-                    value={auditoriumStatusFilter}
-                    onValueChange={(val) => {
-                      setAuditoriumStatusFilter(val);
-                      setAuditoriumPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="h-10 text-xs sm:text-sm rounded-lg">
-                      <SelectValue placeholder="Status Filter" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="available">Available</SelectItem>
-                      <SelectItem value="maintenance">Under Maintenance</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Auditoriums Grid */}
-          {loadingAuditoriums ? (
-            <div className="py-16 text-center text-muted-foreground text-sm">
-              <Loader2 className="h-7 w-7 animate-spin mx-auto mb-2 text-primary" />
-              Loading auditoriums...
-            </div>
-          ) : auditoriums.length === 0 ? (
-            <Card className="text-center py-12 rounded-xl">
-              <CardContent className="space-y-2">
-                <Building2 className="h-10 w-10 text-muted-foreground/40 mx-auto" />
-                <h3 className="text-sm font-semibold">No Auditoriums Found</h3>
-                <p className="text-xs text-muted-foreground">Add your campus halls to allow department bookings.</p>
-                <Button onClick={handleOpenCreateModal} className="gap-2 mt-2 h-9 text-xs rounded-lg">
-                  <Plus className="h-4 w-4" /> Add First Auditorium
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-              {auditoriums.map((item) => (
-                <Card key={item.id} className="flex flex-col justify-between shadow-sm rounded-xl border hover:shadow transition-shadow overflow-hidden">
-                  {/* Photo Cover Banner */}
-                  <div className="relative h-40 w-full bg-muted/40 border-b overflow-hidden">
-                    {item.images && item.images.length > 0 ? (
-                      <>
-                        <img
-                          src={item.images[0]}
-                          alt={item.name}
-                          className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
-                        />
-                        <span className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-xs text-white text-[10px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                          <ImageIcon className="h-3 w-3" />
-                          {item.images.length} {item.images.length === 1 ? "photo" : "photos"}
-                        </span>
-                      </>
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/50 bg-gradient-to-br from-muted/30 to-muted/70">
-                        <Building2 className="h-10 w-10 mb-1 opacity-40 text-primary" />
-                        <span className="text-[11px] font-medium">No photos uploaded</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <CardHeader className="pb-3 pt-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <CardTitle className="text-base sm:text-lg font-bold">{item.name}</CardTitle>
-                        <CardDescription className="text-xs mt-0.5">{item.location}</CardDescription>
-                      </div>
-                      <Badge
-                        variant={
-                          item.status === "available"
-                            ? "default"
-                            : item.status === "maintenance"
-                            ? "secondary"
-                            : "destructive"
-                        }
-                        className={
-                          item.status === "available"
-                            ? "bg-emerald-600 text-white text-[10px]"
-                            : item.status === "maintenance"
-                            ? "bg-amber-600 text-white text-[10px]"
-                            : "text-[10px]"
-                        }
-                      >
-                        {item.status === "available"
-                          ? "Available"
-                          : item.status === "maintenance"
-                          ? "Maintenance"
-                          : "Inactive"}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-3 text-xs sm:text-sm pb-3">
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/40 text-xs">
-                      <Users className="h-4 w-4 text-primary shrink-0" />
-                      <span className="font-semibold text-foreground">Capacity:</span>
-                      <span>{item.max_capacity} Seats</span>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Available Facilities</span>
-                        <span className="text-[10px] text-muted-foreground font-medium">
-                          {AUDITORIUM_FACILITIES.filter((f) => item[f.hasKey]).length} active
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 pt-0.5 max-h-24 overflow-y-auto pr-1">
-                        {AUDITORIUM_FACILITIES.map((f) => {
-                          const isAvailable = !!item[f.hasKey];
-                          if (!isAvailable) return null;
-                          return (
-                            <Badge
-                              key={f.id}
-                              variant="outline"
-                              className="text-[11px] font-normal py-0.5 px-2 bg-background border-primary/20 text-foreground flex items-center gap-1 shadow-2xs"
-                            >
-                              <CheckCircle2 className="h-2.5 w-2.5 text-emerald-600" />
-                              <span>{f.shortLabel}</span>
-                            </Badge>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {item.other_facilities && (
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        <span className="font-semibold text-foreground">Amenities:</span> {item.other_facilities}
-                      </p>
-                    )}
-
-                    {item.status === "maintenance" && item.maintenance_notes && (
-                      <div className="p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 rounded text-xs text-amber-800 dark:text-amber-300 flex items-start gap-1.5">
-                        <Wrench className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                        <span>{item.maintenance_notes}</span>
-                      </div>
-                    )}
-                  </CardContent>
-
-                  <div className="px-5 pb-3 pt-2 border-t flex items-center justify-between gap-2 text-xs">
-                    <span className="text-muted-foreground">
-                      {item.active_bookings_count || 0} active booking(s)
+      <div className={`w-full text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+        <Tabs
+          value={activeTab}
+          onValueChange={(val) => setActiveTab(val as "auditoriums" | "bookings")}
+          className="w-full flex flex-col"
+        >
+          <Card
+            id="auditorium-management-card"
+            className={
+              theme === 'dark'
+                ? 'auditorium-card w-full bg-card border border-border flex flex-col min-h-[620px] shadow-sm rounded-xl'
+                : 'auditorium-card w-full bg-white border border-gray-200 flex flex-col min-h-[620px] shadow-sm rounded-xl'
+            }
+          >
+            {/* Header Section */}
+            <div id="auditorium-management-header-section" className="flex flex-col">
+              <CardHeader className="border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5">
+                <div className="w-full sm:w-auto">
+                  <div className="flex items-center justify-between sm:justify-start gap-3">
+                    <CardTitle className="text-xl sm:text-2xl font-semibold">Auditorium Management</CardTitle>
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ${
+                        theme === 'dark'
+                          ? 'bg-primary/15 text-primary border border-primary/20'
+                          : 'bg-blue-50 text-blue-700 border border-blue-200'
+                      }`}
+                    >
+                      Total: {activeTab === "auditoriums" ? totalAuditoriumsCount : totalBookingsCount}
                     </span>
-                    <div className="flex items-center gap-1.5">
-                      <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => handleOpenEditModal(item)}>
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:bg-destructive/10 h-8 text-xs"
-                        onClick={() => handleDeleteAuditorium(item)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
                   </div>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {/* Pagination */}
-          {totalAuditoriumPages > 1 && (
-            <div className="pt-2">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      onClick={() => setAuditoriumPage((p) => Math.max(1, p - 1))}
-                      className={auditoriumPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
-                  </PaginationItem>
-                  {Array.from({ length: totalAuditoriumPages }, (_, i) => i + 1).map((p) => (
-                    <PaginationItem key={p}>
-                      <PaginationLink
-                        isActive={auditoriumPage === p}
-                        onClick={() => setAuditoriumPage(p)}
-                        className="cursor-pointer"
-                      >
-                        {p}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() => setAuditoriumPage((p) => Math.min(totalAuditoriumPages, p + 1))}
-                      className={auditoriumPage === totalAuditoriumPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
-        </TabsContent>
-
-        {/* TAB 2: BOOKING APPROVALS */}
-        <TabsContent value="bookings" className="space-y-4">
-          {/* Booking Filters */}
-          <Card className="rounded-xl border">
-            <CardContent className="pt-4 pb-4">
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                <div className="relative sm:col-span-2">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by event, auditorium, or HOD..."
-                    value={bookingSearch}
-                    onChange={(e) => {
-                      setBookingSearch(e.target.value);
-                      setBookingPage(1);
-                    }}
-                    className="pl-9 h-10 text-xs sm:text-sm rounded-lg"
-                  />
+                  <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-0.5">
+                    Configure campus halls, facilities, and review department booking requests.
+                  </CardDescription>
                 </div>
-                <div>
-                  <Select
-                    value={bookingStatusFilter}
-                    onValueChange={(val) => {
-                      setBookingStatusFilter(val);
-                      setBookingPage(1);
-                    }}
+
+                <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center sm:justify-end gap-2 w-full sm:w-auto auditorium-mobile-row">
+                  {activeTab === "auditoriums" && (
+                    <Button
+                      size="sm"
+                      className="flex items-center justify-center gap-1.5 w-full sm:w-auto text-xs sm:text-sm font-medium whitespace-nowrap"
+                      onClick={handleOpenCreateModal}
+                      disabled={loadingAuditoriums}
+                    >
+                      <Plus className="w-4 h-4 shrink-0" />
+                      <span>Add Auditorium</span>
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+
+              {/* Subheader Toolbar: Tabs + Search + Status Filter */}
+              <div className="px-3 sm:px-5 py-3 border-b border-border/40 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <TabsList className="grid grid-cols-2 w-full md:w-[340px] h-9 p-1 bg-muted/60 rounded-lg">
+                  <TabsTrigger
+                    value="auditoriums"
+                    className="flex items-center gap-1.5 text-xs sm:text-sm font-medium rounded-md data-[state=active]:bg-primary data-[state=active]:text-white"
                   >
-                    <SelectTrigger className="h-10 text-xs sm:text-sm rounded-lg">
-                      <SelectValue placeholder="Booking Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">All Statuses</SelectItem>
-                      <SelectItem value="PENDING">Pending Review</SelectItem>
-                      <SelectItem value="APPROVED">Approved</SelectItem>
-                      <SelectItem value="REJECTED">Rejected</SelectItem>
-                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Building2 className="h-3.5 w-3.5" />
+                    <span>Auditoriums ({totalAuditoriumsCount})</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="bookings"
+                    className="flex items-center gap-1.5 text-xs sm:text-sm font-medium rounded-md data-[state=active]:bg-primary data-[state=active]:text-white"
+                  >
+                    <Calendar className="h-3.5 w-3.5" />
+                    <span>Approvals ({totalBookingsCount})</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                <div className="flex flex-1 md:flex-initial flex-row items-center gap-2 sm:gap-3 w-full md:w-auto">
+                  <div className="relative flex-1 md:w-72">
+                    <Input
+                      placeholder={
+                        activeTab === "auditoriums"
+                          ? "Search auditorium name or location..."
+                          : "Search by event, auditorium, or HOD..."
+                      }
+                      value={activeTab === "auditoriums" ? auditoriumSearch : bookingSearch}
+                      onChange={(e) => {
+                        if (activeTab === "auditoriums") {
+                          setAuditoriumSearch(e.target.value);
+                          setAuditoriumPage(1);
+                        } else {
+                          setBookingSearch(e.target.value);
+                          setBookingPage(1);
+                        }
+                      }}
+                      className={
+                        theme === 'dark'
+                          ? 'w-full bg-card text-foreground py-1 pr-12 text-xs sm:text-sm h-9'
+                          : 'w-full bg-white text-gray-900 py-1 pr-12 text-xs sm:text-sm h-9'
+                      }
+                    />
+                    {(activeTab === "auditoriums" ? auditoriumSearch : bookingSearch) && (
+                      <button
+                        onClick={() => {
+                          if (activeTab === "auditoriums") {
+                            setAuditoriumSearch("");
+                            setAuditoriumPage(1);
+                          } else {
+                            setBookingSearch("");
+                            setBookingPage(1);
+                          }
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+
+                  {activeTab === "auditoriums" ? (
+                    <Select
+                      value={auditoriumStatusFilter}
+                      onValueChange={(val) => {
+                        setAuditoriumStatusFilter(val);
+                        setAuditoriumPage(1);
+                      }}
+                    >
+                      <SelectTrigger className={`w-36 sm:w-44 h-9 text-xs sm:text-sm rounded-md ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+                        <SelectValue placeholder="Status Filter" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="available">Available</SelectItem>
+                        <SelectItem value="maintenance">Under Maintenance</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Select
+                      value={bookingStatusFilter}
+                      onValueChange={(val) => {
+                        setBookingStatusFilter(val);
+                        setBookingPage(1);
+                      }}
+                    >
+                      <SelectTrigger className={`w-36 sm:w-44 h-9 text-xs sm:text-sm rounded-md ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+                        <SelectValue placeholder="Booking Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">All Statuses</SelectItem>
+                        <SelectItem value="PENDING">Pending Review</SelectItem>
+                        <SelectItem value="APPROVED">Approved</SelectItem>
+                        <SelectItem value="REJECTED">Rejected</SelectItem>
+                        <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Bookings Display */}
-          {loadingBookings ? (
-            <div className="py-16 text-center text-muted-foreground text-sm">
-              <Loader2 className="h-7 w-7 animate-spin mx-auto mb-2 text-primary" />
-              Loading booking requests...
             </div>
-          ) : bookings.length === 0 ? (
-            <Card className="text-center py-12 rounded-xl">
-              <CardContent className="space-y-1">
-                <Calendar className="h-10 w-10 text-muted-foreground/40 mx-auto mb-1" />
-                <p className="font-semibold text-sm">No booking requests found.</p>
-                <p className="text-xs text-muted-foreground">Try changing your search or status filter.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              {/* Mobile Card List for < 768px */}
-              <div className="grid grid-cols-1 gap-3 md:hidden">
-                {bookings.map((booking) => {
-                  const hasConflict = hasConflictWarning(booking);
-                  return (
-                    <Card key={booking.id} className="rounded-xl border shadow-sm p-4 space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <span className="font-bold text-sm text-foreground">{booking.event_name}</span>
-                          <p className="text-xs text-muted-foreground line-clamp-1">{booking.event_purpose}</p>
-                        </div>
-                        <Badge
-                          variant={
-                            booking.status === "APPROVED"
-                              ? "default"
-                              : booking.status === "PENDING"
-                              ? "secondary"
-                              : "destructive"
-                          }
-                          className={
-                            booking.status === "APPROVED"
-                              ? "bg-emerald-600 text-white text-[10px]"
-                              : booking.status === "PENDING"
-                              ? "bg-amber-600 text-white text-[10px]"
-                              : "text-[10px]"
-                          }
+
+            {/* Content Section */}
+            <CardContent className="p-4 sm:p-6 flex-1 flex flex-col">
+              <TabsContent value="auditoriums" className="flex-1 flex flex-col mt-0 space-y-4">
+                {loadingAuditoriums ? (
+                  <SkeletonTable rows={6} cols={4} />
+                ) : auditoriums.length === 0 ? (
+                  <div className="py-16 text-center text-muted-foreground flex flex-col items-center justify-center">
+                    <Building2 className="h-10 w-10 text-muted-foreground/40 mx-auto mb-2" />
+                    <h3 className="text-sm font-semibold">No Auditoriums Found</h3>
+                    <p className="text-xs text-muted-foreground mt-1">Add your campus halls to allow department bookings.</p>
+                    <Button onClick={handleOpenCreateModal} className="gap-2 mt-3 h-9 text-xs rounded-lg">
+                      <Plus className="h-4 w-4" /> Add First Auditorium
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pb-2">
+                    {auditoriums.map((item) => {
+                      const activeFacilities = AUDITORIUM_FACILITIES.filter((f) => item[f.hasKey]);
+                      return (
+                        <div
+                          key={item.id}
+                          className={`flex flex-col justify-between rounded-xl border shadow-sm transition-all duration-200 hover:shadow-md overflow-hidden ${
+                            theme === 'dark'
+                              ? 'bg-card/90 border-border hover:border-primary/50 text-foreground'
+                              : 'bg-white border-gray-200 hover:border-primary/40 text-gray-900'
+                          }`}
                         >
-                          {booking.status}
-                        </Badge>
-                      </div>
-
-                      {hasConflict && (
-                        <div className="p-2 rounded bg-destructive/10 text-destructive text-xs flex items-center gap-1.5 font-medium">
-                          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                          <span>Slot conflict with already approved event!</span>
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-2 gap-2 text-xs bg-muted/30 p-2.5 rounded-lg">
-                        <div>
-                          <span className="text-muted-foreground">Auditorium:</span>
-                          <p className="font-medium truncate">{booking.auditorium_name}</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Department / HOD:</span>
-                          <p className="font-medium truncate">{booking.branch_name || booking.requester_name}</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Date:</span>
-                          <p className="font-medium font-mono">{formatDateDisplay(booking.booking_date)}</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">12-Hr Slot:</span>
-                          <p className="font-medium font-mono text-[11px] text-primary">
-                            {format12Hour(booking.start_time)} - {format12Hour(booking.end_time)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-1 border-t text-xs">
-                        <span className="text-muted-foreground">
-                          {booking.expected_attendees} Attendees
-                        </span>
-                        <div className="flex items-center gap-1.5">
-                          <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => setViewingBooking(booking)}>
-                            <Eye className="h-3.5 w-3.5 mr-1" /> Details
-                          </Button>
-
-                          {booking.status === "PENDING" && (
-                            <>
-                              <Button
-                                size="sm"
-                                className="bg-emerald-600 hover:bg-emerald-700 h-8 text-xs"
-                                onClick={() => handleOpenActionModal(booking, "APPROVE")}
-                              >
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                className="h-8 text-xs"
-                                onClick={() => handleOpenActionModal(booking, "REJECT")}
-                              >
-                                Reject
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              {/* Desktop Table View for >= 768px */}
-              <div className="hidden md:block">
-                <Card className="rounded-xl border overflow-hidden shadow-sm">
-                  <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Event & Purpose</TableHead>
-                          <TableHead>Auditorium</TableHead>
-                          <TableHead>Department / HOD</TableHead>
-                          <TableHead>Date (DD-MM-YYYY)</TableHead>
-                          <TableHead>12-Hr Slot</TableHead>
-                          <TableHead>Attendees</TableHead>
-                          <TableHead>Status & Conflict</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {bookings.map((booking) => {
-                          const hasConflict = hasConflictWarning(booking);
-                          return (
-                            <TableRow key={booking.id} className="hover:bg-muted/50">
-                              <TableCell className="font-medium">
-                                <span className="font-semibold text-foreground text-sm">{booking.event_name}</span>
-                                <p className="text-xs text-muted-foreground line-clamp-1">{booking.event_purpose}</p>
-                              </TableCell>
-
-                              <TableCell>
-                                <span className="font-medium text-foreground text-sm">{booking.auditorium_name}</span>
-                                <p className="text-xs text-muted-foreground">{booking.auditorium_location}</p>
-                              </TableCell>
-
-                              <TableCell>
-                                <span className="font-medium text-sm text-foreground">{booking.requester_name}</span>
-                                <p className="text-xs text-muted-foreground">{booking.branch_name || "General"}</p>
-                              </TableCell>
-
-                              <TableCell>
-                                <span className="font-mono text-xs sm:text-sm font-medium">
-                                  {formatDateDisplay(booking.booking_date)}
+                          {/* Photo Cover Banner */}
+                          <div className="relative h-40 sm:h-44 w-full bg-muted/40 border-b overflow-hidden">
+                            {item.images && item.images.length > 0 ? (
+                              <>
+                                <img
+                                  src={item.images[0]}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                                />
+                                <span className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-xs text-white text-[10px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                                  <ImageIcon className="h-3 w-3" />
+                                  {item.images.length} {item.images.length === 1 ? "photo" : "photos"}
                                 </span>
-                              </TableCell>
+                              </>
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/50 bg-gradient-to-br from-muted/30 to-muted/70">
+                                <Building2 className="h-10 w-10 mb-1 opacity-40 text-primary" />
+                                <span className="text-[11px] font-medium">No photos uploaded</span>
+                              </div>
+                            )}
+                          </div>
 
-                              <TableCell>
-                                <span className="font-mono text-xs font-semibold text-primary">
-                                  {format12Hour(booking.start_time)} &ndash; {format12Hour(booking.end_time)}
-                                </span>
-                              </TableCell>
+                          <div className="p-4 sm:p-5 space-y-3.5 flex-1 flex flex-col justify-between">
+                            <div className="space-y-3">
+                              <div className="flex items-start justify-between gap-2">
+                                <div>
+                                  <h3 className="text-base font-bold text-foreground">{item.name}</h3>
+                                  <p className="text-xs text-muted-foreground mt-0.5">{item.location}</p>
+                                </div>
+                                <Badge
+                                  variant={
+                                    item.status === "available"
+                                      ? "default"
+                                      : item.status === "maintenance"
+                                      ? "secondary"
+                                      : "destructive"
+                                  }
+                                  className={
+                                    item.status === "available"
+                                      ? "bg-emerald-600 text-white text-[10px]"
+                                      : item.status === "maintenance"
+                                      ? "bg-amber-600 text-white text-[10px]"
+                                      : "text-[10px]"
+                                  }
+                                >
+                                  {item.status === "available"
+                                    ? "Available"
+                                    : item.status === "maintenance"
+                                    ? "Maintenance"
+                                    : "Inactive"}
+                                </Badge>
+                              </div>
 
-                              <TableCell>
-                                <span className="font-medium text-sm">{booking.expected_attendees}</span>
-                                <span className="text-xs text-muted-foreground"> / {booking.auditorium_max_capacity || "—"}</span>
-                              </TableCell>
+                              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/30 text-xs">
+                                <Users className="h-4 w-4 text-primary shrink-0" />
+                                <span className="font-semibold text-foreground">Capacity:</span>
+                                <span>{item.max_capacity} Seats</span>
+                              </div>
 
-                              <TableCell>
-                                <div className="space-y-1">
-                                  <Badge
-                                    variant={
-                                      booking.status === "APPROVED"
-                                        ? "default"
-                                        : booking.status === "PENDING"
-                                        ? "secondary"
-                                        : "destructive"
-                                    }
-                                    className={
-                                      booking.status === "APPROVED"
-                                        ? "bg-emerald-600 text-white text-xs"
-                                        : booking.status === "PENDING"
-                                        ? "bg-amber-600 text-white text-xs"
-                                        : "text-xs"
-                                    }
-                                  >
-                                    {booking.status}
-                                  </Badge>
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                                  <span className="font-semibold uppercase tracking-wide">Facilities</span>
+                                  <span>{activeFacilities.length} active</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5 pt-0.5 items-center">
+                                  {(expandedFacilities[item.id] ? activeFacilities : activeFacilities.slice(0, 6)).map((f) => (
+                                    <Badge
+                                      key={f.id}
+                                      variant="outline"
+                                      className="text-[10px] font-normal py-0.5 px-2 bg-background border-primary/20 text-foreground flex items-center gap-1 shadow-2xs"
+                                    >
+                                      <CheckCircle2 className="h-2.5 w-2.5 text-emerald-600" />
+                                      <span>{f.shortLabel}</span>
+                                    </Badge>
+                                  ))}
 
-                                  {hasConflict && (
-                                    <div className="flex items-center gap-1 text-[11px] font-medium text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
-                                      <AlertTriangle className="h-3 w-3 shrink-0" />
-                                      Slot Clash!
-                                    </div>
+                                  {!expandedFacilities[item.id] && activeFacilities.length > 6 && (
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <button
+                                          type="button"
+                                          className="text-[10px] font-semibold py-0.5 px-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 rounded-md cursor-pointer transition-colors shadow-2xs inline-flex items-center gap-1"
+                                          title="Click to view all facilities"
+                                        >
+                                          <span>+{activeFacilities.length - 6} more</span>
+                                        </button>
+                                      </PopoverTrigger>
+                                      <PopoverContent
+                                        className={
+                                          theme === 'dark'
+                                            ? 'w-72 sm:w-80 p-3 shadow-xl rounded-xl z-50 bg-card border border-border text-foreground'
+                                            : 'w-72 sm:w-80 p-3 shadow-xl rounded-xl z-50 bg-white border border-gray-200 text-gray-900'
+                                        }
+                                        align="start"
+                                        sideOffset={6}
+                                      >
+                                        <div className="space-y-2.5">
+                                          <div className="flex items-center justify-between border-b pb-1.5">
+                                            <div className="flex items-center gap-1.5">
+                                              <ListChecks className="h-3.5 w-3.5 text-primary" />
+                                              <span className="text-xs font-bold text-foreground">Additional Facilities</span>
+                                            </div>
+                                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                                              +{activeFacilities.length - 6} more
+                                            </span>
+                                          </div>
+                                          <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto pr-1 pt-0.5">
+                                            {activeFacilities.slice(6).map((f) => (
+                                              <Badge
+                                                key={f.id}
+                                                variant="outline"
+                                                className="text-[10px] font-normal py-0.5 px-2 bg-background border-primary/20 text-foreground flex items-center gap-1 shadow-2xs"
+                                              >
+                                                <CheckCircle2 className="h-2.5 w-2.5 text-emerald-600" />
+                                                <span>{f.label}</span>
+                                              </Badge>
+                                            ))}
+                                          </div>
+                                          <div className="pt-2 border-t flex justify-end">
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-7 text-[11px] text-primary px-2 font-medium"
+                                              onClick={() => toggleExpandFacilities(item.id)}
+                                            >
+                                              Show all on card
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      </PopoverContent>
+                                    </Popover>
+                                  )}
+
+                                  {expandedFacilities[item.id] && activeFacilities.length > 6 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleExpandFacilities(item.id)}
+                                      className="text-[10px] font-semibold py-0.5 px-2 bg-muted hover:bg-muted/80 text-muted-foreground border border-border rounded-md cursor-pointer transition-colors shadow-2xs"
+                                    >
+                                      Show less
+                                    </button>
+                                  )}
+
+                                  {activeFacilities.length === 0 && (
+                                    <span className="text-[11px] text-muted-foreground italic">No facilities added</span>
                                   )}
                                 </div>
-                              </TableCell>
+                              </div>
 
-                              <TableCell className="text-right">
-                                <div className="flex items-center justify-end gap-1.5">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    title="View Details"
-                                    onClick={() => setViewingBooking(booking)}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
+                              {item.other_facilities && (
+                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                  <span className="font-semibold text-foreground">Amenities:</span> {item.other_facilities}
+                                </p>
+                              )}
 
-                                  {booking.status === "PENDING" && (
-                                    <>
-                                      <Button
-                                        size="sm"
-                                        className="bg-emerald-600 hover:bg-emerald-700 h-8 text-xs gap-1"
-                                        onClick={() => handleOpenActionModal(booking, "APPROVE")}
-                                      >
-                                        <CheckCircle2 className="h-3.5 w-3.5" /> Approve
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="destructive"
-                                        className="h-8 text-xs gap-1"
-                                        onClick={() => handleOpenActionModal(booking, "REJECT")}
-                                      >
-                                        <XCircle className="h-3.5 w-3.5" /> Reject
-                                      </Button>
-                                    </>
-                                  )}
+                              {item.status === "maintenance" && item.maintenance_notes && (
+                                <div className="p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 rounded text-xs text-amber-800 dark:text-amber-300 flex items-start gap-1.5">
+                                  <Wrench className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                                  <span>{item.maintenance_notes}</span>
                                 </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </div>
+                              )}
+                            </div>
 
-              {/* Pagination */}
-              {totalBookingPages > 1 && (
-                <div className="pt-2">
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() => setBookingPage((p) => Math.max(1, p - 1))}
-                          className={bookingPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                      {Array.from({ length: totalBookingPages }, (_, i) => i + 1).map((p) => (
-                        <PaginationItem key={p}>
-                          <PaginationLink
-                            isActive={bookingPage === p}
-                            onClick={() => setBookingPage(p)}
-                            className="cursor-pointer"
+                            <div className="pt-3 mt-2 border-t flex items-center justify-between gap-2 text-xs">
+                              <span className="text-muted-foreground font-medium">
+                                {item.active_bookings_count || 0} active booking(s)
+                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 text-xs font-medium gap-1.5"
+                                  onClick={() => handleOpenEditModal(item)}
+                                >
+                                  <Pencil className="h-3.5 w-3.5" /> Edit
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive hover:bg-destructive/10 h-8 text-xs font-medium gap-1.5"
+                                  onClick={() => handleDeleteAuditorium(item)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="bookings" className="flex-1 flex flex-col mt-0 space-y-4">
+                {loadingBookings ? (
+                  <SkeletonTable rows={6} cols={6} />
+                ) : bookings.length === 0 ? (
+                  <div className="py-16 text-center text-muted-foreground flex flex-col items-center justify-center h-full">
+                    <Calendar className="h-10 w-10 text-muted-foreground/40 mx-auto mb-2" />
+                    <p className="font-semibold text-sm">No booking requests found.</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Try changing your search or status filter.</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block overflow-x-auto border rounded-xl mb-2 relative shadow-2xs">
+                      <table className="w-full text-base md:text-sm text-left table-auto border-collapse">
+                        <thead
+                          className={`sticky top-0 z-20 border-b text-sm md:text-xs uppercase font-bold tracking-wider ${
+                            theme === 'dark' ? 'bg-slate-900/95 text-slate-300 border-border' : 'bg-slate-50/95 text-slate-700 border-gray-200'
+                          } shadow-sm backdrop-blur-md`}
+                        >
+                          <tr>
+                            <th className="py-3.5 px-4 font-bold">Event & Purpose</th>
+                            <th className="py-3.5 px-4 font-bold">Auditorium</th>
+                            <th className="py-3.5 px-4 font-bold">Department / HOD</th>
+                            <th className="py-3.5 px-4 font-bold">Date (DD-MM-YYYY)</th>
+                            <th className="py-3.5 px-4 font-bold">12-Hr Slot</th>
+                            <th className="py-3.5 px-4 font-bold">Attendees</th>
+                            <th className="py-3.5 px-4 font-bold">Status & Conflict</th>
+                            <th className="py-3.5 px-4 text-right font-bold">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/60">
+                          {bookings.map((booking) => {
+                            const hasConflict = hasConflictWarning(booking);
+                            return (
+                              <tr
+                                key={booking.id}
+                                className={`transition-colors duration-200 ${
+                                  theme === 'dark' ? 'hover:bg-accent/70 text-foreground' : 'hover:bg-blue-50/40 text-gray-900'
+                                }`}
+                              >
+                                <td className="py-3.5 px-4 align-middle">
+                                  <span className="font-semibold text-foreground text-sm block">{booking.event_name}</span>
+                                  <p className="text-xs text-muted-foreground line-clamp-1">{booking.event_purpose}</p>
+                                </td>
+                                <td className="py-3.5 px-4 align-middle">
+                                  <span className="font-medium text-foreground text-sm block">{booking.auditorium_name}</span>
+                                  <p className="text-xs text-muted-foreground">{booking.auditorium_location}</p>
+                                </td>
+                                <td className="py-3.5 px-4 align-middle">
+                                  <span className="font-medium text-sm text-foreground block">{booking.requester_name}</span>
+                                  <p className="text-xs text-muted-foreground">{booking.branch_name || "General"}</p>
+                                </td>
+                                <td className="py-3.5 px-4 align-middle">
+                                  <span className="font-mono text-xs sm:text-sm font-medium">
+                                    {formatDateDisplay(booking.booking_date)}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-4 align-middle">
+                                  <span className="font-mono text-xs font-semibold text-primary">
+                                    {format12Hour(booking.start_time)} &ndash; {format12Hour(booking.end_time)}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-4 align-middle">
+                                  <span className="font-medium text-sm">{booking.expected_attendees}</span>
+                                  <span className="text-xs text-muted-foreground"> / {booking.auditorium_max_capacity || "—"}</span>
+                                </td>
+                                <td className="py-3.5 px-4 align-middle">
+                                  <div className="space-y-1">
+                                    <Badge
+                                      variant={
+                                        booking.status === "APPROVED"
+                                          ? "default"
+                                          : booking.status === "PENDING"
+                                          ? "secondary"
+                                          : "destructive"
+                                      }
+                                      className={
+                                        booking.status === "APPROVED"
+                                          ? "bg-emerald-600 text-white text-xs"
+                                          : booking.status === "PENDING"
+                                          ? "bg-amber-600 text-white text-xs"
+                                          : "text-xs"
+                                      }
+                                    >
+                                      {booking.status}
+                                    </Badge>
+                                    {hasConflict && (
+                                      <div className="flex items-center gap-1 text-[11px] font-medium text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
+                                        <AlertTriangle className="h-3 w-3 shrink-0" />
+                                        Slot Clash!
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="py-3.5 px-4 text-right align-middle">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      title="View Details"
+                                      onClick={() => setViewingBooking(booking)}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                    {booking.status === "PENDING" && (
+                                      <>
+                                        <Button
+                                          size="sm"
+                                          className="bg-emerald-600 hover:bg-emerald-700 h-8 text-xs gap-1"
+                                          onClick={() => handleOpenActionModal(booking, "APPROVE")}
+                                        >
+                                          <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="destructive"
+                                          className="h-8 text-xs gap-1"
+                                          onClick={() => handleOpenActionModal(booking, "REJECT")}
+                                        >
+                                          <XCircle className="h-3.5 w-3.5" /> Reject
+                                        </Button>
+                                      </>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile Stacked Cards */}
+                    <div className="grid grid-cols-1 gap-3 md:hidden flex-1 overflow-y-auto mb-2 pr-1">
+                      {bookings.map((booking) => {
+                        const hasConflict = hasConflictWarning(booking);
+                        return (
+                          <div
+                            key={booking.id}
+                            className={`p-4 rounded-xl border flex flex-col gap-3 shadow-sm ${
+                              theme === 'dark' ? 'bg-zinc-950/40 border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'
+                            }`}
                           >
-                            {p}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ))}
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() => setBookingPage((p) => Math.min(totalBookingPages, p + 1))}
-                          className={bookingPage === totalBookingPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
+                            <div className="flex justify-between items-start gap-2">
+                              <div>
+                                <span className="font-bold text-sm text-foreground">{booking.event_name}</span>
+                                <p className="text-xs text-muted-foreground line-clamp-1">{booking.event_purpose}</p>
+                              </div>
+                              <Badge
+                                variant={
+                                  booking.status === "APPROVED"
+                                    ? "default"
+                                    : booking.status === "PENDING"
+                                    ? "secondary"
+                                    : "destructive"
+                                }
+                                className={
+                                  booking.status === "APPROVED"
+                                    ? "bg-emerald-600 text-white text-[10px]"
+                                    : booking.status === "PENDING"
+                                    ? "bg-amber-600 text-white text-[10px]"
+                                    : "text-[10px]"
+                                }
+                              >
+                                {booking.status}
+                              </Badge>
+                            </div>
+
+                            {hasConflict && (
+                              <div className="p-2 rounded bg-destructive/10 text-destructive text-xs flex items-center gap-1.5 font-medium">
+                                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                                <span>Slot conflict with already approved event!</span>
+                              </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-2 text-xs bg-muted/30 p-2.5 rounded-lg">
+                              <div>
+                                <span className="text-muted-foreground">Auditorium:</span>
+                                <p className="font-medium truncate">{booking.auditorium_name}</p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Department / HOD:</span>
+                                <p className="font-medium truncate">{booking.branch_name || booking.requester_name}</p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Date:</span>
+                                <p className="font-medium font-mono">{formatDateDisplay(booking.booking_date)}</p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">12-Hr Slot:</span>
+                                <p className="font-medium font-mono text-[11px] text-primary">
+                                  {format12Hour(booking.start_time)} - {format12Hour(booking.end_time)}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-1 border-t text-xs">
+                              <span className="text-muted-foreground">
+                                {booking.expected_attendees} Attendees
+                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => setViewingBooking(booking)}>
+                                  <Eye className="h-3.5 w-3.5 mr-1" /> Details
+                                </Button>
+                                {booking.status === "PENDING" && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      className="bg-emerald-600 hover:bg-emerald-700 h-8 text-xs"
+                                      onClick={() => handleOpenActionModal(booking, "APPROVE")}
+                                    >
+                                      Approve
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      className="h-8 text-xs"
+                                      onClick={() => handleOpenActionModal(booking, "REJECT")}
+                                    >
+                                      Reject
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+            </CardContent>
+
+            {/* Card Footer: Pagination */}
+            {((activeTab === "auditoriums" ? totalAuditoriumPages : totalBookingPages) > 1) && (
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div>
+                  Showing {activeTab === "auditoriums"
+                    ? `${(auditoriumPage - 1) * 9 + 1} to ${Math.min(auditoriumPage * 9, totalAuditoriumsCount)} of ${totalAuditoriumsCount}`
+                    : `${(bookingPage - 1) * 10 + 1} to ${Math.min(bookingPage * 10, totalBookingsCount)} of ${totalBookingsCount}`
+                  } results
                 </div>
-              )}
-            </>
-          )}
-        </TabsContent>
-      </Tabs>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (activeTab === "auditoriums") setAuditoriumPage((p) => Math.max(1, p - 1));
+                      else setBookingPage((p) => Math.max(1, p - 1));
+                    }}
+                    disabled={(activeTab === "auditoriums" ? auditoriumPage === 1 : bookingPage === 1) || (activeTab === "auditoriums" ? loadingAuditoriums : loadingBookings)}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Previous
+                  </Button>
+
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {activeTab === "auditoriums" ? auditoriumPage : bookingPage}
+                    </span>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (activeTab === "auditoriums") setAuditoriumPage((p) => Math.min(totalAuditoriumPages, p + 1));
+                      else setBookingPage((p) => Math.min(totalBookingPages, p + 1));
+                    }}
+                    disabled={(activeTab === "auditoriums" ? auditoriumPage === totalAuditoriumPages : bookingPage === totalBookingPages) || (activeTab === "auditoriums" ? loadingAuditoriums : loadingBookings)}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
+          </Card>
+        </Tabs>
+      </div>
 
       {/* ================= MODAL: ADD / EDIT AUDITORIUM ================= */}
       <Dialog open={isAuditoriumModalOpen} onOpenChange={setIsAuditoriumModalOpen}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto rounded-xl">
+        <DialogContent
+          className={
+            theme === 'dark'
+              ? 'bg-card text-foreground w-[90%] sm:max-w-xl max-h-[80vh] sm:max-h-[90vh] overflow-y-auto rounded-xl p-4 sm:p-6'
+              : 'bg-white text-gray-900 w-[90%] sm:max-w-xl max-h-[80vh] sm:max-h-[90vh] overflow-y-auto rounded-xl p-4 sm:p-6'
+          }
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Building2 className="h-5 w-5 text-primary" />
@@ -1293,17 +1414,17 @@ export const AuditoriumManagement: React.FC = () => {
 
             {/* Auditorium Photos Section (Cloudflare R2, Max 4 images, <= 2MB each) */}
             <div className="space-y-2.5 border rounded-xl p-3.5 bg-muted/10">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-start sm:items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
                   <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <ImageIcon className="h-4 w-4 text-primary" />
-                    Auditorium Photos ({formData.images.length}/4)
+                    <ImageIcon className="h-4 w-4 text-primary shrink-0" />
+                    <span>Auditorium Photos ({formData.images.length}/4)</span>
                   </Label>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
                     Upload up to 4 images (Max 2MB per photo). Saved securely to Cloudflare R2.
                   </p>
                 </div>
-                <Badge variant="outline" className="text-[10px] font-mono">
+                <Badge variant="outline" className="text-[10px] font-mono whitespace-nowrap shrink-0 px-2 py-0.5 self-start sm:self-center">
                   Max 2MB each
                 </Badge>
               </div>
@@ -1418,7 +1539,13 @@ export const AuditoriumManagement: React.FC = () => {
 
       {/* ================= MODAL: APPROVE / REJECT ACTION ================= */}
       <Dialog open={!!selectedBooking} onOpenChange={(open) => !open && setSelectedBooking(null)}>
-        <DialogContent className="max-w-md rounded-xl">
+        <DialogContent
+          className={
+            theme === 'dark'
+              ? 'bg-card text-foreground w-[90%] sm:max-w-md max-h-[80vh] sm:max-h-[90vh] overflow-y-auto rounded-xl p-4 sm:p-6'
+              : 'bg-white text-gray-900 w-[90%] sm:max-w-md max-h-[80vh] sm:max-h-[90vh] overflow-y-auto rounded-xl p-4 sm:p-6'
+          }
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
               {actionType === "APPROVE" ? (
@@ -1498,7 +1625,13 @@ export const AuditoriumManagement: React.FC = () => {
 
       {/* ================= MODAL: VIEW DETAILS ================= */}
       <Dialog open={!!viewingBooking} onOpenChange={(open) => !open && setViewingBooking(null)}>
-        <DialogContent className="max-w-md rounded-xl">
+        <DialogContent
+          className={
+            theme === 'dark'
+              ? 'bg-card text-foreground w-[90%] sm:max-w-md max-h-[80vh] sm:max-h-[90vh] overflow-y-auto rounded-xl p-4 sm:p-6'
+              : 'bg-white text-gray-900 w-[90%] sm:max-w-md max-h-[80vh] sm:max-h-[90vh] overflow-y-auto rounded-xl p-4 sm:p-6'
+          }
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Eye className="h-5 w-5 text-primary" />
@@ -1592,7 +1725,7 @@ export const AuditoriumManagement: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 };
 
