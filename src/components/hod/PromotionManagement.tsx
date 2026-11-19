@@ -20,7 +20,7 @@ import {
   DialogFooter
 } from
   "../ui/dialog";
-import { CheckCircle, XCircle, UserCheck, UserX, Users, ArrowRight } from "lucide-react";
+import { CheckCircle, XCircle, UserCheck, UserX, Users, ArrowRight, Search, X, Loader2, AlertTriangle, Lightbulb } from "lucide-react";
 import {
   Select,
   SelectTrigger,
@@ -78,6 +78,18 @@ interface Student {
   section: string | null;
   batch: string | null;
 }
+
+export const formatSemesterOrdinal = (number: number) => {
+  if (getInstitutionType() === 'school') {
+    return `Class ${number}`;
+  }
+  const j = number % 10;
+  const k = number % 100;
+  if (j === 1 && k !== 11) return `${number}st Semester`;
+  if (j === 2 && k !== 12) return `${number}nd Semester`;
+  if (j === 3 && k !== 13) return `${number}rd Semester`;
+  return `${number}th Semester`;
+};
 
 const PromotionManagement = () => {
   const getSemesterName = (number: number) => {
@@ -409,6 +421,30 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
     isSemesterOpen: false
   });
 
+  // Debounced search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Senior batch collision warning modal state
+  const [collisionDialog, setCollisionDialog] = useState<{
+    isOpen: boolean;
+    targetSemDisplay: string;
+    targetSemValue: string;
+    existingCount: number;
+  }>({
+    isOpen: false,
+    targetSemDisplay: "",
+    targetSemValue: "",
+    existingCount: 0
+  });
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   // Helper to update state
   const updateState = (newState: Partial<typeof state>) => {
     setState((prev) => ({ ...prev, ...newState }));
@@ -454,9 +490,11 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
     fetchInitialData();
   }, []);
 
-  // When batch changes: reset semester/section, clear list, auto-open semester dropdown
+  // When batch changes: reset semester/section, search, clear list, auto-open semester dropdown
   useEffect(() => {
     if (!state.selectedBatchId) return;
+    setSearchQuery("");
+    setDebouncedSearch("");
     updateState({
       selectedSemester: "",
       selectedSection: "",
@@ -465,6 +503,12 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
       isSemesterOpen: true
     });
   }, [state.selectedBatchId]);
+
+  // When semester or section changes: clear search query
+  useEffect(() => {
+    setSearchQuery("");
+    setDebouncedSearch("");
+  }, [state.selectedSemester, state.selectedSection]);
 
   // Fetch sections when semester changes
   useEffect(() => {
@@ -497,7 +541,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
     fetchSections();
   }, [state.selectedSemester, state.branchId, state.semesters]);
 
-  // Fetch students when semester, section, and batch change
+  // Fetch students when semester, section, batch, or debounced search change
   useEffect(() => {
     const fetchStudents = async () => {
       if (!state.selectedSemester || !state.branchId || !state.selectedSection || !state.selectedBatchId) {
@@ -516,6 +560,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
             semester_id: semesterId,
             section_id: sectionId,
             batch_id: state.selectedBatchId,
+            search: debouncedSearch || undefined,
             page_size: 50 // Use AdminPagination default page size
           }, "GET");
 
@@ -558,15 +603,12 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
             }
           }
 
-
-
           updateState({
             students: results,
             selectedStudents: []
           });
         }
       } catch (err) {
-
         updateState({ errors: ["Failed to load students"] });
       } finally {
         updateState({ isLoading: false });
@@ -574,7 +616,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
     };
 
     fetchStudents();
-  }, [state.selectedSemester, state.selectedSection, state.selectedBatchId, state.branchId, state.semesters, state.sections]);
+  }, [state.selectedSemester, state.selectedSection, state.selectedBatchId, state.branchId, state.semesters, state.sections, debouncedSearch]);
 
   // Handle individual student selection
   const handleStudentSelect = (usn: string, checked: boolean) => {
@@ -614,6 +656,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
           semester_id: semesterId,
           section_id: sectionId,
           batch_id: state.selectedBatchId,
+          search: debouncedSearch || undefined,
           page: page,
           page_size: 50 // Use AdminPagination default page size
         }, "GET");
@@ -634,14 +677,51 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
         }
       }
     } catch (err) {
-
       updateState({ errors: ["Failed to load students"] });
     } finally {
       updateState({ isLoading: false });
     }
   };
 
-  // Promote selected students
+  // Switch to target semester from collision dialog
+  const handleSwitchToSeniorSemester = () => {
+    const targetVal = collisionDialog.targetSemValue;
+    setCollisionDialog({
+      isOpen: false,
+      targetSemDisplay: "",
+      targetSemValue: "",
+      existingCount: 0
+    });
+    updateState({
+      selectedSemester: targetVal,
+      selectedSection: "",
+      students: [],
+      selectedStudents: []
+    });
+  };
+
+  // Proceed with promotion despite collision
+  const handleProceedAnyway = async () => {
+    setCollisionDialog({
+      isOpen: false,
+      targetSemDisplay: "",
+      targetSemValue: "",
+      existingCount: 0
+    });
+    await proceedWithPromotion();
+  };
+
+  // Cancel collision dialog
+  const handleCancelCollisionDialog = () => {
+    setCollisionDialog({
+      isOpen: false,
+      targetSemDisplay: "",
+      targetSemValue: "",
+      existingCount: 0
+    });
+  };
+
+  // Check collision and start promotion flow
   const handlePromoteSelectedStudents = async () => {
     if (!state.selectedSemester || !state.branchId) {
       Swal.fire({
@@ -669,6 +749,45 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
       });
       return;
     }
+
+    // Check if target semester is already occupied by active students
+    if (!isGraduation && nextSemester) {
+      try {
+        const checkTarget = await manageStudents({
+          branch_id: state.branchId,
+          semester_id: nextSemester.id,
+          page_size: 1,
+          force_refresh: true
+        }, "GET");
+        const existingCount = typeof checkTarget?.count === 'number'
+          ? checkTarget.count
+          : (Array.isArray(checkTarget?.results) ? checkTarget.results.length : 0);
+
+        if (existingCount > 0) {
+          const targetSemDisplay = formatSemesterOrdinal(nextSemester.number);
+          const targetSemValue = `${nextSemester.number}th Semester`;
+          setCollisionDialog({
+            isOpen: true,
+            targetSemDisplay,
+            targetSemValue,
+            existingCount
+          });
+          return;
+        }
+      } catch (err) {
+        console.warn("Could not check target semester student count:", err);
+      }
+    }
+
+    await proceedWithPromotion();
+  };
+
+  // Main promotion execution logic
+  const proceedWithPromotion = async () => {
+    const currentSemesterId = state.semesters.find((s) => `${s.number}th Semester` === state.selectedSemester)?.id;
+    const currentSemesterNumber = state.semesters.find((s) => s.id === currentSemesterId)?.number || 0;
+    const isGraduation = currentSemesterNumber === state.totalSemesters;
+    const nextSemester = state.semesters.find((s) => s.number === currentSemesterNumber + 1);
 
     // Optimistic update: immediately remove promoted students from the list
     const studentsToPromote = state.selectedStudents.length > 0 && state.selectedStudents.length < state.students.length ?
@@ -1077,132 +1196,273 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
       }
 
       {/* Student List */}
-      {state.students.length > 0 ?
+      {(state.selectedSemester && state.selectedSection && state.selectedBatchId) ? (
         <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
-            <CardTitle className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            <CardTitle className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               <span className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-400" />
+                <Users className="h-5 w-5 text-blue-400 shrink-0" />
                 <span className="text-xl sm:text-semibold md:text-lg">
                   Students in {getInstitutionType() === 'school' ? state.selectedSemester.replace(/(\d+)(?:st|nd|rd|th)\s+Semester/gi, 'Class $1') : state.selectedSemester} - {state.selectedSection}
                 </span>
               </span>
-              <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="select-all-students"
-                    checked={state.selectedStudents.length === state.students.length && state.students.length > 0}
-                    onCheckedChange={handleSelectAll}
-                    className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
-
-                  <label htmlFor="select-all-students" className={`text-sm cursor-pointer whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    Select All
-                  </label>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto border-t lg:border-t-0 pt-3 lg:pt-0">
+                {/* Debounced Search */}
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search by USN or name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={cn(
+                      "pl-8 pr-8 h-9 text-xs",
+                      theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'
+                    )}
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
-                <Button
-                  onClick={handlePromoteSelectedStudents}
-                  disabled={state.selectedStudents.length === 0 || state.isPromoting}
-                  className={`flex-1 sm:flex-none ${state.selectedSemester === `${state.totalSemesters}th Semester` ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white h-9 px-4`}
-                >
-                  {state.isPromoting ?
-                    <Loader2 className="h-4 w-4 animate-spin" /> :
-                    <span className="whitespace-nowrap">{state.selectedSemester === `${state.totalSemesters}th Semester` ? 'Graduate' : 'Promote'} ({state.selectedStudents.length})</span>
-                  }
-                </Button>
+
+                <div className="flex items-center justify-between sm:justify-end gap-3">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="select-all-students"
+                      checked={state.selectedStudents.length === state.students.length && state.students.length > 0}
+                      onCheckedChange={handleSelectAll}
+                      className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
+
+                    <label htmlFor="select-all-students" className={`text-sm cursor-pointer whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Select All
+                    </label>
+                  </div>
+                  <Button
+                    onClick={handlePromoteSelectedStudents}
+                    disabled={state.selectedStudents.length === 0 || state.isPromoting}
+                    className={`flex-1 sm:flex-none ${state.selectedSemester === `${state.totalSemesters}th Semester` ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white h-9 px-4`}
+                  >
+                    {state.isPromoting ?
+                      <Loader2 className="h-4 w-4 animate-spin" /> :
+                      <span className="whitespace-nowrap">{state.selectedSemester === `${state.totalSemesters}th Semester` ? 'Graduate' : 'Promote'} ({state.selectedStudents.length})</span>
+                    }
+                  </Button>
+                </div>
               </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Select</TableHead>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>USN</TableHead>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Name</TableHead>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Batch</TableHead>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Section</TableHead>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                      {getInstitutionType() === 'school' ? 'Class' : 'Sem'}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {state.students.map((student, index) =>
-                    <TableRow key={`${student.usn}-${index}`} className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                      <TableCell>
-                        <Checkbox
-                          checked={state.selectedStudents.includes(student.usn)}
-                          onCheckedChange={(checked) => handleStudentSelect(student.usn, checked as boolean)}
-                          className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
-
-                      </TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {student.batch ? (
-                          getInstitutionType() === 'school'
-                            ? student.batch.replace(/_Sem(\d+)/gi, ' (Class $1)').replace(/_/g, ' ')
-                            : student.batch.replace(/_Sem(\d+)/gi, ' (Sem $1)').replace(/_/g, ' ')
-                        ) : 'N/A'}
-                      </TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section || 'N/A'}</TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {getInstitutionType() === 'school' ? student.semester.replace(/(\d+)(?:st|nd|rd|th)\s+Semester/gi, 'Class $1') : student.semester}
-                      </TableCell>
+            {state.isLoading ? (
+              <div className="py-4">
+                <SkeletonTable rows={8} cols={6} />
+              </div>
+            ) : state.students.length > 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                      <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Select</TableHead>
+                      <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>USN</TableHead>
+                      <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Name</TableHead>
+                      <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Batch</TableHead>
+                      <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Section</TableHead>
+                      <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                        {getInstitutionType() === 'school' ? 'Class' : 'Sem'}
+                      </TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {state.students.map((student, index) =>
+                      <TableRow key={`${student.usn}-${index}`} className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                        <TableCell>
+                          <Checkbox
+                            checked={state.selectedStudents.includes(student.usn)}
+                            onCheckedChange={(checked) => handleStudentSelect(student.usn, checked as boolean)}
+                            className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
 
-              {/* Pagination Controls */}
-              {state.totalPages > 1 &&
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
-                  <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                    Showing {Math.min((state.currentPage - 1) * 50 + 1, state.totalStudents)} to {Math.min(state.currentPage * 50, state.totalStudents)} of {state.totalStudents}
+                        </TableCell>
+                        <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</TableCell>
+                        <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</TableCell>
+                        <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {student.batch ? (
+                            getInstitutionType() === 'school'
+                              ? student.batch.replace(/_Sem(\d+)/gi, ' (Class $1)').replace(/_/g, ' ')
+                              : student.batch.replace(/_Sem(\d+)/gi, ' (Sem $1)').replace(/_/g, ' ')
+                          ) : 'N/A'}
+                        </TableCell>
+                        <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section || 'N/A'}</TableCell>
+                        <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {getInstitutionType() === 'school' ? student.semester.replace(/(\d+)(?:st|nd|rd|th)\s+Semester/gi, 'Class $1') : student.semester}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+
+                {/* Pagination Controls */}
+                {state.totalPages > 1 &&
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+                    <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      Showing {Math.min((state.currentPage - 1) * 50 + 1, state.totalStudents)} to {Math.min(state.currentPage * 50, state.totalStudents)} of {state.totalStudents}
+                    </div>
+                    <div className="flex gap-2 items-center justify-center sm:justify-end">
+                      <Button
+                        onClick={() => handlePageChange(state.currentPage - 1)}
+                        disabled={!state.hasPrevious || state.isLoading}
+                        variant="outline"
+                        className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
+
+                        Prev
+                      </Button>
+                      <span className="px-3 text-base font-medium text-primary">
+                        {state.currentPage}
+                      </span>
+                      <Button
+                        onClick={() => handlePageChange(state.currentPage + 1)}
+                        disabled={!state.hasNext || state.isLoading}
+                        variant="outline"
+                        className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
+
+                        Next
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 items-center justify-center sm:justify-end">
-                    <Button
-                      onClick={() => handlePageChange(state.currentPage - 1)}
-                      disabled={!state.hasPrevious || state.isLoading}
-                      variant="outline"
-                      className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
-
-                      Prev
-                    </Button>
-                    <span className="px-3 text-base font-medium text-primary">
-                      {state.currentPage}
-                    </span>
-                    <Button
-                      onClick={() => handlePageChange(state.currentPage + 1)}
-                      disabled={!state.hasNext || state.isLoading}
-                      variant="outline"
-                      className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
-
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              }
-            </div>
+                }
+              </div>
+            ) : (
+              <div className="text-center py-10 space-y-2">
+                <Users className="h-10 w-10 text-muted-foreground mx-auto opacity-40" />
+                <h4 className={`text-base font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {debouncedSearch ? `No students found matching "${debouncedSearch}"` : "No students in this section"}
+                </h4>
+                {debouncedSearch && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSearchQuery("")}
+                    className="mt-2 text-xs"
+                  >
+                    Clear Search
+                  </Button>
+                )}
+              </div>
+            )}
           </CardContent>
-        </Card> :
-        !state.isLoading &&
-        <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`
-        }>
-          <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
-            <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+        </Card>
+      ) : (
+        !state.isLoading && (
+          <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+            <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+              <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+            </div>
+            <div className="max-w-xs mx-auto">
+              <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                No Students to Display
+              </h3>
+              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Please select a batch, semester and section to view students eligible for promotion.
+              </p>
+            </div>
+          </Card>
+        )
+      )}
+
+      {/* Senior Batch Collision Warning Modal */}
+      <Dialog open={collisionDialog.isOpen} onOpenChange={(open) => !open && handleCancelCollisionDialog()}>
+        <DialogContent className={cn(
+          "w-[calc(100vw-2rem)] max-w-lg p-5 sm:p-6 rounded-2xl shadow-2xl border overflow-hidden",
+          theme === 'dark' ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-gray-200 text-gray-900'
+        )}>
+          {/* Header Icon + Title */}
+          <div className="flex flex-col items-center text-center space-y-2.5 pt-1">
+            <div className="h-13 w-13 p-3 rounded-full bg-amber-500/10 border-2 border-amber-500/30 flex items-center justify-center text-amber-500 shadow-inner">
+              <AlertTriangle className="h-6 w-6 sm:h-7 sm:w-7 text-amber-500" />
+            </div>
+            <div className="space-y-1">
+              <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+                Senior Batch in Target Semester
+              </DialogTitle>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Academic sequence recommendation notice
+              </p>
+            </div>
           </div>
-          <div className="max-w-xs mx-auto">
-            <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              No Students to Display
-            </h3>
-            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Please select a semester and section to view students eligible for promotion.
+
+          {/* Occupancy Banner */}
+          <div className={cn(
+            "flex flex-wrap items-center justify-between gap-2 p-3 sm:p-3.5 rounded-xl border w-full min-w-0 box-border mt-3",
+            theme === 'dark' ? 'bg-slate-800/60 border-slate-700/60' : 'bg-amber-50/60 border-amber-200/70'
+          )}>
+            <span className="text-xs sm:text-sm font-medium text-foreground">
+              Target: <span className="font-semibold text-primary">{collisionDialog.targetSemDisplay}</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 shrink-0">
+              <Users className="h-3.5 w-3.5" />
+              {collisionDialog.existingCount} Active Student{collisionDialog.existingCount !== 1 ? 's' : ''}
+            </span>
+          </div>
+
+          {/* Best Practice Explanatory Box */}
+          <div className={cn(
+            "p-3.5 sm:p-4 rounded-xl border-l-4 border-l-amber-500 text-xs sm:text-sm leading-relaxed space-y-1.5 mt-3 w-full min-w-0 box-border",
+            theme === 'dark' ? 'bg-amber-500/10 border-amber-500/30 text-slate-300' : 'bg-amber-50/80 border-amber-300 text-amber-950'
+          )}>
+            <div className="flex items-center gap-1.5 font-semibold text-amber-800 dark:text-amber-400">
+              <Lightbulb className="h-4 w-4 shrink-0" />
+              <span>Best Practice (Seniors First):</span>
+            </div>
+            <p className="break-words">
+              Promoting junior students now will merge them into <strong className="font-semibold">{collisionDialog.targetSemDisplay}</strong> alongside the existing senior batch. In standard academic workflows, senior students are usually promoted or graduated before juniors move up.
             </p>
           </div>
-        </Card>
-      }
+
+          <p className="text-xs sm:text-sm text-center text-muted-foreground mt-3 px-1 break-words">
+            Would you like to switch to <strong className="font-semibold text-foreground">{collisionDialog.targetSemDisplay}</strong> to promote senior students first?
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-2.5 pt-3.5 border-t border-border mt-3.5 w-full">
+            <Button
+              type="button"
+              onClick={handleSwitchToSeniorSemester}
+              className="w-full text-xs sm:text-sm font-semibold h-10 sm:h-11 bg-primary hover:bg-primary/90 text-white shadow-sm flex items-center justify-center gap-2"
+            >
+              <span>Switch to {collisionDialog.targetSemDisplay} First (Recommended)</span>
+              <ArrowRight className="h-4 w-4 shrink-0" />
+            </Button>
+
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-2 w-full">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleCancelCollisionDialog}
+                className="w-full sm:w-auto text-xs sm:text-sm font-medium h-9 text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleProceedAnyway}
+                className={cn(
+                  "w-full sm:w-auto text-xs sm:text-sm font-medium h-9 border transition-colors",
+                  theme === 'dark'
+                    ? 'border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white'
+                    : 'border-amber-300 text-amber-800 hover:bg-amber-50 dark:border-amber-700/50 dark:text-amber-300'
+                )}
+              >
+                Proceed with Promotion Anyway
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>);
 
 };
@@ -1234,6 +1494,17 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
     isSectionOpen: false,
     isSemesterOpen: false
   });
+
+  // Debounced search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // Helper to update state
   const updateState = (newState: Partial<typeof state>) => {
@@ -1280,9 +1551,11 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
     fetchInitialData();
   }, []);
 
-  // When batch changes: reset semester/section, clear list, auto-open semester dropdown
+  // When batch changes: reset semester/section, search, clear list, auto-open semester dropdown
   useEffect(() => {
     if (!state.selectedBatchId) return;
+    setSearchQuery("");
+    setDebouncedSearch("");
     updateState({
       selectedSemester: "",
       selectedSection: "",
@@ -1291,6 +1564,12 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
       isSemesterOpen: true
     });
   }, [state.selectedBatchId]);
+
+  // When semester or section changes: clear search query
+  useEffect(() => {
+    setSearchQuery("");
+    setDebouncedSearch("");
+  }, [state.selectedSemester, state.selectedSection]);
 
   // Fetch sections when semester changes
   useEffect(() => {
@@ -1323,7 +1602,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
     fetchSections();
   }, [state.selectedSemester, state.branchId, state.semesters]);
 
-  // Fetch students when semester, section, and batch change
+  // Fetch students when semester, section, batch, or debounced search change
   useEffect(() => {
     const fetchStudents = async () => {
       if (!state.selectedSemester || !state.branchId || !state.selectedSection || !state.selectedBatchId) {
@@ -1342,6 +1621,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
             semester_id: semesterId,
             section_id: sectionId,
             batch_id: state.selectedBatchId,
+            search: debouncedSearch || undefined,
             page_size: 50 // Use AdminPagination default page size
           }, "GET");
 
@@ -1384,15 +1664,12 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
             }
           }
 
-
-
           updateState({
             students: results,
             selectedStudents: []
           });
         }
       } catch (err) {
-
         updateState({ errors: ["Failed to load students"] });
       } finally {
         updateState({ isLoading: false });
@@ -1400,7 +1677,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
     };
 
     fetchStudents();
-  }, [state.selectedSemester, state.selectedSection, state.selectedBatchId, state.branchId, state.semesters, state.sections]);
+  }, [state.selectedSemester, state.selectedSection, state.selectedBatchId, state.branchId, state.semesters, state.sections, debouncedSearch]);
 
   // Handle individual student selection
   const handleStudentSelect = (usn: string, checked: boolean) => {
@@ -1440,6 +1717,7 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
           semester_id: semesterId,
           section_id: sectionId,
           batch_id: state.selectedBatchId,
+          search: debouncedSearch || undefined,
           page: page,
           page_size: 50 // Use AdminPagination default page size
         }, "GET");
@@ -1460,7 +1738,6 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
         }
       }
     } catch (err) {
-
       updateState({ errors: ["Failed to load students"] });
     } finally {
       updateState({ isLoading: false });
@@ -1734,121 +2011,195 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
       </Card>
 
       {/* Student List */}
-      {state.students.length > 0 ?
+      {(state.selectedSemester && state.selectedSection && state.selectedBatchId) ? (
         <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
-            <CardTitle className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            <CardTitle className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               <span className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-red-400" />
+                <Users className="h-5 w-5 text-red-400 shrink-0" />
                 <span className="text-xl sm:text-semibold md:text-lg">
                   Students in {getInstitutionType() === 'school' ? state.selectedSemester.replace(/(\d+)(?:st|nd|rd|th)\s+Semester/gi, 'Class $1') : state.selectedSemester} - {state.selectedSection}
                 </span>
               </span>
-              <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
-                <Button
-                  onClick={() => updateState({ showBulkDemoteDialog: true })}
-                  disabled={state.selectedStudents.length === 0}
-                  variant="destructive"
-                  size="sm"
-                  className="flex-1 sm:flex-none h-9 px-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto border-t lg:border-t-0 pt-3 lg:pt-0">
+                {/* Debounced Search */}
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search by USN or name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={cn(
+                      "pl-8 pr-8 h-9 text-xs",
+                      theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'
+                    )}
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
 
-                  <UserX className="h-4 w-4 mr-2" />
-                  <span className="whitespace-nowrap">Demote ({state.selectedStudents.length})</span>
-                </Button>
+                <div className="flex items-center justify-between sm:justify-end gap-3">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="select-all-demote-students"
+                      checked={state.selectedStudents.length === state.students.length && state.students.length > 0}
+                      onCheckedChange={handleSelectAll}
+                      className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
+
+                    <label htmlFor="select-all-demote-students" className={`text-sm cursor-pointer whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Select All
+                    </label>
+                  </div>
+                  <Button
+                    onClick={() => updateState({ showBulkDemoteDialog: true })}
+                    disabled={state.selectedStudents.length === 0 || state.isDemoting}
+                    variant="destructive"
+                    size="sm"
+                    className="flex-1 sm:flex-none h-9 px-4">
+                    {state.isDemoting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <UserX className="h-4 w-4 mr-2" />
+                        <span className="whitespace-nowrap">Demote ({state.selectedStudents.length})</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Select</TableHead>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>USN</TableHead>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Name</TableHead>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Batch</TableHead>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Section</TableHead>
-                    <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                      {getInstitutionType() === 'school' ? 'Class' : 'Sem'}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {state.students.map((student, index) =>
-                    <TableRow key={`${student.usn}-${index}`} className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                      <TableCell>
-                        <Checkbox
-                          checked={state.selectedStudents.includes(student.usn)}
-                          onCheckedChange={(checked) => handleStudentSelect(student.usn, checked as boolean)}
-                          className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
-
-                      </TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {student.batch ? (
-                          getInstitutionType() === 'school'
-                            ? student.batch.replace(/_Sem(\d+)/gi, ' (Class $1)').replace(/_/g, ' ')
-                            : student.batch.replace(/_Sem(\d+)/gi, ' (Sem $1)').replace(/_/g, ' ')
-                        ) : 'N/A'}
-                      </TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section || 'N/A'}</TableCell>
-                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {getInstitutionType() === 'school' ? student.semester.replace(/(\d+)(?:st|nd|rd|th)\s+Semester/gi, 'Class $1') : student.semester}
-                      </TableCell>
+            {state.isLoading ? (
+              <div className="py-4">
+                <SkeletonTable rows={8} cols={6} />
+              </div>
+            ) : state.students.length > 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                      <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Select</TableHead>
+                      <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>USN</TableHead>
+                      <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Name</TableHead>
+                      <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Batch</TableHead>
+                      <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Section</TableHead>
+                      <TableHead className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                        {getInstitutionType() === 'school' ? 'Class' : 'Sem'}
+                      </TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {state.students.map((student, index) =>
+                      <TableRow key={`${student.usn}-${index}`} className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                        <TableCell>
+                          <Checkbox
+                            checked={state.selectedStudents.includes(student.usn)}
+                            onCheckedChange={(checked) => handleStudentSelect(student.usn, checked as boolean)}
+                            className={theme === 'dark' ? 'border-border' : 'border-gray-300'} />
 
-              {/* Pagination Controls */}
-              {state.totalPages > 1 &&
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
-                  <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                    Showing {Math.min((state.currentPage - 1) * 50 + 1, state.totalStudents)} to {Math.min(state.currentPage * 50, state.totalStudents)} of {state.totalStudents}
+                        </TableCell>
+                        <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</TableCell>
+                        <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</TableCell>
+                        <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {student.batch ? (
+                            getInstitutionType() === 'school'
+                              ? student.batch.replace(/_Sem(\d+)/gi, ' (Class $1)').replace(/_/g, ' ')
+                              : student.batch.replace(/_Sem(\d+)/gi, ' (Sem $1)').replace(/_/g, ' ')
+                          ) : 'N/A'}
+                        </TableCell>
+                        <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section || 'N/A'}</TableCell>
+                        <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {getInstitutionType() === 'school' ? student.semester.replace(/(\d+)(?:st|nd|rd|th)\s+Semester/gi, 'Class $1') : student.semester}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+
+                {/* Pagination Controls */}
+                {state.totalPages > 1 &&
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+                    <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      Showing {Math.min((state.currentPage - 1) * 50 + 1, state.totalStudents)} to {Math.min(state.currentPage * 50, state.totalStudents)} of {state.totalStudents}
+                    </div>
+                    <div className="flex gap-2 items-center justify-center sm:justify-end">
+                      <Button
+                        onClick={() => handlePageChange(state.currentPage - 1)}
+                        disabled={!state.hasPrevious || state.isLoading}
+                        variant="outline"
+                        className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
+
+                        Prev
+                      </Button>
+                      <span className="px-3 text-base font-medium text-primary">
+                        {state.currentPage}
+                      </span>
+                      <Button
+                        onClick={() => handlePageChange(state.currentPage + 1)}
+                        disabled={!state.hasNext || state.isLoading}
+                        variant="outline"
+                        className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
+
+                        Next
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 items-center justify-center sm:justify-end">
-                    <Button
-                      onClick={() => handlePageChange(state.currentPage - 1)}
-                      disabled={!state.hasPrevious || state.isLoading}
-                      variant="outline"
-                      className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
-
-                      Prev
-                    </Button>
-                    <span className="px-3 text-base font-medium text-primary">
-                      {state.currentPage}
-                    </span>
-                    <Button
-                      onClick={() => handlePageChange(state.currentPage + 1)}
-                      disabled={!state.hasNext || state.isLoading}
-                      variant="outline"
-                      className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
-
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              }
-            </div>
+                }
+              </div>
+            ) : debouncedSearch ? (
+              <div className="py-12 text-center space-y-3">
+                <Search className="h-8 w-8 mx-auto text-muted-foreground opacity-50" />
+                <p className={`text-base font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  No students found matching "{debouncedSearch}"
+                </p>
+                <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Try adjusting your search query or clear the filter.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSearchQuery("")}
+                  className="mt-2"
+                >
+                  Clear Search
+                </Button>
+              </div>
+            ) : (
+              <div className="py-12 text-center">
+                <Users className="h-8 w-8 mx-auto text-muted-foreground opacity-50 mb-2" />
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  No students found in this {getInstitutionType() === 'school' ? 'class' : 'semester'} and section.
+                </p>
+              </div>
+            )}
           </CardContent>
-        </Card> :
-        !state.isLoading &&
-        <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`
-        }>
-          <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
-            <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
-          </div>
-          <div className="max-w-xs mx-auto">
-            <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              No Students to Display
-            </h3>
-            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Please select a semester and section to view students eligible for demotion.
-            </p>
-          </div>
         </Card>
-      }
+      ) : (
+        !state.isLoading && (
+          <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+            <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+              <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+            </div>
+            <div className="max-w-xs mx-auto">
+              <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                No Students to Display
+              </h3>
+              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Please select a semester, section, and batch to view students eligible for demotion.
+              </p>
+            </div>
+          </Card>
+        )
+      )}
 
       {/* Bulk Demote Dialog */}
       <Dialog open={state.showBulkDemoteDialog} onOpenChange={(open) => updateState({ showBulkDemoteDialog: open, bulkDemoteReason: "" })}>
