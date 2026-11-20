@@ -286,6 +286,404 @@ const calculateStudentTotalFromMarks = (
   return rounded > qpMaxMarks && qpMaxMarks > 0 ? String(qpMaxMarks) : String(rounded);
 };
 
+// Helper: Parse raw question paper questions into structured Question[]
+const parseQuestionsFromQList = (qList: any[]): Question[] => {
+  const loadedQuestions: Question[] = [];
+  qList.forEach((q: any) => {
+    const qnum = q.question_number || q.number || "";
+    const rawPartName = q.part_name || "PART-A";
+    const isOr = Boolean(q.is_or);
+    const co = q.co || "";
+    const bloomsLevel = q.blooms_level || q.bloomsLevel || "";
+
+    if (Array.isArray(q.subparts) && q.subparts.length > 0) {
+      q.subparts.forEach((sub: any) => {
+        const subLabel = sub.subpart_label || sub.subpart || "";
+        const fullNum = subLabel && !qnum.endsWith(subLabel) ? `${qnum}${subLabel}` : qnum;
+        loadedQuestions.push({
+          id: `${fullNum}_${Math.random().toString(36).substring(2, 7)}`,
+          number: fullNum,
+          content: sub.content || "",
+          maxMarks: String(sub.max_marks ?? sub.maxMarks ?? 0),
+          co,
+          bloomsLevel,
+          partName: rawPartName,
+          isOr
+        });
+      });
+    } else {
+      loadedQuestions.push({
+        id: `${qnum}_${Math.random().toString(36).substring(2, 7)}`,
+        number: qnum,
+        content: q.content || "",
+        maxMarks: String(q.max_marks ?? q.maxMarks ?? 0),
+        co,
+        bloomsLevel,
+        partName: rawPartName,
+        isOr
+      });
+    }
+  });
+  return loadedQuestions;
+};
+
+// Helper: Excel sheet name sanitizer (max 31 chars, no special characters, unique)
+const getSafeSheetName = (name: string, existingNames: Set<string>): string => {
+  let clean = name.replace(/[\\/?*[\]:]/g, "_").trim().substring(0, 31);
+  if (!clean) clean = "Subject";
+  let finalName = clean;
+  let counter = 1;
+  while (existingNames.has(finalName.toLowerCase())) {
+    const suffix = `_${counter}`;
+    finalName = clean.substring(0, 31 - suffix.length) + suffix;
+    counter++;
+  }
+  existingNames.add(finalName.toLowerCase());
+  return finalName;
+};
+
+// Helper: Build individual subject worksheet with exact 3-tier header & signatures
+const buildSubjectWorksheet = (params: {
+  orgName: string;
+  formattedTest: string;
+  formattedDate: string;
+  subjectName: string;
+  subjectCode: string;
+  branchName: string;
+  semNumber: string | number;
+  sectionName: string;
+  batchName: string;
+  facultyName: string;
+  qpMax: number;
+  questions: Question[];
+  exportRows: Array<{ index: number; usn: string; name: string; marks: Record<string, string>; total: string }>;
+}) => {
+  const {
+    orgName,
+    formattedTest,
+    formattedDate,
+    subjectName,
+    subjectCode,
+    branchName,
+    semNumber,
+    sectionName,
+    batchName,
+    facultyName,
+    qpMax,
+    questions,
+    exportRows
+  } = params;
+
+  const totalColumns = questions.length > 0 ? 3 + (questions.length * 3) + 1 : 4;
+  const lastColIdx = totalColumns - 1;
+  const midColIdx = Math.floor(totalColumns / 2);
+
+  const aoa: any[][] = [];
+
+  // Row 0: Org Title
+  const row0 = new Array(totalColumns).fill("");
+  row0[0] = orgName.toUpperCase();
+  aoa.push(row0);
+
+  // Row 1: Test Title
+  const row1 = new Array(totalColumns).fill("");
+  row1[0] = `${formattedTest.toUpperCase()} MARKS STATEMENT`;
+  aoa.push(row1);
+
+  // Row 2: Date
+  const row2 = new Array(totalColumns).fill("");
+  row2[lastColIdx - 1] = `Date: ${formattedDate}`;
+  aoa.push(row2);
+
+  // Row 3: Subject & Subject Code
+  const row3 = new Array(totalColumns).fill("");
+  row3[0] = "Subject:";
+  row3[1] = subjectName;
+  row3[midColIdx] = "Subject Code:";
+  row3[midColIdx + 1] = subjectCode;
+  aoa.push(row3);
+
+  // Row 4: Branch / Sem / Sec & Academic Batch
+  const row4 = new Array(totalColumns).fill("");
+  row4[0] = "Branch / Sem / Sec:";
+  row4[1] = `${branchName} / Sem ${semNumber} / Sec ${sectionName}`;
+  row4[midColIdx] = "Academic Batch:";
+  row4[midColIdx + 1] = batchName || "--";
+  aoa.push(row4);
+
+  // Row 5: Faculty & Maximum Marks
+  const row5 = new Array(totalColumns).fill("");
+  row5[0] = "Faculty:";
+  row5[1] = facultyName;
+  row5[midColIdx] = "Maximum Marks:";
+  row5[midColIdx + 1] = qpMax;
+  aoa.push(row5);
+
+  // Row 6: Blank row
+  aoa.push(new Array(totalColumns).fill(""));
+
+  if (questions.length > 0) {
+    // Row 7 (Header Tier 1): #, USN, Student Name, Q1a, Q1b..., Total Marks
+    const row7 = new Array(totalColumns).fill("");
+    row7[0] = "#";
+    row7[1] = "USN";
+    row7[2] = "Student Name";
+    questions.forEach((q, idx) => {
+      row7[3 + idx * 3] = `Q${q.number}`;
+    });
+    row7[lastColIdx] = "Total Marks";
+    aoa.push(row7);
+
+    // Row 8 (Header Tier 2): CO, Max, Marks
+    const row8 = new Array(totalColumns).fill("");
+    questions.forEach((q, idx) => {
+      row8[3 + idx * 3] = "CO";
+      row8[3 + idx * 3 + 1] = "Max";
+      row8[3 + idx * 3 + 2] = "Marks";
+    });
+    aoa.push(row8);
+
+    // Row 9 (Header Tier 3): CO number, Max marks number, Test name
+    const row9 = new Array(totalColumns).fill("");
+    questions.forEach((q, idx) => {
+      row9[3 + idx * 3] = formatCO(q.co) || "CO";
+      row9[3 + idx * 3 + 1] = Number(q.maxMarks) || q.maxMarks;
+      row9[3 + idx * 3 + 2] = formattedTest;
+    });
+    aoa.push(row9);
+
+    // Student rows
+    exportRows.forEach((row) => {
+      const studentRow = new Array(totalColumns).fill("");
+      studentRow[0] = row.index;
+      studentRow[1] = row.usn;
+      studentRow[2] = row.name;
+      questions.forEach((q, idx) => {
+        studentRow[3 + idx * 3] = formatCO(q.co) || "-";
+        studentRow[3 + idx * 3 + 1] = Number(q.maxMarks) || q.maxMarks;
+        const markVal = row.marks[q.number];
+        studentRow[3 + idx * 3 + 2] = markVal !== undefined && markVal !== "" ? (isNaN(Number(markVal)) ? markVal : Number(markVal)) : "-";
+      });
+      studentRow[lastColIdx] = row.total !== undefined && row.total !== "" && row.total !== "-" ? (isNaN(Number(row.total)) ? row.total : Number(row.total)) : "-";
+      aoa.push(studentRow);
+    });
+  } else {
+    const row7 = new Array(totalColumns).fill("");
+    row7[0] = "#";
+    row7[1] = "USN";
+    row7[2] = "Student Name";
+    row7[3] = "Total Marks";
+    aoa.push(row7);
+    exportRows.forEach((row) => {
+      const studentRow = new Array(totalColumns).fill("");
+      studentRow[0] = row.index;
+      studentRow[1] = row.usn;
+      studentRow[2] = row.name;
+      studentRow[3] = row.total !== undefined && row.total !== "" && row.total !== "-" ? (isNaN(Number(row.total)) ? row.total : Number(row.total)) : "-";
+      aoa.push(studentRow);
+    });
+  }
+
+  // Footer signatures
+  aoa.push(new Array(totalColumns).fill(""));
+  aoa.push(new Array(totalColumns).fill(""));
+
+  const sigRow1 = new Array(totalColumns).fill("");
+  sigRow1[1] = "Staff In-charge / Faculty";
+  sigRow1[midColIdx] = "Head of Department";
+  sigRow1[lastColIdx - 1] = "Controller of Examinations";
+  aoa.push(sigRow1);
+
+  const sigRow2 = new Array(totalColumns).fill("");
+  sigRow2[1] = `(${facultyName})`;
+  sigRow2[midColIdx] = `Department of ${branchName}`;
+  sigRow2[lastColIdx - 1] = orgName;
+  aoa.push(sigRow2);
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  const merges: any[] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: lastColIdx } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: lastColIdx } },
+    { s: { r: 3, c: 1 }, e: { r: 3, c: midColIdx - 1 } },
+    { s: { r: 3, c: midColIdx + 1 }, e: { r: 3, c: lastColIdx } },
+    { s: { r: 4, c: 1 }, e: { r: 4, c: midColIdx - 1 } },
+    { s: { r: 4, c: midColIdx + 1 }, e: { r: 4, c: lastColIdx } },
+    { s: { r: 5, c: 1 }, e: { r: 5, c: midColIdx - 1 } },
+    { s: { r: 5, c: midColIdx + 1 }, e: { r: 5, c: lastColIdx } }
+  ];
+
+  if (questions.length > 0) {
+    merges.push(
+      { s: { r: 7, c: 0 }, e: { r: 9, c: 0 } },
+      { s: { r: 7, c: 1 }, e: { r: 9, c: 1 } },
+      { s: { r: 7, c: 2 }, e: { r: 9, c: 2 } },
+      { s: { r: 7, c: lastColIdx }, e: { r: 9, c: lastColIdx } }
+    );
+    questions.forEach((_, idx) => {
+      const startC = 3 + idx * 3;
+      merges.push({ s: { r: 7, c: startC }, e: { r: 7, c: startC + 2 } });
+    });
+  }
+
+  ws["!merges"] = merges;
+
+  const colWidths: any[] = [{ wch: 6 }, { wch: 16 }, { wch: 28 }];
+  if (questions.length > 0) {
+    questions.forEach(() => {
+      colWidths.push({ wch: 8 }, { wch: 8 }, { wch: 10 });
+    });
+    colWidths.push({ wch: 14 });
+  } else {
+    colWidths.push({ wch: 14 });
+  }
+  ws["!cols"] = colWidths;
+
+  return ws;
+};
+
+// Helper: Build consolidated overview worksheet listing all subjects side-by-side
+const buildOverviewWorksheet = (params: {
+  orgName: string;
+  formattedTest: string;
+  formattedDate: string;
+  branchName: string;
+  semNumber: string | number;
+  sectionName: string;
+  batchName: string;
+  subjects: Array<{ id: number; name: string; subject_code?: string }>;
+  subjectMaxMarksMap: Record<string, number>;
+  studentSummaryList: Array<{ usn: string; name: string; subjectMarks: Record<string, string | number>; grandTotal: number }>;
+}) => {
+  const {
+    orgName,
+    formattedTest,
+    formattedDate,
+    branchName,
+    semNumber,
+    sectionName,
+    batchName,
+    subjects,
+    subjectMaxMarksMap,
+    studentSummaryList
+  } = params;
+
+  const totalCols = 3 + subjects.length + 3; // #, USN, Name, [subjects...], Total Obtained, Max Total, Percentage
+  const lastColIdx = totalCols - 1;
+  const midColIdx = Math.floor(totalCols / 2);
+
+  const totalMaxAllSubjects = subjects.reduce((sum, s) => {
+    const code = s.subject_code || `SUB${s.id}`;
+    return sum + (subjectMaxMarksMap[code] || 0);
+  }, 0);
+
+  const aoa: any[][] = [];
+
+  // Row 0: Org Title
+  const row0 = new Array(totalCols).fill("");
+  row0[0] = orgName.toUpperCase();
+  aoa.push(row0);
+
+  // Row 1: Test Title
+  const row1 = new Array(totalCols).fill("");
+  row1[0] = `${formattedTest.toUpperCase()} CONSOLIDATED MARKS STATEMENT (ALL SUBJECTS)`;
+  aoa.push(row1);
+
+  // Row 2: Date
+  const row2 = new Array(totalCols).fill("");
+  row2[lastColIdx - 1] = `Date: ${formattedDate}`;
+  aoa.push(row2);
+
+  // Row 3: Branch / Sem / Sec
+  const row3 = new Array(totalCols).fill("");
+  row3[0] = "Branch / Sem / Sec:";
+  row3[1] = `${branchName} / Sem ${semNumber} / Sec ${sectionName}`;
+  row3[midColIdx] = "Academic Batch:";
+  row3[midColIdx + 1] = batchName || "--";
+  aoa.push(row3);
+
+  // Row 4: Blank
+  aoa.push(new Array(totalCols).fill(""));
+
+  // Row 5: Header Tier 1
+  const row5 = new Array(totalCols).fill("");
+  row5[0] = "#";
+  row5[1] = "USN";
+  row5[2] = "Student Name";
+  subjects.forEach((s, idx) => {
+    row5[3 + idx] = `${s.name}${s.subject_code ? ` (${s.subject_code})` : ""}`;
+  });
+  row5[3 + subjects.length] = "Total Obtained";
+  row5[3 + subjects.length + 1] = "Max Total";
+  row5[3 + subjects.length + 2] = "Percentage (%)";
+  aoa.push(row5);
+
+  // Row 6: Header Tier 2 (Max Marks row)
+  const row6 = new Array(totalCols).fill("");
+  row6[0] = "";
+  row6[1] = "";
+  row6[2] = "Max Marks";
+  subjects.forEach((s, idx) => {
+    const code = s.subject_code || `SUB${s.id}`;
+    row6[3 + idx] = subjectMaxMarksMap[code] || "--";
+  });
+  row6[3 + subjects.length] = totalMaxAllSubjects || "--";
+  row6[3 + subjects.length + 1] = totalMaxAllSubjects || "--";
+  row6[3 + subjects.length + 2] = "100%";
+  aoa.push(row6);
+
+  // Student rows
+  studentSummaryList.forEach((stu, idx) => {
+    const r = new Array(totalCols).fill("");
+    r[0] = idx + 1;
+    r[1] = stu.usn;
+    r[2] = stu.name;
+    subjects.forEach((s, sIdx) => {
+      const code = s.subject_code || `SUB${s.id}`;
+      const val = stu.subjectMarks[code];
+      r[3 + sIdx] = val !== undefined ? val : "-";
+    });
+    r[3 + subjects.length] = stu.grandTotal;
+    r[3 + subjects.length + 1] = totalMaxAllSubjects || "--";
+    const pct = totalMaxAllSubjects > 0 ? `${((stu.grandTotal / totalMaxAllSubjects) * 100).toFixed(1)}%` : "--";
+    r[3 + subjects.length + 2] = pct;
+    aoa.push(r);
+  });
+
+  // Signatures
+  aoa.push(new Array(totalCols).fill(""));
+  aoa.push(new Array(totalCols).fill(""));
+
+  const sigRow1 = new Array(totalCols).fill("");
+  sigRow1[1] = "Staff In-charge / Faculty";
+  sigRow1[midColIdx] = "Head of Department";
+  sigRow1[lastColIdx - 1] = "Controller of Examinations";
+  aoa.push(sigRow1);
+
+  const sigRow2 = new Array(totalCols).fill("");
+  sigRow2[1] = "(Department Faculty)";
+  sigRow2[midColIdx] = `Department of ${branchName}`;
+  sigRow2[lastColIdx - 1] = orgName;
+  aoa.push(sigRow2);
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  const merges: any[] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: lastColIdx } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: lastColIdx } },
+    { s: { r: 3, c: 1 }, e: { r: 3, c: midColIdx - 1 } },
+    { s: { r: 3, c: midColIdx + 1 }, e: { r: 3, c: lastColIdx } }
+  ];
+  ws["!merges"] = merges;
+
+  const colWidths = [{ wch: 6 }, { wch: 16 }, { wch: 28 }];
+  subjects.forEach(() => colWidths.push({ wch: 22 }));
+  colWidths.push({ wch: 14 }, { wch: 12 }, { wch: 14 });
+  ws["!cols"] = colWidths;
+
+  return ws;
+};
+
 export default function HODIAMarksView() {
   const { theme } = useTheme();
   const [tabValue, setTabValue] = useState<string>("manual");
@@ -316,11 +714,13 @@ export default function HODIAMarksView() {
     section: "",
     section_id: undefined as number | undefined,
     subject: "",
-    subject_id: undefined as number | undefined,
+    subject_id: undefined as number | string | undefined,
     subject_code: "",
     testType: "",
     setNumber: ""
   });
+
+  const isAllSubjects = String(selected.subject_id) === "all";
 
   // Dropdown open states for automatic cascading trigger
   const [isBatchOpen, setIsBatchOpen] = useState(false);
@@ -402,25 +802,41 @@ export default function HODIAMarksView() {
       setStudentMarks({});
       setTimeout(() => setIsSubjectOpen(true), 150);
     } else if (field === "subject_id") {
-      const subObj = dropdownData.allSubjects.find((s) => String(s.id) === String(value));
-      setSelected((prev) => ({
-        ...prev,
-        subject_id: Number(value),
-        subject: subObj?.name || "",
-        subject_code: subObj?.subject_code || "",
-        testType: "",
-        setNumber: ""
-      }));
-      setQuestions([]);
-      setExistingQpSummary(null);
-      setStudents([]);
-      setStudentMarks({});
-      setTimeout(() => setIsTestTypeOpen(true), 150);
+      if (String(value) === "all") {
+        setSelected((prev) => ({
+          ...prev,
+          subject_id: "all",
+          subject: "All Subjects",
+          subject_code: "ALL",
+          testType: prev.testType || "IA1",
+          setNumber: "All Sets"
+        }));
+        setQuestions([]);
+        setExistingQpSummary(null);
+        setStudents([]);
+        setStudentMarks({});
+        setTimeout(() => setIsTestTypeOpen(true), 150);
+      } else {
+        const subObj = dropdownData.allSubjects.find((s) => String(s.id) === String(value));
+        setSelected((prev) => ({
+          ...prev,
+          subject_id: Number(value),
+          subject: subObj?.name || "",
+          subject_code: subObj?.subject_code || "",
+          testType: "",
+          setNumber: ""
+        }));
+        setQuestions([]);
+        setExistingQpSummary(null);
+        setStudents([]);
+        setStudentMarks({});
+        setTimeout(() => setIsTestTypeOpen(true), 150);
+      }
     } else if (field === "testType") {
       setSelected((prev) => ({
         ...prev,
         testType: String(value),
-        setNumber: ""
+        setNumber: String(prev.subject_id) === "all" ? "All Sets" : ""
       }));
       setQuestions([]);
       setExistingQpSummary(null);
@@ -513,6 +929,15 @@ export default function HODIAMarksView() {
   }, []);
 
   const areAllDropdownsSelected = () => {
+    if (isAllSubjects) {
+      return Boolean(
+        selected.batch_id &&
+        selected.branch_id &&
+        selected.semester_id &&
+        selected.section_id &&
+        selected.testType
+      );
+    }
     return Boolean(
       selected.batch_id &&
       selected.branch_id &&
@@ -528,42 +953,7 @@ export default function HODIAMarksView() {
     setExistingQpSummary(qp);
     const qList = qp.questions;
     if (qList && qList.length > 0) {
-      const loadedQuestions: Question[] = [];
-      qList.forEach((q: any) => {
-        const qnum = q.question_number || q.number || "";
-        const rawPartName = q.part_name || "PART-A";
-        const isOr = Boolean(q.is_or);
-        const co = q.co || "";
-        const bloomsLevel = q.blooms_level || q.bloomsLevel || "";
-
-        if (Array.isArray(q.subparts) && q.subparts.length > 0) {
-          q.subparts.forEach((sub: any) => {
-            const subLabel = sub.subpart_label || sub.subpart || "";
-            const fullNum = subLabel && !qnum.endsWith(subLabel) ? `${qnum}${subLabel}` : qnum;
-            loadedQuestions.push({
-              id: `${fullNum}_${Math.random().toString(36).substring(2, 7)}`,
-              number: fullNum,
-              content: sub.content || "",
-              maxMarks: String(sub.max_marks ?? sub.maxMarks ?? 0),
-              co,
-              bloomsLevel,
-              partName: rawPartName,
-              isOr
-            });
-          });
-        } else {
-          loadedQuestions.push({
-            id: `${qnum}_${Math.random().toString(36).substring(2, 7)}`,
-            number: qnum,
-            content: q.content || "",
-            maxMarks: String(q.max_marks ?? q.maxMarks ?? 0),
-            co,
-            bloomsLevel,
-            partName: rawPartName,
-            isOr
-          });
-        }
-      });
+      const loadedQuestions = parseQuestionsFromQList(qList);
       setQuestions(loadedQuestions);
       setQpReady(true);
     } else {
@@ -572,9 +962,10 @@ export default function HODIAMarksView() {
     }
   };
 
-  // 2. Load Question Papers ONLY AFTER subject and exam type are selected
+  // 2. Load Question Papers ONLY AFTER single subject and exam type are selected
   useEffect(() => {
     if (
+      isAllSubjects ||
       !selected.batch_id ||
       !selected.branch_id ||
       !selected.semester_id ||
@@ -582,7 +973,7 @@ export default function HODIAMarksView() {
       !selected.subject_id ||
       !selected.testType
     ) {
-      setDropdownData((prev) => ({ ...prev, setNumber: [] }));
+      setDropdownData((prev) => ({ ...prev, setNumber: isAllSubjects ? ["All Sets"] : [] }));
       setExistingQpSummary(null);
       setQuestions([]);
       setQpReady(false);
@@ -670,6 +1061,7 @@ export default function HODIAMarksView() {
       isMounted = false;
     };
   }, [
+    isAllSubjects,
     selected.batch_id,
     selected.branch_id,
     selected.semester_id,
@@ -719,9 +1111,9 @@ export default function HODIAMarksView() {
     }
   }, [questions]);
 
-  // 3. Fetch Students and Entered Marks with pagination (guards against duplicate calls)
+  // 3. Fetch Students and Entered Marks with pagination (guards against duplicate calls, single subject only)
   const fetchStudents = async (page: number = 1, pageSizeOverride?: number) => {
-    if (!areAllDropdownsSelected()) {
+    if (isAllSubjects || !areAllDropdownsSelected()) {
       setStudents([]);
       setStudentMarks({});
       return;
@@ -895,13 +1287,184 @@ export default function HODIAMarksView() {
     }
   };
 
-  // 4. Excel Export Function
+  // 4. Excel Export Function (supports Single Subject and All Subjects)
   const handleExportExcel = async () => {
     if (!areAllDropdownsSelected()) return;
 
     setIsExportingExcel(true);
     try {
-      // Fetch all students without pagination for complete Excel report
+      const orgName = getOrgName(existingQpSummary?.org_name);
+      const batchName = dropdownData.batch.find((b) => String(b.id) === String(selected.batch_id))?.name || "";
+      const branchName = selected.branch || "--";
+      const semNumber = selected.semester || "--";
+      const sectionName = selected.section || "--";
+      const formattedTest = formatTestType(selected.testType);
+      const formattedDate = format(new Date(), "dd/MM/yyyy");
+
+      // CASE 1: Export ALL SUBJECTS into a single Excel workbook
+      if (isAllSubjects) {
+        const workbook = XLSX.utils.book_new();
+        const usedSheetNames = new Set<string>();
+
+        const studentSummaryMap = new Map<string, { usn: string; name: string; subjectMarks: Record<string, string | number>; grandTotal: number }>();
+        const subjectMaxMarksMap: Record<string, number> = {};
+
+        for (const sub of availableSubjects) {
+          const subIdStr = String(sub.id);
+          const subName = sub.name || `Subject ${sub.id}`;
+          const subCode = sub.subject_code || `SUB${sub.id}`;
+
+          let subQuestions: Question[] = [];
+          let subQpMax = 0;
+          let subFacultyName = "Faculty";
+
+          try {
+            const qpRes = await getQuestionPapers({
+              batch_id: selected.batch_id?.toString(),
+              branch_id: selected.branch_id?.toString(),
+              semester_id: selected.semester_id?.toString(),
+              section_id: selected.section_id?.toString(),
+              subject_id: subIdStr,
+              test_type: selected.testType,
+              detail: true
+            });
+
+            if (qpRes?.success && Array.isArray(qpRes.data)) {
+              const matching = qpRes.data.filter((q: any) => {
+                const bId = typeof q.branch === "object" ? q.branch?.id : q.branch;
+                return (
+                  String(bId) === String(selected.branch_id) &&
+                  String(q.subject) === subIdStr &&
+                  String(q.test_type).toLowerCase() === String(selected.testType).toLowerCase() &&
+                  q.status === "approved"
+                );
+              });
+
+              const bestQp = matching[0] || qpRes.data.find((q: any) => String(q.subject) === subIdStr && q.status === "approved") || qpRes.data[0];
+              if (bestQp) {
+                subFacultyName = bestQp.faculty_name || "Faculty";
+                let qList = bestQp.questions;
+                if (!qList || qList.length === 0) {
+                  const dRes = await getQuestionPaperDetail(bestQp.id);
+                  if (dRes?.success && Array.isArray(dRes.data) && dRes.data.length > 0) {
+                    qList = dRes.data[0].questions;
+                    if (dRes.data[0].faculty_name) subFacultyName = dRes.data[0].faculty_name;
+                  }
+                }
+                if (qList && qList.length > 0) {
+                  subQuestions = parseQuestionsFromQList(qList);
+                  subQpMax = calculateQPMaxMarks(subQuestions);
+                }
+              }
+            }
+          } catch (e) {
+            console.error(`Error loading QP for ${subName}`, e);
+          }
+
+          subjectMaxMarksMap[subCode] = subQpMax;
+
+          let subStudentsList: any[] = [];
+          try {
+            const stuRes: StudentsForMarksResponse = await getStudentsForMarks({
+              branch_id: selected.branch_id?.toString(),
+              subject_id: subIdStr,
+              semester_id: selected.semester_id?.toString(),
+              section_id: selected.section_id?.toString(),
+              test_type: selected.testType,
+              batch_id: selected.batch_id?.toString(),
+              page: 1,
+              page_size: 1000
+            });
+            if (stuRes?.success && Array.isArray(stuRes.data)) {
+              subStudentsList = stuRes.data;
+            }
+          } catch (e) {
+            console.error(`Error loading students for ${subName}`, e);
+          }
+
+          const exportRows = subStudentsList.map((s, idx) => {
+            const studentIdStr = s.id.toString();
+            const rowMarks: Record<string, string> = {};
+            if (s.existing_mark?.marks_detail) {
+              Object.keys(s.existing_mark.marks_detail).forEach((k) => {
+                rowMarks[k] = String(s.existing_mark.marks_detail[k]);
+              });
+            }
+
+            let rowTotal = s.existing_mark?.total_obtained !== undefined ? String(s.existing_mark.total_obtained) : "";
+            if (!rowTotal && subQuestions.length > 0) {
+              rowTotal = calculateStudentTotalFromMarks(rowMarks, subQuestions, subQpMax);
+            }
+
+            const usnKey = (s.usn || studentIdStr).trim().toUpperCase();
+            if (!studentSummaryMap.has(usnKey)) {
+              studentSummaryMap.set(usnKey, {
+                usn: s.usn || "--",
+                name: s.name || "--",
+                subjectMarks: {},
+                grandTotal: 0
+              });
+            }
+            const stuEntry = studentSummaryMap.get(usnKey)!;
+            const numericTotal = !isNaN(Number(rowTotal)) && rowTotal !== "" && rowTotal !== "-" ? Number(rowTotal) : 0;
+            stuEntry.subjectMarks[subCode] = rowTotal !== "" && rowTotal !== "-" ? rowTotal : "-";
+            stuEntry.grandTotal += numericTotal;
+
+            return {
+              index: idx + 1,
+              usn: s.usn || "--",
+              name: s.name || "--",
+              marks: rowMarks,
+              total: rowTotal || "-"
+            };
+          });
+
+          const ws = buildSubjectWorksheet({
+            orgName,
+            formattedTest,
+            formattedDate,
+            subjectName: subName,
+            subjectCode: subCode,
+            branchName,
+            semNumber,
+            sectionName,
+            batchName,
+            facultyName: subFacultyName,
+            qpMax: subQpMax,
+            questions: subQuestions,
+            exportRows
+          });
+
+          const sheetTitle = getSafeSheetName(subCode || subName, usedSheetNames);
+          XLSX.utils.book_append_sheet(workbook, ws, sheetTitle);
+        }
+
+        // Build Consolidated Overview Sheet as first sheet
+        const overviewWs = buildOverviewWorksheet({
+          orgName,
+          formattedTest,
+          formattedDate,
+          branchName,
+          semNumber,
+          sectionName,
+          batchName,
+          subjects: availableSubjects,
+          subjectMaxMarksMap,
+          studentSummaryList: Array.from(studentSummaryMap.values()).sort((a, b) => a.usn.localeCompare(b.usn))
+        });
+
+        workbook.SheetNames.unshift("Consolidated Overview");
+        workbook.Sheets["Consolidated Overview"] = overviewWs;
+
+        const cleanBranch = (branchName || "Branch").replace(/[^a-zA-Z0-9_-]/g, "_");
+        const safeBatch = (batchName || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+        const filename = `${cleanBranch}_Sem${semNumber}_Sec${sectionName}_${selected.testType}_All_Subjects_Marks${safeBatch ? `_${safeBatch}` : ""}.xlsx`;
+
+        XLSX.writeFile(workbook, filename);
+        return;
+      }
+
+      // CASE 2: Export SINGLE SUBJECT
       let allStudentsList: any[] = [];
       const allRes: StudentsForMarksResponse = await getStudentsForMarks({
         branch_id: selected.branch_id?.toString(),
@@ -922,6 +1485,9 @@ export default function HODIAMarksView() {
       }
 
       const qpMax = calculateQPMaxMarks(questions);
+      const subjectName = selected.subject || "--";
+      const subjectCode = selected.subject_code || "--";
+      const facultyName = existingQpSummary?.faculty_name || "Faculty";
 
       const exportRows = allStudentsList.map((s, idx) => {
         const studentIdStr = s.id.toString();
@@ -949,168 +1515,21 @@ export default function HODIAMarksView() {
         };
       });
 
-      const orgName = getOrgName(existingQpSummary?.org_name);
-      const batchName = dropdownData.batch.find((b) => String(b.id) === String(selected.batch_id))?.name || "";
-      const subjectName = selected.subject || "--";
-      const subjectCode = selected.subject_code || "--";
-      const branchName = selected.branch || "--";
-      const semNumber = selected.semester || "--";
-      const sectionName = selected.section || "--";
-      const formattedTest = formatTestType(selected.testType);
-      const facultyName = existingQpSummary?.faculty_name || "Faculty";
-      const formattedDate = existingQpSummary?.exam_date || existingQpSummary?.date
-        ? format(new Date((existingQpSummary.exam_date || existingQpSummary.date).includes('T') ? (existingQpSummary.exam_date || existingQpSummary.date) : `${existingQpSummary.exam_date || existingQpSummary.date}T00:00:00`), "dd/MM/yyyy")
-        : format(new Date(), "dd/MM/yyyy");
-
-      const totalColumns = 3 + (questions.length * 3) + 1;
-      const lastColIdx = totalColumns - 1;
-      const midColIdx = Math.floor(totalColumns / 2);
-
-      const aoa: any[][] = [];
-
-      // Row 0: Org Title
-      const row0 = new Array(totalColumns).fill("");
-      row0[0] = orgName.toUpperCase();
-      aoa.push(row0);
-
-      // Row 1: Test Title
-      const row1 = new Array(totalColumns).fill("");
-      row1[0] = `${formattedTest.toUpperCase()} MARKS STATEMENT`;
-      aoa.push(row1);
-
-      // Row 2: Date
-      const row2 = new Array(totalColumns).fill("");
-      row2[lastColIdx - 1] = `Date: ${formattedDate}`;
-      aoa.push(row2);
-
-      // Row 3: Subject & Subject Code
-      const row3 = new Array(totalColumns).fill("");
-      row3[0] = "Subject:";
-      row3[1] = subjectName;
-      row3[midColIdx] = "Subject Code:";
-      row3[midColIdx + 1] = subjectCode;
-      aoa.push(row3);
-
-      // Row 4: Branch / Sem / Sec & Academic Batch
-      const row4 = new Array(totalColumns).fill("");
-      row4[0] = "Branch / Sem / Sec:";
-      row4[1] = `${branchName} / Sem ${semNumber} / Sec ${sectionName}`;
-      row4[midColIdx] = "Academic Batch:";
-      row4[midColIdx + 1] = batchName || "--";
-      aoa.push(row4);
-
-      // Row 5: Faculty & Maximum Marks
-      const row5 = new Array(totalColumns).fill("");
-      row5[0] = "Faculty:";
-      row5[1] = facultyName;
-      row5[midColIdx] = "Maximum Marks:";
-      row5[midColIdx + 1] = qpMax;
-      aoa.push(row5);
-
-      // Row 6: Blank row
-      aoa.push(new Array(totalColumns).fill(""));
-
-      // Row 7 (Header Tier 1): #, USN, Student Name, Q1a, Q1b..., Total Marks
-      const row7 = new Array(totalColumns).fill("");
-      row7[0] = "#";
-      row7[1] = "USN";
-      row7[2] = "Student Name";
-      questions.forEach((q, idx) => {
-        row7[3 + idx * 3] = `Q${q.number}`;
+      const ws = buildSubjectWorksheet({
+        orgName,
+        formattedTest,
+        formattedDate,
+        subjectName,
+        subjectCode,
+        branchName,
+        semNumber,
+        sectionName,
+        batchName,
+        facultyName,
+        qpMax,
+        questions,
+        exportRows
       });
-      row7[lastColIdx] = "Total Marks";
-      aoa.push(row7);
-
-      // Row 8 (Header Tier 2): CO, Max, Marks
-      const row8 = new Array(totalColumns).fill("");
-      questions.forEach((q, idx) => {
-        row8[3 + idx * 3] = "CO";
-        row8[3 + idx * 3 + 1] = "Max";
-        row8[3 + idx * 3 + 2] = "Marks";
-      });
-      aoa.push(row8);
-
-      // Row 9 (Header Tier 3): CO number, Max marks number, Test name
-      const row9 = new Array(totalColumns).fill("");
-      questions.forEach((q, idx) => {
-        row9[3 + idx * 3] = formatCO(q.co) || "CO";
-        row9[3 + idx * 3 + 1] = Number(q.maxMarks) || q.maxMarks;
-        row9[3 + idx * 3 + 2] = formattedTest;
-      });
-      aoa.push(row9);
-
-      // Student rows
-      exportRows.forEach((row) => {
-        const studentRow = new Array(totalColumns).fill("");
-        studentRow[0] = row.index;
-        studentRow[1] = row.usn;
-        studentRow[2] = row.name;
-        questions.forEach((q, idx) => {
-          studentRow[3 + idx * 3] = formatCO(q.co) || "-";
-          studentRow[3 + idx * 3 + 1] = Number(q.maxMarks) || q.maxMarks;
-          const markVal = row.marks[q.number];
-          studentRow[3 + idx * 3 + 2] = markVal !== undefined && markVal !== "" ? (isNaN(Number(markVal)) ? markVal : Number(markVal)) : "-";
-        });
-        studentRow[lastColIdx] = row.total !== undefined && row.total !== "" && row.total !== "-" ? (isNaN(Number(row.total)) ? row.total : Number(row.total)) : "-";
-        aoa.push(studentRow);
-      });
-
-      // Footer signatures
-      aoa.push(new Array(totalColumns).fill(""));
-      aoa.push(new Array(totalColumns).fill(""));
-
-      const sigRow1 = new Array(totalColumns).fill("");
-      sigRow1[1] = "Staff In-charge / Faculty";
-      sigRow1[midColIdx] = "Head of Department";
-      sigRow1[lastColIdx - 2] = "Controller of Examinations";
-      aoa.push(sigRow1);
-
-      const sigRow2 = new Array(totalColumns).fill("");
-      sigRow2[1] = `(${facultyName})`;
-      sigRow2[midColIdx] = `Department of ${branchName}`;
-      sigRow2[lastColIdx - 2] = orgName;
-      aoa.push(sigRow2);
-
-      const ws = XLSX.utils.aoa_to_sheet(aoa);
-
-      const merges: any[] = [
-        // Title Rows
-        { s: { r: 0, c: 0 }, e: { r: 0, c: lastColIdx } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: lastColIdx } },
-        // Metadata Rows
-        { s: { r: 3, c: 1 }, e: { r: 3, c: midColIdx - 1 } },
-        { s: { r: 3, c: midColIdx + 1 }, e: { r: 3, c: lastColIdx } },
-        { s: { r: 4, c: 1 }, e: { r: 4, c: midColIdx - 1 } },
-        { s: { r: 4, c: midColIdx + 1 }, e: { r: 4, c: lastColIdx } },
-        { s: { r: 5, c: 1 }, e: { r: 5, c: midColIdx - 1 } },
-        { s: { r: 5, c: midColIdx + 1 }, e: { r: 5, c: lastColIdx } },
-        // Table Headers
-        { s: { r: 7, c: 0 }, e: { r: 9, c: 0 } }, // #
-        { s: { r: 7, c: 1 }, e: { r: 9, c: 1 } }, // USN
-        { s: { r: 7, c: 2 }, e: { r: 9, c: 2 } }, // Student Name
-        { s: { r: 7, c: lastColIdx }, e: { r: 9, c: lastColIdx } }, // Total Marks
-      ];
-
-      questions.forEach((_, idx) => {
-        const startC = 3 + idx * 3;
-        merges.push({ s: { r: 7, c: startC }, e: { r: 7, c: startC + 2 } });
-      });
-
-      ws["!merges"] = merges;
-
-      // Define Column Widths
-      const colWidths: any[] = [
-        { wch: 6 },  // #
-        { wch: 16 }, // USN
-        { wch: 28 }, // Student Name
-      ];
-      questions.forEach(() => {
-        colWidths.push({ wch: 8 });  // CO
-        colWidths.push({ wch: 8 });  // Max
-        colWidths.push({ wch: 10 }); // Marks
-      });
-      colWidths.push({ wch: 14 }); // Total Marks
-      ws["!cols"] = colWidths;
 
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, ws, `${selected.testType} Marks`);
@@ -1238,6 +1657,11 @@ export default function HODIAMarksView() {
                   <SelectValue placeholder={!selected.section_id ? "Select Sec First" : availableSubjects.length === 0 ? "No subjects" : "Select Subject"} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[220px]">
+                  {availableSubjects.length > 0 && (
+                    <SelectItem value="all" className="font-semibold text-primary">
+                      All Subjects ({availableSubjects.length})
+                    </SelectItem>
+                  )}
                   {availableSubjects.map((sub) => (
                     <SelectItem key={sub.id} value={String(sub.id)}>
                       {sub.name} {sub.subject_code ? `(${sub.subject_code})` : ""}
@@ -1278,17 +1702,19 @@ export default function HODIAMarksView() {
                 Set
               </label>
               <Select
-                value={selected.setNumber}
+                value={isAllSubjects ? "All Sets" : selected.setNumber}
                 onValueChange={(val) => handleFilterChange("setNumber", val)}
-                disabled={!selected.testType || dropdownData.setNumber.length === 0}
+                disabled={isAllSubjects || !selected.testType || dropdownData.setNumber.length === 0}
                 open={isSetNumberOpen}
                 onOpenChange={setIsSetNumberOpen}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={dropdownData.setNumber.length > 0 ? "Select Set" : "No approved set"} />
+                  <SelectValue placeholder={isAllSubjects ? "All Sets" : dropdownData.setNumber.length > 0 ? "Select Set" : "No approved set"} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[220px]">
-                  {dropdownData.setNumber.length > 0 ? (
+                  {isAllSubjects ? (
+                    <SelectItem value="All Sets">All Sets</SelectItem>
+                  ) : dropdownData.setNumber.length > 0 ? (
                     dropdownData.setNumber.map((item) => (
                       <SelectItem key={item} value={item}>
                         {item}
@@ -1317,14 +1743,14 @@ export default function HODIAMarksView() {
               </TabsList>
 
               {/* Action Buttons */}
-              {tabValue === "manual" && areAllDropdownsSelected() && qpReady && (
+              {tabValue === "manual" && areAllDropdownsSelected() && (isAllSubjects || qpReady) && (
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={handleExportExcel}
-                    disabled={isExportingExcel || loadingStudents || students.length === 0}
+                    disabled={isExportingExcel || (!isAllSubjects && (loadingStudents || students.length === 0))}
                     className="h-9 px-3.5 flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50 dark:text-emerald-300 font-medium border-emerald-300 dark:border-emerald-800 shadow-sm transition-all text-xs sm:text-sm"
                   >
                     {isExportingExcel ? (
@@ -1332,7 +1758,13 @@ export default function HODIAMarksView() {
                     ) : (
                       <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     )}
-                    <span>{isExportingExcel ? "Generating Excel..." : "Export to Excel (.xlsx)"}</span>
+                    <span>
+                      {isExportingExcel
+                        ? "Generating Excel..."
+                        : isAllSubjects
+                        ? `Export All Subjects (${availableSubjects.length}) (.xlsx)`
+                        : "Export to Excel (.xlsx)"}
+                    </span>
                   </Button>
                 </div>
               )}
@@ -1340,7 +1772,17 @@ export default function HODIAMarksView() {
 
             {/* Tab: Question Paper (Identical to Faculty Question Paper Preview Sheet) */}
             <TabsContent value="questionPaper" className="w-full max-w-full overflow-hidden mt-0 pt-4">
-              {!areAllDropdownsSelected() ? (
+              {isAllSubjects ? (
+                <div className="flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-xl mt-4">
+                  <div className="p-4 rounded-full mb-4 bg-primary/10 text-primary">
+                    <Layers className="w-10 h-10 opacity-80" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-1">Single Subject Required</h3>
+                  <p className="max-w-md text-sm text-muted-foreground">
+                    Question Paper preview is available when viewing a specific individual subject. Please select a specific subject from the dropdown above to preview its question paper.
+                  </p>
+                </div>
+              ) : !areAllDropdownsSelected() ? (
                 <div className="flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-xl mt-4">
                   <div className="p-4 rounded-full mb-4 bg-primary/10 text-primary">
                     <Layers className="w-10 h-10 opacity-80" />
@@ -1742,7 +2184,59 @@ export default function HODIAMarksView() {
 
             {/* Tab: Marks View (Horizontally scrollable with sticky student identifiers & verified pagination) */}
             <TabsContent value="manual" className="pt-4">
-              {!areAllDropdownsSelected() ? (
+              {isAllSubjects ? (
+                <div className="border rounded-2xl p-8 bg-card shadow-sm text-center max-w-2xl mx-auto my-6 space-y-5 border-border">
+                  <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                    <FileSpreadsheet className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold tracking-tight text-foreground">
+                      All Subjects Selected for Export
+                    </h3>
+                    <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+                      Marks table preview is designed for individual subjects. With <strong>All Subjects</strong> selected, you can export the complete marks statement for all <strong>{availableSubjects.length} subjects</strong> in Sem {selected.semester} (Sec {selected.section}) into a single comprehensive Excel workbook.
+                    </p>
+                  </div>
+
+                  <div className="bg-muted/40 rounded-xl p-4 text-left border">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                      Subjects included in export ({availableSubjects.length}):
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {availableSubjects.map((sub) => (
+                        <span
+                          key={sub.id}
+                          className="px-2.5 py-1 text-xs rounded-md bg-background border font-medium text-foreground shadow-2xs"
+                        >
+                          {sub.name} {sub.subject_code ? `(${sub.subject_code})` : ""}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <Button
+                      type="button"
+                      size="lg"
+                      onClick={handleExportExcel}
+                      disabled={isExportingExcel || availableSubjects.length === 0}
+                      className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md transition-all gap-2 text-sm"
+                    >
+                      {isExportingExcel ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <span>Generating Consolidated Excel Workbook...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileSpreadsheet className="h-5 w-5" />
+                          <span>Export All {availableSubjects.length} Subjects to Excel (.xlsx)</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ) : !areAllDropdownsSelected() ? (
                 <div className="flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl mt-4">
                   <div className="p-6 rounded-full mb-6 bg-primary/10 text-primary">
                     <Layers className="w-12 h-12 opacity-80" />
