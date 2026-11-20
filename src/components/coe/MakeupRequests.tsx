@@ -509,7 +509,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <TableRow className={theme === 'dark' ? 'bg-muted/40 border-b border-border' : 'bg-slate-100 border-b border-slate-200'}>
                     <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Student</TableHead>
                     <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Subject</TableHead>
-                    <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Batch/Branch/Sem</TableHead>
+                    <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Batch/{translateTerminology("Branch")}/{translateTerminology("Sem")}</TableHead>
                     <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Exam Period</TableHead>
                     <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Status</TableHead>
                     <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Requested</TableHead>
@@ -554,7 +554,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
-                            {request.batch} / {request.branch} / Sem {request.semester}
+                            {request.batch} / {request.branch} / {translateTerminology("Sem")} {request.semester}
                             {request.section && ` / ${request.section}`}
                           </div>
                         </TableCell>
@@ -656,8 +656,8 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Batch / Sem</span>
-                          <div className="text-xs font-semibold text-foreground">{request.batch} / Sem {request.semester}</div>
+                          <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Batch / {translateTerminology("Sem")}</span>
+                          <div className="text-xs font-semibold text-foreground">{request.batch} / {translateTerminology("Sem")} {request.semester}</div>
                         </div>
                         <div>
                           <span className="text-[11.5px] font-bold text-muted-foreground uppercase block tracking-wider mb-0.5">Exam Period</span>
@@ -853,9 +853,9 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </div>
 
                 <div className="p-2.5 sm:p-3.5 rounded-xl border border-border/30 bg-muted/5">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Batch / Semester</span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Batch / {translateTerminology("Semester")}</span>
                   <div className="text-xs font-semibold text-foreground leading-normal mt-0.5">
-                    {selectedRequest.batch} / Sem {selectedRequest.semester}
+                    {selectedRequest.batch} / {translateTerminology("Sem")} {selectedRequest.semester}
                   </div>
                 </div>
 

@@ -6,6 +6,7 @@ interface InstitutionTerminology {
   branches: string;
   semester: string;
   semesters: string;
+  sem: string;
   hod: string;
   usn: string;
   coAttainment: string;
@@ -26,6 +27,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     branches: 'Branches',
     semester: 'Semester',
     semesters: 'Semesters',
+    sem: 'Sem',
     hod: 'Head of Department',
     usn: 'USN',
     coAttainment: 'CO Attainment',
@@ -44,6 +46,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     branches: 'Courses',
     semester: 'Year/Phase',
     semesters: 'Years/Phases',
+    sem: 'Phase',
     hod: 'HOD',
     usn: 'USN',
     coAttainment: 'Competency',
@@ -62,6 +65,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     branches: 'Streams',
     semester: 'Class',
     semesters: 'Classes',
+    sem: 'Class',
     hod: 'Coordinator',
     usn: 'Roll No',
     admin: 'Admin',
@@ -80,6 +84,7 @@ const TERMINOLOGY_MAP: Record<InstitutionType, InstitutionTerminology> = {
     branches: 'Departments',
     semester: 'Term / Semester',
     semesters: 'Terms / Semesters',
+    sem: 'Sem',
     hod: 'Department Head',
     usn: 'Student ID',
     coAttainment: 'Learning Outcomes',
@@ -227,6 +232,7 @@ export const translateTerminology = (content: any): any => {
     { pattern: /\bMentoring\b/g, key: "mentoring" },
     { pattern: /\bSemesters\b/gi, key: "semesters" },
     { pattern: /\bSemester\b/gi, key: "semester" },
+    { pattern: /\bSem\b/gi, key: "sem" },
     { pattern: /\bElective\b/g, key: "electives" },
     { pattern: /\bElectives\b/g, key: "electives" },
     { pattern: /\bCO Attainment\b/g, key: "coAttainment" },

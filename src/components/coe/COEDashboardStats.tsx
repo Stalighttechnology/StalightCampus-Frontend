@@ -1,5 +1,6 @@
 import UpcomingMeetingsWidget from "../common/UpcomingMeetingsWidget";
 import React, { useEffect, useState } from "react";
+import { translateTerminology } from "../../utils/institutionConfig";
 import { FileText, BookOpen, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import {
   LineChart,
@@ -277,7 +278,7 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
                     <div className="flex justify-between items-start gap-2">
                       <div className="min-w-0">
                         <div className="font-bold text-[16px] text-primary truncate">{pr.batch_name}</div>
-                        <div className="text-[14px] text-muted-foreground mt-0.5">Sem {pr.semester_number} • {pr.exam_period}</div>
+                        <div className="text-[14px] text-muted-foreground mt-0.5">{translateTerminology("Sem")} {pr.semester_number} • {pr.exam_period}</div>
                         <div className="text-[12px] text-muted-foreground mt-1.5">{pr.published_at}</div>
                       </div>
                     </div>
@@ -331,7 +332,7 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <tr key={idx} className={`border-b last:border-none transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-100 hover:bg-gray-50'}`}>
                         <td className="py-4 px-4">
                           <div className="font-medium text-sm text-primary">{pr.batch_name}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">Sem {pr.semester_number} • {pr.exam_period}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">{translateTerminology("Sem")} {pr.semester_number} • {pr.exam_period}</div>
                         </td>
                         <td className="py-4 px-4 text-sm text-muted-foreground whitespace-nowrap">{pr.published_at}</td>
                         <td className="py-4 px-4 text-right">
