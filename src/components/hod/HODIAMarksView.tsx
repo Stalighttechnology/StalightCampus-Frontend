@@ -1564,9 +1564,9 @@ export default function HODIAMarksView() {
 
       {/* Main Card */}
       <Card className="border shadow-sm">
-        <div className="p-6 pb-2">
+        <div className="p-3.5 sm:p-6 pb-2">
           {/* 6 Filter Dropdowns in natural order: Batch -> Semester -> Section -> Subject -> Exam Type -> Set */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 mb-4 sm:mb-6">
             {/* 1. Batch */}
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
@@ -1733,25 +1733,25 @@ export default function HODIAMarksView() {
           {/* Tabs */}
           <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b pb-3">
-              <TabsList className="bg-muted">
-                <TabsTrigger value="manual" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+              <TabsList className="bg-muted w-full sm:w-auto grid grid-cols-2 sm:inline-flex h-9 sm:h-10">
+                <TabsTrigger value="manual" className="data-[state=active]:bg-primary data-[state=active]:text-white text-xs sm:text-sm">
                   Marks View
                 </TabsTrigger>
-                <TabsTrigger value="questionPaper" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                <TabsTrigger value="questionPaper" className="data-[state=active]:bg-primary data-[state=active]:text-white text-xs sm:text-sm">
                   Question Paper
                 </TabsTrigger>
               </TabsList>
 
               {/* Action Buttons */}
               {tabValue === "manual" && areAllDropdownsSelected() && (isAllSubjects || qpReady) && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={handleExportExcel}
                     disabled={isExportingExcel || (!isAllSubjects && (loadingStudents || students.length === 0))}
-                    className="h-9 px-3.5 flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50 dark:text-emerald-300 font-medium border-emerald-300 dark:border-emerald-800 shadow-sm transition-all text-xs sm:text-sm"
+                    className="w-full sm:w-auto h-9 px-3.5 flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50 dark:text-emerald-300 font-medium border-emerald-300 dark:border-emerald-800 shadow-sm transition-all text-xs sm:text-sm"
                   >
                     {isExportingExcel ? (
                       <Loader2 className="h-4 w-4 animate-spin text-emerald-600 dark:text-emerald-400" />
@@ -2185,28 +2185,28 @@ export default function HODIAMarksView() {
             {/* Tab: Marks View (Horizontally scrollable with sticky student identifiers & verified pagination) */}
             <TabsContent value="manual" className="pt-4">
               {isAllSubjects ? (
-                <div className="border rounded-2xl p-8 bg-card shadow-sm text-center max-w-2xl mx-auto my-6 space-y-5 border-border">
-                  <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                    <FileSpreadsheet className="w-8 h-8" />
+                <div className="border rounded-2xl p-4 sm:p-8 bg-card shadow-sm text-center max-w-2xl mx-auto my-4 sm:my-6 space-y-4 sm:space-y-5 border-border">
+                  <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                    <FileSpreadsheet className="w-6 h-6 sm:w-8 sm:h-8" />
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-bold tracking-tight text-foreground">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <h3 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
                       All Subjects Selected for Export
                     </h3>
-                    <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+                    <p className="text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto">
                       Marks table preview is designed for individual subjects. With <strong>All Subjects</strong> selected, you can export the complete marks statement for all <strong>{availableSubjects.length} subjects</strong> in Sem {selected.semester} (Sec {selected.section}) into a single comprehensive Excel workbook.
                     </p>
                   </div>
 
-                  <div className="bg-muted/40 rounded-xl p-4 text-left border">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  <div className="bg-muted/40 rounded-xl p-3 sm:p-4 text-left border">
+                    <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                       Subjects included in export ({availableSubjects.length}):
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {availableSubjects.map((sub) => (
                         <span
                           key={sub.id}
-                          className="px-2.5 py-1 text-xs rounded-md bg-background border font-medium text-foreground shadow-2xs"
+                          className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[11px] sm:text-xs rounded-md bg-background border font-medium text-foreground shadow-2xs"
                         >
                           {sub.name} {sub.subject_code ? `(${sub.subject_code})` : ""}
                         </span>
@@ -2220,16 +2220,16 @@ export default function HODIAMarksView() {
                       size="lg"
                       onClick={handleExportExcel}
                       disabled={isExportingExcel || availableSubjects.length === 0}
-                      className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md transition-all gap-2 text-sm"
+                      className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md transition-all gap-2 text-xs sm:text-sm"
                     >
                       {isExportingExcel ? (
                         <>
-                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                           <span>Generating Consolidated Excel Workbook...</span>
                         </>
                       ) : (
                         <>
-                          <FileSpreadsheet className="h-5 w-5" />
+                          <FileSpreadsheet className="h-4 w-4 sm:h-5 sm:w-5" />
                           <span>Export All {availableSubjects.length} Subjects to Excel (.xlsx)</span>
                         </>
                       )}
@@ -2255,41 +2255,42 @@ export default function HODIAMarksView() {
               ) : (
                 <div className="border rounded-xl overflow-hidden shadow-sm bg-card">
                   {/* Table Title Bar */}
-                  <div className="p-4 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-muted/30">
+                  <div className="p-3 sm:p-4 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3 bg-muted/30">
                     <div>
-                      <h3 className="text-base font-semibold text-foreground">
+                      <h3 className="text-sm sm:text-base font-semibold text-foreground">
                         {formatTestType(selected.testType)} — Marks Statement
                       </h3>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">
                         {selected.subject} • Sem {selected.semester} • Sec {selected.section} • {selected.branch}
                       </p>
                     </div>
-                    <div className="text-sm font-semibold text-foreground">
-                      Max Marks: <strong className="text-primary text-base ml-1">{calculatedTotalMaxMarks}</strong>
+                    <div className="inline-flex items-center justify-between sm:justify-end gap-2 text-xs sm:text-sm font-semibold text-foreground bg-background/80 sm:bg-transparent px-2.5 py-1 sm:p-0 rounded-lg border sm:border-0 w-fit">
+                      <span className="text-muted-foreground">Max Marks:</span>
+                      <strong className="text-primary text-sm sm:text-base font-bold">{calculatedTotalMaxMarks}</strong>
                     </div>
                   </div>
 
                   {/* Horizontally & Vertically Scrollable Marks Table Container */}
-                  <div className="overflow-x-auto w-full custom-scrollbar max-w-full">
+                  <div className="overflow-x-auto w-full custom-scrollbar max-w-full touch-pan-x">
                     <table className="w-max min-w-full divide-y divide-border border-collapse text-sm">
                       <thead className="bg-muted/70">
                         {/* Tier 1 Header */}
                         <tr>
                           <th
                             rowSpan={3}
-                            className="sticky left-0 bg-muted z-30 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider align-middle border-r min-w-[48px] max-w-[54px]"
+                            className="sm:sticky sm:left-0 bg-muted z-20 px-2.5 py-2 sm:px-3 text-left text-xs font-semibold uppercase tracking-wider align-middle border-r min-w-[36px] sm:min-w-[48px] max-w-[54px]"
                           >
                             #
                           </th>
                           <th
                             rowSpan={3}
-                            className="sticky left-[48px] bg-muted z-30 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider align-middle border-r min-w-[130px]"
+                            className="sm:sticky sm:left-[48px] bg-muted z-20 px-2.5 py-2 sm:px-3 text-left text-xs font-semibold uppercase tracking-wider align-middle border-r min-w-[105px] sm:min-w-[130px]"
                           >
                             USN
                           </th>
                           <th
                             rowSpan={3}
-                            className="sticky left-[178px] bg-muted z-30 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider align-middle border-r min-w-[180px] shadow-[2px_0_4px_-1px_rgba(0,0,0,0.1)]"
+                            className="sm:sticky sm:left-[178px] bg-muted z-20 px-2.5 py-2 sm:px-3 text-left text-xs font-semibold uppercase tracking-wider align-middle border-r min-w-[140px] sm:min-w-[180px] sm:shadow-[2px_0_4px_-1px_rgba(0,0,0,0.1)]"
                           >
                             Student Name
                           </th>
@@ -2298,7 +2299,7 @@ export default function HODIAMarksView() {
                             <th
                               key={`th-q-${question.id}`}
                               colSpan={3}
-                              className="px-2 py-1.5 text-center text-xs font-bold uppercase tracking-wider border-r bg-primary/5 text-primary min-w-[150px]"
+                              className="px-2 py-1.5 text-center text-xs font-bold uppercase tracking-wider border-r bg-primary/5 text-primary min-w-[125px] sm:min-w-[150px]"
                             >
                               Q{question.number}
                             </th>
@@ -2306,7 +2307,7 @@ export default function HODIAMarksView() {
 
                           <th
                             rowSpan={3}
-                            className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider align-middle min-w-[110px] bg-primary/10 text-primary"
+                            className="px-3 sm:px-4 py-2 text-center text-xs font-bold uppercase tracking-wider align-middle min-w-[85px] sm:min-w-[110px] bg-primary/10 text-primary"
                           >
                             Total Marks
                           </th>
@@ -2316,13 +2317,13 @@ export default function HODIAMarksView() {
                         <tr>
                           {questions.map((question) => (
                             <Fragment key={`th-sub-${question.id}`}>
-                              <th className="px-2 py-1 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-r min-w-[45px]">
+                              <th className="px-1.5 sm:px-2 py-1 text-center text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-r min-w-[38px] sm:min-w-[45px]">
                                 CO
                               </th>
-                              <th className="px-2 py-1 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-r min-w-[45px]">
+                              <th className="px-1.5 sm:px-2 py-1 text-center text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-r min-w-[38px] sm:min-w-[45px]">
                                 Max
                               </th>
-                              <th className="px-2 py-1 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-r min-w-[60px]">
+                              <th className="px-1.5 sm:px-2 py-1 text-center text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-r min-w-[48px] sm:min-w-[60px]">
                                 Marks
                               </th>
                             </Fragment>
@@ -2333,13 +2334,13 @@ export default function HODIAMarksView() {
                         <tr>
                           {questions.map((question) => (
                             <Fragment key={`th-val-${question.id}`}>
-                              <td className="px-2 py-1 text-center text-xs font-medium text-muted-foreground border-r bg-muted/40">
+                              <td className="px-1.5 sm:px-2 py-1 text-center text-xs font-medium text-muted-foreground border-r bg-muted/40">
                                 {formatCO(question.co) || "CO"}
                               </td>
-                              <td className="px-2 py-1 text-center text-xs font-bold text-foreground border-r bg-muted/40">
+                              <td className="px-1.5 sm:px-2 py-1 text-center text-xs font-bold text-foreground border-r bg-muted/40">
                                 {question.maxMarks}
                               </td>
-                              <td className="px-2 py-1 text-center text-xs italic text-muted-foreground border-r bg-muted/40">
+                              <td className="px-1.5 sm:px-2 py-1 text-center text-xs italic text-muted-foreground border-r bg-muted/40">
                                 {selected.testType}
                               </td>
                             </Fragment>
@@ -2364,18 +2365,18 @@ export default function HODIAMarksView() {
                         ) : (
                           students.map((student, idx) => (
                             <tr key={student.id} className="hover:bg-muted/30 group transition-colors">
-                              {/* Sticky Column 1: # */}
-                              <td className="sticky left-0 bg-card group-hover:bg-muted/40 z-10 px-3 py-2 text-xs font-medium text-muted-foreground border-r text-center">
+                              {/* Sticky on Desktop Column 1: # */}
+                              <td className="sm:sticky sm:left-0 bg-card group-hover:bg-muted/40 z-10 px-2.5 py-2 sm:px-3 text-xs font-medium text-muted-foreground border-r text-center">
                                 {(currentPage - 1) * studentsPerPage + idx + 1}
                               </td>
 
-                              {/* Sticky Column 2: USN */}
-                              <td className="sticky left-[48px] bg-card group-hover:bg-muted/40 z-10 px-3 py-2 text-xs font-semibold text-foreground border-r font-mono">
+                              {/* Sticky on Desktop Column 2: USN */}
+                              <td className="sm:sticky sm:left-[48px] bg-card group-hover:bg-muted/40 z-10 px-2.5 py-2 sm:px-3 text-xs font-semibold text-foreground border-r font-mono">
                                 {student.usn || "--"}
                               </td>
 
-                              {/* Sticky Column 3: Student Name */}
-                              <td className="sticky left-[178px] bg-card group-hover:bg-muted/40 z-10 px-3 py-2 text-xs text-foreground font-medium border-r whitespace-nowrap shadow-[2px_0_4px_-1px_rgba(0,0,0,0.1)]">
+                              {/* Sticky on Desktop Column 3: Student Name */}
+                              <td className="sm:sticky sm:left-[178px] bg-card group-hover:bg-muted/40 z-10 px-2.5 py-2 sm:px-3 text-xs text-foreground font-medium border-r whitespace-nowrap sm:shadow-[2px_0_4px_-1px_rgba(0,0,0,0.1)]">
                                 {student.name || "--"}
                               </td>
 
@@ -2384,15 +2385,15 @@ export default function HODIAMarksView() {
                                 const val = studentMarks[student.id]?.[question.number];
                                 return (
                                   <Fragment key={`st-q-${student.id}-${question.id}`}>
-                                    <td className="px-2 py-2 text-center text-xs text-muted-foreground border-r">
+                                    <td className="px-1.5 sm:px-2 py-2 text-center text-xs text-muted-foreground border-r">
                                       {formatCO(question.co) || "-"}
                                     </td>
-                                    <td className="px-2 py-2 text-center text-xs text-muted-foreground border-r">
+                                    <td className="px-1.5 sm:px-2 py-2 text-center text-xs text-muted-foreground border-r">
                                       {question.maxMarks}
                                     </td>
-                                    <td className="px-2 py-2 text-center text-xs font-semibold border-r">
+                                    <td className="px-1.5 sm:px-2 py-2 text-center text-xs font-semibold border-r">
                                       {val !== undefined && val !== "" && val !== null ? (
-                                        <span className="inline-block px-2.5 py-0.5 rounded bg-muted font-bold text-foreground">
+                                        <span className="inline-block px-2 sm:px-2.5 py-0.5 rounded bg-muted font-bold text-foreground">
                                           {val}
                                         </span>
                                       ) : (
@@ -2404,7 +2405,7 @@ export default function HODIAMarksView() {
                               })}
 
                               {/* Total Marks */}
-                              <td className="px-4 py-2 text-center text-sm font-bold bg-primary/5 text-primary">
+                              <td className="px-3 sm:px-4 py-2 text-center text-sm font-bold bg-primary/5 text-primary">
                                 {student.total !== "-" && student.total !== "" ? student.total : "-"}
                               </td>
                             </tr>
@@ -2416,9 +2417,9 @@ export default function HODIAMarksView() {
 
                   {/* Pagination Footer */}
                   {pagination && (
-                    <div className="p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground bg-muted/20">
-                      <div className="flex items-center gap-3">
-                        <span>
+                    <div className="p-3 sm:p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground bg-muted/20">
+                      <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+                        <span className="text-[11px] sm:text-xs">
                           Showing{" "}
                           <strong className="text-foreground">
                             {pagination.total > 0 ? (currentPage - 1) * studentsPerPage + 1 : 0}
@@ -2427,11 +2428,11 @@ export default function HODIAMarksView() {
                           <strong className="text-foreground">
                             {Math.min(currentPage * studentsPerPage, pagination.total || students.length)}
                           </strong>{" "}
-                          of <strong className="text-foreground">{pagination.total || students.length}</strong> students
+                          of <strong className="text-foreground">{pagination.total || students.length}</strong>
                         </span>
 
-                        <div className="flex items-center gap-1.5 ml-2">
-                          <span>Rows per page:</span>
+                        <div className="flex items-center gap-1.5 ml-auto sm:ml-2">
+                          <span className="text-[11px] sm:text-xs text-muted-foreground">Rows:</span>
                           <Select
                             value={String(studentsPerPage)}
                             onValueChange={(val) => {
@@ -2440,7 +2441,7 @@ export default function HODIAMarksView() {
                               fetchStudents(1, newSize);
                             }}
                           >
-                            <SelectTrigger className="h-7 w-16 text-xs">
+                            <SelectTrigger className="h-7 w-14 sm:w-16 text-xs px-2">
                               <SelectValue placeholder={String(studentsPerPage)} />
                             </SelectTrigger>
                             <SelectContent>
@@ -2453,20 +2454,20 @@ export default function HODIAMarksView() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-center gap-2 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => fetchStudents(Math.max(currentPage - 1, 1))}
                           disabled={!pagination.has_previous || currentPage <= 1 || loadingStudents}
-                          className="h-8 px-3 text-xs"
+                          className="h-8 px-2.5 sm:px-3 text-xs flex-1 sm:flex-initial"
                         >
                           <ChevronLeft className="w-3.5 h-3.5 mr-1" />
                           Previous
                         </Button>
 
-                        <span className="px-2 font-medium text-foreground">
-                          Page {currentPage} of {pagination.total_pages || 1}
+                        <span className="px-2 font-medium text-foreground text-xs whitespace-nowrap">
+                          {currentPage} / {pagination.total_pages || 1}
                         </span>
 
                         <Button
@@ -2474,7 +2475,7 @@ export default function HODIAMarksView() {
                           size="sm"
                           onClick={() => fetchStudents(Math.min(currentPage + 1, pagination.total_pages))}
                           disabled={!pagination.has_next || currentPage >= (pagination.total_pages || 1) || loadingStudents}
-                          className="h-8 px-3 text-xs"
+                          className="h-8 px-2.5 sm:px-3 text-xs flex-1 sm:flex-initial"
                         >
                           Next
                           <ChevronRight className="w-3.5 h-3.5 ml-1" />
