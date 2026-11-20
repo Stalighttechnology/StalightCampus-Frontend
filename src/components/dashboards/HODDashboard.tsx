@@ -19,6 +19,7 @@ import EmployeeReimbursements from "../faculty/EmployeeReimbursements";
 import AttendanceView from "../hod/AttendanceView";
 import HODAttendanceRecords from "../hod/HODAttendanceRecords";
 import MarksView from "../hod/MarksView";
+import HODIAMarksView from "../hod/HODIAMarksView";
 import NotificationsManagement from "../hod/NotificationsManagement";
 import ProctorManagement from "../hod/ProctorManagement";
 import Chat from "../common/Chat";
@@ -157,6 +158,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'scan-student-info': 'scan-student-info',
       'hod-profile': 'hod-profile',
       'qp-approvals': 'qp-approvals',
+      'upload-marks': 'upload-marks',
+      'view-ia-marks': 'upload-marks',
       'hod-announcement-management': 'hod-announcement-management',
       'co-attainment': 'co-attainment',
       'exam-applications': 'exam-applications',
@@ -220,6 +223,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'scan-student-info': '/hod/scan-student-info',
       'hod-profile': '/hod/hod-profile',
       'qp-approvals': '/hod/qp-approvals',
+      'upload-marks': '/hod/upload-marks',
+      'view-ia-marks': '/hod/upload-marks',
       'hod-announcement-management': '/hod/hod-announcement-management',
       'co-attainment': '/hod/co-attainment',
       'exam-applications': '/hod/exam-applications',
@@ -321,6 +326,9 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <HodProfile user={user} setError={setError} />;
       case "qp-approvals":
         return <QPApprovals />;
+      case "upload-marks":
+      case "view-ia-marks":
+        return <HODIAMarksView />;
       case "co-attainment":
         return <COAttainment />;
       case "exam-applications":
