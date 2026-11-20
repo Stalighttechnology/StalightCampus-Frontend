@@ -3,7 +3,7 @@ import { useTheme } from "@/context/ThemeContext";
 import {
   Send, Paperclip, Mic, Trash2, Users, User, StopCircle, Plus, X,
   Search, Check, Loader2, Image as ImageIcon, FileText as FileIcon,
-  Info, UserPlus, UserMinus, Crown, LogOut
+  Info, UserPlus, UserMinus, Crown, LogOut, ChevronLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -583,10 +583,10 @@ export const HQChatUI = () => {
   const base = isDark ? "bg-gray-900 border-gray-800 text-gray-100" : "bg-white border-gray-200 text-gray-900";
 
   return (
-    <div className={`flex h-full border rounded-2xl overflow-hidden shadow-xl ${base}`}>
+    <div className={`flex h-full border rounded-xl sm:rounded-2xl overflow-hidden shadow-xl ${base}`}>
 
       {/* ── Sidebar ─────────────────────────────────────────────────── */}
-      <div className={`w-80 flex-shrink-0 flex flex-col border-r ${isDark ? "border-gray-800 bg-gray-950" : "border-gray-100 bg-gray-50"}`}>
+      <div className={`w-full md:w-80 flex-shrink-0 flex-col border-r ${selectedGroup ? "hidden md:flex" : "flex"} ${isDark ? "border-gray-800 bg-gray-950" : "border-gray-100 bg-gray-50"}`}>
         <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: isDark ? "#1f2937" : "#e5e7eb" }}>
           <div>
             <h2 className="font-bold text-base">HQ Chat</h2>
@@ -664,21 +664,31 @@ export const HQChatUI = () => {
       </div>
 
       {/* ── Chat Window ──────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={`flex-1 flex-col min-w-0 ${selectedGroup ? "flex" : "hidden md:flex"}`}>
         {selectedGroup ? (
           <>
-            <div className={`h-16 px-5 flex items-center gap-3 border-b shrink-0 ${isDark ? "border-gray-800 bg-gray-900" : "border-gray-100 bg-white"}`}>
-              <Avatar className="h-9 w-9">
+            <div className={`h-16 px-3 sm:px-5 flex items-center gap-2 sm:gap-3 border-b shrink-0 ${isDark ? "border-gray-800 bg-gray-900" : "border-gray-100 bg-white"}`}>
+              {/* Mobile Back Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSelectedGroup(null)}
+                className="md:hidden h-8 w-8 -ml-1 mr-1 rounded-full text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 shrink-0"
+                title="Back to chats"
+              >
+                <ChevronLeft size={22} />
+              </Button>
+              <Avatar className="h-9 w-9 shrink-0">
                 <AvatarFallback className={`font-semibold ${isDark ? "bg-gray-700" : "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700"}`}>
                   {selectedGroup.is_group ? <Users size={16} /> : initials(selectedGroup.name)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm truncate">{selectedGroup.name || "—"}</h3>
-                <p className="text-xs text-gray-400">{selectedGroup.is_group ? "Group Chat" : "Direct message"}</p>
+                <p className="text-xs text-gray-400 truncate">{selectedGroup.is_group ? "Group Chat" : "Direct message"}</p>
               </div>
               
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 shrink-0">
                 {/* Group info button */}
                 {selectedGroup.is_group && (
                   <>
@@ -698,7 +708,7 @@ export const HQChatUI = () => {
               </div>
             </div>
 
-            <div className={`flex-1 overflow-y-auto px-5 py-4 space-y-4 ${isDark ? "bg-[#0d1117]" : "bg-gray-50"}`}>
+            <div className={`flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-4 ${isDark ? "bg-[#0d1117]" : "bg-gray-50"}`}>
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full opacity-50">
                   <Send size={32} className="mb-2 text-gray-400" />
@@ -712,7 +722,7 @@ export const HQChatUI = () => {
                     {!isMine && selectedGroup.is_group && (
                       <span className="text-[11px] text-gray-400 ml-3 mb-1">{msg.sender_name}</span>
                     )}
-                    <div className="relative group max-w-[70%]">
+                    <div className="relative group max-w-[85%] sm:max-w-[70%]">
                       {msg.is_deleted ? (
                         <div className={`px-4 py-2 rounded-2xl text-sm italic opacity-50 border ${isDark ? "border-gray-700 bg-gray-800 text-gray-400" : "border-gray-200 bg-gray-100 text-gray-400"}`}>
                           🚫 Message deleted

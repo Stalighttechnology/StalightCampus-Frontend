@@ -94,67 +94,69 @@ const AssignedIssues = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className={`text-3xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Assigned Issues</h1>
-        <p className="text-muted-foreground mt-1">Manage support tickets assigned to you.</p>
+        <h1 className={`text-2xl sm:text-3xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Assigned Issues</h1>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1">Manage support tickets assigned to you.</p>
       </div>
 
       <div className="rounded-md border bg-card shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
-              <TableHead>Ticket ID</TableHead>
-              <TableHead>Organization</TableHead>
-              <TableHead>Subject</TableHead>
-              <TableHead>Deadline</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ?
-              <TableRow><TableCell colSpan={7} className="h-24 text-center">Loading...</TableCell></TableRow> :
-              data.length === 0 ?
-                <TableRow><TableCell colSpan={7} className="h-24 text-center text-muted-foreground">No tickets assigned.</TableCell></TableRow> :
-                data.map((item) => (
-                  <TableRow
-                    key={item.id}
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => { setSelectedTicket(item); setUpdateForm({ status: item.status, response: item.response || '' }); }}>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>Ticket ID</TableHead>
+                <TableHead>Organization</TableHead>
+                <TableHead>Subject</TableHead>
+                <TableHead>Deadline</TableHead>
+                <TableHead>Priority</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ?
+                <TableRow><TableCell colSpan={7} className="h-24 text-center">Loading...</TableCell></TableRow> :
+                data.length === 0 ?
+                  <TableRow><TableCell colSpan={7} className="h-24 text-center text-muted-foreground">No tickets assigned.</TableCell></TableRow> :
+                  data.map((item) => (
+                    <TableRow
+                      key={item.id}
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => { setSelectedTicket(item); setUpdateForm({ status: item.status, response: item.response || '' }); }}>
 
-                    <TableCell className="font-medium text-primary">{item.id}</TableCell>
-                    <TableCell>{item.org_name}</TableCell>
-                    <TableCell>
-                      {item.subject}
-                      {item.description && <p className="text-xs text-muted-foreground truncate max-w-xs">{item.description}</p>}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground whitespace-nowrap">
-                      {item.deadline ? new Date(item.deadline).toLocaleString() : 'No Deadline'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={getPriorityClass(item.priority)}>{item.priority}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={getStatusClass(item.status)}>{item.status}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm" className="gap-2" onClick={(e) => {
-                         e.stopPropagation();
-                         setSelectedTicket(item);
-                         setUpdateForm({ status: item.status, response: item.response || '' });
-                      }}>
-                        <Eye size={16} /> View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-            }
-          </TableBody>
-        </Table>
+                      <TableCell className="font-medium text-primary">{item.id}</TableCell>
+                      <TableCell>{item.org_name}</TableCell>
+                      <TableCell>
+                        {item.subject}
+                        {item.description && <p className="text-xs text-muted-foreground truncate max-w-xs">{item.description}</p>}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground whitespace-nowrap">
+                        {item.deadline ? new Date(item.deadline).toLocaleString() : 'No Deadline'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={getPriorityClass(item.priority)}>{item.priority}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={getStatusClass(item.status)}>{item.status}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm" className="gap-2" onClick={(e) => {
+                           e.stopPropagation();
+                           setSelectedTicket(item);
+                           setUpdateForm({ status: item.status, response: item.response || '' });
+                        }}>
+                          <Eye size={16} /> View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+              }
+            </TableBody>
+          </Table>
+        </div>
 
         {/* Pagination Controls */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border/50">
-          <div className="text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-border/50">
+          <div className="text-xs sm:text-sm text-muted-foreground">
             Page {page} of {totalPages}
           </div>
           <div className="flex items-center space-x-2">
