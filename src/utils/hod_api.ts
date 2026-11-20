@@ -2491,6 +2491,31 @@ export const graduateStudents = async (data: { student_ids: string[] }): Promise
   }
 };
 
+export interface StudentAlumniExitRequest {
+  student_ids: string[];
+  exit_type: string;
+  exit_date?: string;
+  tc_number?: string;
+  destination?: string;
+  remarks?: string;
+}
+
+export const studentAlumniExit = async (data: StudentAlumniExitRequest): Promise<any> => {
+  try {
+    if (!data.student_ids?.length) {
+      throw new Error("Student IDs are required");
+    }
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/student-alumni-exit/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error: unknown) {
+    return handleApiError(error, (error as any).response);
+  }
+};
+
 export const promoteSelectedStudents = async (data: PromoteSelectedStudentsRequest): Promise<PromoteSelectedStudentsResponse> => {
   try {
     if (!data.branch_id || !data.student_ids?.length) {

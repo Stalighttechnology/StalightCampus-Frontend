@@ -34,6 +34,7 @@ interface AlumniDetail extends AlumniRow {
   higher_education?: string; university_name?: string;
   final_cgpa?: string; honors_medals?: string; major_projects?: string;
   clubs_committees?: string;
+  exit_type?: string; tc_number?: string; exit_date?: string; destination?: string; exit_remarks?: string;
 }
 
 const authHeaders = () => ({
@@ -165,7 +166,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
   const fetchAlumni = useCallback(async (pg = 1) => {
     setLoadingStudents(true);
     try {
-      const params = new URLSearchParams({ page: String(pg) });
+      const params = new URLSearchParams({ page: String(pg), page_size: '10' });
       if (filters.batchId)       params.set('batch_id',       filters.batchId);
       if (filters.branchId)      params.set('branch_id',      filters.branchId);
       if (filters.admissionMode) params.set('admission_mode', filters.admissionMode);
@@ -175,7 +176,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
       const json = await res.json();
       if (res.ok) {
         setAlumni(json.results || []);
-        setTotalPages(Math.ceil((json.count || 0) / 50) || 1);
+        setTotalPages(Math.ceil((json.count || 0) / 10) || 1);
         setTotalCount(json.count || 0);
         setPage(pg);
       } else {
@@ -291,21 +292,21 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
   //  Render
   // ──────────────────────────────────
   return (
-    <div id="alumni-directory-container" className="space-y-6">
+    <div id="alumni-directory-container" className="space-y-4 sm:space-y-6">
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
-        <CardHeader id="alumni-directory-header" className="border-b border-border/50 flex flex-row items-center justify-between space-y-0">
+        <CardHeader id="alumni-directory-header" className="px-4 sm:px-6 py-3.5 sm:py-5 border-b border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-0">
           <div>
-            <CardTitle className="text-xl sm:text-2xl font-semibold">Alumni Directory</CardTitle>
-            <CardDescription className="text-sm sm:text-sm text-muted-foreground mt-1">
+            <CardTitle className="text-lg sm:text-2xl font-bold">Alumni Directory</CardTitle>
+            <CardDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
               View and manage graduated students
             </CardDescription>
           </div>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <CardContent className="p-3.5 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
 
             {/* Batch */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-gray-400">Batch</label>
               <Select value={filters.batchId} onValueChange={v => {
                 setFilter('batchId', v);
@@ -315,7 +316,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                   setTimeout(() => setBranchOpen(true), 150);
                 }
               }}>
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background h-9 sm:h-10 text-xs sm:text-sm">
                   <SelectValue placeholder="Select Batch" />
                 </SelectTrigger>
                 <SelectContent>
@@ -327,7 +328,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
             </div>
 
             {/* Branch */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-gray-400">{translateTerminology("Branch")}</label>
               <Select
                 value={filters.branchId}
@@ -339,7 +340,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                 }}
                 disabled={(!filters.batchId) || (userRole === 'hod')}
               >
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background h-9 sm:h-10 text-xs sm:text-sm">
                   <SelectValue placeholder={translateTerminology("Select Branch")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -351,7 +352,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
             </div>
 
             {/* Admission Mode */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-gray-400">Admission Mode</label>
               <Select
                 value={filters.admissionMode}
@@ -360,7 +361,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                 onValueChange={v => setFilter('admissionMode', v)}
                 disabled={!filters.branchId}
               >
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background h-9 sm:h-10 text-xs sm:text-sm">
                   <SelectValue placeholder="Select Admission Mode" />
                 </SelectTrigger>
                 <SelectContent>
@@ -374,11 +375,11 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
           </div>
 
           {/* Search Row */}
-          <div className="relative max-w-md w-full">
+          <div className="relative w-full max-w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search by USN or Name..."
-              className="pl-9 pr-12 bg-muted/20 border-border h-10"
+              className="pl-9 pr-12 bg-muted/20 border-border h-9 sm:h-10 text-xs sm:text-sm"
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
             />
@@ -396,36 +397,36 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
           </div>
 
           {/* Results section */}
-          <div className="border border-border rounded-lg overflow-hidden bg-background">
+          <div className="border border-border rounded-xl overflow-hidden bg-background shadow-xs">
             {!allFiltersSelected && !searchQuery ? (
-              <div className="min-h-[400px] py-10 flex flex-col items-center justify-center bg-muted/5 dark:bg-muted/10 px-4 text-center">
-                <div className="relative mb-6">
+              <div className="min-h-[320px] sm:min-h-[400px] py-8 sm:py-10 flex flex-col items-center justify-center bg-muted/5 dark:bg-muted/10 px-4 text-center">
+                <div className="relative mb-5 sm:mb-6">
                   <div className="absolute -top-3 -right-3 bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full animate-bounce sm:-top-4 sm:-right-4 sm:p-3">
                     <MousePointer2 className="h-3 w-3 text-purple-600 dark:text-purple-400 sm:h-4 sm:w-4" />
                   </div>
-                  <div className="bg-muted/20 p-6 rounded-2xl border-2 border-dashed border-muted sm:p-8">
+                  <div className="bg-muted/20 p-5 rounded-2xl border-2 border-dashed border-muted sm:p-8">
                     <Filter className="h-6 w-6 text-gray-400 dark:text-gray-500 sm:h-8 sm:w-8" />
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Selection Required</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mb-8 px-2">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1.5">Selection Required</h3>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 max-w-sm mb-6 sm:mb-8 px-2">
                   Please complete the cascading filter selection above to load the alumni directory.
                 </p>
-                <div className="flex flex-wrap justify-center gap-4 sm:gap-6 w-full max-w-3xl">
+                <div className="flex flex-wrap justify-center gap-3 sm:gap-6 w-full max-w-2xl px-2">
                   {[
                     { label: 'Batch', active: !!filters.batchId },
                     { label: translateTerminology('Branch'), active: !!filters.branchId },
                     { label: 'Admission Mode', active: !!filters.admissionMode }
                   ].map((step, i) => (
-                    <div key={step.label} className="flex flex-col items-center gap-2 min-w-[60px] sm:min-w-[80px]">
-                      <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border-2 transition-all duration-300 ${
+                    <div key={step.label} className="flex flex-col items-center gap-1.5 min-w-[55px] sm:min-w-[80px]">
+                      <div className={`h-9 w-9 sm:h-12 sm:w-12 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border-2 transition-all duration-300 ${
                         step.active 
-                          ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-600/25 scale-110' 
+                          ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-600/25 scale-105 sm:scale-110' 
                           : 'bg-background border-muted text-gray-400 dark:text-gray-500 opacity-60'
                       }`}>
-                        {step.active ? <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6" /> : i + 1}
+                        {step.active ? <CheckCircle className="h-4 w-4 sm:h-6 sm:w-6" /> : i + 1}
                       </div>
-                      <span className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-colors duration-300 ${
+                      <span className={`text-[9px] sm:text-[11px] font-bold uppercase tracking-wider text-center transition-colors duration-300 ${
                         step.active ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400 dark:text-gray-500 opacity-60'
                       }`}>
                         {step.label}
@@ -437,8 +438,8 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
             ) : (
               <>
                 {/* Count bar */}
-                <div className="px-4 py-3 border-b flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                  <span>
+                <div className="px-3.5 sm:px-4 py-2.5 sm:py-3 border-b flex items-center justify-between text-xs sm:text-sm text-muted-foreground bg-muted/10">
+                  <span className="font-medium">
                     {loadingStudents ? 'Loading…' : `${totalCount} alumni found`}
                   </span>
                   {totalPages > 1 && (
@@ -447,65 +448,134 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                 </div>
 
                 {!loadingStudents && alumni.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-center px-4 border-t border-border">
-                    <GraduationCap className="w-12 h-12 text-muted-foreground/30 mb-4" />
-                    <p className="font-semibold text-muted-foreground">No alumni found</p>
-                    <p className="text-sm text-muted-foreground">Try adjusting the filters.</p>
+                  <div className="flex flex-col items-center justify-center py-16 text-center px-4 border-t border-border">
+                    <GraduationCap className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/30 mb-3" />
+                    <p className="font-semibold text-sm sm:text-base text-foreground">No alumni found</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Try adjusting the filters or search term.</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b bg-gray-50 dark:bg-gray-800/50 text-left">
-                          {['USN', 'Name', translateTerminology('Branch'), 'Batch', 'Mode', 'Actions'].map(h => (
-                            <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                        {loadingStudents ? (
-                          Array.from({ length: 5 }).map((_, i) => (
-                            <tr key={`skeleton-${i}`}>
-                              <td className="px-4 py-4"><Skeleton className="h-4 w-24" /></td>
-                              <td className="px-4 py-4"><Skeleton className="h-4 w-36" /></td>
-                              <td className="px-4 py-4"><Skeleton className="h-4 w-32" /></td>
-                              <td className="px-4 py-4"><Skeleton className="h-4 w-16" /></td>
-                              <td className="px-4 py-4"><Skeleton className="h-5 w-16 rounded-full" /></td>
-                              <td className="px-4 py-4"><Skeleton className="h-8 w-16 rounded-md" /></td>
-                            </tr>
-                          ))
-                        ) : alumni.map(a => (
-                          <tr key={a.usn} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
-                            <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-300">{a.usn}</td>
-                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{a.name}</td>
-                            <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.branch}</td>
-                            <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.batch}</td>
-                            <td className="px-4 py-3">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                                {a.mode_of_admission}
+                  <>
+                    {/* Mobile Card View (< sm) */}
+                    <div className="block sm:hidden divide-y divide-border/60">
+                      {loadingStudents ? (
+                        Array.from({ length: 4 }).map((_, i) => (
+                          <div key={`m-skel-${i}`} className="p-3.5 space-y-2.5">
+                            <div className="flex justify-between items-start">
+                              <Skeleton className="h-4 w-32" />
+                              <Skeleton className="h-3 w-16" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Skeleton className="h-10 rounded-lg" />
+                              <Skeleton className="h-10 rounded-lg" />
+                            </div>
+                            <div className="flex gap-2 pt-1">
+                              <Skeleton className="h-8 flex-1 rounded-md" />
+                              <Skeleton className="h-8 flex-1 rounded-md" />
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        alumni.map((a) => (
+                          <div key={a.usn} className="p-3.5 hover:bg-muted/30 transition-colors space-y-2.5">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <h4 className="font-semibold text-sm text-foreground leading-snug">{a.name}</h4>
+                                <span className="font-mono text-[11px] text-muted-foreground">{a.usn}</span>
+                              </div>
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 shrink-0">
+                                {a.mode_of_admission || 'Alumni'}
                               </span>
-                            </td>
-                            <td className="px-4 py-3 flex gap-2">
-                              <Button size="sm" variant="outline" onClick={() => viewDetail(a.usn)} className="gap-1">
-                                <Eye className="h-3.5 w-3.5" /> View
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div className="bg-muted/30 p-2 rounded-lg border border-border/50">
+                                <span className="text-[10px] uppercase font-semibold text-muted-foreground block">{translateTerminology('Branch')}</span>
+                                <span className="font-medium text-foreground truncate block">{a.branch || '—'}</span>
+                              </div>
+                              <div className="bg-muted/30 p-2 rounded-lg border border-border/50">
+                                <span className="text-[10px] uppercase font-semibold text-muted-foreground block">Batch</span>
+                                <span className="font-medium text-foreground truncate block">{a.batch || '—'}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-0.5">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => viewDetail(a.usn)}
+                                className="flex-1 h-8 text-xs gap-1.5 shadow-xs">
+                                <Eye className="h-3.5 w-3.5" /> View Profile
                               </Button>
                               {['hod', 'principal', 'admin'].includes(userRole || '') && (
-                                <Button size="sm" variant="outline" onClick={() => viewDetail(a.usn, true)} className="gap-1 text-purple-600 border-purple-200 hover:bg-purple-50">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => viewDetail(a.usn, true)}
+                                  className="flex-1 h-8 text-xs gap-1.5 text-purple-600 border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-950/30 shadow-xs">
                                   <Edit className="h-3.5 w-3.5" /> Edit
                                 </Button>
                               )}
-                            </td>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Desktop Table View (>= sm) */}
+                    <div className="hidden sm:block overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b bg-gray-50 dark:bg-gray-800/50 text-left">
+                            {['USN', 'Name', translateTerminology('Branch'), 'Batch', 'Mode', 'Actions'].map(h => (
+                              <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{h}</th>
+                            ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                          {loadingStudents ? (
+                            Array.from({ length: 5 }).map((_, i) => (
+                              <tr key={`skeleton-${i}`}>
+                                <td className="px-4 py-4"><Skeleton className="h-4 w-24" /></td>
+                                <td className="px-4 py-4"><Skeleton className="h-4 w-36" /></td>
+                                <td className="px-4 py-4"><Skeleton className="h-4 w-32" /></td>
+                                <td className="px-4 py-4"><Skeleton className="h-4 w-16" /></td>
+                                <td className="px-4 py-4"><Skeleton className="h-5 w-16 rounded-full" /></td>
+                                <td className="px-4 py-4"><Skeleton className="h-8 w-16 rounded-md" /></td>
+                              </tr>
+                            ))
+                          ) : alumni.map(a => (
+                            <tr key={a.usn} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                              <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-300">{a.usn}</td>
+                              <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{a.name}</td>
+                              <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.branch}</td>
+                              <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{a.batch}</td>
+                              <td className="px-4 py-3">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                                  {a.mode_of_admission}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 flex gap-2">
+                                <Button size="sm" variant="outline" onClick={() => viewDetail(a.usn)} className="gap-1">
+                                  <Eye className="h-3.5 w-3.5" /> View
+                                </Button>
+                                {['hod', 'principal', 'admin'].includes(userRole || '') && (
+                                  <Button size="sm" variant="outline" onClick={() => viewDetail(a.usn, true)} className="gap-1 text-purple-600 border-purple-200 hover:bg-purple-50">
+                                    <Edit className="h-3.5 w-3.5" /> Edit
+                                  </Button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
                 )}
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-                    <div>
+                  <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 text-xs sm:text-sm text-muted-foreground px-4 sm:px-6 py-3.5 sm:py-4 border-t border-border mt-auto">
+                    <div className="text-center sm:text-left">
                       Showing {Math.min((page - 1) * 10 + 1, totalCount)} to {Math.min(page * 10, totalCount)} of {totalCount} alumni
                     </div>
                     <div className="flex items-center gap-2">
@@ -514,12 +584,12 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                         size="sm"
                         onClick={() => fetchAlumni(page - 1)}
                         disabled={page === 1 || loadingStudents}
-                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm transition-all shadow-xs">
                         Previous
                       </Button>
 
                       <div className="flex items-center justify-center min-w-[2rem]">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-foreground">
+                        <span className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-foreground">
                           {page}
                         </span>
                       </div>
@@ -529,7 +599,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                         size="sm"
                         onClick={() => fetchAlumni(page + 1)}
                         disabled={page === totalPages || loadingStudents}
-                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm transition-all shadow-xs">
                         Next
                       </Button>
                     </div>
@@ -546,27 +616,27 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
         setModalOpen(open);
         if (!open) cancelEditing();
       }}>
-        <DialogContent className="w-[90%] h-[80vh] sm:h-auto rounded-2xl sm:max-w-[700px] max-h-[90vh] flex flex-col overflow-hidden">
-          <DialogHeader className="shrink-0">
-            <DialogTitle className="flex items-center justify-between gap-2 pr-4">
+        <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-[90vw] sm:max-w-[700px] max-h-[92vh] p-4 sm:p-6 rounded-2xl flex flex-col overflow-hidden">
+          <DialogHeader className="shrink-0 border-b pb-3 mb-2">
+            <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pr-6 sm:pr-4">
               <div className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5 text-purple-500" />
-                Alumni Details
+                <GraduationCap className="h-5 w-5 text-purple-500 shrink-0" />
+                <span className="text-base sm:text-lg font-bold">Alumni Details</span>
               </div>
               {['hod', 'principal', 'admin'].includes(userRole || '') && selectedAlumni && !loadingDetail && (
-                <div>
+                <div className="w-full sm:w-auto flex justify-end">
                   {isEditing ? (
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline" onClick={cancelEditing} disabled={savingProfile}>
-                        <X className="w-4 h-4 mr-1" /> Cancel
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <Button size="sm" variant="outline" onClick={cancelEditing} disabled={savingProfile} className="flex-1 sm:flex-initial h-8 text-xs">
+                        <X className="w-3.5 h-3.5 mr-1" /> Cancel
                       </Button>
-                      <Button size="sm" onClick={handleSaveProfile} disabled={savingProfile} className="bg-purple-600 hover:bg-purple-700 text-white">
-                        {savingProfile ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />} Save
+                      <Button size="sm" onClick={handleSaveProfile} disabled={savingProfile} className="flex-1 sm:flex-initial h-8 text-xs bg-purple-600 hover:bg-purple-700 text-white">
+                        {savingProfile ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Save className="w-3.5 h-3.5 mr-1" />} Save
                       </Button>
                     </div>
                   ) : (
-                    <Button size="sm" variant="outline" onClick={startEditing}>
-                      <Edit className="w-4 h-4 mr-1" /> Edit Profile
+                    <Button size="sm" variant="outline" onClick={startEditing} className="h-8 text-xs">
+                      <Edit className="w-3.5 h-3.5 mr-1" /> Edit Profile
                     </Button>
                   )}
                 </div>
@@ -580,15 +650,15 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
               </div>
             ) : selectedAlumni ? (
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="flex overflow-x-auto w-full mb-6 justify-start sm:grid sm:grid-cols-3 whitespace-nowrap p-1 bg-muted text-muted-foreground rounded-lg h-10 scrollbar-none">
-                  <TabsTrigger value="basic" className="shrink-0 flex-1 text-xs px-2 sm:text-sm sm:px-3">Basic Info</TabsTrigger>
-                  <TabsTrigger value="career" className="shrink-0 flex-1 text-xs px-2 sm:text-sm sm:px-3">Career & Networking</TabsTrigger>
-                  <TabsTrigger value="academic" className="shrink-0 flex-1 text-xs px-2 sm:text-sm sm:px-3">Academic Legacy</TabsTrigger>
+                <TabsList className="grid grid-cols-3 w-full mb-4 sm:mb-6 p-1 bg-muted text-muted-foreground rounded-lg h-9 sm:h-10">
+                  <TabsTrigger value="basic" className="text-xs sm:text-sm px-1 sm:px-3 truncate">Basic Info</TabsTrigger>
+                  <TabsTrigger value="career" className="text-xs sm:text-sm px-1 sm:px-3 truncate">Career</TabsTrigger>
+                  <TabsTrigger value="academic" className="text-xs sm:text-sm px-1 sm:px-3 truncate">Academic</TabsTrigger>
                 </TabsList>
 
                 {/* TAB 1: BASIC INFO */}
                 <TabsContent value="basic" className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 sm:gap-y-4 text-xs sm:text-sm">
                     {([
                       ['USN',            selectedAlumni.usn],
                       ['Name',           selectedAlumni.name],
@@ -602,16 +672,59 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                       ['Address',        selectedAlumni.address],
                     ] as [string, string | null][]).map(([label, value]) => (
                       <div key={label} className="col-span-1">
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">{label}</p>
-                        <p className="text-gray-800 dark:text-gray-200">{value || '—'}</p>
+                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-0.5">{label}</p>
+                        <p className="text-foreground font-medium">{value || '—'}</p>
                       </div>
                     ))}
+
+                    {/* Exit & Transition Details if present */}
+                    {Boolean(selectedAlumni.exit_type || selectedAlumni.tc_number || selectedAlumni.exit_date || selectedAlumni.destination || selectedAlumni.exit_remarks) && (
+                      <div className="col-span-1 sm:col-span-2 pt-2 border-t border-border/60">
+                        <div className="p-3 rounded-xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-800/40 space-y-2">
+                          <p className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300">
+                            Exit & Transition Details
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            {selectedAlumni.exit_type && (
+                              <div>
+                                <span className="font-semibold text-muted-foreground block text-[10px] uppercase">Exit Type</span>
+                                <span className="font-medium text-foreground">{selectedAlumni.exit_type}</span>
+                              </div>
+                            )}
+                            {selectedAlumni.tc_number && (
+                              <div>
+                                <span className="font-semibold text-muted-foreground block text-[10px] uppercase">TC / Ref No.</span>
+                                <span className="font-medium text-foreground">{selectedAlumni.tc_number}</span>
+                              </div>
+                            )}
+                            {selectedAlumni.exit_date && (
+                              <div>
+                                <span className="font-semibold text-muted-foreground block text-[10px] uppercase">Exit Date</span>
+                                <span className="font-medium text-foreground">{selectedAlumni.exit_date}</span>
+                              </div>
+                            )}
+                            {selectedAlumni.destination && (
+                              <div>
+                                <span className="font-semibold text-muted-foreground block text-[10px] uppercase">Destination</span>
+                                <span className="font-medium text-foreground">{selectedAlumni.destination}</span>
+                              </div>
+                            )}
+                            {selectedAlumni.exit_remarks && (
+                              <div className="col-span-1 sm:col-span-2">
+                                <span className="font-semibold text-muted-foreground block text-[10px] uppercase">Remarks</span>
+                                <span className="text-foreground">{selectedAlumni.exit_remarks}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
 
                 {/* TAB 2: CAREER & NETWORKING */}
                 <TabsContent value="career" className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 sm:gap-y-4 text-xs sm:text-sm">
                     {([
                       ['current_company', 'Current Company', 'e.g. Google'],
                       ['job_title', 'Job Title', 'e.g. Software Engineer'],
@@ -620,17 +733,18 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                       ['github_portfolio_url', 'Portfolio / GitHub', 'https://github.com/...'],
                     ] as [keyof AlumniDetail, string, string][]).map(([field, label, placeholder]) => (
                       <div key={field} className={field.includes('url') ? "col-span-1 sm:col-span-2" : "col-span-1"}>
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{label}</p>
+                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">{label}</p>
                         {isEditing ? (
                           <Input
                             placeholder={placeholder}
                             value={(editForm[field] as string) || ''}
                             onChange={(e) => handleEditChange(field, e.target.value)}
+                            className="h-9 text-xs sm:text-sm"
                           />
                         ) : (
-                          <p className="text-gray-800 dark:text-gray-200">
+                          <p className="text-foreground font-medium">
                             {field.includes('url') && selectedAlumni[field] ? (
-                              <a href={selectedAlumni[field] as string} target="_blank" rel="noreferrer" className="text-purple-600 hover:underline">
+                              <a href={selectedAlumni[field] as string} target="_blank" rel="noreferrer" className="text-purple-600 hover:underline break-all">
                                 {selectedAlumni[field] as string}
                               </a>
                             ) : (
@@ -645,7 +759,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
 
                 {/* TAB 3: ACADEMIC LEGACY & HIGHER ED */}
                 <TabsContent value="academic" className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 sm:gap-y-4 text-xs sm:text-sm">
                     {([
                       ['higher_education', 'Further Studies', 'e.g. M.Tech, MS'],
                       ['university_name', 'University Name', 'e.g. Stanford'],
@@ -655,15 +769,16 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                       ['clubs_committees', 'Clubs / Committees', 'e.g. President of Coding Club'],
                     ] as [keyof AlumniDetail, string, string][]).map(([field, label, placeholder]) => (
                       <div key={field} className={['major_projects', 'clubs_committees'].includes(field as string) ? "col-span-1 sm:col-span-2" : "col-span-1"}>
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{label}</p>
+                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">{label}</p>
                         {isEditing ? (
                           <Input
                             placeholder={placeholder}
                             value={(editForm[field] as string) || ''}
                             onChange={(e) => handleEditChange(field, e.target.value)}
+                            className="h-9 text-xs sm:text-sm"
                           />
                         ) : (
-                          <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                          <p className="text-foreground font-medium whitespace-pre-wrap">
                             {(selectedAlumni[field] as string) || 'Not Provided'}
                           </p>
                         )}
@@ -673,7 +788,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                 </TabsContent>
               </Tabs>
             ) : (
-              <p className="text-center text-gray-400 py-6">No data found.</p>
+              <p className="text-center text-muted-foreground py-6 text-sm">No data found.</p>
             )}
           </div>
         </DialogContent>
