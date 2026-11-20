@@ -2989,39 +2989,26 @@ const AlumniExitPage = ({
                 <span className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                   Showing {showingStart} to {showingEnd} of {totalStudents} students
                 </span>
-                <div className="flex items-center flex-wrap justify-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => fetchStudents(currentPage - 1)}
+                    onClick={() => fetchStudents(Math.max(currentPage - 1, 1))}
                     disabled={currentPage <= 1 || isLoading}
-                    className="h-8 px-2.5 text-xs">
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm transition-all shadow-xs disabled:opacity-50">
                     Previous
                   </Button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(p => p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1))
-                    .map((p, idx, arr) => {
-                      const prev = arr[idx - 1];
-                      return (
-                        <div key={p} className="flex items-center">
-                          {prev && p - prev > 1 && <span className="px-1 text-xs text-muted-foreground">...</span>}
-                          <Button
-                            variant={currentPage === p ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => fetchStudents(p)}
-                            disabled={isLoading}
-                            className={`h-8 w-8 p-0 text-xs ${currentPage === p ? 'bg-primary text-primary-foreground font-semibold' : ''}`}>
-                            {p}
-                          </Button>
-                        </div>
-                      );
-                    })}
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className={`text-xs sm:text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {currentPage}
+                    </span>
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => fetchStudents(currentPage + 1)}
+                    onClick={() => fetchStudents(Math.min(currentPage + 1, totalPages))}
                     disabled={currentPage >= totalPages || isLoading}
-                    className="h-8 px-2.5 text-xs">
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm transition-all shadow-xs disabled:opacity-50">
                     Next
                   </Button>
                 </div>
