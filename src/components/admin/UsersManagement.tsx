@@ -520,9 +520,13 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 <span style="color: ${textMuted}; font-weight: 500;">Email:</span>
                 <span style="color: ${textBold}; font-weight: 600;">${email || '—'}</span>
               </div>
-              <div style="display: flex; justify-content: space-between; padding: 3px 0;">
+              <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed ${borderCol};">
                 <span style="color: ${textMuted}; font-weight: 500;">Phone Number:</span>
                 <span style="color: ${textBold}; font-weight: 600;">${phone || '—'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 3px 0;">
+                <span style="color: ${textMuted}; font-weight: 500;">Status:</span>
+                <span style="color: ${editData.status === 'Active' ? '#10b981' : '#ef4444'}; font-weight: 600;">${editData.status || 'Active'}</span>
               </div>
             </div>
           </div>
@@ -547,6 +551,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         const firstName = (editData.first_name || "").trim();
         const lastName = (editData.last_name || "").trim();
         const username = editData.email.trim();
+        const isActive = editData.status === "Active";
         const updates = {
           username,
           email: editData.email.trim(),
@@ -554,7 +559,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           last_name: lastName,
           designation: (editData.designation || "").trim(),
           mobile_number: (editData.mobile || "").trim(),
-          role: editData.role
+          role: editData.role,
+          is_active: isActive
         };
         const response = await manageUserAction({
           user_id: editData.id.toString(),
@@ -595,7 +601,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                     email: editData.email,
                     role: editData.role,
                     designation: editData.designation,
-                    mobile: editData.mobile
+                    mobile: editData.mobile,
+                    status: editData.status || "Active"
                   } :
                   user
               )
@@ -1230,6 +1237,33 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 onChange={handleEditChange}
                 className={`h-9 text-xs ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'}`}
               />
+            </div>
+
+            {/* Status */}
+            <div className="space-y-1.5">
+              <label className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Status</label>
+              <Select
+                value={editData?.status || "Active"}
+                onValueChange={(val) => setEditData(prev => prev ? { ...prev, status: val } : null)}
+              >
+                <SelectTrigger className={`h-9 text-xs ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'}`}>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white'}>
+                  <SelectItem value="Active" className="text-xs">
+                    <span className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      Active
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="Inactive" className="text-xs">
+                    <span className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-rose-500" />
+                      Inactive
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter className="flex flex-row justify-end gap-2 pt-2 border-t border-border/40">

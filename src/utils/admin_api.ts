@@ -636,13 +636,16 @@ method: "GET" | "POST" = "GET")
 
 interface ManageUserActionRequest {
   user_id: string;
-  action: 'edit' | 'deactivate' | 'delete' | 'promote';
+  action: 'edit' | 'deactivate' | 'activate' | 'delete' | 'promote' | 'demote';
   updates?: {
     username?: string;
     email?: string;
     first_name?: string;
     last_name?: string;
     role?: string;
+    designation?: string;
+    mobile_number?: string;
+    is_active?: boolean;
   };
 }
 
@@ -739,13 +742,16 @@ method: "GET" | "POST" = "POST")
 
 interface BulkUserAction {
   user_id: string;
-  action: 'edit' | 'deactivate' | 'delete' | 'promote';
+  action: 'edit' | 'deactivate' | 'activate' | 'delete' | 'promote' | 'demote';
   updates?: {
     username?: string;
     email?: string;
     first_name?: string;
     last_name?: string;
     role?: string;
+    designation?: string;
+    mobile_number?: string;
+    is_active?: boolean;
   };
 }
 
