@@ -23,6 +23,7 @@ import {
   getQuestionPapers,
   getQuestionPaperDetail,
   getStudentsForMarks,
+  getSemesters,
   StudentsForMarksResponse
 } from "../../utils/faculty_api";
 import { getSemesterBootstrap } from "../../utils/hod_api";
@@ -903,6 +904,15 @@ export default function HODIAMarksView() {
               subject_code: sub.subject_code,
               semester_id: String(sub.semester_id)
             }));
+          }
+
+          if (semestersList.length === 0 && d.profile?.branch_id) {
+            try {
+              const semRes = await getSemesters(String(d.profile.branch_id));
+              if (semRes?.success && Array.isArray(semRes.data) && semRes.data.length > 0) {
+                semestersList = semRes.data.map((s) => ({ id: Number(s.id), number: s.number }));
+              }
+            } catch (_) {}
           }
         }
 

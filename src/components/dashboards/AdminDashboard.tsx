@@ -14,6 +14,7 @@ import HODLeavesManagement from "../admin/HODLeavesManagement";
 import UsersManagement from "../admin/UsersManagement";
 import AdminProfile from "../admin/AdminProfile";
 import AdminQPApprovals from "../admin/AdminQPApprovals";
+import AdminIAMarksView from "../admin/AdminIAMarksView";
 import TeacherBranchAssignment from "../admin/TeacherBranchAssignment";
 import StudentBranchTransfer from "../admin/StudentBranchTransfer";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
@@ -237,6 +238,13 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <AdminQPApprovals />
+          </div>);
+
+      case "view-marks":
+      case "upload-marks":
+        return (
+          <div>
+            <AdminIAMarksView />
           </div>);
 
 

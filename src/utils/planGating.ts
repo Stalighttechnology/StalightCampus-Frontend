@@ -47,6 +47,7 @@ export const PAGE_REQUIRED_TIERS: Record<string, number> = {
   'student-study-material': 2,
   'student-assignment': 2,
   'upload-marks': 2,
+  'view-marks': 2,
   'upload-qp': 2,
   'study-materials': 2,
   'proctor-students': 2,
