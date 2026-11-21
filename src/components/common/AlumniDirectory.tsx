@@ -573,7 +573,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                 )}
 
                 {/* Pagination */}
-                {totalPages > 1 && (
+                {totalCount > 0 && (
                   <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 text-xs sm:text-sm text-muted-foreground px-4 sm:px-6 py-3.5 sm:py-4 border-t border-border mt-auto">
                     <div className="text-center sm:text-left">
                       Showing {Math.min((page - 1) * 10 + 1, totalCount)} to {Math.min(page * 10, totalCount)} of {totalCount} alumni
@@ -584,7 +584,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                         size="sm"
                         onClick={() => fetchAlumni(page - 1)}
                         disabled={page === 1 || loadingStudents}
-                        className="bg-primary hover:bg-primary/90 text-white border-primary h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm transition-all shadow-xs">
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm transition-all shadow-xs disabled:opacity-50">
                         Previous
                       </Button>
 
@@ -599,7 +599,7 @@ const AlumniDirectory: React.FC<AlumniDirectoryProps> = ({ userRole, userBranchI
                         size="sm"
                         onClick={() => fetchAlumni(page + 1)}
                         disabled={page === totalPages || loadingStudents}
-                        className="bg-primary hover:bg-primary/90 text-white border-primary h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm transition-all shadow-xs">
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm transition-all shadow-xs disabled:opacity-50">
                         Next
                       </Button>
                     </div>

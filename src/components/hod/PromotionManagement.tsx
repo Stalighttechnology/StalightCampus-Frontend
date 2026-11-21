@@ -1364,34 +1364,36 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
                 </Table>
 
                 {/* Pagination Controls */}
-                {state.totalPages > 1 &&
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
-                    <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                      Showing {Math.min((state.currentPage - 1) * 50 + 1, state.totalStudents)} to {Math.min(state.currentPage * 50, state.totalStudents)} of {state.totalStudents}
+                {state.totalStudents > 0 && (
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6 pt-3 border-t">
+                    <div className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      Showing {state.totalStudents === 0 ? 0 : (state.currentPage - 1) * 50 + 1} to {Math.min(state.currentPage * 50, state.totalStudents)} of {state.totalStudents} students
                     </div>
                     <div className="flex gap-2 items-center justify-center sm:justify-end">
                       <Button
                         onClick={() => handlePageChange(state.currentPage - 1)}
                         disabled={!state.hasPrevious || state.isLoading}
                         variant="outline"
-                        className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
-
-                        Prev
+                        size="sm"
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm transition-all shadow-xs disabled:opacity-50">
+                        Previous
                       </Button>
-                      <span className="px-3 text-base font-medium text-primary">
-                        {state.currentPage}
-                      </span>
+                      <div className="flex items-center justify-center min-w-[2rem]">
+                        <span className={`text-xs sm:text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {state.currentPage}
+                        </span>
+                      </div>
                       <Button
                         onClick={() => handlePageChange(state.currentPage + 1)}
                         disabled={!state.hasNext || state.isLoading}
                         variant="outline"
-                        className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
-
+                        size="sm"
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm transition-all shadow-xs disabled:opacity-50">
                         Next
                       </Button>
                     </div>
                   </div>
-                }
+                )}
               </div>
             ) : (
               <div className="text-center py-10 space-y-2">
@@ -2188,34 +2190,36 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
                 </Table>
 
                 {/* Pagination Controls */}
-                {state.totalPages > 1 &&
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
-                    <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                      Showing {Math.min((state.currentPage - 1) * 50 + 1, state.totalStudents)} to {Math.min(state.currentPage * 50, state.totalStudents)} of {state.totalStudents}
+                {state.totalStudents > 0 && (
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6 pt-3 border-t">
+                    <div className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      Showing {state.totalStudents === 0 ? 0 : (state.currentPage - 1) * 50 + 1} to {Math.min(state.currentPage * 50, state.totalStudents)} of {state.totalStudents} students
                     </div>
                     <div className="flex gap-2 items-center justify-center sm:justify-end">
                       <Button
                         onClick={() => handlePageChange(state.currentPage - 1)}
                         disabled={!state.hasPrevious || state.isLoading}
                         variant="outline"
-                        className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
-
-                        Prev
+                        size="sm"
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm transition-all shadow-xs disabled:opacity-50">
+                        Previous
                       </Button>
-                      <span className="px-3 text-base font-medium text-primary">
-                        {state.currentPage}
-                      </span>
+                      <div className="flex items-center justify-center min-w-[2rem]">
+                        <span className={`text-xs sm:text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {state.currentPage}
+                        </span>
+                      </div>
                       <Button
                         onClick={() => handlePageChange(state.currentPage + 1)}
                         disabled={!state.hasNext || state.isLoading}
                         variant="outline"
-                        className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
-
+                        size="sm"
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm transition-all shadow-xs disabled:opacity-50">
                         Next
                       </Button>
                     </div>
                   </div>
-                }
+                )}
               </div>
             ) : debouncedSearch ? (
               <div className="py-12 text-center space-y-3">
