@@ -942,12 +942,38 @@ const UploadMarks = () => {
       }
     }
 
+    // Safety Check: Check if any marks have been entered at all
+    const hasAnyMarksEntered = students.some((s) => {
+      const studentIdStr = s.id.toString();
+      const studentQuestions = studentMarks[studentIdStr] || {};
+      const hasQMark = Object.values(studentQuestions).some(val => val !== undefined && val !== "" && parseFloat(val) > 0);
+      const hasTotal = s.total && parseFloat(String(s.total)) > 0;
+      return hasQMark || hasTotal;
+    });
+
+    if (!hasAnyMarksEntered) {
+      const confirmEmpty = await MySwal.fire({
+        title: "No Marks Entered!",
+        text: "No new marks entered. Submitting now will save empty marks to the database. Are you sure you want to proceed?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, submit anyway",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#d33",
+      });
+
+      if (!confirmEmpty.isConfirmed) {
+        setSavingMarks(false);
+        return;
+      }
+    }
+
     const confirmSubmit = await MySwal.fire({
-      title: "Are you sure?",
-      text: "Do you want to upload and submit these marks to the database?",
-      icon: "warning",
+      title: "Submit to Database?",
+      text: "Do you want to permanently upload and submit all entered marks to the college database?",
+      icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Yes, Submit",
+      confirmButtonText: "Yes, Submit to Database",
       cancelButtonText: "Cancel",
       customClass: {
         confirmButton: 'bg-primary text-white hover:bg-primary/95',
@@ -2101,7 +2127,7 @@ const UploadMarks = () => {
 
                                           {/* Save locally button */}
                                           <Button
-                                            title={isSaved ? "Marks are saved locally as draft" : "Save marks locally as draft"}
+                                            title={isSaved ? "Marks are saved locally in browser as draft" : "Save marks locally in browser as draft"}
                                             variant="outline"
                                             size="sm"
                                             className={`h-8 px-2 text-xs flex items-center gap-1 border-dashed shrink-0 ${isSaved
@@ -2136,15 +2162,26 @@ const UploadMarks = () => {
 
                                               MySwal.fire({
                                                 title: "Draft Saved Locally!",
-                                                text: `Marks for ${student.name} have been saved locally.`,
+                                                html: `
+                                                  <div style="text-align: left; font-size: 14px; line-height: 1.5; color: #374151;">
+                                                    <p style="margin-bottom: 12px; font-weight: 500; color: #111827;">
+                                                      Marks for <strong>${student.name}</strong> (${student.usn}) have been saved locally in this browser.
+                                                    </p>
+                                                    <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; color: #1e40af; font-size: 13px; line-height: 1.5;">
+                                                      <strong style="display: block; margin-bottom: 4px; color: #1d4ed8;">How Saving Works:</strong>
+                                                      Clicking <strong>"Save Draft"</strong> on a student row keeps your progress safely saved locally in this browser.<br /><br />
+                                                      To permanently save and publish all student marks to the official college database, click <strong>"Submit to Database"</strong> at the bottom.
+                                                    </div>
+                                                  </div>
+                                                `,
                                                 icon: "success",
-                                                timer: 2000,
-                                                showConfirmButton: false,
+                                                confirmButtonText: "Got it",
+                                                confirmButtonColor: "#2563eb",
                                               });
                                             }}
                                           >
                                             {isSaved ? <Check className="h-3 w-3" /> : <Save className="h-3 w-3" />}
-                                            {isSaved ? "Saved" : "Save"}
+                                            {isSaved ? "Draft Saved" : "Save Draft"}
                                           </Button>
                                         </div>);
 
@@ -2223,10 +2260,10 @@ const UploadMarks = () => {
                       {savingMarks ?
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Saving...
+                          Saving to Database...
                         </> :
 
-                        "Save"
+                        "Submit to Database"
                       }
                     </Button>
                   </div>
