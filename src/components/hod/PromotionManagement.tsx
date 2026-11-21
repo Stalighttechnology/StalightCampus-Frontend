@@ -310,7 +310,9 @@ const PromotionOverview = ({ onTabChange, theme, stats }: { onTabChange: (tab: "
               </div>
               <div>
                 <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Student Promotion</CardTitle>
-                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Promote eligible students to next semester</p>
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  {getInstitutionType() === 'school' ? 'Promote eligible students to next class' : 'Promote eligible students to next semester'}
+                </p>
               </div>
             </div>
           </CardHeader>
@@ -341,7 +343,9 @@ const PromotionOverview = ({ onTabChange, theme, stats }: { onTabChange: (tab: "
               </div>
               <div>
                 <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Student Demotion</CardTitle>
-                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Demote students to previous semester</p>
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  {getInstitutionType() === 'school' ? 'Demote students to previous class' : 'Demote students to previous semester'}
+                </p>
               </div>
             </div>
           </CardHeader>
@@ -764,11 +768,12 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
 
   // Check collision and start promotion flow
   const handlePromoteSelectedStudents = async () => {
+    const isSchool = getInstitutionType() === 'school';
     if (!state.selectedSemester || !state.branchId) {
       Swal.fire({
         icon: 'warning',
         title: 'Missing Information',
-        text: 'Please select a semester first.',
+        text: isSchool ? 'Please select a class first.' : 'Please select a semester first.',
         background: theme === 'dark' ? '#0f172a' : '#fff',
         color: theme === 'dark' ? '#fff' : '#000'
       });
@@ -784,7 +789,9 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
       Swal.fire({
         icon: 'error',
         title: 'Promotion Failed',
-        text: `Cannot promote past Semester ${state.totalSemesters}. Please increase the Total Semesters limit in Branch Management first.`,
+        text: isSchool
+          ? `Cannot promote past Class ${state.totalSemesters}. Please increase the Total Classes limit in Branch Management first.`
+          : `Cannot promote past Semester ${state.totalSemesters}. Please increase the Total Semesters limit in Branch Management first.`,
         background: theme === 'dark' ? '#0f172a' : '#fff',
         color: theme === 'dark' ? '#fff' : '#000'
       });
@@ -825,6 +832,7 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
 
   // Main promotion execution logic
   const proceedWithPromotion = async () => {
+    const isSchool = getInstitutionType() === 'school';
     const currentSemesterId = state.semesters.find((s) => `${s.number}th Semester` === state.selectedSemester)?.id;
     const currentSemesterNumber = state.semesters.find((s) => s.id === currentSemesterId)?.number || 0;
     const isGraduation = currentSemesterNumber === state.totalSemesters;
@@ -838,8 +846,12 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
     const confirmRes = await Swal.fire({
       title: 'Are you sure?',
       html: isGraduation ?
-        `You are about to graduate ${studentsToPromote.length} student(s).<br><br><b class="text-red-500">Warning:</b> Once graduated, their current semester attendance and marks will be archived, and their login access will be revoked.` :
-        `You are about to promote ${studentsToPromote.length} student(s) to Semester ${currentSemesterNumber + 1}.<br><br><b class="text-red-500">Warning:</b> Once promoted, their current semester attendance and marks will be archived, and they will be shifted to the next semester.`,
+        (isSchool
+          ? `You are about to graduate ${studentsToPromote.length} student(s).<br><br><b class="text-red-500">Warning:</b> Once graduated, their current class attendance and marks will be archived, and their login access will be revoked.`
+          : `You are about to graduate ${studentsToPromote.length} student(s).<br><br><b class="text-red-500">Warning:</b> Once graduated, their current semester attendance and marks will be archived, and their login access will be revoked.`) :
+        (isSchool
+          ? `You are about to promote ${studentsToPromote.length} student(s) to Class ${currentSemesterNumber + 1}.<br><br><b class="text-red-500">Warning:</b> Once promoted, their current class attendance and marks will be archived, and they will be shifted to the next class.`
+          : `You are about to promote ${studentsToPromote.length} student(s) to Semester ${currentSemesterNumber + 1}.<br><br><b class="text-red-500">Warning:</b> Once promoted, their current semester attendance and marks will be archived, and they will be shifted to the next semester.`),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, proceed',
@@ -975,11 +987,12 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
 
   // Promote all students in selected semester/section
   const promoteAllStudents = async () => {
+    const isSchool = getInstitutionType() === 'school';
     if (!state.selectedSemester || !state.branchId) {
       Swal.fire({
         icon: 'warning',
         title: 'Missing Information',
-        text: 'Please select a semester first.',
+        text: isSchool ? 'Please select a class first.' : 'Please select a semester first.',
         background: theme === 'dark' ? '#0f172a' : '#fff',
         color: theme === 'dark' ? '#fff' : '#000'
       });
@@ -994,7 +1007,9 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
       Swal.fire({
         icon: 'error',
         title: 'Promotion Failed',
-        text: `Cannot promote past Semester ${state.totalSemesters}. Please increase the Total Semesters limit in Branch Management first.`,
+        text: isSchool
+          ? `Cannot promote past Class ${state.totalSemesters}. Please increase the Total Classes limit in Branch Management first.`
+          : `Cannot promote past Semester ${state.totalSemesters}. Please increase the Total Semesters limit in Branch Management first.`,
         background: theme === 'dark' ? '#0f172a' : '#fff',
         color: theme === 'dark' ? '#fff' : '#000'
       });
@@ -1006,7 +1021,9 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
 
     const confirmRes = await Swal.fire({
       title: 'Are you sure?',
-      html: `You are about to promote ALL ${allStudents.length} student(s) in this section to Semester ${nextSemester.number}.<br><br><b class="text-red-500">Warning:</b> Once promoted, their current semester attendance and marks will be archived, and they will be shifted to the next semester.`,
+      html: isSchool
+        ? `You are about to promote ALL ${allStudents.length} student(s) in this section to Class ${nextSemester.number}.<br><br><b class="text-red-500">Warning:</b> Once promoted, their current class attendance and marks will be archived, and they will be shifted to the next class.`
+        : `You are about to promote ALL ${allStudents.length} student(s) in this section to Semester ${nextSemester.number}.<br><br><b class="text-red-500">Warning:</b> Once promoted, their current semester attendance and marks will be archived, and they will be shifted to the next semester.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, proceed',
@@ -1407,7 +1424,9 @@ const PromotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTab
                 No Students to Display
               </h3>
               <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                Please select a batch, semester and section to view students eligible for promotion.
+                {getInstitutionType() === 'school'
+                  ? 'Please select a batch, class and section to view students eligible for promotion.'
+                  : 'Please select a batch, semester and section to view students eligible for promotion.'}
               </p>
             </div>
           </Card>
@@ -1791,7 +1810,9 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
       Swal.fire({
         icon: 'warning',
         title: 'Missing Information',
-        text: 'Please select a semester and provide a reason for demotion first.',
+        text: getInstitutionType() === 'school'
+          ? 'Please select a class and provide a reason for demotion first.'
+          : 'Please select a semester and provide a reason for demotion first.',
         background: theme === 'dark' ? '#0f172a' : '#fff',
         color: theme === 'dark' ? '#fff' : '#000'
       });
@@ -2235,7 +2256,9 @@ const DemotionPage = ({ theme, onTabChange, onSuccess }: { theme: string; onTabC
                 No Students to Display
               </h3>
               <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                Please select a semester, section, and batch to view students eligible for demotion.
+                {getInstitutionType() === 'school'
+                  ? 'Please select a class, section, and batch to view students eligible for demotion.'
+                  : 'Please select a semester, section, and batch to view students eligible for demotion.'}
               </p>
             </div>
           </Card>
