@@ -49,32 +49,32 @@ const MemoizedTableRow = React.memo(({
   theme: string,
   index: number
 }) => {
-  const t1 = tests.find((t) => t.test_number === 1)?.mark ?? null;
-  const t2 = tests.find((t) => t.test_number === 2)?.mark ?? null;
-  const ia1 = tests.find((t) => t.test_number === 3)?.mark ?? null;
-  const ia2 = tests.find((t) => t.test_number === 4)?.mark ?? null;
-  const ia3 = tests.find((t) => t.test_number === 5)?.mark ?? null;
+  const ia1 = tests.find((t) => t.test_number === 1)?.mark ?? null;
+  const ia2 = tests.find((t) => t.test_number === 2)?.mark ?? null;
+  const ia3 = tests.find((t) => t.test_number === 3)?.mark ?? null;
+  const ia4 = tests.find((t) => t.test_number === 4)?.mark ?? null;
+  const ia5 = tests.find((t) => t.test_number === 5)?.mark ?? null;
 
   // Calculate average using memoized calculation
   const avg = useMemoizedCalculation(() => {
-    const availableMarks = [t1, t2, ia1, ia2, ia3].filter(mark => mark !== null && mark !== undefined);
+    const availableMarks = [ia1, ia2, ia3, ia4, ia5].filter((mark): mark is number => mark !== null && mark !== undefined);
     return availableMarks.length > 0
       ? availableMarks.reduce((sum, mark) => sum + mark, 0) / availableMarks.length
-      : 0;
-  }, [t1, t2, ia1, ia2, ia3]);
+      : null;
+  }, [ia1, ia2, ia3, ia4, ia5]);
 
   return (
     <div
       className={`grid grid-cols-7 p-3 text-sm ${theme === 'dark' ? 'text-card-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}`}
     >
       <div>{subject}</div>
-      <div className="text-center">{t1 !== null ? t1 : "-"}</div>
-      <div className="text-center">{t2 !== null ? t2 : "-"}</div>
-      <div className="text-center">{ia1 !== null ? ia1 : "-"}</div>
-      <div className="text-center">{ia2 !== null ? ia2 : "-"}</div>
-      <div className="text-center">{ia3 !== null ? ia3 : "-"}</div>
+      <div className="text-center">{ia1 !== null && ia1 !== undefined ? ia1 : "-"}</div>
+      <div className="text-center">{ia2 !== null && ia2 !== undefined ? ia2 : "-"}</div>
+      <div className="text-center">{ia3 !== null && ia3 !== undefined ? ia3 : "-"}</div>
+      <div className="text-center">{ia4 !== null && ia4 !== undefined ? ia4 : "-"}</div>
+      <div className="text-center">{ia5 !== null && ia5 !== undefined ? ia5 : "-"}</div>
       <div className="text-center font-semibold">
-        {avg > 0 ? avg.toFixed(1) : "-"}
+        {avg !== null && avg !== undefined ? avg.toFixed(1) : "-"}
       </div>
     </div>
   );
@@ -173,16 +173,16 @@ const InternalMarks = () => {
 
   // Pre-calculate all averages to avoid hooks in map
   const subjectAverages = useMemo(() => {
-    const averages: { [subject: string]: number } = {};
+    const averages: { [subject: string]: number | null } = {};
 
     filteredSubjects.forEach(subject => {
       const tests = marksData[subject] || [];
       const iaMarks = [1, 2, 3, 4, 5].map(num => tests.find((t) => t.test_number === num)?.mark ?? null);
 
-      const availableMarks = iaMarks.filter(mark => mark !== null && mark !== undefined);
+      const availableMarks = iaMarks.filter((mark): mark is number => mark !== null && mark !== undefined);
       averages[subject] = availableMarks.length > 0
-        ? availableMarks.reduce((sum, mark) => sum + (mark as number), 0) / availableMarks.length
-        : 0;
+        ? availableMarks.reduce((sum, mark) => sum + mark, 0) / availableMarks.length
+        : null;
     });
 
     return averages;
@@ -499,7 +499,7 @@ const InternalMarks = () => {
                 filteredSubjects.map((subject) => {
                   const tests = marksData[subject] || [];
                   const iaMarks = [1, 2, 3, 4, 5].map(num => tests.find((t) => t.test_number === num)?.mark ?? null);
-                  const avg = subjectAverages[subject] || 0;
+                  const avg = subjectAverages[subject];
 
                   const selectedIAValue = selectedIA === 'all' ? null : parseInt(selectedIA);
                   const selectedIAMark = selectedIAValue ? tests.find((t) => t.test_number === selectedIAValue)?.mark ?? null : null;
@@ -514,15 +514,15 @@ const InternalMarks = () => {
                       {selectedIA === 'all' ? (
                         <>
                           {iaMarks.map((mark, i) => (
-                            <td key={i} className="px-4 py-4 text-center tabular-nums">{mark !== null ? mark : "-"}</td>
+                            <td key={i} className="px-4 py-4 text-center tabular-nums">{mark !== null && mark !== undefined ? mark : "-"}</td>
                           ))}
                         </>
                       ) : (
-                        <td className="px-4 py-4 text-center tabular-nums">{selectedIAMark !== null ? selectedIAMark : "-"}</td>
+                        <td className="px-4 py-4 text-center tabular-nums">{selectedIAMark !== null && selectedIAMark !== undefined ? selectedIAMark : "-"}</td>
                       )}
                       <td className="px-4 py-4 text-center">
                         <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-md font-semibold tabular-nums ${theme === 'dark' ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
-                          {avg > 0 ? avg.toFixed(1) : "-"}
+                          {avg !== null && avg !== undefined ? avg.toFixed(1) : "-"}
                         </span>
                       </td>
                     </tr>
