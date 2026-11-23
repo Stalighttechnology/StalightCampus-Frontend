@@ -290,6 +290,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
         window.location.href = "/"; // Redirect to home
         throw new Error("Failed to refresh token");
       }
+      }
     }
 
     if (response.status === 403) {
