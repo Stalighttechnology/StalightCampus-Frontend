@@ -180,8 +180,36 @@ const WardenGatePassManagement = () => {
 
   /* ── Active tab fetch ── */
   useEffect(() => {
-    if (activeTab === 'active') fetchRequests();
+    if (activeTab === 'active') {
+      fetchRequests();
+      fetchStats();
+    }
   }, [statusFilter, hostelFilter, currentPage, activeTab]);
+
+  const fetchStats = async () => {
+    setStatsLoading(true);
+    try {
+      let url = `${API_ENDPOINT}/hms/student/gate-pass/?stats_only=true`;
+      if (hostelFilter !== 'all') url += `&hostel_id=${hostelFilter}`;
+
+      const response = await fetchWithTokenRefresh(url);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.stats) {
+          setStats({
+            total: data.stats.total || 0,
+            pending: data.stats.pending || 0,
+            approved: data.stats.approved || 0,
+            rejected: data.stats.rejected || 0,
+          });
+        }
+      }
+    } catch {
+      // ignore
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -216,6 +244,7 @@ const WardenGatePassManagement = () => {
       toast({ title: 'Error', description: 'Failed to load gate pass requests.', variant: 'destructive' });
     } finally {
       setLoading(false);
+      setStatsLoading(false);
     }
   };
 
@@ -259,6 +288,7 @@ const WardenGatePassManagement = () => {
         setSelectedRequest(null);
         setActionNote('');
         fetchRequests();
+        fetchStats();
       } else {
         toast({ title: 'Error', description: res.message || 'Action failed.', variant: 'destructive' });
       }

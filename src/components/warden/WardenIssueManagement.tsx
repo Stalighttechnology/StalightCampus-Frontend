@@ -124,8 +124,9 @@ const WardenIssueManagement = () => {
     setStatsLoading(true);
     try {
       const response = await getIssueStats();
-      if (response.success && response.data?.stats) {
-        setStats(response.data.stats);
+      const statsData = response.stats || response.data?.stats;
+      if (response.success && statsData) {
+        setStats(statsData);
       }
     } catch (error) {
       console.error("Error fetching stats:", error);
