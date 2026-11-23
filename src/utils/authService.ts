@@ -131,8 +131,8 @@ export const isTokenExpired = (token: string | null): boolean => {
         .join("")
     );
     const { exp } = JSON.parse(jsonPayload);
-    // Refresh 30 seconds before actual expiration to be safe
-    return Date.now() >= exp * 1000 - 30000;
+    // Refresh 2 minutes before actual expiration to prevent 401s from clock skew
+    return Date.now() >= exp * 1000 - 120000;
   } catch (error) {
     return true;
   }
@@ -162,6 +162,18 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
       }
     }
 
+    // Clean up any invalid or placeholder Authorization header passed in options
+    const rawHeaders = (options.headers as Record<string, string | undefined>) || {};
+    const sanitizedHeaders: Record<string, string | undefined> = { ...rawHeaders };
+    if (
+      sanitizedHeaders.Authorization === "Bearer null" ||
+      sanitizedHeaders.Authorization === "Bearer undefined" ||
+      sanitizedHeaders.Authorization === "Bearer " ||
+      !sanitizedHeaders.Authorization
+    ) {
+      delete sanitizedHeaders.Authorization;
+    }
+
     // Ensure Authorization header is set only when we have a token. Also include session/device identifiers.
     const sessionId = (typeof window !== 'undefined') ? localStorage.getItem('session_id') : undefined;
     const deviceId = getOrCreateDeviceId();
@@ -169,7 +181,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
     const selectedOrgId = (typeof window !== 'undefined') ? localStorage.getItem('selectedOrgId') : undefined;
     
     const safeHeaders = {
-      ...(options.headers as Record<string, string | undefined>),
+      ...sanitizedHeaders,
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(sessionId ? { 'X-Session-Id': sessionId } : {}),
       ...(deviceId ? { 'X-Device-Id': deviceId } : {}),
@@ -199,7 +211,9 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
       }
     }
 
-    if (response.status === 401) {
+    const isRetry = (options as any)._isRetry === true;
+
+    if (response.status === 401 && !isRetry) {
       if (isLoggingOutFlag) {
         // Silently ignore 401s during intentional logout to avoid race conditions
         return response;
@@ -219,6 +233,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
         _inMemoryAccessToken = null;
         localStorage.removeItem("has_session");
         localStorage.removeItem("session_id");
+        localStorage.removeItem(SHARED_TOKEN_KEY);
         stopTokenRefresh();
         
         // Dynamically import SweetAlert to avoid blocking initial load
@@ -237,15 +252,36 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
         throw new Error("Session revoked");
       }
 
+      // Check if a concurrent request already refreshed the token while this request was in flight
+      const latestToken = sessionStorage.getItem("access_token") || _inMemoryAccessToken;
+      const sentToken = accessToken;
+      if (latestToken && sentToken && latestToken !== sentToken && !isTokenExpired(latestToken)) {
+        // Token was already refreshed by another request in parallel.
+        // Retry immediately with the new token without calling refreshToken() again.
+        const retryOptions: RequestInit = {
+          ...options,
+          headers: {
+            ...options.headers,
+            Authorization: `Bearer ${latestToken}`
+          }
+        };
+        (retryOptions as any)._isRetry = true;
+        response = await fetch(url, retryOptions);
+      } else {
+
       const refreshResult = await refreshToken();
       if (refreshResult.success && refreshResult.access) {
         sessionStorage.setItem("access_token", refreshResult.access);
         _inMemoryAccessToken = refreshResult.access;
-        options.headers = {
-          ...options.headers,
-          Authorization: `Bearer ${refreshResult.access}`
-        } as any;
-        response = await fetch(url, options);
+        const retryOptions: RequestInit = {
+          ...options,
+          headers: {
+            ...options.headers,
+            Authorization: `Bearer ${refreshResult.access}`
+          }
+        };
+        (retryOptions as any)._isRetry = true;
+        response = await fetch(url, retryOptions);
       } else {
         sessionStorage.clear();
         _inMemoryAccessToken = null;
@@ -293,50 +329,121 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
   }
 };
 
+// Cross-tab synchronization via BroadcastChannel & synchronous localStorage
+const AUTH_SYNC_CHANNEL = 'stalight_auth_sync';
+const SHARED_TOKEN_KEY = 'auth_latest_access_token';
+let authChannel: BroadcastChannel | null = null;
+try {
+  if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+    authChannel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
+    authChannel.onmessage = (event) => {
+      if (event.data?.type === 'TOKEN_REFRESHED' && event.data.access) {
+        _inMemoryAccessToken = event.data.access;
+        sessionStorage.setItem("access_token", event.data.access);
+      }
+    };
+  }
+} catch {
+  // Gracefully ignore if BroadcastChannel is restricted
+}
+
+const broadcastNewToken = (token: string) => {
+  try {
+    authChannel?.postMessage({ type: 'TOKEN_REFRESHED', access: token });
+  } catch {}
+};
+
 let refreshPromise: Promise<RefreshTokenResponse> | null = null;
 
-// Refresh token function for /api/token/refresh/
+// Core token refresh call to /api/token/refresh/
+const performTokenRefresh = async (): Promise<RefreshTokenResponse> => {
+  try {
+    const response = await fetch(`${API_ENDPOINT}/token/refresh/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include", // Send HttpOnly refresh_token cookie
+      body: JSON.stringify({}), // Body can be empty as token is in cookie
+      signal: AbortSignal.timeout(TOKEN_REFRESH_TIMEOUT)
+    });
+
+    const result: RefreshTokenResponse = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || "Token refresh failed");
+    }
+    if (result.access) {
+      _inMemoryAccessToken = result.access;
+      sessionStorage.setItem("access_token", result.access);
+      try {
+        localStorage.setItem(SHARED_TOKEN_KEY, result.access);
+      } catch {}
+      broadcastNewToken(result.access);
+    }
+    return {
+      success: true,
+      access: result.access,
+      refresh: result.refresh
+    };
+  } catch (error: any) {
+    if (error?.name !== 'AbortError' && error?.message !== 'Failed to fetch') {
+      sessionStorage.clear();
+      _inMemoryAccessToken = null;
+      try {
+        localStorage.removeItem(SHARED_TOKEN_KEY);
+      } catch {}
+      stopTokenRefresh();
+    }
+    return { success: false, message: error.message || "Network error" };
+  }
+};
+
+// Refresh token function for /api/token/refresh/ with both intra-tab and cross-tab concurrency locking
 export const refreshToken = async (): Promise<RefreshTokenResponse> => {
   if (refreshPromise) {
     return refreshPromise;
   }
 
-  refreshPromise = (async () => {
-    try {
-      const response = await fetch(`${API_ENDPOINT}/token/refresh/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include", // Send HttpOnly refresh_token cookie
-        body: JSON.stringify({}), // Body can be empty as token is in cookie
-        signal: AbortSignal.timeout(TOKEN_REFRESH_TIMEOUT)
+  // Cross-tab coordination using Web Locks API when available
+  if (typeof navigator !== 'undefined' && 'locks' in navigator) {
+    refreshPromise = (async () => {
+      return await navigator.locks.request('stalight_auth_refresh_lock', async () => {
+        // 1. Synchronous cross-tab check: Did the previous lock holder publish a fresh token before releasing?
+        try {
+          const sharedToken = localStorage.getItem(SHARED_TOKEN_KEY);
+          if (sharedToken && !isTokenExpired(sharedToken)) {
+            _inMemoryAccessToken = sharedToken;
+            sessionStorage.setItem("access_token", sharedToken);
+            return {
+              success: true,
+              access: sharedToken
+            };
+          }
+        } catch {}
+
+        // 2. Intra-tab check: Did in-memory or sessionStorage update?
+        const currentToken = sessionStorage.getItem("access_token") || _inMemoryAccessToken;
+        if (currentToken && !isTokenExpired(currentToken)) {
+          return {
+            success: true,
+            access: currentToken
+          };
+        }
+
+        // 3. Neither tab refreshed yet; perform the actual network refresh
+        return await performTokenRefresh();
       });
-
-      const result: RefreshTokenResponse = await response.json();
-
-
-      if (!response.ok) {
-        throw new Error(result.message || "Token refresh failed");
-      }
-      if (result.access) {
-        _inMemoryAccessToken = result.access;
-      }
-      return {
-        success: true,
-        access: result.access,
-        refresh: result.refresh
-      };
-    } catch (error: any) {
-
-      sessionStorage.clear();
-      _inMemoryAccessToken = null;
-      stopTokenRefresh();
-      return { success: false, message: error.message || "Network error" };
-    } finally {
+    })().finally(() => {
       refreshPromise = null;
-    }
-  })();
+    });
+    return refreshPromise;
+  }
+
+  // Fallback for single-context or environments without Web Locks API
+  refreshPromise = performTokenRefresh().finally(() => {
+    refreshPromise = null;
+  });
 
   return refreshPromise;
 };
@@ -570,6 +677,7 @@ export const logoutUser = async (): Promise<GenericResponse> => {
     _inMemoryAccessToken = null;
     localStorage.removeItem("has_session");
     localStorage.removeItem("session_id");
+    try { localStorage.removeItem(SHARED_TOKEN_KEY); } catch {}
     // AuthContext will stop its refresh interval after logout.
     if (!response.ok) {
       return { success: true, message: "Logged out successfully (server error ignored)" };
@@ -581,6 +689,7 @@ export const logoutUser = async (): Promise<GenericResponse> => {
     sessionStorage.clear();
     _inMemoryAccessToken = null;
     localStorage.removeItem("has_session");
+    try { localStorage.removeItem(SHARED_TOKEN_KEY); } catch {}
     stopTokenRefresh();
     return { success: true, message: "Logged out successfully (error ignored)" };
   }

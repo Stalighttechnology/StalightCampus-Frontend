@@ -69,10 +69,7 @@ data?: any)
     const isFormData = data instanceof FormData;
     const response = await fetchWithTokenRefresh(url, {
       method,
-      headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-        ...(isFormData ? {} : { "Content-Type": "application/json" })
-      },
+      headers: isFormData ? {} : { "Content-Type": "application/json" },
       body: isFormData ? data : (data ? JSON.stringify(data) : undefined)
     });
 
@@ -279,9 +276,6 @@ export const exportHostelStudentsPdf = async (params: {
   const url = `${API_ENDPOINT}/hms/students/export_pdf/?${queryParams.toString()}`;
   const response = await fetchWithTokenRefresh(url, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-    },
   });
   if (!response.ok) {
     throw new Error("Failed to export hostel students PDF");
@@ -422,9 +416,6 @@ export const exportHostelMenuPdf = async (hostelId: string, dayOfWeek?: string):
   const url = `${API_ENDPOINT}/hms/${endpoint}`;
   const response = await fetchWithTokenRefresh(url, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-    },
   });
   if (!response.ok) {
     throw new Error("Failed to export mess menu PDF");
@@ -576,9 +567,6 @@ export const exportHostelIssuesPdf = async (
   const url = `${API_ENDPOINT}/hms/${endpoint}`;
   const response = await fetchWithTokenRefresh(url, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-    },
   });
   if (!response.ok) {
     throw new Error("Failed to export PDF");
@@ -590,9 +578,6 @@ export const exportSingleIssuePdf = async (issueId: number): Promise<Blob> => {
   const url = `${API_ENDPOINT}/hms/issues/${issueId}/export_issue_pdf/`;
   const response = await fetchWithTokenRefresh(url, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-    },
   });
   if (!response.ok) {
     throw new Error("Failed to export single issue PDF");
@@ -625,9 +610,6 @@ export const exportHmsVisitorLogsPdf = async (search: string = ''): Promise<Blob
   const url = `${API_ENDPOINT}/hms/${endpoint}`;
   const response = await fetchWithTokenRefresh(url, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-    },
   });
   if (!response.ok) {
     throw new Error("Failed to export visitor logs PDF");
@@ -648,7 +630,6 @@ export const manageWardenLeaves = async (
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: method === "POST" && data ? JSON.stringify(data) : undefined
@@ -683,7 +664,6 @@ export const actionGatePass = async (id: number, action: 'approve' | 'reject', n
     const response = await fetchWithTokenRefresh(url, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ action, note })
@@ -779,9 +759,6 @@ export const exportGatePassesPdf = async (status?: string): Promise<Blob> => {
   }
   const response = await fetchWithTokenRefresh(url, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
-    },
   });
   if (!response.ok) {
     throw new Error("Failed to export PDF");
