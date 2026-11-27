@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { getSuperAdminToken, getAuthToken, API_BASE_URL } from '@/utils/config';
+import { getSuperAdminToken, getAuthToken, API_BASE_URL, WS_BASE_URL } from '@/utils/config';
 import { HQChatMessage, HQChatGroup } from '@/utils/hq_chat_api';
 
 interface UseHQChatSocketProps {
@@ -25,10 +25,7 @@ export const useHQChatSocket = ({
         if (!token) token = getAuthToken();
         if (!token) return;
 
-        // Convert http:// to ws:// and https:// to wss://
-        const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss://' : 'ws://';
-        const wsBaseUrl = API_BASE_URL.replace(/^https?:\/\//, wsProtocol);
-        const wsUrl = `${wsBaseUrl}/ws/notifications/hq-chat/?token=${token}`;
+        const wsUrl = `${WS_BASE_URL}/ws/notifications/hq-chat/?token=${token}`;
 
         const ws = new WebSocket(wsUrl);
 

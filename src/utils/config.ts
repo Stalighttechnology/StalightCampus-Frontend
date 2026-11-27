@@ -28,9 +28,19 @@ const getApiBaseUrl = (): string => {
 const API_BASE_URL = getApiBaseUrl().replace(/\/+$/, '');
 const API_ENDPOINT = `${API_BASE_URL}/api`; // Add /api suffix for all API calls
 
+// WebSocket base URL - supports explicit VITE_WS_URL or derives from API_BASE_URL
+const getWsBaseUrl = (): string => {
+  const envWsUrl = import.meta.env.VITE_WS_URL;
+  if (envWsUrl) return envWsUrl.replace(/\/+$/, '');
+  const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss://' : 'ws://';
+  return API_BASE_URL.replace(/^https?:\/\//, wsProtocol);
+};
+
+const WS_BASE_URL = getWsBaseUrl();
+
 const TOKEN_REFRESH_TIMEOUT = 10000; // 10 seconds timeout for token refresh requests
 
-export { API_BASE_URL, API_ENDPOINT, TOKEN_REFRESH_TIMEOUT };
+export { API_BASE_URL, API_ENDPOINT, WS_BASE_URL, TOKEN_REFRESH_TIMEOUT };
 
 // Global configuration settings
 export const APP_CONFIG = {

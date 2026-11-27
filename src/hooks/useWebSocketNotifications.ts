@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL } from '../utils/config';
+import { API_BASE_URL, WS_BASE_URL } from '../utils/config';
 import { isTokenExpired, refreshToken } from '../utils/authService';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -120,10 +120,7 @@ export const useWebSocketNotifications = () => {
             }
             authFailedRef.current = false;
 
-            // Convert http:// to ws:// and https:// to wss://
-            const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss://' : 'ws://';
-            const wsBaseUrl = API_BASE_URL.replace(/^https?:\/\//, wsProtocol);
-            const wsUrl = `${wsBaseUrl}/ws/notifications/?token=${currentToken}`;
+            const wsUrl = `${WS_BASE_URL}/ws/notifications/?token=${currentToken}`;
 
             const ws = new WebSocket(wsUrl);
             wsRef.current = ws;
