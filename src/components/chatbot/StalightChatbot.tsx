@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { StalightLogoAvatar, SiriOrbGlow } from "./ChatIcons";
 import { MessageBubble } from "./MessageBubble";
-import { ChatMessage, ChatbotProps, UICard, SuggestedAction } from "./ChatTypes";
+import { ChatMessage, ChatbotProps, PendingConfirmation, UICard, SuggestedAction } from "./ChatTypes";
+import { resolveCopilotRoute } from "./routeRegistry";
 import { useVoiceAssistant } from "./useVoiceAssistant";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { API_BASE_URL } from "@/utils/config";
@@ -469,15 +470,15 @@ const resolveRoleBasedPath = (role: string, intent: string): string => {
       return "/study-materials";
 
     case "assignments":
-      if (r === "student") return "/student-assignment";
+      if (r === "student" || r === "parent") return "/student-assignment";
       if (r === "faculty" || r === "teacher") return "/faculty/faculty-assignments";
       if (r === "hod") return "/hod/faculty-assignments";
-      return "/assignments";
+      return resolveCopilotRoute("dashboard", r) || "/dashboard";
 
     case "hostel":
       if (r === "student" || r === "parent" || r === "outside_student") return "/student-hostel-details";
       if (r === "warden") return "/warden/residents";
-      if (r === "hms") return "/hms/hostels";
+      if (r === "hms" || r === "hms_admin") return "/hms/hostels";
       return "/student-hostel-details";
 
     case "transport":
@@ -487,55 +488,37 @@ const resolveRoleBasedPath = (role: string, intent: string): string => {
       return "/transportation";
 
     case "library":
-      if (r === "student") return "/library";
+      if (r === "student" || r === "parent") return "/library";
       if (r === "library_admin") return "/library-admin/library-books";
       return "/library";
 
     case "admission":
-      if (r === "admission_manager" || r === "counsellor") return "/admission-manager/admission-enquiries";
-      return "/admission-dashboard";
+      if (r === "admission_manager") return "/admission-manager/admission-enquiries";
+      if (r === "counsellor") return "/counsellor/admission-enquiries";
+      return "/admission-manager";
 
     case "payroll":
-      if (r === "fees_manager") return "/fees-manager/payroll";
-      if (r === "faculty" || r === "teacher") return "/faculty/my-payroll";
-      if (r === "hod") return "/hod/my-payroll";
-      if (r === "transport_admin") return "/transport-admin/my-payroll";
-      if (r === "driver") return "/driver/my-payroll";
-      if (r === "library_admin") return "/library-admin/my-payroll";
-      if (r === "admission_manager") return "/admission-manager/my-payroll";
-      if (r === "warden") return "/warden/my-payroll";
-      if (r === "hms") return "/hms/my-payroll";
-      if (r === "dean") return "/dean/my-payroll";
-      if (r === "coe") return "/coe/my-payroll";
-      if (r === "admin" || r === "principal") return "/admin/my-payroll";
-      if (r === "org_admin") return "/org-admin/my-payroll";
-      return "/my-payroll";
+      return resolveCopilotRoute("payroll", r) || "/dashboard";
 
     case "reimbursements":
       if (r === "hod") return "/hod/reimbursements";
       if (r === "coe") return "/coe/reimbursements";
-      if (r === "hms") return "/hms/reimbursements";
+      if (r === "hms" || r === "hms_admin") return "/hms/reimbursements";
       if (r === "warden") return "/warden/reimbursements";
       if (r === "transport_admin") return "/transport-admin/reimbursements";
       if (r === "driver") return "/driver/reimbursements";
       if (r === "library_admin") return "/library-admin/reimbursements";
+      if (r === "inventory_manager") return "/inventory-manager/reimbursements";
       return "/faculty/reimbursements";
 
     case "calendar":
       return "/holiday-calendar";
 
     case "inventory":
-      if (r === "inventory_manager") return "/inventory-manager/inventory-items";
-      if (r === "hod") return "/hod/inventory";
-      if (r === "admin" || r === "principal" || r === "org_admin" || r === "dean") return "/admin/inventory";
-      return "/inventory";
+      return resolveCopilotRoute("inventory", r) || "/dashboard";
 
     case "profile":
-      if (r === "faculty" || r === "teacher") return "/faculty/faculty-profile";
-      if (r === "hod") return "/hod/hod-profile";
-      if (r === "student") return "/profile";
-      if (r === "field_visitor") return "/field-visitor/profile";
-      return "/profile";
+      return resolveCopilotRoute("profile", r) || "/profile";
 
     default:
       return "/dashboard";
@@ -924,18 +907,23 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
       let reply = "";
       let uiCards: UICard[] = [];
       let suggestedActions: SuggestedAction[] = [];
+      let pendingConfirmation: PendingConfirmation | null = null;
 
       try {
         const copilotRes = await fetchWithTokenRefresh(`${apiBaseUrl}/api/copilot/chat/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text }),
+          body: JSON.stringify({ message: text, session_id: sessionId }),
         });
         if (copilotRes.ok) {
           const copilotData = await copilotRes.json();
           reply = copilotData.response || "";
           uiCards = copilotData.ui_cards || [];
           suggestedActions = copilotData.suggested_actions || [];
+          pendingConfirmation = copilotData.pending_confirmation || null;
+          if (copilotData.session_id) {
+            setSessionId(copilotData.session_id);
+          }
         }
       } catch (copilotErr) {
         console.warn("Copilot endpoint fallback:", copilotErr);
@@ -967,10 +955,12 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
       setIsLoading(false);
       streamBotResponse(reply, botMsgId, botTimestamp, isVoiceTurn);
 
-      if (uiCards.length > 0 || suggestedActions.length > 0) {
+      if (uiCards.length > 0 || suggestedActions.length > 0 || pendingConfirmation) {
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === botMsgId ? { ...m, ui_cards: uiCards, suggested_actions: suggestedActions } : m
+            m.id === botMsgId
+              ? { ...m, ui_cards: uiCards, suggested_actions: suggestedActions, pending_confirmation: pendingConfirmation }
+              : m
           )
         );
       }
@@ -1043,7 +1033,7 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
     <div className="stalight-chatbot-root font-sans text-slate-900">
       {/* Floating Apple-Style Light Frosted Launcher Button */}
       {(!isOpen || isClosing) && (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 transition-all duration-300 ${
+        <div className={`fixed bottom-6 right-6 z-[9990] flex items-center gap-3 transition-all duration-300 ${
           isClosing ? "opacity-100 scale-100" : isOpen ? "opacity-0 pointer-events-none scale-90" : "opacity-100 scale-100"
         }`}>
           {/* Hey Stalight Voice Badge Trigger with Auto-Cycling Gemini Hide & Reveal */}
@@ -1074,7 +1064,7 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
 
       {/* Main Apple Light Glass Window with Smooth Gemini Enter/Exit */}
       {isOpen && (
-        <div className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[420px] h-[600px] max-h-[calc(100vh-3rem)] flex flex-col rounded-[28px] backdrop-blur-3xl bg-white/95 border border-slate-200/90 shadow-[0_25px_80px_rgba(0,0,0,0.12),0_0_30px_rgba(37,99,235,0.08)] overflow-hidden ${
+        <div className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9990] w-[calc(100vw-2rem)] sm:w-[420px] h-[600px] max-h-[calc(100vh-3rem)] flex flex-col rounded-[28px] backdrop-blur-3xl bg-white/95 border border-slate-200/90 shadow-[0_25px_80px_rgba(0,0,0,0.12),0_0_30px_rgba(37,99,235,0.08)] overflow-hidden ${
           isClosing ? "gemini-chat-window-exit" : "gemini-chat-window-enter"
         }`}>
           {/* Apple Light Glass Header */}
@@ -1137,6 +1127,35 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
                 message={msg}
                 onActionClick={(actionText) => handleSendMessage(actionText)}
                 onNavigate={handleDirectNavigation}
+                onConfirmAction={async (pendingActionId, approve) => {
+                  try {
+                    const res = await fetchWithTokenRefresh(`${apiBaseUrl}/api/copilot/confirm/`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ pending_action_id: pendingActionId, confirm: approve }),
+                    });
+                    const data = await res.json();
+                    setMessages((prev) => [
+                      ...prev.map((m) => (m.id === msg.id ? { ...m, pending_confirmation: null } : m)),
+                      {
+                        id: "bot-confirm-" + Date.now(),
+                        sender: "bot",
+                        text: data.response || (approve ? "Action confirmed." : "Action cancelled."),
+                        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                      },
+                    ]);
+                  } catch {
+                    setMessages((prev) => [
+                      ...prev,
+                      {
+                        id: "bot-confirm-err-" + Date.now(),
+                        sender: "bot",
+                        text: "Failed to process confirmation. Please try again.",
+                        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                      },
+                    ]);
+                  }
+                }}
               />
             ))}
 
