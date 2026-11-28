@@ -2,14 +2,16 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { StalightLogoAvatar, UserAvatarIcon } from "./ChatIcons";
 import { ChatMessage } from "./ChatTypes";
+import { resolveCopilotRoute } from "./routeRegistry";
 
 interface MessageBubbleProps {
   message: ChatMessage;
   onActionClick?: (actionText: string) => void;
   onNavigate?: (path: string) => void;
+  onConfirmAction?: (pendingActionId: string, approve: boolean) => void;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionClick, onNavigate }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionClick, onNavigate, onConfirmAction }) => {
   const isBot = message.sender === "bot";
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
@@ -521,19 +523,40 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionC
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
-                            {card.rows.map((row, rIdx) => (
-                              <tr key={rIdx} className={row.status === 'High Risk' ? 'bg-rose-50/70' : ''}>
-                                <td className="py-1 px-1 font-medium">{row.department}</td>
-                                <td className={`py-1 px-1 font-semibold ${row.attendance_risk ? 'text-rose-600' : 'text-emerald-600'}`}>{row.attendance}</td>
-                                <td className="py-1 px-1">{row.outstanding_fees}</td>
-                                <td className="py-1 px-1">{row.pending_marks}</td>
-                                <td className="py-1 px-1">
-                                  <span className={`px-1 py-0.5 rounded text-[8.5px] font-bold ${row.status === 'High Risk' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                    {row.status}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
+                            {card.rows.map((row, rIdx) => {
+                              if (row.department !== undefined) {
+                                return (
+                                  <tr key={rIdx} className={row.status === 'High Risk' ? 'bg-rose-50/70' : ''}>
+                                    <td className="py-1 px-1 font-medium">{row.department}</td>
+                                    <td className={`py-1 px-1 font-semibold ${row.attendance_risk ? 'text-rose-600' : 'text-emerald-600'}`}>{row.attendance}</td>
+                                    <td className="py-1 px-1">{row.outstanding_fees}</td>
+                                    <td className="py-1 px-1">{row.pending_marks}</td>
+                                    <td className="py-1 px-1">
+                                      <span className={`px-1 py-0.5 rounded text-[8.5px] font-bold ${row.status === 'High Risk' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                        {row.status}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                );
+                              }
+                              const cols = card.columns && card.columns.length > 0 ? card.columns : Object.keys(row);
+                              return (
+                                <tr key={rIdx} className="hover:bg-slate-50/80">
+                                  {cols.map((col, colIdx) => {
+                                    const val =
+                                      row[col] ??
+                                      row[col.toLowerCase()] ??
+                                      row[col.toLowerCase().replace(/\s+/g, '_')] ??
+                                      "-";
+                                    return (
+                                      <td key={colIdx} className={`py-1 px-1 ${colIdx === 0 ? 'font-medium text-slate-900' : 'text-slate-700'}`}>
+                                        {String(val)}
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -542,7 +565,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionC
                           {card.actions.map((act, aIdx) => (
                             <button
                               key={aIdx}
-                              onClick={() => act.url && handleInternalNav(act.url)}
+                              onClick={() => {
+                                const role = sessionStorage.getItem("role");
+                                const resolved = act.route_key ? resolveCopilotRoute(act.route_key, role) : null;
+                                const target = resolved || act.url;
+                                if (target) handleInternalNav(target);
+                              }}
                               className="px-2 py-0.5 rounded-full text-[9.5px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
                             >
                               {act.label} →
@@ -568,7 +596,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionC
                         </div>
                       </div>
                       <button
-                        onClick={() => handleInternalNav('/invoices')}
+                        onClick={() => {
+                          const role = sessionStorage.getItem("role");
+                          const target = role === "fees_manager" ? "/fees-manager/invoices" : (role === "org_admin" ? "/org-admin/invoices" : "/fees");
+                          handleInternalNav(target);
+                        }}
                         className="w-full py-1 rounded-lg bg-slate-900 text-white text-[10px] font-bold hover:bg-slate-800"
                       >
                         Open Invoices
@@ -585,9 +617,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionC
                           {card.subtitle && <span className="text-[10px] text-slate-500">{card.subtitle}</span>}
                         </div>
                       </div>
-                      {card.link && (
+                      {(card.link || card.route_key) && (
                         <button
-                          onClick={() => handleInternalNav(card.link)}
+                          onClick={() => {
+                            const role = sessionStorage.getItem("role");
+                            const resolved = card.route_key ? resolveCopilotRoute(card.route_key, role) : null;
+                            const target = resolved || card.link;
+                            if (target) handleInternalNav(target);
+                          }}
                           className="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-[11px] font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
                         >
                           <span>{card.link_text || "Open Page →"}</span>
@@ -598,6 +635,28 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionC
                 }
                 return null;
               })}
+            </div>
+          )}
+
+          {/* Render Two-Step Confirmation Card */}
+          {message.pending_confirmation && onConfirmAction && !message.isStreaming && (
+            <div className="mt-2.5 rounded-xl border border-amber-300 bg-amber-50/90 p-2.5 text-[11px]">
+              <div className="font-bold text-amber-900 mb-1">Confirmation Required</div>
+              <p className="text-amber-800 mb-2">{message.pending_confirmation.summary}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onConfirmAction(message.pending_confirmation!.pending_action_id, true)}
+                  className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold cursor-pointer"
+                >
+                  Confirm
+                </button>
+                <button
+                  onClick={() => onConfirmAction(message.pending_confirmation!.pending_action_id, false)}
+                  className="px-3 py-1 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
 
