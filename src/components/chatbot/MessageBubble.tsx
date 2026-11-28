@@ -214,11 +214,97 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionC
     });
   };
 
-  // Structured message block renderer with natural left-alignment
+  // Structured message block renderer with natural left-alignment and Markdown Table parsing
   const renderFormattedMessage = (rawText: string) => {
-    const lines = rawText.split("\n");
+    const rawLines = rawText.split("\n");
 
-    return lines.map((line, idx) => {
+    // Group lines into blocks (Markdown tables vs regular lines)
+    interface TableBlock {
+      type: "table";
+      headers: string[];
+      rows: string[][];
+    }
+    interface LineBlock {
+      type: "line";
+      text: string;
+      origIdx: number;
+    }
+    type Block = TableBlock | LineBlock;
+
+    const isTableRow = (l: string) => {
+      const t = l.trim();
+      return t.includes("|") && t.split("|").length >= 2;
+    };
+
+    const isTableDelimiter = (l: string) => {
+      const t = l.trim().replace(/^\||\|$/g, "");
+      const parts = t.split("|").map((p) => p.trim());
+      return parts.length >= 2 && parts.every((p) => /^:?-{2,}:?$/.test(p));
+    };
+
+    const parseCells = (rowStr: string) =>
+      rowStr
+        .trim()
+        .replace(/^\||\|$/g, "")
+        .split("|")
+        .map((c) => c.trim());
+
+    const blocks: Block[] = [];
+    let i = 0;
+    while (i < rawLines.length) {
+      const curr = rawLines[i].trim();
+      const next = i + 1 < rawLines.length ? rawLines[i + 1].trim() : "";
+
+      if (isTableRow(curr) && isTableDelimiter(next)) {
+        const headers = parseCells(curr);
+        i += 2; // skip header and delimiter row
+        const rows: string[][] = [];
+        while (i < rawLines.length && isTableRow(rawLines[i])) {
+          rows.push(parseCells(rawLines[i]));
+          i++;
+        }
+        blocks.push({ type: "table", headers, rows });
+      } else {
+        blocks.push({ type: "line", text: rawLines[i], origIdx: i });
+        i++;
+      }
+    }
+
+    return blocks.map((block, bIdx) => {
+      if (block.type === "table") {
+        return (
+          <div key={`tbl-${bIdx}`} className="my-2.5 overflow-x-auto rounded-xl border border-slate-200/90 bg-white shadow-xs">
+            <table className="w-full text-left text-[11px] border-collapse">
+              <thead>
+                <tr className="bg-slate-100/90 border-b border-slate-200 text-slate-800 font-semibold">
+                  {block.headers.map((h, hIdx) => (
+                    <th key={hIdx} className="px-3 py-1.5 whitespace-nowrap">
+                      {parseInlineFormatting(h)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {block.rows.map((row, rIdx) => (
+                  <tr
+                    key={rIdx}
+                    className={rIdx % 2 === 0 ? "bg-white hover:bg-slate-50/80" : "bg-slate-50/50 hover:bg-slate-50"}
+                  >
+                    {row.map((cell, cIdx) => (
+                      <td key={cIdx} className="px-3 py-1.5 text-slate-700">
+                        {parseInlineFormatting(cell)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      const line = block.text;
+      const idx = block.origIdx;
       let trimmed = line.trim();
 
       if (!trimmed) {
@@ -506,7 +592,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onActionC
           {message.ui_cards && message.ui_cards.length > 0 && (
             <div className="mt-2.5 space-y-2.5">
               {message.ui_cards.map((card, cIdx) => {
-                if (card.type === 'table_metric_card' && card.rows) {
+                if ((card.type === 'table_metric_card' || card.type === 'table') && card.rows) {
                   return (
                     <div key={cIdx} className="rounded-xl border border-slate-200 bg-white/95 shadow-sm p-2.5 text-[11px] text-slate-800">
                       <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-slate-100">

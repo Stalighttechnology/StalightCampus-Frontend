@@ -611,9 +611,16 @@ export const StalightChatbot: React.FC<ChatbotProps> = ({
     lang: "en-IN",
   });
 
-  // Auto-navigate background to the user's role-authorized dashboard screen based on topic
+  // Auto-navigate background ONLY if user explicitly requests page navigation (e.g. "go to", "open", "take me to")
   const handleAutoNavigation = useCallback((text: string) => {
-    const lower = text.toLowerCase();
+    const lower = text.toLowerCase().trim();
+
+    // Guard: Only navigate if user explicitly asks to navigate or open a page
+    const isExplicitNav = /\b(go to|open|take me to|navigate to|redirect to|launch|switch to)\b/i.test(lower);
+    if (!isExplicitNav) {
+      return;
+    }
+
     const role = getUserRole();
     let targetPath = "";
 
